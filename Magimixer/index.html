@@ -17,21 +17,23 @@
         }
         .button-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 10px;
             margin-top: 20px;
             justify-content: center;
-            max-width: 600px;
+            max-width: 800px;
+            overflow-x: auto;
         }
         button {
             padding: 10px 20px;
             font-size: 20px;
             cursor: pointer;
-            width: 80px;
+            width: 60px;
             height: 40px;
             border: none;
             border-radius: 5px;
             margin: 5px;
+            flex-shrink: 0;
         }
         button_e {
             padding: 10px 20px;
@@ -105,9 +107,9 @@
     </div>
 
     <script>
-        // 랜덤 숫자 생성 (10부터 60까지 10단위 랜덤, 나머지 5개는 1부터 6까지)
+        // 랜덤 숫자 생성 (10부터 60까지 10단위 랜덤, 나머지 6개는 1부터 6까지)
         const firstButton = [10, 20, 30, 40, 50, 60][Math.floor(Math.random() * 6)];
-        const otherButtons = Array.from({ length: 5 }, () => Math.floor(Math.random() * 6) + 1);
+        const otherButtons = Array.from({ length: 6 }, () => Math.floor(Math.random() * 6) + 1);
         const numberButtons = [firstButton, ...otherButtons];
 
         // 연산 기호들
@@ -134,24 +136,32 @@
 
             // 색상 구분 및 버튼 상태 설정
             if (index < 2) {
-                button.classList.add('primary'); // 첫 번째와 두 번째 버튼
-                button.disabled = true; // 비활성화
+                button.classList.add('primary');
+                button.disabled = true;
             } else {
-                button.classList.add('secondary'); // 세 번째부터 여섯 번째 버튼
+                button.classList.add('secondary');
                 button.addEventListener('click', () => {
                     if (!button.disabled) {
                         currentInput += num;
                         inputDisplay.textContent = `입력: ${currentInput}`;
-                        button.disabled = true; // 한 번 클릭 후 비활성화
-                        button.classList.remove('secondary'); // 색상 변경
-                        button.classList.add('disabled'); // 비활성화 스타일
-                        usedNumbers.add(num); // 사용한 숫자 추가
+                        button.disabled = true;
+                        button.classList.remove('secondary');
+                        button.classList.add('disabled');
+                        usedNumbers.add(num);
+                        
+                        // 모든 활성화된 숫자 버튼을 임시로 비활성화
+                        buttons.forEach((btn, idx) => {
+                            if (idx >= 2 && !btn.disabled) {
+                                btn.disabled = true;
+                                btn.classList.add('temp-disabled');
+                            }
+                        });
                     }
                 });
             }
 
             buttonContainer.appendChild(button);
-            buttons.push(button); // 버튼 배열에 추가
+            buttons.push(button);
         });
 
         // 연산 기호 버튼 생성
@@ -161,6 +171,14 @@
             button.addEventListener('click', () => {
                 currentInput += ' ' + op + ' ';
                 inputDisplay.textContent = `입력: ${currentInput}`;
+                
+                // 임시로 비활성화된 숫자 버튼들을 다시 활성화
+                buttons.forEach(btn => {
+                    if (btn.classList.contains('temp-disabled')) {
+                        btn.disabled = false;
+                        btn.classList.remove('temp-disabled');
+                    }
+                });
             });
             operatorContainer.appendChild(button);
         });
@@ -176,7 +194,7 @@
             
             // 모든 버튼 초기화
             buttons.forEach((btn, index) => {
-                if (index >= 2) { // 3번부터 6번 버튼만
+                if (index >= 2) { // 3번부터 7번 버튼만
                     btn.disabled = false; // 활성화
                     btn.classList.remove('disabled'); // 비활성화 스타일 제거
                     btn.classList.add('secondary'); // 원래 스타일 복원
@@ -196,16 +214,32 @@
                 currentInput = trimmedInput.slice(0, -1); // 숫자 제거
                 inputDisplay.textContent = `입력: ${currentInput}`;
 
-                // 숫자 버튼 활성화
+                // 숫자 버튼 활성화 로직 수정
+                const lastNumber = Number(lastChar);
+                let foundDisabled = false;
+                
+                // 비활성화된 같은 숫자 버튼들 중에서 마지막으로 클릭된 버튼을 찾아 활성화
                 for (let i = buttons.length - 1; i >= 0; i--) {
-                    if (buttons[i].textContent === lastChar && buttons[i].disabled) {
-                        buttons[i].disabled = false;
-                        buttons[i].classList.remove('disabled');
-                        buttons[i].classList.add('secondary');
-                        usedNumbers.delete(Number(lastChar)); // 사용한 숫자 제거
-                        break; // 한 개만 활성화
+                    const btn = buttons[i];
+                    if (Number(btn.textContent) === lastNumber && btn.disabled && 
+                        btn.classList.contains('disabled') && !foundDisabled) {
+                        btn.disabled = false;
+                        btn.classList.remove('disabled');
+                        btn.classList.remove('temp-disabled');
+                        btn.classList.add('secondary');
+                        usedNumbers.delete(lastNumber);
+                        foundDisabled = true;
+                        break;
                     }
                 }
+
+                // 임시로 비활성화된 다른 버튼들 활성화
+                buttons.forEach(btn => {
+                    if (btn.classList.contains('temp-disabled')) {
+                        btn.disabled = false;
+                        btn.classList.remove('temp-disabled');
+                    }
+                });
             } else if (['+', '-', '*', '/', '(', ')', '^'].includes(lastChar)) { // 연산자라면
                 currentInput = trimmedInput.slice(0, -2); // 연산자와 공백 제거
                 inputDisplay.textContent = `입력: ${currentInput}`;
