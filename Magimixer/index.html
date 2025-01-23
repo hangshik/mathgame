@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>랜덤 숫자 계산기</title>
+    <title>매지믹서</title>
     <style>
         body {
             display: flex;
@@ -33,6 +33,17 @@
             border-radius: 5px;
             margin: 5px;
         }
+        button_e {
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            width: 40px;
+            height: 22px;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            background-color: rgb(134, 190, 255);
+        }
         button_new {
             padding: 10px 20px;
             font-size: 20px;
@@ -42,7 +53,7 @@
             border: none;
             border-radius: 5px;
             margin: 5px;
-            background-color: #99ccff;
+            background-color: #eee;
         }
         .primary {
             background-color: #007BFF;
@@ -195,15 +206,14 @@
                         break; // 한 개만 활성화
                     }
                 }
-            } else if (['+', '-', '*', '/', '^'].includes(lastChar)) { // 연산자라면
+            } else if (['+', '-', '*', '/', '(', ')', '^'].includes(lastChar)) { // 연산자라면
                 currentInput = trimmedInput.slice(0, -2); // 연산자와 공백 제거
                 inputDisplay.textContent = `입력: ${currentInput}`;
             }
         });
         operatorContainer.appendChild(backspaceButton);
-
         // 계산하기 버튼
-        const calcButton = document.createElement('button');
+        const calcButton = document.createElement('button_e');
         calcButton.textContent = '=';
         calcButton.addEventListener('click', () => {
             const hasEnabledButton = buttons.some((btn, index) => index >= 2 && !btn.disabled);
@@ -212,14 +222,38 @@
                 resultDisplay.textContent = '결과: 모든 숫자를 사용하세요.';
                 return;
             }
-
             try {
                 const result = eval(currentInput.replace('^', '**'));
                 const primarySum = buttons
                     .filter(btn => btn.classList.contains('primary'))
                     .reduce((sum, btn) => sum + Number(btn.textContent), 0);
                 if (result === primarySum) {
-                    resultDisplay.textContent = `결과: ${result} (정답입니다!)`;
+                    // 정답을 맨 아래에 추가
+                    const answerDiv = document.createElement('div');
+                    answerDiv.style.color = '#007BFF'; // 파란색으로 설정
+                    answerDiv.textContent = `정답: ${currentInput} = ${result}`;
+                    display.appendChild(answerDiv);
+                    
+                    // 결과를 맨 아래에 추가
+                    const resultDiv = document.createElement('div');
+                    resultDiv.style.color = '#007BFF'; // 파란색으로 설정
+                    resultDiv.textContent = `결과: ${result} (정답입니다!)`;
+                    display.appendChild(resultDiv);
+                    
+                    // 입력창 초기화
+                    currentInput = '';
+                    inputDisplay.textContent = '입력: ';
+                    resultDisplay.textContent = '결과: ';
+                    usedNumbers.clear();
+                    
+                    // 버튼 초기화
+                    buttons.forEach((btn, index) => {
+                        if (index >= 2) {
+                            btn.disabled = false;
+                            btn.classList.remove('disabled');
+                            btn.classList.add('secondary');
+                        }
+                    });
                 } else {
                     resultDisplay.textContent = `결과: ${result} (틀렸습니다. 목표값: ${primarySum})`;
                 }
