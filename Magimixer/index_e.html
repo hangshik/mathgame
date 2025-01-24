@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>매지믹서</title>
+    <title>매지믹서(초급)</title>
     <style>
         body {
             display: flex;
@@ -250,22 +250,17 @@
         const calcButton = document.createElement('button_e');
         calcButton.textContent = '=';
         calcButton.addEventListener('click', () => {
-            // 활성화된 숫자 버튼 개수 확인 (첫 두 개의 버튼 제외)
-            const enabledButtons = buttons.filter((btn, index) => 
-                index >= 2 && (!btn.disabled || btn.classList.contains('temp-disabled'))
-            ).length;
+            const hasEnabledButton = buttons.some((btn, index) => index >= 2 && !btn.disabled);
 
-            if (enabledButtons > 0) {
+            if (hasEnabledButton) {
                 resultDisplay.textContent = '결과: 모든 숫자를 사용하세요.';
                 return;
             }
-
             try {
                 const result = eval(currentInput.replace('^', '**'));
                 const primarySum = buttons
                     .filter(btn => btn.classList.contains('primary'))
                     .reduce((sum, btn) => sum + Number(btn.textContent), 0);
-                
                 if (result === primarySum) {
                     // 정답을 맨 아래에 추가
                     const answerDiv = document.createElement('div');
