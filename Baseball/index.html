@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>숫자 야구 게임</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+      font-size: 24px;
+    }
+    .hidden {
+      display: none;
+    }
+    input {
+      margin: 5px;
+      padding: 10px;
+      font-size: 24px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 24px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .result p {
+      margin: 5px 0;
+      font-size: 24px;
+    }
+    select {
+      font-size: 24px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>숫자 야구 게임</h1>
+
+  <label for="digit-count">숫자의 개수를 선택하세요:</label>
+  <select id="digit-count">
+    <option value="3">3개</option>
+    <option value="4">4개</option>
+  </select>
+  <button id="start-game">게임 시작</button>
+
+  <div id="game-area" class="hidden">
+    <p>숫자를 입력하세요:</p>
+    <input id="user-input" type="text" maxlength="4" placeholder="예: 1234">
+    <button id="submit-guess">제출</button>
+    <div class="result" id="result"></div>
+  </div>
+  
+  <script>
+    const startGameButton = document.getElementById('start-game');
+    const digitCountSelect = document.getElementById('digit-count');
+    const gameArea = document.getElementById('game-area');
+    const userInput = document.getElementById('user-input');
+    const submitGuessButton = document.getElementById('submit-guess');
+    const resultDiv = document.getElementById('result');
+
+    let answer = '';
+    // 숫자를 랜덤으로 생성하는 함수
+    function generateRandomNumber(digits) {
+      const numbers = [];
+      // 첫 번째 숫자는 1-9 사이의 숫자로 생성
+      const firstDigit = Math.floor(Math.random() * 9) + 1;
+      numbers.push(firstDigit);
+      
+      // 나머지 숫자들은 0-9 사이에서 생성
+      while (numbers.length < digits) {
+        const randomDigit = Math.floor(Math.random() * 10);
+        if (!numbers.includes(randomDigit)) {
+          numbers.push(randomDigit);
+        }
+      }
+      return numbers.join('');
+    }
+
+    // 게임 시작 버튼 클릭 시
+    startGameButton.addEventListener('click', () => {
+      const digitCount = parseInt(digitCountSelect.value, 10);
+      answer = generateRandomNumber(digitCount);
+      gameArea.classList.remove('hidden');
+      userInput.value = '';
+      resultDiv.innerHTML = '';
+      userInput.maxLength = digitCount;
+      userInput.placeholder = digitCount === 3 ? '예: 123' : '예: 1234';
+    });
+
+    // 입력된 숫자를 확인하는 함수
+    function checkGuess(guess) {
+      let strikes = 0;
+      let balls = 0;
+
+      for (let i = 0; i < guess.length; i++) {
+        if (guess[i] === answer[i]) {
+          strikes++;
+        } else if (answer.includes(guess[i])) {
+          balls++;
+        }
+      }
+
+      return { strikes, balls };
+    }
+
+    // 제출 버튼 클릭 또는 엔터 키 입력 시
+    function handleSubmit() {
+      const guess = userInput.value;
+      if (guess.length !== answer.length || new Set(guess).size !== guess.length) {
+        alert(`중복되지 않는 ${answer.length}자리 숫자를 입력하세요.`);
+        return;
+      }
+
+      const { strikes, balls } = checkGuess(guess);
+
+      const resultText = document.createElement('p');
+      if (strikes === answer.length) {
+        resultText.textContent = `정답입니다! 정답은 ${answer}였습니다.`;
+        resultDiv.appendChild(resultText);
+      } else {
+        resultText.textContent = `${guess}: ${strikes}S ${balls}B`;
+        resultDiv.appendChild(resultText);
+      }
+
+      userInput.value = '';
+    }
+
+    submitGuessButton.addEventListener('click', handleSubmit);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleSubmit();
+      }
+    });
+
+    
+  </script>
+</body>
+</html>
