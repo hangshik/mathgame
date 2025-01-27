@@ -164,7 +164,7 @@
         cell.classList.remove('hidden');
         cell.textContent = number;
         setTimeout(() => {
-          sequenceLength = 5; // 실패시 다시 5개로 초기화
+          sequenceLength = 11; // 실패시 다시 5개로 초기화
           createBoard();
         }, 1000);
         return;
@@ -202,7 +202,7 @@
         sequenceLength++; // 성공시 1개씩 증가
       } else {
         message.textContent = `실패! ${sequenceLength}단계에서 실패하셨습니다. 다시 시도해보세요!`;
-        sequenceLength = 5; // 실패시 다시 5개로 초기화
+        sequenceLength = 11; // 실패시 다시 5개로 초기화
       }
       createBoard();
     }
