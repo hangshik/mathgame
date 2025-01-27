@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>파이 맞추기</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f8f9fa;
+      color: #343a40;
+    }
+    .timer {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #6c757d;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 10px 30px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 50px;
+      background-color: #ffc107;
+      color: #343a40;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #e0a800;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 3rem;
+      font-weight: bold;
+    }
+    .result.success {
+      color: #28a745;
+    }
+    .result.failure {
+      color: #dc3545;
+    }
+    .pi-symbol {
+      font-size: 4rem;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="timer">0.00</div>
+  <button id="start">시작</button>
+  <button id="stop" disabled>멈춤</button>
+  <div class="result"></div>
+  <div style="font-size: 2em">3.14초에 멈추세요.</div>
+  <script>
+    let timer = 0;
+    let interval = null;
+    let isRunning = false;
+    const timerDisplay = document.querySelector('.timer');
+    const resultDisplay = document.querySelector('.result');
+    const startButton = document.getElementById('start');
+    const stopButton = document.getElementById('stop');
+
+    function startTimer() {
+      timer = 0;
+      timerDisplay.textContent = timer.toFixed(2);
+      resultDisplay.textContent = '';
+      resultDisplay.className = 'result';
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      isRunning = true;
+      interval = setInterval(() => {
+        timer += 0.01;
+        timerDisplay.textContent = timer.toFixed(2);
+      }, 10);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      isRunning = false;
+
+      if (timer >= 3.13 && timer <= 3.15) {
+        timerDisplay.textContent = "3.14";
+        resultDisplay.textContent = '성공!';
+        resultDisplay.className = 'result success';
+      } else {
+        resultDisplay.textContent = '실패';
+        resultDisplay.className = 'result failure';
+      }
+    }
+
+    startButton.addEventListener('click', startTimer);
+    stopButton.addEventListener('click', stopTimer);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!isRunning) {
+          startTimer();
+        } else {
+          stopTimer();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
