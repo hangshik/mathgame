@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>슬라이딩 퍼즐</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .input-container {
+            margin-bottom: 20px;
+        }
+        .puzzle-container {
+            display: grid;
+            gap: 5px;
+        }
+        .puzzle-square {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1c78da;;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .empty {
+            background-color: #ccc;
+        }
+        .success-message {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #4CAF50;
+            display: none;
+        }
+        .timer {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .instructions {
+            margin-top: 30px;
+            font-size: 16px;
+            color: #555;
+            text-align: center;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+  <br>
+    <div class="input-container">
+        <label for="rows">가로 개수:</label>
+        <input type="number" id="rows" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
+        <label for="cols">세로 개수:</label>
+        <input type="number" id="cols" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
+        <button onclick="initializePuzzle()">퍼즐 생성</button>
+    </div>
+    <div class="puzzle-container" id="puzzle-container">
+        <!-- Puzzle squares will be generated here -->
+    </div>
+    <div class="success-message" id="success-message"></div>
+    <div class="timer" id="timer">시간: 0.00초</div>
+    <div class="instructions" id="instructions">
+        <h3>게임 방법</h3>
+        <p>
+            1. 퍼즐을 클릭하여 빈 칸과 숫자를 교환합니다.<br>
+            2. 숫자를 순서대로 정렬하여 퍼즐을 완성하세요.<br>
+            3. "퍼즐 생성" 버튼을 눌러 새로운 퍼즐을 시작할 수 있습니다.
+        </p>
+    </div>
+
+    <script>
+        const puzzleContainer = document.getElementById('puzzle-container');
+        const successMessage = document.getElementById('success-message');
+        const timerElement = document.getElementById('timer');
+        let puzzleState = [];
+        let emptyIndex = 0;
+        let rows = 4, cols = 4;
+        let startTime = null;
+        let timerInterval = null;
+
+        // Initialize the puzzle with dynamic rows and columns
+        function initializePuzzle() {
+            rows = parseInt(document.getElementById('rows').value);
+            cols = parseInt(document.getElementById('cols').value);
+            puzzleContainer.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
+            puzzleContainer.style.gridTemplateRows = `repeat(${rows}, 80px)`;
+
+            const totalSquares = rows * cols;
+            puzzleState = Array.from({ length: totalSquares - 1 }, (_, i) => i + 1);
+            puzzleState.push(null); // Empty space
+
+            // Start with a solved puzzle and shuffle it in a solvable way
+            shufflePuzzle();
+
+            renderPuzzle();
+            successMessage.style.display = 'none'; // Hide success message on new puzzle
+            timerElement.textContent = '시간: 0.00초'; // Reset timer
+            timerElement.style.display = 'block'; // Show timer
+            startTime = null; // Reset start time
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Shuffle the puzzle in a solvable way
+        function shufflePuzzle() {
+            // Start with a solved puzzle
+            puzzleState = Array.from({ length: rows * cols - 1 }, (_, i) => i + 1);
+            puzzleState.push(null);
+
+            // Perform random valid moves to shuffle the puzzle
+            const totalMoves = 1000; // Number of random moves to shuffle
+            let emptyIndex = puzzleState.indexOf(null);
+
+            for (let i = 0; i < totalMoves; i++) {
+                const directions = [-cols, cols, -1, 1]; // Up, Down, Left, Right
+                const validMoves = directions.filter(dir => {
+                    const targetIndex = emptyIndex + dir;
+                    return (
+                        targetIndex >= 0 &&
+                        targetIndex < rows * cols &&
+                        !(dir === -1 && emptyIndex % cols === 0) && // Prevent left wrap
+                        !(dir === 1 && emptyIndex % cols === cols - 1) // Prevent right wrap
+                    );
+                });
+
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                const targetIndex = emptyIndex + randomMove;
+
+                // Swap the empty square with the target square
+                [puzzleState[emptyIndex], puzzleState[targetIndex]] = [puzzleState[targetIndex], puzzleState[emptyIndex]];
+                emptyIndex = targetIndex;
+            }
+        }
+
+        // Render the puzzle squares
+        function renderPuzzle() {
+            puzzleContainer.innerHTML = '';
+            puzzleState.forEach((value, index) => {
+                const square = document.createElement('div');
+                square.classList.add('puzzle-square');
+                if (value === null) {
+                    square.classList.add('empty');
+                    square.textContent = '';
+                } else {
+                    square.textContent = value;
+                }
+                square.addEventListener('click', () => handleClick(index));
+                puzzleContainer.appendChild(square);
+            });
+        }
+
+        // Handle click on a puzzle square
+        function handleClick(clickedIndex) {
+            if (startTime === null) {
+                startTime = new Date(); // Start the timer on first click
+                timerInterval = setInterval(updateTimer, 10); // Update every 10ms
+            }
+
+            const directions = [-cols, cols, -1, 1]; // Up, Down, Left, Right
+            for (const dir of directions) {
+                const targetIndex = clickedIndex + dir;
+                if (targetIndex >= 0 && targetIndex < rows * cols && puzzleState[targetIndex] === null) {
+                    if ((dir === -1 && clickedIndex % cols === 0) || (dir === 1 && clickedIndex % cols === cols - 1)) {
+                        continue; // Prevent wrapping around the grid
+                    }
+                    swapSquares(clickedIndex, targetIndex);
+                    break;
+                }
+            }
+            checkForWin();
+        }
+
+        // Swap two squares in the puzzle state
+        function swapSquares(index1, index2) {
+            [puzzleState[index1], puzzleState[index2]] = [puzzleState[index2], puzzleState[index1]];
+            renderPuzzle();
+        }
+
+        // Check if the puzzle is solved
+        function checkForWin() {
+            const isSolved = puzzleState.slice(0, rows * cols - 1).every((value, index) => value === index + 1);
+            if (isSolved && puzzleState[rows * cols - 1] === null) {
+                const elapsedTime = ((new Date() - startTime) / 1000).toFixed(2); // Calculate elapsed time
+                successMessage.textContent = `${elapsedTime}초 만에 성공했습니다.`; // Show success message with time
+                successMessage.style.display = 'block';
+                timerElement.style.display = 'none'; // Hide timer on success
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+        }
+
+        // Update the timer display
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedTime = ((currentTime - startTime) / 1000).toFixed(2); // Calculate elapsed time in seconds with 2 decimal places
+            timerElement.textContent = `시간: ${elapsedTime}초`;
+        }
+
+        // Initialize the puzzle when the page loads
+        initializePuzzle();
+    </script>
+</body>
+</html>
