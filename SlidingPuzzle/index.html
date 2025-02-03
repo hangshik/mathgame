@@ -18,11 +18,12 @@
         }
         .puzzle-container {
             display: grid;
-            gap: 0px;
+            gap: 5px;
+            
         }
         .puzzle-square {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -32,6 +33,7 @@
             cursor: pointer;
             user-select: none;
             border-radius: 5px;
+            gap: 50px;
             
         }
         .empty {
@@ -59,11 +61,11 @@
 </head>
 <body>
     <div class="input-container">
-        <label for="rows">가로 개수:</label>
+        <label for="rows">가로:</label>
         <input type="number" id="cols" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
-        <label for="cols">세로 개수:</label>        
+        <label for="cols">세로:</label>        
         <input type="number" id="rows" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
-        <button onclick="initializePuzzle()">퍼즐 생성</button>
+        <button onclick="initializePuzzle()">시작</button>
     </div>
     <div class="puzzle-container" id="puzzle-container">
         <!-- Puzzle squares will be generated here -->
@@ -93,8 +95,8 @@
         function initializePuzzle() {
             rows = parseInt(document.getElementById('rows').value);
             cols = parseInt(document.getElementById('cols').value);
-            puzzleContainer.style.gridTemplateColumns = `repeat(${cols}, 80px)`;
-            puzzleContainer.style.gridTemplateRows = `repeat(${rows}, 80px)`;
+            puzzleContainer.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+            puzzleContainer.style.gridTemplateRows = `repeat(${rows}, 60px)`;
 
             const totalSquares = rows * cols;
             puzzleState = Array.from({ length: totalSquares - 1 }, (_, i) => i + 1);
