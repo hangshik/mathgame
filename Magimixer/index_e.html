@@ -257,7 +257,10 @@
                 return;
             }
             try {
-                const result = eval(currentInput.replace('^', '**'));
+                // ^ 연산자를 **로 변환하여 올바르게 계산
+                let fixedInput = currentInput.replace(/\^/g, '**');
+                const result = eval(fixedInput);
+                
                 const primarySum = buttons
                     .filter(btn => btn.classList.contains('primary'))
                     .reduce((sum, btn) => sum + Number(btn.textContent), 0);
