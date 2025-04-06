@@ -107,7 +107,6 @@ function resultreset(){
 }
 
 let stop = true;
-
 let hearts = 3; // 하트 개수 초기값
 
 function updateHearts() {
@@ -131,7 +130,6 @@ function clickbt(nn) {
         hearts -= 1;
         updateHearts();
         document.getElementById(nn).style.backgroundColor = "gray"; // 틀린 버튼 비활성화
-        document.getElementById(nn).onclick = null; // 클릭 불가능하게 설정
 
         if (hearts <= 0) {
             result1.textContent = "게임 끝\n[" + count + "번째까지 성공하셨습니다.]";
