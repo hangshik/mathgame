@@ -54,22 +54,29 @@
   <div class="timer">0.00</div>
   <button id="start">시작</button>
   <button id="stop" disabled>멈춤</button>
-  <div class="result"></div>
+  <button id="reButton" onclick="restart()" style="display: none; background-color: #9ec4fd;">다시 시작</button>
+  
   <div style="font-size: 2em">3.14초에 멈추세요.</div>
+  <div class="result"></div>
+  
   <script>
     let timer = 0;
     let interval = null;
     let isRunning = false;
+    let failureCount = 1;
+    let isSuccess = false; // 성공 여부를 저장
+
     const timerDisplay = document.querySelector('.timer');
     const resultDisplay = document.querySelector('.result');
     const startButton = document.getElementById('start');
     const stopButton = document.getElementById('stop');
+    const reButton = document.getElementById('reButton');
 
     function startTimer() {
       timer = 0;
       timerDisplay.textContent = timer.toFixed(2);
-      resultDisplay.textContent = '';
-      resultDisplay.className = 'result';
+      //resultDisplay.textContent = '';
+      //resultDisplay.className = 'result';
       startButton.disabled = true;
       stopButton.disabled = false;
       isRunning = true;
@@ -81,16 +88,22 @@
 
     function stopTimer() {
       clearInterval(interval);
-      startButton.disabled = false;
       stopButton.disabled = true;
       isRunning = false;
 
       if (timer >= 3.08 && timer <= 3.20) {
         timerDisplay.textContent = "3.14";
-        resultDisplay.textContent = '성공!';
+        resultDisplay.textContent = `성공 - ${failureCount}번째`;
         resultDisplay.className = 'result success';
+        reButton.style.display = 'inline-block';
+        isSuccess = true;
+        //startButton.style.display = 'none';
+        //stopButton.style.display = 'none';
+        
       } else {
-        resultDisplay.textContent = '실패';
+        startButton.disabled = false;
+        resultDisplay.textContent = `실패 - ${failureCount}번째`;
+        failureCount +=1;
         resultDisplay.className = 'result failure';
       }
     }
@@ -101,6 +114,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
+        if (isSuccess) return; // 성공 후에는 스페이스바 동작 안 함
         if (!isRunning) {
           startTimer();
         } else {
@@ -108,6 +122,10 @@
         }
       }
     });
+
+    function restart() {
+      location.reload(); // 페이지를 새로고침
+    }
   </script>
 </body>
 </html>
