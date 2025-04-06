@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>약수를 찾아라!</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background: #f0f8ff;
+    }
+    h1 {
+      margin-top: 30px;
+    }
+    #targetNumber {
+      font-size: 2em;
+      margin: 20px;
+    }
+    #buttonsContainer {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .numberButton {
+      padding: 15px;
+      background-color: #e0e0e0;
+      border: none;
+      font-size: 1.2em;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    .numberButton:hover {
+      background-color: #b0c4de;
+    }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    #startButton, #nextButton {
+      margin: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    #nextButton {
+      display: none;
+    }
+    #message {
+      font-size: 1.2em;
+      margin-top: 10px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>약수를 찾아라!</h1>
+  <div id="targetNumber">시작하려면 버튼을 누르세요!</div>
+  <button id="startButton">게임 시작</button>
+  <button id="nextButton">다음 문제</button>
+  <div id="buttonsContainer"></div>
+  <div id="score">점수: 0</div>
+  <div id="message"></div>
+
+  <script>
+    const startButton = document.getElementById("startButton");
+    const nextButton = document.getElementById("nextButton");
+    const targetNumberDisplay = document.getElementById("targetNumber");
+    const buttonsContainer = document.getElementById("buttonsContainer");
+    const scoreDisplay = document.getElementById("score");
+    const messageDisplay = document.getElementById("message");
+
+    let targetNumber = 0;
+    let score = 0;
+    let divisorSet = new Set();
+    let foundDivisors = new Set();
+
+    function isComposite(n) {
+      if (n < 4) return false;
+      for (let i = 2; i <= Math.sqrt(n); i++) {
+        if (n % i === 0) return true;
+      }
+      return false;
+    }
+
+    function getRandomTarget(min = 10, max = 60) {
+      let validTarget, divisors;
+      let isValidComposite;
+
+      do {
+        validTarget = Math.floor(Math.random() * (max - min + 1)) + min;
+        divisors = getDivisors(validTarget);
+        isValidComposite = isComposite(validTarget);
+
+        // 약수 개수가 적당하고, 80% 확률로 합성수를 선택
+      } while (
+        divisors.length < 2 ||
+        divisors.length > 5 ||
+        (Math.random() < 0.8 && !isValidComposite) ||
+        (Math.random() >= 0.8 && isValidComposite)
+      );
+
+      return validTarget;
+    }
+
+    function getDivisors(n) {
+      const divisors = [];
+      for (let i = 1; i <= n; i++) {
+        if (n % i === 0) divisors.push(i);
+      }
+      return divisors;
+    }
+
+    function generateButtons() {
+      buttonsContainer.innerHTML = "";
+
+      const numbers = new Set();
+
+      // 약수 먼저 Set에 추가
+      divisorSet.forEach(num => numbers.add(num));
+
+      // 나머지 숫자를 추가하여 총 20개 만들기
+      while (numbers.size < 20) {
+        numbers.add(Math.floor(Math.random() * 50) + 1);
+      }
+
+      // Set을 배열로 만들고 셔플
+      const numberArray = Array.from(numbers);
+      for (let i = numberArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numberArray[i], numberArray[j]] = [numberArray[j], numberArray[i]];
+      }
+
+      // 버튼 생성
+      numberArray.forEach(num => {
+        const btn = document.createElement("button");
+        btn.className = "numberButton";
+        btn.textContent = num;
+        btn.onclick = () => checkAnswer(num, btn);
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    function disableAllButtons() {
+      const allButtons = document.querySelectorAll(".numberButton");
+      allButtons.forEach(btn => btn.classList.add("disabled"));
+    }
+
+    function checkAnswer(num, button) {
+      if (divisorSet.has(num)) {
+        if (!foundDivisors.has(num)) {
+          button.style.backgroundColor = "#90ee90";
+          score += 10;
+          foundDivisors.add(num);
+        }
+      } else {
+        button.style.backgroundColor = "#ff7f7f";
+        score -= 5;
+      }
+
+      scoreDisplay.textContent = `점수: ${score}`;
+
+      if (foundDivisors.size === divisorSet.size) {
+        disableAllButtons();
+        messageDisplay.textContent = "약수를 모두 찾았습니다!";
+        nextButton.style.display = "inline-block";
+      }
+    }
+
+    function startRound() {
+      nextButton.style.display = "none";
+      messageDisplay.textContent = "";
+      targetNumber = getRandomTarget();
+      const divisors = getDivisors(targetNumber);
+      divisorSet = new Set(divisors);
+      foundDivisors = new Set();
+      targetNumberDisplay.textContent = `다음 수의 약수를 클릭하세요: ${targetNumber}`;
+      generateButtons();
+    }
+
+    startButton.onclick = () => {
+      score = 0;
+      scoreDisplay.textContent = `점수: ${score}`;
+      messageDisplay.textContent = "";
+      startRound();
+    };
+
+    nextButton.onclick = () => {
+      startRound();
+    };
+  </script>
+</body>
+</html>
