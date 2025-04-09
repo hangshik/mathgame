@@ -60,6 +60,12 @@ div {
     <br><center>
     <button id="reloadButton" style="font-size:20px"> 다시 시작 </button><br><br>
     <script>
+
+        // 마우스 오른쪽 버튼 클릭 금지
+        document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        });
+
         // JavaScript 코드를 HTML 파일 내부에 작성
         document.getElementById('reloadButton').addEventListener('click', function() {
             window.location.reload(); // 페이지를 다시 불러오는 명령어
