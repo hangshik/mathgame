@@ -82,6 +82,11 @@
     </div>
 
     <script>
+        // 마우스 오른쪽 버튼 클릭 금지
+        document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        });
+
         const puzzleContainer = document.getElementById('puzzle-container');
         const successMessage = document.getElementById('success-message');
         const timerElement = document.getElementById('timer');

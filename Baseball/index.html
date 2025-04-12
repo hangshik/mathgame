@@ -75,6 +75,11 @@
   </div>
   
   <script>
+    // 마우스 오른쪽 버튼 클릭 금지
+    document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    });
+
     const startGameButton = document.getElementById('start-game');
     const digitCountSelect = document.getElementById('digit-count');
     const gameArea = document.getElementById('game-area');
