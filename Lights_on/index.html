@@ -21,8 +21,8 @@
 
     .circle {
       position: absolute;
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       background-color: #3498db;
       border-radius: 50%;
       display: flex;
@@ -59,7 +59,7 @@
   <br>
   <button onclick="main()" style="font-size:20px"> 시작 </button>
   <hr style="width:98%; border-color:#9a9a9a;">
-  <div class="circle-container" id="circle-container"></div><br><br><br><br><br><br><br><br>
+  <div class="circle-container" id="circle-container"></div><br><br><br><br><br>
   <div id="result" style="font-size:30px">
     1. 게임의 목표는 모든 버튼을 켜는 것입니다.<br>
     2. 버튼은 누르면 해당 버튼의 상태가 바뀌고, 인접한 두 버튼의 상태도 바뀝니다.
@@ -72,7 +72,7 @@
 
     const container = document.getElementById("circle-container");
     const numCircles = 7; // 원 개수
-    const radius = 180;   // 원형의 반지름
+    const radius = 150;   // 원형의 반지름
     const startAngle = -Math.PI / 2; // 12시 방향
 
     // 원 생성
@@ -83,7 +83,7 @@
 
       const circle = document.createElement("div");
       circle.className = "circle";
-      circle.style.transform = `translate(${x + 110}px, ${y + 200}px)`; // 위치 조정
+      circle.style.transform = `translate(${x + 115}px, ${y + 170}px)`; // 위치 조정
       circle.textContent = i + 1; // 번호 표시
       circle.dataset.index = i; // 인덱스 저장
       container.appendChild(circle);
