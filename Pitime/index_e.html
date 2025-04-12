@@ -60,6 +60,11 @@
   <div class="result"></div>
   
   <script>
+    // 마우스 오른쪽 버튼 클릭 금지
+    document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    });
+
     let timer = 0;
     let interval = null;
     let isRunning = false;
