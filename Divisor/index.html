@@ -69,6 +69,11 @@
   <div id="message"></div>
 
   <script>
+    // 마우스 오른쪽 버튼 클릭 금지
+    document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    });
+
     const startButton = document.getElementById("startButton");
     const nextButton = document.getElementById("nextButton");
     const targetNumberDisplay = document.getElementById("targetNumber");
