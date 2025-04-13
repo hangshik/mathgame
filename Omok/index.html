@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>좌표 오목 게임</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+    #container {
+      display: flex;
+      align-items: flex-start;
+    }
+    canvas {
+      border: 2px solid #333;
+      background-color: #f0d9b5;
+      margin: 0 10px;
+    }
+    .player {
+      width: 150px;
+      text-align: center;
+    }
+    .active-turn {
+      border-top: 10px solid blue;
+      padding-top: 6px;
+    }
+    input {
+      width: 40px;
+      margin: 2px;
+      text-align: center;
+    }
+    button {
+      margin-top: 8px;
+    }
+    .coord-controls {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .coord-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .coord-group button {
+      width: 40px;
+      padding: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="black-player" class="player">
+      <div id="black-turn" class="active-turn">흑</div>
+      <input id="bx" type="number" min="-9" max="9" value="0">
+      <input id="by" type="number" min="-9" max="9" value="0">
+      <div class="coord-controls">
+        <div class="coord-group">
+          <button onclick="adjust('bx', 1)">▲</button>
+          <button onclick="adjust('bx', -1)">▼</button>
+        </div>
+        <div class="coord-group">
+          <button onclick="adjust('by', 1)">▲</button>
+          <button onclick="adjust('by', -1)">▼</button>
+        </div>
+      </div>
+      <button onclick="placeStone('black')">놓기</button>
+      <button id="undo-white" onclick="undo()" style="display:none">무르기</button>
+    </div>
+
+    <canvas id="board" width="640" height="640"></canvas>
+
+    <div id="white-player" class="player">
+      <div id="white-turn">백</div>
+      <input id="wx" type="number" min="-9" max="9" value="0">
+      <input id="wy" type="number" min="-9" max="9" value="0">
+      <div class="coord-controls">
+        <div class="coord-group">
+          <button onclick="adjust('wx', 1)">▲</button>
+          <button onclick="adjust('wx', -1)">▼</button>
+        </div>
+        <div class="coord-group">
+          <button onclick="adjust('wy', 1)">▲</button>
+          <button onclick="adjust('wy', -1)">▼</button>
+        </div>
+      </div>
+      <button onclick="placeStone('white')">놓기</button>
+      <button id="undo-black" onclick="undo()" style="display:none">무르기</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const size = 19;
+    const cellSize = 30;
+    const offset = 50;
+
+    const board = Array.from({ length: size }, () => Array(size).fill(null));
+    let turn = "black";
+    let history = [];
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < size; i++) {
+        const pos = offset + i * cellSize;
+        ctx.beginPath();
+        ctx.lineWidth = (i === 9) ? 2.5 : 1;
+        ctx.moveTo(offset, pos);
+        ctx.lineTo(offset + cellSize * (size - 1), pos);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(pos, offset);
+        ctx.lineTo(pos, offset + cellSize * (size - 1));
+        ctx.stroke();
+      }
+
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i < size; i++) {
+        const label = i - 9;
+        const pos = offset + i * cellSize;
+        ctx.fillText(label, pos, offset - cellSize * 0.6);
+        const reverseLabel = 9 - i;
+        ctx.fillText(reverseLabel, offset - cellSize * 0.6, pos);
+      }
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (board[y][x]) drawStone(x, y, board[y][x]);
+        }
+      }
+
+      updateUI();
+    }
+
+    function drawStone(x, y, color) {
+      const cx = offset + x * cellSize;
+      const cy = offset + y * cellSize;
+      ctx.beginPath();
+      ctx.arc(cx, cy, cellSize / 2.5, 0, 2 * Math.PI);
+      ctx.fillStyle = color === "black" ? "black" : "white";
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function placeStone(player) {
+      if (turn !== player) return;
+      const xInput = document.getElementById(player === "black" ? "bx" : "wx");
+      const yInput = document.getElementById(player === "black" ? "by" : "wy");
+
+      const x = parseInt(xInput.value);
+      const y = parseInt(yInput.value);
+      if (isNaN(x) || isNaN(y) || x < -9 || x > 9 || y < -9 || y > 9) return;
+
+      const boardX = x + 9;
+      const boardY = 9 - y;
+
+      if (board[boardY][boardX]) return;
+
+      board[boardY][boardX] = player;
+      history.push({ x: boardX, y: boardY });
+      if (checkWin(boardX, boardY, player)) {
+        setTimeout(() => alert(`${player === "black" ? "흑" : "백"} 승리!`), 10);
+        return;
+      }
+
+      turn = turn === "black" ? "white" : "black";
+      drawBoard();
+    }
+
+    function checkWin(x, y, player) {
+      const directions = [
+        [1, 0], [0, 1], [1, 1], [1, -1]
+      ];
+
+      for (const [dx, dy] of directions) {
+        let count = 1;
+        for (let i = 1; i < 5; i++) {
+          const nx = x + dx * i;
+          const ny = y + dy * i;
+          if (board[ny]?.[nx] === player) count++;
+          else break;
+        }
+        for (let i = 1; i < 5; i++) {
+          const nx = x - dx * i;
+          const ny = y - dy * i;
+          if (board[ny]?.[nx] === player) count++;
+          else break;
+        }
+        if (count >= 5) return true;
+      }
+      return false;
+    }
+
+    function undo() {
+      const last = history.pop();
+      if (last) {
+        board[last.y][last.x] = null;
+        turn = turn === "black" ? "white" : "black";
+        drawBoard();
+      }
+    }
+
+    function updateUI() {
+      document.getElementById("black-turn").classList.toggle("active-turn", turn === "black");
+      document.getElementById("white-turn").classList.toggle("active-turn", turn === "white");
+      document.getElementById("undo-white").style.display = turn === "black" ? "inline-block" : "none";
+      document.getElementById("undo-black").style.display = turn === "white" ? "inline-block" : "none";
+    }
+
+    function adjust(id, delta) {
+      const input = document.getElementById(id);
+      let value = parseInt(input.value);
+      if (isNaN(value)) value = 0;
+      value += delta;
+      if (value > 9) value = 9;
+      if (value < -9) value = -9;
+      input.value = value;
+    }
+
+    drawBoard();
+  </script>
+</body>
+</html>
