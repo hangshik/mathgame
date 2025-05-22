@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>타이머</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    #timeDisplay {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      height: 70px;
+    }
+
+    #startPauseButton.running {
+      background-color: #f44336;
+    }
+
+    #startPauseButton {
+      background-color: #4CAF50;
+      color: white;
+      width: 200px;
+    }
+
+    #resetButton {
+      background-color: #555;
+      color: white;
+      width: 100px;
+    }
+
+    select {
+      font-size: 20px;
+      padding: 5px 10px;
+    }
+
+    label {
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="timeDisplay">00:00</div>
+
+  <div>
+    <label for="minutes">분:</label>
+    <select id="minutes">
+      <option value="0">0</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+
+    <label for="tens">10초:</label>
+    <select id="tens">
+      <option value="0">0</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="40">40</option>
+      <option value="50">50</option>
+    </select>
+
+    <label for="ones">1초:</label>
+    <select id="ones">
+      <option value="0">0</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+    </select>
+  </div>
+
+  <br>
+
+  <button id="startPauseButton" class="button">시작</button>
+  <button id="resetButton" class="button">리셋</button>
+
+  <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+
+  <script>
+    const timeDisplay = document.getElementById('timeDisplay');
+    const minutesSelect = document.getElementById('minutes');
+    const tensSelect = document.getElementById('tens');
+    const onesSelect = document.getElementById('ones');
+    const startPauseButton = document.getElementById('startPauseButton');
+    const resetButton = document.getElementById('resetButton');
+    const alarmSound = document.getElementById('alarmSound');
+
+    let timer = null;
+    let remainingTime = 0;
+    let isRunning = false;
+    let alarmRepeatCount = 0;
+    let alarmPlaying = false;
+
+    function updateDisplay() {
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function getSelectedTime() {
+      const minutes = parseInt(minutesSelect.value, 10);
+      const tens = parseInt(tensSelect.value, 10);
+      const ones = parseInt(onesSelect.value, 10);
+      return minutes * 60 + tens + ones;
+    }
+
+    function playAlarmNTimes(n) {
+      alarmRepeatCount = 0;
+      alarmPlaying = true;
+
+      // 중복 방지: 이전 onended 제거
+      alarmSound.onended = null;
+
+      function playOnce() {
+        if (alarmRepeatCount < n && alarmPlaying) {
+          alarmSound.currentTime = 0;
+          alarmSound.play();
+        } else {
+          alarmPlaying = false;
+          alarmSound.onended = null; // 완료 후 정리
+        }
+      }
+
+      alarmSound.onended = () => {
+        alarmRepeatCount++;
+        playOnce();
+      };
+
+      playOnce();
+    }
+
+    function stopAlarm() {
+      alarmSound.pause();
+      alarmSound.currentTime = 0;
+      alarmPlaying = false;
+      alarmRepeatCount = 0;
+      alarmSound.onended = null;
+    }
+
+    function startTimer() {
+      if (remainingTime <= 0) {
+        remainingTime = getSelectedTime();
+        if (remainingTime <= 0) return;
+      }
+
+      isRunning = true;
+      startPauseButton.textContent = '일시정지';
+      startPauseButton.classList.add('running');
+
+      timer = setInterval(() => {
+        remainingTime--;
+        updateDisplay();
+
+        if (remainingTime <= 0) {
+          clearInterval(timer);
+          timer = null;
+          isRunning = false;
+          startPauseButton.textContent = '시작';
+          startPauseButton.classList.remove('running');
+          playAlarmNTimes(3);  // ✅ 정확히 3번 알람
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        isRunning = false;
+        startPauseButton.textContent = '재시작';
+        startPauseButton.classList.remove('running');
+      }
+    }
+
+    function resetTimer() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+
+      stopAlarm(); // ✅ 알람 중지
+
+      isRunning = false;
+      remainingTime = getSelectedTime();  // 새 시간 반영
+      updateDisplay();
+      startPauseButton.textContent = '시작';
+      startPauseButton.classList.remove('running');
+    }
+
+    startPauseButton.addEventListener('click', () => {
+      if (!isRunning && remainingTime === 0) {
+        remainingTime = getSelectedTime();
+        updateDisplay();
+        startTimer();
+      } else if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    resetButton.addEventListener('click', resetTimer);
+
+    [minutesSelect, tensSelect, onesSelect].forEach(select => {
+      select.addEventListener('change', () => {
+        if (!isRunning && !timer) {
+          remainingTime = getSelectedTime();
+          updateDisplay();
+        }
+      });
+    });
+
+    // 초기 표시
+    remainingTime = getSelectedTime();
+    updateDisplay();
+  </script>
+</body>
+</html>
