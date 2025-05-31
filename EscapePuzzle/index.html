@@ -6,40 +6,45 @@
   <title>태국 탈출 퍼즐</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Noto Sans KR', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      background-color: #ffffff;
+      background-color: #f8f9fa;
       margin: 0;
-      padding: 20px;
+      padding: 30px;
+      color: #333;
     }
+
     .controls {
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
+
     .move-counter {
-      margin-bottom: 10px;
-      font-weight: bold;
-      font-size: 24px;
+      margin: 15px 0;
+      font-weight: 600;
+      font-size: 22px;
+      color: #495057;
     }
+
     .puzzle-container {
       display: grid;
       grid-template-columns: repeat(4, 60px);
       grid-template-rows: repeat(5, 60px);
       gap: 0;
       position: relative;
-      border: 12px solid #f3e075;
+      border: 12px solid #767677;
+      border-radius: 8px;
     }
 
-    /* 아래 테두리1/2 덮기 */
     .puzzle-container::after {
       content: "";
       position: absolute;
-      bottom: -12px; /* border 두께만큼 내려감 */
-      left: 25%;     /* 1/4부터 시작 */
+      bottom: -12px;
+      left: 25%;
       width: 50%;
-      height: 12px;  /* border 두께 */
-      background-color: white;
+      height: 12px;
+      background-color: #ffffff;
       z-index: 1;
     }
     
@@ -50,8 +55,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-size: 60px 60px;
-      background-color: #ddd;
+      background-color: #ffffff;
       pointer-events: none;
       z-index: 0;
     }
@@ -60,37 +64,31 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #e6d8fc;
-      border: 1px solid purple;
+      border: 2px solid #ffffff;
       z-index: 1;
       box-sizing: border-box;
-      transition: left 0.2s, top 0.2s;
-      border-radius: 3px; /* 블록 모서리 둥글게 */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 블록에 그림자 효과 추가 */
+      transition: all 0.2s ease;
+      border-radius: 6px;
     }
-    .one-one::before,
-    .one-two::before,
-    .two-one::before,
-    .two-two::before {
-      content: "";
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background-color: red;
-      border: 2px solid rgba(0,0,0,0.2); /* 원에 테두리 추가 */
-      box-shadow: inset 0 0 5px rgba(0,0,0,0.2); /* 원에 내부 그림자 추가 */
+
+    .one-one {
+      background-color: #ffd93d;  /* 노란색 */
     }
-    .one-two::before,
-    .two-one::before {
-      background-color: yellow;
+
+    .one-two,
+    .two-one {
+      background-color: #4dabf7;  /* 파란색 */
     }
-    .two-two::before {
-      background-color: green;
+
+    .two-two {
+      background-color: #ff6b6b;  /* 빨간색 */
     }
+
     .one-one { width: 60px; height: 60px; }
     .one-two { width: 60px; height: 120px; }
     .two-one { width: 120px; height: 60px; }
     .two-two { width: 120px; height: 120px; }
+
     .hole {
       width: 60px;
       height: 60px;
@@ -99,36 +97,41 @@
       z-index: 0;
       border: none;
     }
+
     .hole::before { content: none; }
+
     #exit-label {
-      margin-top: 5px;
-      font-size: 24px;
-      color: #444444;
+      margin-top: 8px;
+      font-size: 22px;
+      color: #ff0000;
+      font-weight: 500;
     }
+
     #success {
       margin-top: 20px;
-      font-size: 36px;
-      color: #4CAF50;
+      font-size: 32px;
+      color: #40c057;
+      font-weight: 600;
       display: none;
     }
 
     .stage-button {
-      font-size: 20px;
-      margin: 5px;
-      padding: 10px 20px;
+      font-size: 18px;
+      margin: 4px;
+      padding: 8px 16px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      background-color: #ddd;
-    }
-
-    .stage-button:hover {
-      background-color: #bbb;
+      background-color: #e9ecef;
+      color: #495057;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .active {
-      background-color: #3399FF;
+      background-color: #339af0;
       color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
   </style>
 </head>
@@ -147,7 +150,7 @@
   <br>
   <div class="move-counter">이동 횟수: <span id="moveCount">0</span></div>
   <div class="puzzle-container" id="puzzle"></div>
-  <div id="exit-label">⬇ <strong>탈출구</strong></div>
+  <div id="exit-label">⬇ <strong>탈출</strong></div>
   <div id="success">성공!</div>
 
   <div class="controls">
