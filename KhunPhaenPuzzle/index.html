@@ -271,19 +271,22 @@
       for (const block of blocks) {
         const div = document.createElement("div");
         div.className = `block ${block.type}`;
-        div.style.left = `${block.x * cellSize}px`;
-        div.style.top = `${block.y * cellSize}px`;
-        div.style.width = `${block.w * cellSize}px`;
-        div.style.height = `${block.h * cellSize}px`;
+        div.style.left = `${block.x * cellSize + 2}px`;
+        div.style.top = `${block.y * cellSize + 2}px`;
+        div.style.width = `${block.w * cellSize - 2}px`;
+        div.style.height = `${block.h * cellSize - 2}px`;
         div.setAttribute("id", block.id);
+        div.style.transition = 'all 0.2s ease-out';
         puzzle.appendChild(div);
 
         let originX, originY;
         let isDragging = false;
-        let currentTempX = block.x;
-        let currentTempY = block.y;
         let lastValidX = block.x;
         let lastValidY = block.y;
+        let lastMoveTime = 0;
+        let ghostDiv = null;
+        const moveThreshold = 50; // 이동 감지 최소 거리 (픽셀)
+        const timeThreshold = 50; // 이동 감지 최소 시간 (밀리초)
 
         function handleStart(e) {
           e.preventDefault();
@@ -294,17 +297,29 @@
           
           originX = clientX;
           originY = clientY;
-          currentTempX = block.x;
-          currentTempY = block.y;
           lastValidX = block.x;
           lastValidY = block.y;
+          lastMoveTime = Date.now();
           
           div.style.transition = 'none';
           div.style.zIndex = '1000';
+
+          // 고스트 블록 생성
+          ghostDiv = document.createElement("div");
+          ghostDiv.className = `block ${block.type} ghost`;
+          ghostDiv.style.width = `${block.w * cellSize - 2}px`;
+          ghostDiv.style.height = `${block.h * cellSize - 2}px`;
+          ghostDiv.style.opacity = '0.5';
+          ghostDiv.style.left = `${block.x * cellSize + 2}px`;
+          ghostDiv.style.top = `${block.y * cellSize + 2}px`;
+          puzzle.appendChild(ghostDiv);
         }
 
         function handleMove(e) {
           if (!isDragging) return;
+          
+          const currentTime = Date.now();
+          if (currentTime - lastMoveTime < timeThreshold) return;
           
           const clientX = e.clientX || e.touches[0].clientX;
           const clientY = e.clientY || e.touches[0].clientY;
@@ -312,25 +327,30 @@
           const movedX = clientX - originX;
           const movedY = clientY - originY;
 
+          // 최소 이동 거리 체크
+          if (Math.abs(movedX) < moveThreshold && Math.abs(movedY) < moveThreshold) return;
+
           let tempX = lastValidX;
           let tempY = lastValidY;
-
+          // 모든 블록을 상하좌우로 이동 가능하도록 수정
           if (Math.abs(movedX) > Math.abs(movedY)) {
-            tempX = lastValidX + Math.round(movedX / cellSize);
+            tempX = lastValidX + (movedX > 0 ? 1 : -1);
+            tempY = lastValidY;
           } else {
-            tempY = lastValidY + Math.round(movedY / cellSize);
+            tempX = lastValidX;
+            tempY = lastValidY + (movedY > 0 ? 1 : -1);
           }
 
           if (canMove(block, tempX, tempY)) {
-            currentTempX = tempX;
-            currentTempY = tempY;
             lastValidX = tempX;
             lastValidY = tempY;
-            div.style.left = `${tempX * cellSize}px`;
-            div.style.top = `${tempY * cellSize}px`;
-          } else {
-            div.style.left = `${lastValidX * cellSize}px`;
-            div.style.top = `${lastValidY * cellSize}px`;
+            div.style.left = `${tempX * cellSize+2}px`;
+            div.style.top = `${tempY * cellSize+2}px`;
+            ghostDiv.style.left = `${tempX * cellSize+2}px`;
+            ghostDiv.style.top = `${tempY * cellSize+2}px`;
+            lastMoveTime = currentTime;
+            originX = clientX;
+            originY = clientY;
           }
         }
 
@@ -338,64 +358,26 @@
           if (!isDragging) return;
           isDragging = false;
           
-          const clientX = e.clientX || e.changedTouches[0].clientX;
-          const clientY = e.clientY || e.changedTouches[0].clientY;
+          // 고스트 블록 제거
+          if (ghostDiv) {
+            ghostDiv.remove();
+            ghostDiv = null;
+          }
           
-          const movedX = clientX - originX;
-          const movedY = clientY - originY;
+          const newX = lastValidX;
+          const newY = lastValidY;
 
-          let moveX = 0;
-          let moveY = 0;
-
-          if (Math.abs(movedX) > Math.abs(movedY)) {
-            moveX = Math.round(movedX / cellSize);
-          } else {
-            moveY = Math.round(movedY / cellSize);
-          }
-
-          // 이동 가능한 최대 거리 계산
-          let finalMoveX = 0;
-          let finalMoveY = 0;
-          let moveSteps = 0;
-
-          if (moveX !== 0) {
-            // X축 방향으로 한 칸씩 이동 가능 여부 확인
-            for (let i = 1; i <= Math.abs(moveX); i++) {
-              const nextX = block.x + (moveX > 0 ? i : -i);
-              if (canMove(block, nextX, block.y)) {
-                finalMoveX = moveX > 0 ? i : -i;
-                moveSteps++;
-              } else {
-                break;
-              }
-            }
-          } else if (moveY !== 0) {
-            // Y축 방향으로 한 칸씩 이동 가능 여부 확인
-            for (let i = 1; i <= Math.abs(moveY); i++) {
-              const nextY = block.y + (moveY > 0 ? i : -i);
-              if (canMove(block, block.x, nextY)) {
-                finalMoveY = moveY > 0 ? i : -i;
-                moveSteps++;
-              } else {
-                break;
-              }
-            }
-          }
-
-          const newX = block.x + finalMoveX;
-          const newY = block.y + finalMoveY;
-
-          if (moveSteps > 0) {
+          if (newX !== block.x || newY !== block.y) {
             saveHistory();
             block.x = newX;
             block.y = newY;
-            moveCount += moveSteps;
+            moveCount += 1;
             updateMoveCount();
             checkWin();
           }
 
           div.style.zIndex = '';
-          div.style.transition = '';
+          div.style.transition = 'all 0.2s ease-out';
           renderBlocks();
         }
 
@@ -409,6 +391,7 @@
       }
     }
 
+    // 나머지 함수들은 동일하게 유지
     function canMove(block, newX, newY) {
       if (
         newX < 0 ||
@@ -417,7 +400,6 @@
         newY + block.h > gridRows
       ) return false;
 
-      // 이동 경로에 다른 블록이 있는지 확인
       const startX = Math.min(block.x, newX);
       const endX = Math.max(block.x + block.w - 1, newX + block.w - 1);
       const startY = Math.min(block.y, newY);
@@ -426,7 +408,6 @@
       for (const other of blocks) {
         if (other.id === block.id) continue;
         
-        // 이동 경로상의 모든 칸을 확인
         for (let x = startX; x <= endX; x++) {
           for (let y = startY; y <= endY; y++) {
             if (
