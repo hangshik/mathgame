@@ -12,36 +12,36 @@
       align-items: center;
       background-color: #f8f9fa;
       margin: 0;
-      padding: 30px;
+      padding: 24px;  /* 30px * 0.8 */
       color: #333;
     }
 
     .controls {
-      margin-bottom: 15px;
+      margin-bottom: 12px;  /* 15px * 0.8 */
     }
 
     .move-counter {
-      margin: 15px 0;
+      margin: 12px 0;  /* 15px * 0.8 */
       font-weight: 600;
-      font-size: 22px;
+      font-size: 18px;  /* 22px * 0.8 */
       color: #495057;
     }
 
     .puzzle-container {
       display: grid;
-      grid-template-columns: repeat(6, 60px);
-      grid-template-rows: repeat(6, 60px);
+      grid-template-columns: repeat(6, 48px);  /* 60px * 0.8 */
+      grid-template-rows: repeat(6, 48px);  /* 60px * 0.8 */
       position: relative;
-      border: 12px solid #8b8b8b;
-      border-radius: 8px;
+      border: 10px solid #8b8b8b;  /* 12px * 0.8 */
+      border-radius: 6px;  /* 8px * 0.8 */
     }
     .puzzle-container::after {
       content: "";
       position: absolute;
-      right: -12px;
-      top: 120px;
-      width: 12px;
-      height: 60px;
+      right: -10px;  /* -12px * 0.8 */
+      top: 96px;  /* 120px * 0.8 */
+      width: 10px;  /* 12px * 0.8 */
+      height: 48px;  /* 60px * 0.8 */
       background-color: #ffffff;
       z-index: 1;
     }
@@ -59,7 +59,7 @@
       background-image: 
         linear-gradient(to right, #000000 1px, transparent 2px),
         linear-gradient(to bottom, #000000 1px, transparent 2px);
-      background-size: 60px 60px;
+      background-size: 48px 48px;  /* 60px * 0.8 */
     }
     .block {
       position: absolute;
@@ -70,18 +70,17 @@
       z-index: 1;
       box-sizing: border-box;
       transition: all 0.2s ease;
-      border-radius: 6px;
-      background-color: #a8683a;  /* 나무색 (Saddle Brown) */
+      border-radius: 5px;  /* 6px * 0.8 */
+      background-color: #a8683a;
     }
 
     .two-one {
       background-color: #ff4f4f;
     }
 
-
     .hole {
-      width: 60px;
-      height: 60px;
+      width: 48px;  /* 60px * 0.8 */
+      height: 48px;  /* 60px * 0.8 */
       background-color: transparent;
       position: absolute;
       z-index: 0;
@@ -91,19 +90,19 @@
     .hole::before { content: none; }
 
     #success {
-      margin-top: 20px;
-      font-size: 32px;
+      margin-top: 16px;  /* 20px * 0.8 */
+      font-size: 26px;  /* 32px * 0.8 */
       color: #40c057;
       font-weight: 600;
       display: none;
     }
 
     .stage-button {
-      font-size: 18px;
-      margin: 4px;
-      padding: 8px 16px;
+      font-size: 14px;  /* 18px * 0.8 */
+      margin: 3px;  /* 4px * 0.8 */
+      padding: 6px 13px;  /* 8px 16px * 0.8 */
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;  /* 8px * 0.8 */
       cursor: pointer;
       background-color: #e9ecef;
       color: #495057;
@@ -147,7 +146,7 @@
     const moveCountEl = document.getElementById("moveCount");
     const gridCols = 6;
     const gridRows = 6;
-    const cellSize = 60;
+    const cellSize = 48;
 
     let blocks = [];
     let moveCount = 0;
