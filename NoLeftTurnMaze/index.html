@@ -278,11 +278,11 @@ const btnTurn = document.getElementById('btnTurn');
 function startTimer() {
   clearInterval(timer);
   timeSec = 0;
-  timerEl.textContent = `경과 시간: 0초`;
+  timerEl.textContent = `경과 시간: 0.00초`;
   timer = setInterval(() => {
-    timeSec++;
-    timerEl.textContent = `경과 시간: ${timeSec}초`;
-  }, 1000);
+    timeSec += 0.01;
+    timerEl.textContent = `경과 시간: ${timeSec.toFixed(2)}초`;
+  }, 10);
 }
 
 function stopTimer() {
