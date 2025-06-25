@@ -99,9 +99,9 @@
 </div>
 
 <div id="toolbar">
-  <button id="confirmBtn" style="font-size: 1.2em; padding: 0.5em 1em;">확정(Space)</button>
-  <button id="deleteBtn" style="font-size: 1.2em; padding: 0.5em 1em;">삭제(E)</button>
-  <button id="resetBtn" style="font-size: 1.2em; padding: 0.5em 1em;">초기화</button>
+  <button id="confirmBtn" style="font-size: 1em; padding: 0.5em 1em;">확정(Space)</button>
+  <button id="deleteBtn" style="font-size: 1em; padding: 0.5em 1em;">삭제(E)</button>
+  <button id="resetBtn" style="font-size: 1em; padding: 0.5em 1em;">초기화</button>
 </div>
 
 <div id="board"></div>
@@ -207,7 +207,7 @@
   let deleteMode = false;
   let interactionLocked = false;
 
-  // 마우스 다운 좌표 저장용
+  // 마우스/터치 다운 좌표 저장용
   let mouseDownPos = null;
 
   function init() {
@@ -316,7 +316,8 @@
     }
   }
 
-  // 클릭 & 드래그 이벤트 처리
+  // 클릭 & 드래그/터치 이벤트 처리
+  // --- 마우스 이벤트 ---
   board.addEventListener("mousedown", e => {
     if (interactionLocked || deleteMode) return;
     if (!e.target.classList.contains("cell")) return;
@@ -369,6 +370,96 @@
     mouseDownPos = null;
     isDragging = false;
   });
+
+  // --- 터치 이벤트 ---
+  // 터치 위치에서 가장 가까운 cell을 찾는 함수
+  function getCellFromTouch(touch) {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (el && el.classList && el.classList.contains("cell")) return el;
+    return null;
+  }
+
+  board.addEventListener("touchstart", function(e) {
+    if (interactionLocked || deleteMode) return;
+    // 멀티터치 방지
+    if (e.touches.length > 1) return;
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch);
+    if (!cell) return;
+
+    mouseDownPos = { x: touch.clientX, y: touch.clientY };
+    isDragging = false;
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
+
+  board.addEventListener("touchmove", function(e) {
+    if (interactionLocked || deleteMode) return;
+    if (!mouseDownPos) return;
+    if (e.touches.length > 1) return;
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch);
+    if (!cell) return;
+
+    const dx = touch.clientX - mouseDownPos.x;
+    const dy = touch.clientY - mouseDownPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist > 5) {
+      if (!isDragging) {
+        isDragging = true;
+        startCell = cell;
+        endCell = null;
+        updateCellStyles();
+      } else {
+        endCell = cell;
+        if (startCell) startCell.classList.remove("start-cell");
+        updateCellStyles();
+      }
+    }
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
+
+  board.addEventListener("touchend", function(e) {
+    if (interactionLocked || deleteMode) return;
+    // e.changedTouches[0]이 마지막 터치 위치
+    let touch;
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      touch = e.changedTouches[0];
+    } else if (e.touches && e.touches.length > 0) {
+      touch = e.touches[0];
+    } else {
+      mouseDownPos = null;
+      isDragging = false;
+      return;
+    }
+    const cell = getCellFromTouch(touch);
+    if (!mouseDownPos) return;
+
+    let dx = 0, dy = 0, dist = 0;
+    if (touch && mouseDownPos) {
+      dx = touch.clientX - mouseDownPos.x;
+      dy = touch.clientY - mouseDownPos.y;
+      dist = Math.sqrt(dx*dx + dy*dy);
+    }
+
+    if (dist <= 5) {
+      // 탭으로 처리 (드래그 아님)
+      if (cell) handleCellClick(cell);
+    } else {
+      // 드래그 끝
+      if (cell) {
+        endCell = cell;
+        if (startCell) startCell.classList.remove("start-cell");
+        updateCellStyles();
+      }
+    }
+    mouseDownPos = null;
+    isDragging = false;
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
 
   // 클릭 시 동작 분리 함수
   function handleCellClick(cell) {
