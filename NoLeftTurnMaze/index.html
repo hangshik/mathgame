@@ -26,6 +26,7 @@
       color: white;
       border-radius: 6px;
       cursor: pointer;
+      transition: background 0.2s;
     }
 
     .stage-buttons button:hover {
@@ -167,15 +168,19 @@
     }
 
     .stage-buttons button.active {
-  background-color: #007bff;
-  color: white;
-}
+      background-color: #007bff;
+      color: white;
+    }
 
-.stage-buttons button.inactive {
-  background-color: #ccc;
-  color: #ffffff;
-}
+    .stage-buttons button.inactive {
+      background-color: #ccc;
+      color: #ffffff;
+    }
 
+    .stage-buttons button.cleared {
+      background-color: #4caf50 !important;
+      color: #fff !important;
+    }
   </style>
 </head>
 <body>
@@ -268,6 +273,9 @@ let unit, tri, uy, ux, dirIdx = 0;
 let moveStack = [];
 let currentStage = 1;
 
+// 성공한 단계 저장
+let clearedStages = new Set();
+
 let timer = null;
 let timeSec = 0;
 let hasStarted = false;
@@ -287,6 +295,22 @@ function startTimer() {
 
 function stopTimer() {
   clearInterval(timer);
+}
+
+function updateStageButtonStates() {
+  // 버튼 상태 업데이트
+  document.querySelectorAll('.stage-buttons button').forEach(btn => {
+    btn.classList.remove('active', 'inactive', 'cleared');
+    const btnNum = parseInt(btn.textContent);
+    if (btnNum === currentStage) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.add('inactive');
+    }
+    if (clearedStages.has(btnNum)) {
+      btn.classList.add('cleared');
+    }
+  });
 }
 
 function updateButtonState() {
@@ -315,7 +339,7 @@ function canTurnAndMove() {
 }
 
 function loadStage(stageNum) {
-btnForward.disabled = false;
+  btnForward.disabled = false;
   btnTurn.disabled = true;
   currentStage = stageNum;
   msgEl.textContent = '';
@@ -325,16 +349,7 @@ btnForward.disabled = false;
   stopTimer();
   timerEl.textContent = `경과 시간: 0초`;
 
-  // 버튼 상태 업데이트
-  document.querySelectorAll('.stage-buttons button').forEach(btn => {
-    btn.classList.remove('active', 'inactive');
-    const btnNum = parseInt(btn.textContent);
-    if (btnNum === stageNum) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.add('inactive');
-    }
-  });
+  updateStageButtonStates();
 
   const stage = configStages[stageNum];
   width = stage.width;
@@ -436,6 +451,9 @@ function moveForward() {
     stopTimer();
     btnForward.disabled = true;
     btnTurn.disabled = true;
+    // 성공한 단계 기록 및 버튼 색상 갱신
+    clearedStages.add(currentStage);
+    updateStageButtonStates();
   } else {
     updateButtonState();
   }
