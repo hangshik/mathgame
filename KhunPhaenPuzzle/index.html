@@ -133,6 +133,13 @@
       color: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
+    /* 성공한 단계 버튼 색상 */
+    .stage-success {
+      background-color: #4caf50 !important;
+      color: white !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -175,6 +182,8 @@
     let moveCount = 0;
     let history = [];
     let initialBlocks = [];
+    let currentStage = 1;
+    let clearedStages = new Set();
 
     const stageData = {
       1: [
@@ -250,13 +259,25 @@
         { id: "b10", type: "one-one", x: 2, y: 4, w: 1, h: 1 }
       ]
     };
+
     function setStage(stage) {
-      document.querySelectorAll('.stage-button').forEach(btn => btn.classList.remove("active"));
+      currentStage = stage;
+      document.querySelectorAll('.stage-button').forEach(btn => {
+        btn.classList.remove("active");
+        btn.classList.remove("stage-success");
+      });
       document.getElementById("btn" + stage).classList.add("active");
+
+      // 성공한 단계 버튼에 색상 적용
+      clearedStages.forEach(s => {
+        const btn = document.getElementById("btn" + s);
+        if (btn) btn.classList.add("stage-success");
+      });
 
       initialBlocks = stageData[stage];
       resetPuzzle();
     }
+
     function renderBlocks() {
       puzzle.innerHTML = "";
 
@@ -426,6 +447,15 @@
       const target = blocks.find(b => b.type === "two-two");
       if (target.x === 1 && target.y === 3) {
         document.getElementById("success").style.display = "block";
+        // 성공한 단계 버튼 색상 변경
+        clearedStages.add(currentStage);
+        document.querySelectorAll('.stage-button').forEach(btn => {
+          btn.classList.remove("stage-success");
+        });
+        clearedStages.forEach(s => {
+          const btn = document.getElementById("btn" + s);
+          if (btn) btn.classList.add("stage-success");
+        });
       }
     }
 
