@@ -115,6 +115,12 @@
       color: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+
+    .stage-clear {
+      background-color: #4caf50 !important;
+      color: white !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -152,6 +158,10 @@
     let moveCount = 0;
     let history = [];
     let initialBlocks = [];
+    let currentStage = 1; // 현재 스테이지 번호
+
+    // 클리어한 스테이지를 저장하는 Set
+    const clearedStages = new Set();
 
     const stageData = {
       1: [
@@ -237,13 +247,24 @@
         { id: "b13", x: 3, y: 5, w: 2, h: 1 }
       ]
     };
+
     function setStage(stage) {
-      document.querySelectorAll('.stage-button').forEach(btn => btn.classList.remove("active"));
+      // Remove all active classes
+      document.querySelectorAll('.stage-button').forEach((btn, idx) => {
+        btn.classList.remove("active");
+        // stage-clear는 유지, 단, 클리어하지 않은 스테이지만 제거
+        const stageNum = idx + 1;
+        if (!clearedStages.has(stageNum)) {
+          btn.classList.remove("stage-clear");
+        }
+      });
       document.getElementById("btn" + stage).classList.add("active");
 
+      currentStage = stage;
       initialBlocks = stageData[stage];
       resetPuzzle();
     }
+
     function renderBlocks() {
       puzzle.innerHTML = "";
 
@@ -420,6 +441,14 @@
       const target = blocks.find(b => b.type === "two-one");
       if (target.x === 4 && target.y === 2) {
         document.getElementById("success").style.display = "block";
+        // 현재 스테이지를 클리어한 목록에 추가
+        clearedStages.add(currentStage);
+        // 현재 스테이지 버튼을 초록색으로 변경
+        const btn = document.getElementById("btn" + currentStage);
+        if (btn) {
+          btn.classList.remove("active");
+          btn.classList.add("stage-clear");
+        }
       }
     }
 
@@ -437,6 +466,14 @@
       moveCount = Math.max(0, moveCount - 1);
       updateMoveCount();
       document.getElementById("success").style.display = "none";
+      // 성공 표시된 버튼 색상 원복 (단, 클리어한 스테이지는 유지)
+      const btn = document.getElementById("btn" + currentStage);
+      if (btn) {
+        if (!clearedStages.has(currentStage)) {
+          btn.classList.remove("stage-clear");
+          btn.classList.add("active");
+        }
+      }
       renderBlocks();
     }
 
@@ -446,6 +483,14 @@
       moveCount = 0;
       updateMoveCount();
       document.getElementById("success").style.display = "none";
+      // 성공 표시된 버튼 색상 원복 (단, 클리어한 스테이지는 유지)
+      const btn = document.getElementById("btn" + currentStage);
+      if (btn) {
+        if (!clearedStages.has(currentStage)) {
+          btn.classList.remove("stage-clear");
+          btn.classList.add("active");
+        }
+      }
       renderBlocks();
     }
 
