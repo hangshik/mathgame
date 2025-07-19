@@ -33,113 +33,123 @@
 </head>
 <body>
   <div class="target" id="targetAngleDisplay"></div>
-  <canvas id="circleCanvas" width="400" height="400"></canvas>
+  <canvas id="circleCanvas" width="350" height="350"></canvas>
   <div class="result" id="resultMessage"></div>
   <button id="reloadButton">다시 시작</button>
 
   <script>
-    const canvas = document.getElementById('circleCanvas');
-    const ctx = canvas.getContext('2d');
-    const targetAngleDisplay = document.getElementById('targetAngleDisplay');
-    const resultMessage = document.getElementById('resultMessage');
-    const reloadButton = document.getElementById('reloadButton');
+  const canvas = document.getElementById('circleCanvas');
+  const ctx = canvas.getContext('2d');
+  const targetAngleDisplay = document.getElementById('targetAngleDisplay');
+  const resultMessage = document.getElementById('resultMessage');
+  const reloadButton = document.getElementById('reloadButton');
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = 150;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius = 150;
 
-    const originalAngle = Math.round(Math.random() * 360);
-    let currentAngle = originalAngle;
-    const targetAngle = 30 + Math.random() * 120;
+  const originalAngle = Math.round(Math.random() * 360);
+  let currentAngle = originalAngle;
+  const targetAngle = 30 + Math.random() * 120;
 
-    targetAngleDisplay.textContent = `목표 각도: ${targetAngle.toFixed(0)}°`;
+  targetAngleDisplay.textContent = `목표 각도: ${targetAngle.toFixed(0)}°`;
 
-    function drawCircle() {
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = '#000';
-      ctx.stroke();
+  function drawCircle() {
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+  }
+
+  function drawLine(angle, color) {
+    const rad = angle * Math.PI / 180;
+    const x = centerX + radius * Math.cos(rad);
+    const y = centerY + radius * Math.sin(rad);
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawCircle();
+    drawLine(originalAngle, 'blue');
+    drawLine(currentAngle, 'red');
+  }
+
+  let isDragging = false;
+
+  function getAngle(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left - centerX;
+    const y = clientY - rect.top - centerY;
+    let angle = Math.atan2(y, x) * 180 / Math.PI;
+    return (angle + 360) % 360;
+  }
+
+  function checkResult() {
+    const diff = Math.abs(currentAngle - originalAngle);
+    const normalizedDiff = Math.min(diff, 360 - diff);
+    const targetDiff = Math.abs(normalizedDiff.toFixed(0) - targetAngle);
+
+    if (targetDiff <= 1) {
+      resultMessage.textContent = '맞습니다!';
+      resultMessage.style.color = 'green';
+    } else {
+      resultMessage.textContent = `틀렸습니다. 현재 각도: ${normalizedDiff.toFixed(0)}°, 목표 각도와의 차이: ${targetDiff.toFixed(0)}°`;
+      resultMessage.style.color = 'red';
     }
+  }
 
-    function drawLine(angle, color) {
-      const rad = angle * Math.PI / 180;
-      const x = centerX + radius * Math.cos(rad);
-      const y = centerY + radius * Math.sin(rad);
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.lineTo(x, y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawCircle();
-      drawLine(originalAngle, 'blue');
-      drawLine(currentAngle, 'red');
-    }
-
-    let isDragging = false;
-
-    function getAngle(clientX, clientY) {
-      const rect = canvas.getBoundingClientRect();
-      const x = clientX - rect.left - centerX;
-      const y = clientY - rect.top - centerY;
-      let angle = Math.atan2(y, x) * 180 / Math.PI;
-      return (angle + 360) % 360;
-    }
-
-    function checkResult() {
-      const diff = Math.abs(currentAngle - originalAngle);
-      const normalizedDiff = Math.min(diff, 360 - diff);
-      const targetDiff = Math.abs(normalizedDiff.toFixed(0) - targetAngle);
-
-      if (targetDiff <= 1) {
-        resultMessage.textContent = '맞습니다!';
-        resultMessage.style.color = 'green';
-      } else {
-        resultMessage.textContent = `틀렸습니다. 현재 각도: ${normalizedDiff.toFixed(0)}°, 목표 각도와의 차이: ${targetDiff.toFixed(0)}°`;
-        resultMessage.style.color = 'red';
-      }
-    }
-
-    function startDrag() { isDragging = true; }
-    function stopDrag() {
-      if (isDragging) {
-        isDragging = false;
-        checkResult();
-      }
-    }
-
-    function updateDrag(clientX, clientY) {
-      if (!isDragging) return;
-      currentAngle = getAngle(clientX, clientY);
-      draw();
-    }
-
-    // 마우스 이벤트
-    canvas.addEventListener('mousedown', (e) => startDrag());
-    canvas.addEventListener('mousemove', (e) => updateDrag(e.clientX, e.clientY));
-    window.addEventListener('mouseup', stopDrag);
-
-    // 터치 이벤트 (모바일)
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      startDrag();
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      updateDrag(touch.clientX, touch.clientY);
-    }, { passive: false });
-
-    window.addEventListener('touchend', stopDrag);
-
-    reloadButton.addEventListener('click', () => window.location.reload());
-
+  function startDrag(clientX, clientY) {
+    isDragging = true;
+    currentAngle = getAngle(clientX, clientY);
     draw();
-  </script>
+  }
+
+  function stopDrag() {
+    if (isDragging) {
+      isDragging = false;
+      checkResult();
+    }
+  }
+
+  function updateDrag(clientX, clientY) {
+    if (!isDragging) return;
+    currentAngle = getAngle(clientX, clientY);
+    draw();
+  }
+
+  // 마우스 이벤트
+  canvas.addEventListener('mousedown', (e) => {
+    startDrag(e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener('mousemove', (e) => updateDrag(e.clientX, e.clientY));
+  window.addEventListener('mouseup', stopDrag);
+
+  // 터치 이벤트 (모바일)
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    updateDrag(touch.clientX, touch.clientY);
+  }, { passive: false });
+
+  window.addEventListener('touchend', stopDrag);
+
+  reloadButton.addEventListener('click', () => window.location.reload());
+
+  draw();
+</script>
+
 </body>
 </html>
