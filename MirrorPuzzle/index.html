@@ -101,8 +101,18 @@
     .buttons {
       margin-top: 10px;
     }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
     .buttons button {
-      margin: 0 5px;
+      flex: 1 1 0;
+      max-width: 180px;
+      min-width: 140px;
+      height: 70px;
       padding: 8px 16px;
       font-size: 16px;
       cursor: pointer;
@@ -110,9 +120,13 @@
       background: white;
       border-radius: 4px;
       transition: all 0.2s;
+      margin: 0;
     }
     .buttons button:hover {
       background: #ddd;
+    }
+    button:focus {
+     outline: none;
     }
   </style>
 </head>
@@ -120,12 +134,15 @@
   <div class="stage-buttons" id="stageButtons"></div>
   <div class="grid" id="grid"></div>
   <div class="buttons">
-    <button id="resetBtn">처음으로</button>
-    <button id="checkBtn">정답확인</button>
+    <button id="resetBtn">처음으로<br>(Reset)</button>
+    <button id="checkBtn">정답확인<br>(Space)</button>
   </div>
   <div id="result" class="result"></div>
 
   <script>
+    // 오른쪽 마우스 금지
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
     const stageButtons = document.getElementById('stageButtons');
     const grid = document.getElementById('grid');
     const result = document.getElementById('result');
@@ -275,6 +292,17 @@
         }
       });
     }
+
+    // 스페이스바를 누르면 정답확인 버튼 클릭과 동일하게 동작
+      document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+          e.preventDefault();
+          document.getElementById('checkBtn').click();
+        } else if (e.key === 'r' || e.key === 'R') {
+          document.getElementById('resetBtn').click();
+        }
+      });
+
 
     loadStage(1);
   </script>
