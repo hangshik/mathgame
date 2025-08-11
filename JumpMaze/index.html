@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>점프 미로</title>
+<style>
+    /* ===== 기본 설정 ===== */
+    body {
+    font-family: sans-serif;
+    background-color: #f4f7f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 가로 중앙 */
+    
+    text-align: center;
+    min-height: 100vh; /* 화면 꽉 차게 */
+    margin: 0;
+    }
+
+
+    /* ===== 컨트롤 패널 ===== */
+    .control-panel {
+        margin: 20px 0;
+        display: block; /* 줄바꿈 가능하도록 block 처리 */
+    }
+
+    #size-selector {
+        display: block;
+        margin-bottom: 10px; /* 버튼과 간격 */
+    }
+
+    /* 버튼 기본 스타일 */
+    .control-panel button,
+    #size-selector button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        width: 110px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 2px;
+    }
+
+    /* 버튼 호버 효과 */
+    .control-panel button:hover,
+    #size-selector button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+
+    /* 선택된 사이즈 버튼 */
+    #size-selector button.active {
+        background-color: #28a745;
+    }
+
+    /* 버튼별 색상 지정 */
+    #undo-btn {
+        background-color: #ffc107;
+    }
+    #undo-btn:hover {
+        background-color: #d39e00;
+    }
+
+    #new-btn {
+        background-color: #17a2b8;
+    }
+    #new-btn:hover {
+        background-color: #11707f;
+    }
+    #new-btn:disabled {
+        background-color: #a4d6dd;
+        cursor: not-allowed;
+    }
+
+    /* ===== 그리드 컨테이너 ===== */
+    #grid-container {
+        display: grid;
+        justify-content: center;
+        margin: 20px auto;
+        border: 3px solid #dee2e6;
+        padding: 5px;
+        background-color: #fff;
+    }
+
+    /* ===== 셀 스타일 ===== */
+    .grid-cell {
+        width: 45px;
+        height: 45px;
+        border: 1px solid #ced4da;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.25em;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    /* ===== 상태별 셀 ===== */
+    .clickable {
+        cursor: pointer;
+        background-color: #17a2b8 !important;
+        color: white;
+        border-radius: 5px;
+    }
+    .clickable:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(23,162,184,0.7);
+    }
+
+    .disabled {
+        pointer-events: none;
+        background-color: #e9ecef;
+        color: #6c757d;
+        opacity: 0.7;
+    }
+
+    .finish {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+
+    .current {
+        background-color: #ffc107 !important;
+        color: #333 !important;
+        transform: scale(1.15);
+        border-radius: 50%;
+    }
+
+    .start-cell {
+        background-color: #ffeb3b !important;
+        color: #333 !important;
+    }
+
+    /* ===== 메시지 & 점수판 ===== */
+    #message-area {
+        margin-top: 10px;
+        font-size: 1.2em;
+        font-weight: bold;
+        min-height: 30px;
+    }
+    .message-success {
+        color: #28a745;
+    }
+    .message-fail {
+        color: #dc3545;
+    }
+
+    #score-board {
+        margin-top: 10px;
+        font-size: 1em;
+    }
+</style>
+
+</head>
+<body>
+
+<h1>점프 미로</h1>
+<div class="control-panel">
+    <div id="size-selector"></div>
+    <div>
+        <button id="reset-btn">처음으로</button>
+        <button id="undo-btn">되돌리기</button>
+        <button id="new-btn" disabled style="width: 140px;">새로운 퍼즐</button>
+    </div>
+</div>
+
+<div id="grid-container"></div>
+<div id="message-area"></div>
+<div id="score-board"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sizeSelector = document.getElementById('size-selector');
+    const gridContainer = document.getElementById('grid-container');
+    const messageArea = document.getElementById('message-area');
+    const resetBtn = document.getElementById('reset-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const newBtn = document.getElementById('new-btn');
+    const scoreBoard = document.getElementById('score-board');
+
+    let currentSize = 3;
+    let grid = [];
+    let numbers = [];
+    let currentRow = null, currentCol = null;
+    let moveHistory = [];
+    let gameStarted = false;
+
+    let successCount = {}; // { size: count }
+
+    // 단계 버튼 생성
+    for (let i = 3; i <= 14; i++) {
+        const button = document.createElement('button');
+        button.dataset.size = i;
+        button.addEventListener('click', () => {
+            document.querySelectorAll('#size-selector button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentSize = i;
+            generateNewSolvableGrid(i);
+        });
+        sizeSelector.appendChild(button);
+
+        // 4개마다 줄바꿈 추가
+        if ((i - 2) % 4 === 0 && i !== 16) {
+            sizeSelector.appendChild(document.createElement('br'));
+        }
+    }
+
+    function updateSizeButtons() {
+        document.querySelectorAll('#size-selector button').forEach(btn => {
+            const size = parseInt(btn.dataset.size);
+            const count = successCount[size] || 0;
+            btn.textContent = `${size}x${size} (${count})`;
+        });
+    }
+
+    function generateNewSolvableGrid(size) {
+        messageArea.textContent = '새로운 미로 생성 중...';
+        setTimeout(() => {
+            let isSolvable = false;
+            do {
+                createGrid(size);
+                isSolvable = checkSolvability(size);
+            } while (!isSolvable);
+            resetGame(true);
+            updateSizeButtons();
+        }, 30);
+    }
+
+    function createGrid(size) {
+        gridContainer.innerHTML = '';
+        grid = [];
+        numbers = [];
+        for (let r = 0; r < size; r++) {
+            const gridRow = [];
+            const numberRow = [];
+            for (let c = 0; c < size; c++) {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-cell');
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                if (r === 0 && c === size - 1) {
+                    cell.textContent = 'F';
+                    cell.classList.add('finish');
+                    numberRow.push(0);
+                } else {
+                    const maxJump = Math.max(r, c, size - 1 - r, size - 1 - c);
+                    const num = maxJump > 0 ? Math.floor(Math.random() * maxJump) + 1 : 1;
+                    cell.textContent = num;
+                    numberRow.push(num);
+                }
+                gridRow.push(cell);
+                gridContainer.appendChild(cell);
+            }
+            grid.push(gridRow);
+            numbers.push(numberRow);
+        }
+        gridContainer.style.gridTemplateColumns = `repeat(${size}, 45px)`;
+    }
+
+    gridContainer.addEventListener('click', (event) => {
+        const cell = event.target.closest('.grid-cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+
+        if (!gameStarted) {
+            if (row === currentSize - 1 && col === 0) {
+                gameStarted = true;
+                currentRow = row;
+                currentCol = col;
+                updateGameBoard();
+                grid[currentSize - 1][0].classList.remove('start-cell');
+            }
+            return;
+        }
+
+        if (!cell.classList.contains('clickable')) return;
+
+        moveHistory.push({ r: currentRow, c: currentCol });
+        currentRow = row;
+        currentCol = col;
+        updateGameBoard();
+    });
+
+    undoBtn.addEventListener('click', () => {
+        if (!gameStarted || moveHistory.length === 0) return;
+        const lastPos = moveHistory.pop();
+        currentRow = lastPos.r;
+        currentCol = lastPos.c;
+        updateGameBoard();
+    });
+
+    resetBtn.addEventListener('click', () => {
+        resetGame(false);
+    });
+
+    newBtn.addEventListener('click', () => {
+        generateNewSolvableGrid(currentSize);
+        newBtn.disabled = true; // 다시 비활성화
+    });
+
+    function resetGame(newPuzzle) {
+        gameStarted = false;
+        currentRow = null;
+        currentCol = null;
+        moveHistory = [];
+        grid.forEach(row => row.forEach(cell => {
+            cell.classList.remove('current', 'clickable', 'start-cell');
+            cell.classList.add('disabled');
+        }));
+        grid[currentSize - 1][0].classList.remove('disabled');
+        grid[currentSize - 1][0].classList.add('start-cell');
+        messageArea.textContent = newPuzzle ? '' : 'Start를 클릭해 주세요!';
+        messageArea.className = '';
+        newBtn.disabled = true; // 게임 시작 전에는 비활성화
+    }
+
+    function updateGameBoard() {
+        messageArea.textContent = '';
+        updateCurrentPosition();
+        const isFinished = checkWinCondition();
+        if (!isFinished) {
+            const hasMoves = updateClickableCells();
+            if (!hasMoves) {
+                messageArea.textContent = '실패! 더 이상 움직일 수 없습니다.';
+                messageArea.className = 'message-fail';
+            }
+        }
+    }
+
+    function updateCurrentPosition() {
+        grid.forEach(row => row.forEach(cell => cell.classList.remove('current')));
+        grid[currentRow][currentCol].classList.add('current');
+    }
+
+    function updateClickableCells() {
+        grid.forEach(row => row.forEach(cell => {
+            cell.classList.add('disabled');
+            cell.classList.remove('clickable');
+        }));
+        grid[currentRow][currentCol].classList.remove('disabled');
+
+        const jump = numbers[currentRow][currentCol];
+        let possibleMoves = 0;
+        const directions = [{r: -jump, c: 0}, {r: jump, c: 0}, {r: 0, c: -jump}, {r: 0, c: jump}];
+
+        directions.forEach(dir => {
+            const nr = currentRow + dir.r;
+            const nc = currentCol + dir.c;
+            if (nr >= 0 && nr < currentSize && nc >= 0 && nc < currentSize) {
+                grid[nr][nc].classList.remove('disabled');
+                grid[nr][nc].classList.add('clickable');
+                possibleMoves++;
+            }
+        });
+        return possibleMoves > 0;
+    }
+
+    function checkWinCondition() {
+        if (currentRow === 0 && currentCol === currentSize - 1) {
+            messageArea.textContent = '성공! 🎉';
+            messageArea.className = 'message-success';
+            grid.forEach(row => row.forEach(cell => {
+                cell.classList.add('disabled');
+                cell.classList.remove('clickable');
+            }));
+            if (!successCount[currentSize]) successCount[currentSize] = 0;
+            successCount[currentSize]++;
+            updateScoreBoard();
+            updateSizeButtons();
+            newBtn.disabled = false; // 성공 시만 새로운 퍼즐 활성화
+            return true;
+        }
+        return false;
+    }
+
+    function checkSolvability(size) {
+        const start = { r: size - 1, c: 0 };
+        const queue = [start];
+        const visited = new Set([`${start.r},${start.c}`]);
+
+        while (queue.length) {
+            const { r, c } = queue.shift();
+            if (r === 0 && c === size - 1) return true;
+            const jump = numbers[r][c];
+            const dirs = [{r: -jump, c: 0}, {r: jump, c: 0}, {r: 0, c: -jump}, {r: 0, c: jump}];
+            for (const dir of dirs) {
+                const nr = r + dir.r;
+                const nc = c + dir.c;
+                const key = `${nr},${nc}`;
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size && !visited.has(key)) {
+                    visited.add(key);
+                    queue.push({ r: nr, c: nc });
+                }
+            }
+        }
+        return false;
+    }
+
+    function updateScoreBoard() {
+        scoreBoard.textContent = `성공 횟수 — ${currentSize}x${currentSize}: ${successCount[currentSize] || 0}`;
+    }
+
+    document.querySelector('#size-selector button').classList.add('active');
+    updateSizeButtons();
+    generateNewSolvableGrid(currentSize);
+});
+</script>
+
+</body>
+</html>
