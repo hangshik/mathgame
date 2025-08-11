@@ -205,9 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sizeSelector.appendChild(button);
 
         // 4개마다 줄바꿈 추가
-        if ((i - 2) % 3 === 0 && i !== 16) {
-            sizeSelector.appendChild(document.createElement('br'));
-        }
+        // if ((i - 2) % 4 === 0 && i !== 16) {
+        //     sizeSelector.appendChild(document.createElement('br'));
+        // }
     }
 
     function updateSizeButtons() {
