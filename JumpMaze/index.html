@@ -7,27 +7,25 @@
 <style>
     /* ===== 기본 설정 ===== */
     body {
-    font-family: sans-serif;
-    background-color: #f4f7f9;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* 가로 중앙 */
-    
-    text-align: center;
-    min-height: 100vh; /* 화면 꽉 차게 */
-    margin: 0;
+        font-family: sans-serif;
+        background-color: #f4f7f9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-height: 100vh;
+        margin: 0;
     }
-
 
     /* ===== 컨트롤 패널 ===== */
     .control-panel {
         margin: 20px 0;
-        display: block; /* 줄바꿈 가능하도록 block 처리 */
+        display: block;
     }
 
     #size-selector {
         display: block;
-        margin-bottom: 10px; /* 버튼과 간격 */
+        margin-bottom: 10px;
     }
 
     /* 버튼 기본 스타일 */
@@ -46,19 +44,16 @@
         margin: 2px;
     }
 
-    /* 버튼 호버 효과 */
     .control-panel button:hover,
     #size-selector button:hover {
         background-color: #0056b3;
         transform: translateY(-2px);
     }
 
-    /* 선택된 사이즈 버튼 */
     #size-selector button.active {
         background-color: #28a745;
     }
 
-    /* 버튼별 색상 지정 */
     #undo-btn {
         background-color: #ffc107;
     }
@@ -100,7 +95,6 @@
         user-select: none;
     }
 
-    /* ===== 상태별 셀 ===== */
     .clickable {
         cursor: pointer;
         background-color: #17a2b8 !important;
@@ -139,7 +133,7 @@
     /* ===== 메시지 & 점수판 ===== */
     #message-area {
         margin-top: 10px;
-        font-size: 1.2em;
+        font-size: 2em;
         font-weight: bold;
         min-height: 30px;
     }
@@ -150,12 +144,11 @@
         color: #dc3545;
     }
 
-    #score-board {
+    #score-board, #move-counter {
         margin-top: 10px;
-        font-size: 1em;
+        font-size: 2em;
     }
 </style>
-
 </head>
 <body>
 
@@ -172,6 +165,7 @@
 <div id="grid-container"></div>
 <div id="message-area"></div>
 <div id="score-board"></div>
+<div id="move-counter"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -182,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const undoBtn = document.getElementById('undo-btn');
     const newBtn = document.getElementById('new-btn');
     const scoreBoard = document.getElementById('score-board');
+    const moveCounter = document.getElementById('move-counter');
 
     let currentSize = 3;
     let grid = [];
@@ -191,6 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameStarted = false;
 
     let successCount = {}; // { size: count }
+
+    // 이동 횟수 표시 업데이트
+    function updateMoveCounter() {
+        moveCounter.textContent = `이동 횟수: ${moveHistory.length}`;
+    }
 
     // 단계 버튼 생성
     for (let i = 3; i <= 14; i++) {
@@ -203,11 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
             generateNewSolvableGrid(i);
         });
         sizeSelector.appendChild(button);
-
-        // 4개마다 줄바꿈 추가
-        // if ((i - 2) % 4 === 0 && i !== 16) {
-        //     sizeSelector.appendChild(document.createElement('br'));
-        // }
     }
 
     function updateSizeButtons() {
@@ -285,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRow = row;
         currentCol = col;
         updateGameBoard();
+        updateMoveCounter();
     });
 
     undoBtn.addEventListener('click', () => {
@@ -293,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRow = lastPos.r;
         currentCol = lastPos.c;
         updateGameBoard();
+        updateMoveCounter();
     });
 
     resetBtn.addEventListener('click', () => {
@@ -301,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     newBtn.addEventListener('click', () => {
         generateNewSolvableGrid(currentSize);
-        newBtn.disabled = true; // 다시 비활성화
+        newBtn.disabled = true;
     });
 
     function resetGame(newPuzzle) {
@@ -317,7 +314,8 @@ document.addEventListener('DOMContentLoaded', () => {
         grid[currentSize - 1][0].classList.add('start-cell');
         messageArea.textContent = newPuzzle ? '' : 'Start를 클릭해 주세요!';
         messageArea.className = '';
-        newBtn.disabled = true; // 게임 시작 전에는 비활성화
+        newBtn.disabled = true;
+        updateMoveCounter();
     }
 
     function updateGameBoard() {
@@ -373,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             successCount[currentSize]++;
             updateScoreBoard();
             updateSizeButtons();
-            newBtn.disabled = false; // 성공 시만 새로운 퍼즐 활성화
+            newBtn.disabled = false;
             return true;
         }
         return false;
