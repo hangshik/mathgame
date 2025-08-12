@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>스트링아트</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    background: #f0f0f0;
+    text-align: center;
+  }
+  label {
+    margin: 0 10px;
+    font-weight: bold;
+  }
+  input, select {
+    margin: 0 5px 15px;
+    padding: 5px;
+    font-size: 1rem;
+  }
+  canvas {
+    background: white;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+</head>
+<body>
+
+<h1>스트링아트 그리기</h1>
+
+<div>
+  <label for="radius">반지름 (px):</label>
+  <input type="number" id="radius" min="50" max="350" value="150" />
+  
+  <label for="points">꼭짓점 갯수:</label>
+  <input type="number" id="points" min="3" max="200" value="30" />
+  
+  <label for="skip">건너뛸 칸 수:</label>
+  <input type="number" id="skip" min="1" max="100" value="7" />
+  
+  <label for="color">선 색상:</label>
+  <input type="color" id="color" value="#0088cc" />
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+  const radiusInput = document.getElementById('radius');
+  const pointsInput = document.getElementById('points');
+  const skipInput = document.getElementById('skip');
+  const colorInput = document.getElementById('color');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  function drawStringArt() {
+    const radius = parseInt(radiusInput.value);
+    const pointsCount = parseInt(pointsInput.value);
+    const skip = parseInt(skipInput.value);
+    const color = colorInput.value;
+
+    if (pointsCount < 3 || radius < 10 || skip < 1) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "red";
+      ctx.fillText("입력값을 확인해주세요.", 20, 50);
+      return;
+    }
+    
+    // 캔버스 크기 자동 조절 (반지름 + 여유 50, 최대 800)
+    const size = Math.min(800, radius * 2 + 100);
+    canvas.width = size;
+    canvas.height = size;
+
+    // 배경 흰색 채우기 (투명 방지)
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+
+    // 꼭짓점 좌표 계산
+    const points = [];
+    for(let i = 0; i < pointsCount; i++) {
+      const angle = (2 * Math.PI * i) / pointsCount - Math.PI / 2; // 12시 방향부터 시작
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      points.push({x, y, angle});
+    }
+
+    // 꼭짓점 그리기
+    ctx.fillStyle = "#444";
+    points.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, 2*Math.PI);
+      ctx.fill();
+    });
+
+    // 숫자 그리기
+    ctx.fillStyle = "#222";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    points.forEach((p, i) => {
+      const numberRadius = radius + 15;
+      const nx = centerX + numberRadius * Math.cos(p.angle);
+      const ny = centerY + numberRadius * Math.sin(p.angle);
+      ctx.fillText(i + 1, nx, ny);
+    });
+
+    // 선 그리기
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    
+    for(let i = 0; i < pointsCount; i++) {
+      const start = points[i];
+      const endIndex = (i + skip) % pointsCount;
+      const end = points[endIndex];
+
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+    }
+  }
+
+  [radiusInput, pointsInput, skipInput, colorInput].forEach(input => {
+    input.addEventListener('input', drawStringArt);
+  });
+
+  drawStringArt();
+</script>
+
+</body>
+</html>
