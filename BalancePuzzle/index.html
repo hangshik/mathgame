@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>균형 퍼즐 (Enigma-style)</title>
+  <style>
+    :root {
+      --bg: #f6f8fa; --muted: #6b7280; --accent: #3b82f6;
+      --ok: #16a34a; --danger: #ef4444; --gray: #9ca3af;
+      --beam-color: #374151; --pivot-color: #111827;
+    }
+    html, body {
+      height: 100%; margin: 0;
+      font-family: Inter, Segoe UI, system-ui, 'Noto Sans KR', sans-serif;
+      background: var(--bg); color: #0f172a;
+    }
+    body, .wrap {
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; width: 100vw; box-sizing: border-box;
+    }
+    .wrap {
+      max-width: 980px; margin: 20px auto; padding: 18px; width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    h1 { margin: 0 0 8px 0; font-size: 20px; text-align: center; }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      align-items: center; margin: 12px 0; justify-content: center;
+    }
+    select, button {
+      padding: 8px 12px; border-radius: 8px;
+      border: 1px solid rgba(2, 6, 23, 0.06);
+      background: var(--gray); color: white;
+      font-weight: 600; cursor: pointer; transition: background-color 0.2s;
+    }
+    select:hover, button:hover { background-color: #7c8593; }
+    #checkBtn { background: var(--accent); }
+    #checkBtn:hover { background: #60a5fa; }
+    .btn-ready { background: var(--ok); }
+    .btn-ready:hover { background: #4ade80; }
+
+    #blocks {
+      display: flex; gap: 10px; justify-content: center;
+      flex-wrap: wrap; margin: 12px 0; min-height: 56px;
+    }
+    .block-wrapper {
+      width: 56px; height: 56px; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .block {
+      width: 52px; height: 52px; border-radius: 8px; display: flex;
+      align-items: center; justify-content: center; font-weight: 700;
+      cursor: grab; background: linear-gradient(180deg, #e0f2fe, #bae6fd);
+      box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
+      user-select: none; transition: box-shadow 0.2s;
+    }
+    .block.selected {
+      box-shadow: 0 0 0 3px var(--accent);
+    }
+    
+    /* NEW LAYOUT STYLES */
+    #answerArea {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+      margin: 20px 0 10px 0;
+      padding: 10px;
+    }
+    .slot {
+      width: 64px; height: 90px; /* 높이 조정 */
+      border-radius: 10px; background: #fff;
+      border: 1px solid rgba(2, 6, 23, 0.06); display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .slot-inner {
+      width: 100%; flex-grow: 1; display: flex;
+      align-items: center; justify-content: center; pointer-events: none;
+    }
+    .slot-label { font-size: 13px; color: var(--muted); padding-bottom: 5px; }
+
+    .separator {
+      width: 30px; /* 좌우 슬롯 사이의 간격 */
+    }
+
+    .fulcrum-line {
+      width: 100%;
+      max-width: 820px;
+      height: 8px;
+      background: linear-gradient(90deg, var(--pivot-color), var(--beam-color), var(--pivot-color));
+      border-radius: 6px;
+    }
+    .fulcrum-pivot {
+      width: 0; height: 0;
+      border-left: 28px solid transparent;
+      border-right: 28px solid transparent;
+      border-bottom: 36px solid var(--pivot-color);
+      margin-top: -2px; /* 라인과 살짝 겹치도록 */
+    }
+    
+    .message {
+      min-height: 22px; margin-top: 16px; font-weight: 700; text-align: center;
+    }
+    .message.ok { color: var(--ok); }
+    .message.err { color: var(--danger); }
+    .meta {
+      display: flex; justify-content: center; align-items: center;
+      margin-top: 10px; color: var(--muted); font-size: 22px; width: 100%;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      #answerArea { gap: 6px; }
+      .slot { width: 50px; height: 60px; }
+      .block-wrapper { width: 48px; height: 48px; }
+      .block { width: 44px; height: 44px; font-size: 14px; }
+      .separator { width: 15px; }
+      .fulcrum-pivot { border-left-width: 20px; border-right-width: 20px; border-bottom-width: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>⚖️ 균형 퍼즐</h1>
+
+    <div class="controls">
+      <label>좌/우 슬롯 수: <select id="slotCount"><option selected>3</option><option>4</option><option>5</option></select></label>
+      <label>블록 수: <select id="blockCount"></select></label>
+      <button id="newBtn">새 퍼즐</button>
+      <button id="resetBtn">초기화</button>
+      <button id="hintBtn">힌트</button>
+      <button id="checkBtn">정답 확인</button>
+    </div>
+
+    <div id="blocks" aria-label="블록 목록"></div>
+    
+    <div id="answerArea"></div>
+    <div class="fulcrum-line"></div>
+    <div class="fulcrum-pivot"></div>
+
+    <div id="message" class="message"></div>
+
+    <div class="meta">
+      <div>정답 맞춘 횟수: <strong id="score">0</strong></div>
+    </div>
+  </div>
+
+<script>
+    let score = 0;
+    let currentWeights = [];
+    let solution = [];
+    let hintIndex = 0;
+    let selectedBlock = null;
+
+    const U = {
+        slotCount: document.getElementById('slotCount'),
+        blockCount: document.getElementById('blockCount'),
+        blocks: document.getElementById('blocks'),
+        answerArea: document.getElementById('answerArea'), // الجديد
+        newBtn: document.getElementById('newBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        hintBtn: document.getElementById('hintBtn'),
+        checkBtn: document.getElementById('checkBtn'),
+        message: document.getElementById('message'),
+        score: document.getElementById('score'),
+    };
+
+    function updateBlockOptions() {
+        const s = parseInt(U.slotCount.value, 10);
+        U.blockCount.innerHTML = '';
+        for (let i = 3; i <= s * 2; i++) {
+            const o = document.createElement('option');
+            o.value = i;
+            o.textContent = i;
+            U.blockCount.appendChild(o);
+        }
+        U.blockCount.value = Math.min(s * 2, 3);
+    }
+
+    function createSlots() {
+        const s = parseInt(U.slotCount.value, 10);
+        U.answerArea.innerHTML = ''; 
+
+        // 왼쪽 슬롯 생성
+        for (let i = 0; i < s; i++) {
+            const dist = s - i;
+            const slot = createSingleSlot(dist, 'left', i);
+            U.answerArea.appendChild(slot);
+        }
+
+        // 구분자
+        const separator = document.createElement('div');
+        separator.className = 'separator';
+        U.answerArea.appendChild(separator);
+
+        // 오른쪽 슬롯 생성
+        for (let i = 0; i < s; i++) {
+            const dist = i + 1;
+            const slot = createSingleSlot(dist, 'right', i);
+            U.answerArea.appendChild(slot);
+        }
+    }
+
+    function createSingleSlot(dist, side, index) {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        slot.dataset.side = side;
+        slot.dataset.dist = dist;
+        slot.dataset.index = index;
+
+        const inner = document.createElement('div');
+        inner.className = 'slot-inner';
+        const labelEl = document.createElement('div');
+        labelEl.className = 'slot-label';
+        labelEl.textContent = dist;
+        slot.appendChild(inner);
+        slot.appendChild(labelEl);
+        attachSlotEvents(slot);
+        return slot;
+    }
+
+    function handleBlockPlacement(targetSlot, blockToPlace) {
+        const sourceParent = blockToPlace.parentElement;
+        const existingBlock = targetSlot.querySelector('.block');
+
+        if (existingBlock === blockToPlace) return;
+
+        if (existingBlock) {
+            sourceParent.appendChild(existingBlock);
+            if (selectedBlock === blockToPlace) {
+                deselectAllBlocks();
+                selectBlock(existingBlock);
+            }
+        } else {
+            if (selectedBlock === blockToPlace) deselectAllBlocks();
+        }
+        targetSlot.querySelector('.slot-inner').appendChild(blockToPlace);
+        setMessage('');
+    }
+
+    function attachSlotEvents(slot) {
+        slot.addEventListener('dragover', e => e.preventDefault());
+        slot.addEventListener('drop', e => {
+            e.preventDefault();
+            const blockId = e.dataTransfer.getData('text');
+            const blockEl = document.getElementById(blockId);
+            if (!blockEl) return;
+            deselectAllBlocks();
+            handleBlockPlacement(slot, blockEl);
+        });
+        slot.addEventListener('click', () => {
+            if (selectedBlock) {
+                handleBlockPlacement(slot, selectedBlock);
+            }
+        });
+    }
+
+    function selectBlock(block) {
+        deselectAllBlocks();
+        block.classList.add('selected');
+        selectedBlock = block;
+    }
+
+    function deselectAllBlocks() {
+        document.querySelectorAll('.block.selected').forEach(b => b.classList.remove('selected'));
+        selectedBlock = null;
+    }
+
+    function createBlocks(n) {
+        U.blocks.innerHTML = '';
+        currentWeights = [];
+        for (let i = 0; i < n; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'block-wrapper';
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.id = 'block' + i;
+            const weight = Math.floor(Math.random() * 9) + 1;
+            block.textContent = weight;
+            block.dataset.weight = weight;
+            block.draggable = true;
+
+            block.addEventListener('dragstart', e => {
+                deselectAllBlocks();
+                e.dataTransfer.setData('text', block.id);
+            });
+            block.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+            });
+
+            wrapper.appendChild(block);
+            U.blocks.appendChild(wrapper);
+            currentWeights.push(weight);
+        }
+    }
+    
+    function findEmptyWrapper() {
+        return Array.from(U.blocks.querySelectorAll('.block-wrapper')).find(w => !w.querySelector('.block'));
+    }
+
+    U.blocks.addEventListener('dragover', e => e.preventDefault());
+    U.blocks.addEventListener('drop', e => {
+        e.preventDefault();
+        const blockId = e.dataTransfer.getData('text');
+        const blockEl = document.getElementById(blockId);
+        if (!blockEl) return;
+        const emptyWrapper = findEmptyWrapper();
+        if (emptyWrapper) {
+            emptyWrapper.appendChild(blockEl);
+        }
+        setMessage('');
+    });
+    
+    document.body.addEventListener('click', (e) => {
+        if (!e.target.closest('.block, .slot')) {
+            deselectAllBlocks();
+        }
+    });
+
+    function computeTorque() {
+        let leftTorque = 0, rightTorque = 0;
+        Array.from(U.answerArea.querySelectorAll('.slot')).forEach(slot => {
+            const block = slot.querySelector('.block');
+            if (block) {
+                const dist = Number(slot.dataset.dist);
+                const side = slot.dataset.side;
+                if (side === 'left') {
+                    leftTorque += Number(block.dataset.weight) * dist;
+                } else if (side === 'right') {
+                    rightTorque += Number(block.dataset.weight) * dist;
+                }
+            }
+        });
+        return { L: leftTorque, R: rightTorque };
+    }
+
+    function setMessage(text, type = '') {
+        U.message.textContent = text;
+        U.message.className = type ? `message ${type === 'ok' ? 'ok' : 'err'}` : 'message';
+    }
+
+    function allBlocksUsed() {
+        return U.blocks.querySelectorAll('.block').length === 0;
+    }
+    
+    function solvePuzzle(values, slotCount) {
+        const positions = [];
+        for (let d = 1; d <= slotCount; d++) positions.push({ side: 'left', dist: d });
+        for (let d = 1; d <= slotCount; d++) positions.push({ side: 'right', dist: d });
+        
+        const used = Array(positions.length).fill(false);
+        let solutionResult = [];
+        let found = false;
+        
+        function dfs(blockIdx, leftTorque, rightTorque, currentSolution) {
+            if (found) return;
+            if (blockIdx === values.length) {
+                if (leftTorque === rightTorque && leftTorque > 0) {
+                    solutionResult = [...currentSolution];
+                    found = true;
+                }
+                return;
+            }
+            
+            for (let pIdx = 0; pIdx < positions.length; pIdx++) {
+                if (used[pIdx]) continue;
+                
+                used[pIdx] = true;
+                const pos = positions[pIdx];
+                const weight = values[blockIdx];
+                
+                if (pos.side === 'left') {
+                    currentSolution.push({ blockIndex: blockIdx, side: 'left', slotIndex: slotCount - pos.dist });
+                    dfs(blockIdx + 1, leftTorque + weight * pos.dist, rightTorque, currentSolution);
+                } else {
+                    currentSolution.push({ blockIndex: blockIdx, side: 'right', slotIndex: pos.dist - 1 });
+                    dfs(blockIdx + 1, leftTorque, rightTorque + weight * pos.dist, currentSolution);
+                }
+                
+                if (found) return;
+                currentSolution.pop();
+                used[pIdx] = false;
+            }
+        }
+        dfs(0, 0, 0, []);
+        return solutionResult;
+    }
+
+    function generateSolvablePuzzle(slotCount, blockCount) {
+        setMessage('새 퍼즐 생성 중...');
+        U.newBtn.disabled = true;
+        setTimeout(() => {
+            let attempts = 0;
+            while (attempts < 200) {
+                createSlots();
+                createBlocks(blockCount);
+                const values = Array.from(U.blocks.querySelectorAll('.block')).map(b => Number(b.dataset.weight));
+                const sol = solvePuzzle(values, slotCount);
+                if (sol.length > 0) {
+                    solution = sol;
+                    hintIndex = 0;
+                    setMessage('');
+                    U.newBtn.classList.remove('btn-ready');
+                    U.newBtn.disabled = false;
+                    return;
+                }
+                attempts++;
+            }
+            setMessage('퍼즐 생성 실패. 설정을 변경해주세요.', 'err');
+            U.newBtn.disabled = false;
+        }, 10);
+    }
+    
+    function newPuzzle() {
+        generateSolvablePuzzle(Number(U.slotCount.value), Number(U.blockCount.value));
+    }
+
+    function showHint() {
+        if (hintIndex >= solution.length) {
+            setMessage('더 이상 힌트가 없습니다.', 'err');
+            return;
+        }
+        const step = solution[hintIndex];
+        const targetSlot = U.answerArea.querySelector(`.slot[data-side='${step.side}'][data-index='${step.slotIndex}']`);
+        const blockEl = document.getElementById('block' + step.blockIndex);
+
+        if (!blockEl || !targetSlot) {
+            hintIndex++;
+            if (hintIndex < solution.length) showHint();
+            return;
+        }
+
+        handleBlockPlacement(targetSlot, blockEl);
+        hintIndex++;
+        setMessage('힌트: 블록 하나를 정답 위치에 배치했습니다.');
+
+        if (allBlocksUsed() && hintIndex >= solution.length) {
+            checkAnswer();
+        }
+    }
+
+    function checkAnswer() {
+        if (!allBlocksUsed()) {
+            setMessage('모든 블록을 사용하세요.', 'err');
+            return;
+        }
+        const t = computeTorque();
+        if (t.L > 0 && t.R > 0 && t.L === t.R) {
+            score++;
+            U.score.textContent = score;
+            setMessage('정답! 균형이 맞았습니다 🎉', 'ok');
+            U.newBtn.classList.add('btn-ready');
+        } else {
+            setMessage(`틀렸습니다. 좌: ${t.L} / 우: ${t.R} 입니다.`, 'err');
+        }
+    }
+
+    function resetBoard() {
+        const wrappers = Array.from(U.blocks.querySelectorAll('.block-wrapper'));
+        const blocks = Array.from(document.querySelectorAll('.block'));
+        
+        wrappers.forEach(w => { if (w.firstChild) w.removeChild(w.firstChild); });
+
+        blocks.forEach(block => {
+            const originalIndex = parseInt(block.id.replace('block', ''), 10);
+            if (wrappers[originalIndex]) {
+                wrappers[originalIndex].appendChild(block);
+            }
+        });
+        
+        document.querySelectorAll('.slot-inner').forEach(inner => {
+            if (inner.firstChild) inner.removeChild(inner.firstChild);
+        });
+
+        const allBlocksOnBoard = document.querySelectorAll('.block');
+        allBlocksOnBoard.forEach(b => {
+             const originalIndex = parseInt(b.id.replace('block', ''), 10);
+             if (wrappers[originalIndex] && !wrappers[originalIndex].firstChild) {
+                wrappers[originalIndex].appendChild(b);
+            }
+        });
+
+        hintIndex = 0;
+        setMessage('');
+        deselectAllBlocks();
+        U.newBtn.classList.remove('btn-ready');
+    }
+
+    U.newBtn.addEventListener('click', newPuzzle);
+    U.resetBtn.addEventListener('click', resetBoard);
+    U.hintBtn.addEventListener('click', showHint);
+    U.checkBtn.addEventListener('click', checkAnswer);
+    U.slotCount.addEventListener('change', updateBlockOptions);
+
+    updateBlockOptions();
+    newPuzzle();
+</script>
+</body>
+</html>
