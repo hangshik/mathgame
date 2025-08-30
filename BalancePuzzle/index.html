@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>균형 퍼즐 (Enigma-style)</title>
+  <title>저울 퍼즐</title>
   <style>
     :root {
       --bg: #f6f8fa; --muted: #6b7280; --accent: #3b82f6;
@@ -47,6 +47,9 @@
     .block-wrapper {
       width: 56px; height: 56px; display: flex;
       align-items: center; justify-content: center;
+      /* 블록이 항상 위에 보이도록 z-index 추가 */
+      position: relative;
+      z-index: 10;
     }
     .block {
       width: 52px; height: 52px; border-radius: 8px; display: flex;
@@ -54,6 +57,10 @@
       cursor: grab; background: linear-gradient(180deg, #e0f2fe, #bae6fd);
       box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
       user-select: none; transition: box-shadow 0.2s;
+      touch-action: none; /* Prevent scrolling while dragging on mobile */
+      /* 블록이 항상 위에 보이도록 z-index 추가 */
+      position: relative;
+      z-index: 100;
     }
     .block.selected {
       box-shadow: 0 0 0 3px var(--accent);
@@ -76,23 +83,29 @@
       border: 1px solid rgba(2, 6, 23, 0.06); display: flex;
       flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer;
+      /* 블록이 항상 위에 보이도록 z-index 낮게 설정 */
+      position: relative;
+      z-index: 1;
     }
     .slot-inner {
       width: 100%; flex-grow: 1; display: flex;
-      align-items: center; justify-content: center; pointer-events: none;
+      align-items: center; justify-content: center;
     }
-    .slot-label { font-size: 13px; color: var(--muted); padding-bottom: 5px; }
+    .slot-label { font-size: 15px; color: var(--muted); padding-bottom: 5px; }
 
     .separator {
       width: 30px; /* 좌우 슬롯 사이의 간격 */
     }
 
     .fulcrum-line {
-      width: 100%;
-      max-width: 820px;
+      /* width는 자바스크립트에서 동적으로 조절됨 */
       height: 8px;
       background: linear-gradient(90deg, var(--pivot-color), var(--beam-color), var(--pivot-color));
       border-radius: 6px;
+      margin: 0 auto;
+      transition: width 0.2s;
+      /* max-width: 820px;  제거 */
+      display: block;
     }
     .fulcrum-pivot {
       width: 0; height: 0;
@@ -103,7 +116,7 @@
     }
     
     .message {
-      min-height: 22px; margin-top: 16px; font-weight: 700; text-align: center;
+      min-height: 22px; margin-top: 16px; font-weight: 700; text-align: center; font-size: 20px;
     }
     .message.ok { color: var(--ok); }
     .message.err { color: var(--danger); }
@@ -125,7 +138,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>⚖️ 균형 퍼즐</h1>
+    <h1>⚖️ 저울 퍼즐</h1>
 
     <div class="controls">
       <label>좌/우 슬롯 수: <select id="slotCount"><option selected>3</option><option>4</option><option>5</option></select></label>
@@ -155,18 +168,21 @@
     let solution = [];
     let hintIndex = 0;
     let selectedBlock = null;
+    let dragBlock = null; // For touch drag
+    let isCorrect = false; // 정답 상태 플래그
 
     const U = {
         slotCount: document.getElementById('slotCount'),
         blockCount: document.getElementById('blockCount'),
         blocks: document.getElementById('blocks'),
-        answerArea: document.getElementById('answerArea'), // الجديد
+        answerArea: document.getElementById('answerArea'),
         newBtn: document.getElementById('newBtn'),
         resetBtn: document.getElementById('resetBtn'),
         hintBtn: document.getElementById('hintBtn'),
         checkBtn: document.getElementById('checkBtn'),
         message: document.getElementById('message'),
         score: document.getElementById('score'),
+        fulcrumLine: document.querySelector('.fulcrum-line'),
     };
 
     function updateBlockOptions() {
@@ -179,6 +195,27 @@
             U.blockCount.appendChild(o);
         }
         U.blockCount.value = Math.min(s * 2, 3);
+    }
+
+    // fulcrum-line의 길이를 슬롯 수에 맞게 조절
+    function updateFulcrumLineWidth() {
+        // 슬롯 개수(좌+우)와 separator의 개수에 따라 계산
+        const slotCount = parseInt(U.slotCount.value, 10);
+        // slot의 width, gap, separator width를 CSS에서 가져옴
+        // slot: 64px, gap: 10px, separator: 30px (PC 기준)
+        // 모바일은 50, 6, 15
+        let slotW = 64, gap = 10, sepW = 30;
+        if (window.innerWidth <= 720) {
+            slotW = 50; gap = 6; sepW = 15;
+        }
+        // 전체 슬롯 개수: 좌+우
+        const totalSlots = slotCount * 2;
+        // gap 개수: 슬롯 사이 (좌측 n-1, separator 앞뒤 1, 우측 n-1) = (n-1) + 1 + (n-1) = 2n-1
+        // 실제 answerArea의 gap은 flex로 자동이지만, separator가 있으니 slotCount*2-1개 gap
+        const totalGap = (totalSlots - 1) * gap;
+        // 전체 길이 = 슬롯*개수 + gap*개수 + separator
+        const totalWidth = (slotW * totalSlots) + totalGap + sepW + 30;
+        U.fulcrumLine.style.width = totalWidth + "px";
     }
 
     function createSlots() {
@@ -203,6 +240,9 @@
             const slot = createSingleSlot(dist, 'right', i);
             U.answerArea.appendChild(slot);
         }
+
+        // 슬롯 생성 후 fulcrum-line 길이 조정
+        updateFulcrumLineWidth();
     }
 
     function createSingleSlot(dist, side, index) {
@@ -236,13 +276,14 @@
                 selectBlock(existingBlock);
             }
         } else {
-            if (selectedBlock === blockToPlace) deselectAllBlocks();
+            // if (selectedBlock === blockToPlace) deselectAllBlocks();
         }
         targetSlot.querySelector('.slot-inner').appendChild(blockToPlace);
         setMessage('');
     }
 
     function attachSlotEvents(slot) {
+        // Drag & Drop (desktop)
         slot.addEventListener('dragover', e => e.preventDefault());
         slot.addEventListener('drop', e => {
             e.preventDefault();
@@ -252,11 +293,63 @@
             deselectAllBlocks();
             handleBlockPlacement(slot, blockEl);
         });
-        slot.addEventListener('click', () => {
+
+        // Click: place selected block, or select block in slot
+        slot.addEventListener('click', (e) => {
+            // If block is in slot and user clicks it, select it
+            const block = slot.querySelector('.block');
+            if (block && e.target.closest('.block')) {
+                // Select the block in the slot
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+                return;
+            }
+            // Otherwise, try to place selected block
             if (selectedBlock) {
                 handleBlockPlacement(slot, selectedBlock);
             }
         });
+
+        // Touch support for mobile drag & drop
+        slot.addEventListener('touchstart', function(e) {
+            // If block is in slot and user touches it, select it
+            const block = slot.querySelector('.block');
+            if (block && e.target.closest('.block')) {
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+                // For drag: allow dragging block from slot
+                dragBlock = block;
+                // Prevent scroll
+                e.preventDefault();
+                return;
+            }
+            // If a block is selected, place it here
+            if (selectedBlock) {
+                handleBlockPlacement(slot, selectedBlock);
+                e.preventDefault();
+            }
+        }, {passive: false});
+
+        // Touch drop target for mobile drag
+        slot.addEventListener('touchmove', function(e) {
+            // Prevent scroll while dragging over slot
+            if (dragBlock) e.preventDefault();
+        }, {passive: false});
+
+        slot.addEventListener('touchend', function(e) {
+            if (dragBlock) {
+                handleBlockPlacement(slot, dragBlock);
+                dragBlock = null;
+                deselectAllBlocks();
+                e.preventDefault();
+            }
+        }, {passive: false});
     }
 
     function selectBlock(block) {
@@ -284,10 +377,13 @@
             block.dataset.weight = weight;
             block.draggable = true;
 
+            // Desktop drag
             block.addEventListener('dragstart', e => {
                 deselectAllBlocks();
                 e.dataTransfer.setData('text', block.id);
             });
+
+            // Click: select/deselect
             block.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (block.classList.contains('selected')) {
@@ -296,6 +392,64 @@
                     selectBlock(block);
                 }
             });
+
+            // Touch support for mobile drag
+            let touchMoved = false;
+            let touchStartX = 0, touchStartY = 0;
+            block.addEventListener('touchstart', function(e) {
+                // 👉 단순 터치만으로 선택/해제
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+
+                // 필요할 때만 드래그 시작
+                dragBlock = block;
+
+                // 터치 스크롤 방지
+                e.preventDefault();
+           }, {passive: false});
+
+
+            block.addEventListener('touchmove', function(e) {
+                if (!dragBlock) return;
+                touchMoved = true;
+                // Optionally, show visual feedback
+                e.preventDefault();
+            }, {passive: false});
+
+            block.addEventListener('touchend', function(e) {
+                if (!dragBlock) return;
+                // Find the element under the touch point
+                let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+                if (!touch) {
+                    dragBlock = null;
+                    return;
+                }
+                const x = touch.clientX, y = touch.clientY;
+                dragBlock.classList.remove('selected');
+                selectedBlock = null;
+                // Find slot under touch
+                const el = document.elementFromPoint(x, y);
+                const slot = el && el.closest && el.closest('.slot');
+                if (slot) {
+                    handleBlockPlacement(slot, block);
+                } else {
+                    // Find block-wrapper under touch
+                    const wrapper = el && el.closest && el.closest('.block-wrapper');
+                    if (wrapper) {
+                        wrapper.appendChild(block);
+                    } else {
+                        // If not on a wrapper, find any empty wrapper
+                        const emptyWrapper = findEmptyWrapper();
+                        if (emptyWrapper) emptyWrapper.appendChild(block);
+                    }
+                }
+                dragBlock = null;
+                setMessage('');
+                e.preventDefault();
+            }, {passive: false});
 
             wrapper.appendChild(block);
             U.blocks.appendChild(wrapper);
@@ -307,6 +461,7 @@
         return Array.from(U.blocks.querySelectorAll('.block-wrapper')).find(w => !w.querySelector('.block'));
     }
 
+    // Desktop drag & drop for block area
     U.blocks.addEventListener('dragover', e => e.preventDefault());
     U.blocks.addEventListener('drop', e => {
         e.preventDefault();
@@ -319,12 +474,164 @@
         }
         setMessage('');
     });
+
+    // Touch drop for block area (mobile)
+    U.blocks.addEventListener('touchmove', function(e) {
+        if (dragBlock) e.preventDefault();
+    }, {passive: false});
+    U.blocks.addEventListener('touchend', function(e) {
+        if (!dragBlock) return;
+        let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+        if (!touch) {
+            dragBlock = null;
+            return;
+        }
+        const x = touch.clientX, y = touch.clientY;
+        dragBlock.classList.remove('selected');
+        selectedBlock = null;
+        // Find block-wrapper under touch
+        const el = document.elementFromPoint(x, y);
+        const wrapper = el && el.closest && el.closest('.block-wrapper');
+        if (wrapper) {
+            wrapper.appendChild(dragBlock);
+        } else {
+            // If not on a wrapper, find any empty wrapper
+            const emptyWrapper = findEmptyWrapper();
+            if (emptyWrapper) emptyWrapper.appendChild(dragBlock);
+        }
+        dragBlock = null;
+        setMessage('');
+        e.preventDefault();
+    }, {passive: false});
     
     document.body.addEventListener('click', (e) => {
         if (!e.target.closest('.block, .slot')) {
             deselectAllBlocks();
         }
     });
+
+    // --- 슬롯에 있는 블록도 선택 및 이동 가능하게 ---
+    // (1) .block에 대해 항상 select/deselect 및 drag 가능하게 이미 구현됨
+    // (2) .block이 slot 안에 있든 block-wrapper 안에 있든 동일하게 동작
+
+    // (3) block-wrapper에도 drop 이벤트를 항상 등록 (동적으로 생성되는 경우도 포함)
+    function addBlockWrapperDropEvents(wrapper) {
+        wrapper.addEventListener('dragover', e => e.preventDefault());
+        wrapper.addEventListener('drop', e => {
+            e.preventDefault();
+            const blockId = e.dataTransfer.getData('text');
+            const blockEl = document.getElementById(blockId);
+            if (!blockEl) return;
+            wrapper.appendChild(blockEl);
+            setMessage('');
+        });
+    }
+
+    // 기존 block-wrapper에 drop 이벤트 등록
+    function addDropEventsToAllWrappers() {
+        U.blocks.querySelectorAll('.block-wrapper').forEach(addBlockWrapperDropEvents);
+    }
+
+    // 최초에 한 번만 호출
+    addDropEventsToAllWrappers();
+
+    // createBlocks에서 새로 생성되는 wrapper에도 drop 이벤트 등록
+    const _origCreateBlocks = createBlocks;
+    createBlocks = function(n) {
+        U.blocks.innerHTML = '';
+        currentWeights = [];
+        for (let i = 0; i < n; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'block-wrapper';
+            addBlockWrapperDropEvents(wrapper);
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.id = 'block' + i;
+            const weight = Math.floor(Math.random() * 9) + 1;
+            block.textContent = weight;
+            block.dataset.weight = weight;
+            block.draggable = true;
+
+            // Desktop drag
+            block.addEventListener('dragstart', e => {
+                deselectAllBlocks();
+                e.dataTransfer.setData('text', block.id);
+            });
+
+            // Click: select/deselect
+            block.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+            });
+
+            // Touch support for mobile drag
+            let touchMoved = false;
+            let touchStartX = 0, touchStartY = 0;
+            block.addEventListener('touchstart', function(e) {
+                if (block.classList.contains('selected')) {
+                    deselectAllBlocks();
+                } else {
+                    selectBlock(block);
+                }
+                // For drag
+                dragBlock = block;
+                touchMoved = false;
+                if (e.touches && e.touches.length > 0) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+                // Prevent scroll
+                e.preventDefault();
+            }, {passive: false});
+
+            block.addEventListener('touchmove', function(e) {
+                if (!dragBlock) return;
+                touchMoved = true;
+                // Optionally, show visual feedback
+                e.preventDefault();
+            }, {passive: false});
+
+            block.addEventListener('touchend', function(e) {
+                if (!dragBlock) return;
+                // Find the element under the touch point
+                let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+                if (!touch) {
+                    dragBlock = null;
+                    return;
+                }
+                const x = touch.clientX, y = touch.clientY;
+                dragBlock.classList.remove('selected');
+                selectedBlock = null;
+                // Find slot under touch
+                const el = document.elementFromPoint(x, y);
+                const slot = el && el.closest && el.closest('.slot');
+                if (slot) {
+                    handleBlockPlacement(slot, block);
+                } else {
+                    // Find block-wrapper under touch
+                    const wrapper = el && el.closest && el.closest('.block-wrapper');
+                    if (wrapper) {
+                        wrapper.appendChild(block);
+                    } else {
+                        // If not on a wrapper, find any empty wrapper
+                        const emptyWrapper = findEmptyWrapper();
+                        if (emptyWrapper) emptyWrapper.appendChild(block);
+                    }
+                }
+                dragBlock = null;
+                setMessage('');
+                e.preventDefault();
+            }, {passive: false});
+
+            wrapper.appendChild(block);
+            U.blocks.appendChild(wrapper);
+            currentWeights.push(weight);
+        }
+    }
 
     function computeTorque() {
         let leftTorque = 0, rightTorque = 0;
@@ -398,6 +705,8 @@
     function generateSolvablePuzzle(slotCount, blockCount) {
         setMessage('새 퍼즐 생성 중...');
         U.newBtn.disabled = true;
+        U.checkBtn.disabled = false;
+        isCorrect = false;
         setTimeout(() => {
             let attempts = 0;
             while (attempts < 200) {
@@ -411,6 +720,8 @@
                     setMessage('');
                     U.newBtn.classList.remove('btn-ready');
                     U.newBtn.disabled = false;
+                    U.checkBtn.disabled = false;
+                    isCorrect = false;
                     return;
                 }
                 attempts++;
@@ -449,6 +760,7 @@
     }
 
     function checkAnswer() {
+        if (isCorrect) return; // 이미 정답이면 동작하지 않음
         if (!allBlocksUsed()) {
             setMessage('모든 블록을 사용하세요.', 'err');
             return;
@@ -459,6 +771,8 @@
             U.score.textContent = score;
             setMessage('정답! 균형이 맞았습니다 🎉', 'ok');
             U.newBtn.classList.add('btn-ready');
+            U.checkBtn.disabled = true; // 정답이면 버튼 비활성화
+            isCorrect = true;
         } else {
             setMessage(`틀렸습니다. 좌: ${t.L} / 우: ${t.R} 입니다.`, 'err');
         }
@@ -493,15 +807,27 @@
         setMessage('');
         deselectAllBlocks();
         U.newBtn.classList.remove('btn-ready');
+        U.checkBtn.disabled = false; // 리셋 시 버튼 활성화
+        isCorrect = false;
     }
+
+    // 슬롯 수 변경 시 fulcrum-line 길이도 조정
+    U.slotCount.addEventListener('change', () => {
+        updateBlockOptions();
+
+    });
+
+    // 윈도우 리사이즈 시 fulcrum-line 길이도 조정
+    window.addEventListener('resize', updateFulcrumLineWidth);
 
     U.newBtn.addEventListener('click', newPuzzle);
     U.resetBtn.addEventListener('click', resetBoard);
     U.hintBtn.addEventListener('click', showHint);
     U.checkBtn.addEventListener('click', checkAnswer);
-    U.slotCount.addEventListener('change', updateBlockOptions);
 
     updateBlockOptions();
+    createSlots();
+    updateFulcrumLineWidth();
     newPuzzle();
 </script>
 </body>
