@@ -38,15 +38,33 @@
 <h1>스트링아트 그리기</h1>
 
 <div>
-  <label for="radius">반지름 (px):</label>
+  <label for="radius">크기:</label>
   <input type="number" id="radius" min="50" max="350" value="150" />
   
-  <label for="points">꼭짓점 갯수:</label>
-  <input type="number" id="points" min="3" max="200" value="30" />
+  <label for="shape">도형:</label>
+  <select id="shape">
+    <option value="circle" selected>원</option>
+    <option value="3">삼각형</option>
+    <option value="4">사각형</option>
+    <option value="5">오각형</option>
+    <option value="6">육각형</option>
+  </select>
   
-  <label for="skip">건너뛸 칸 수:</label>
-  <input type="number" id="skip" min="1" max="100" value="7" />
+  <label for="points">점의 수:</label>
+  <input type="number" id="points" min="2" max="200" value="30" />
+
+  <label for="skip">건너는 수:</label>
+  <input type="number" id="skip" min="1" max="100" value="6" />
+
+  <label for="skipAdd">더한 수:</label>
+  <input type="number" id="skipAdd" min="0" max="50" value="0" />
   
+  <label for="colorMode">색상 모드:</label>
+  <select id="colorMode">
+    <option value="single" selected>단색</option>
+    <option value="multi">다채색</option>
+  </select>
+
   <label for="color">선 색상:</label>
   <input type="color" id="color" value="#0088cc" />
 </div>
@@ -58,11 +76,18 @@
 </div>
 
 <canvas id="canvas"></canvas>
+<br><br>
+<div>
+  키보드: 하나씩 그리기(Space), 전체 그리기(Enter), 초기화(Esc)
+</div>
 
 <script>
   const radiusInput = document.getElementById('radius');
   const pointsInput = document.getElementById('points');
+  const shapeSelect = document.getElementById('shape');
   const skipInput = document.getElementById('skip');
+  const skipAddInput = document.getElementById('skipAdd');
+  const colorMode = document.getElementById('colorMode');
   const colorInput = document.getElementById('color');
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
@@ -76,79 +101,145 @@
 
   function setupCanvas() {
     const radius = parseInt(radiusInput.value);
-    const size = Math.min(800, radius * 2 + 100);
+    const size = Math.min(900, radius * 2 + 120);
     canvas.width = size;
     canvas.height = size;
   }
 
-  function calculatePoints(radius, pointsCount, centerX, centerY) {
-    const pts = [];
-    for(let i = 0; i < pointsCount; i++) {
-      const angle = (2 * Math.PI * i) / pointsCount - Math.PI / 2; // 12시 방향부터 시작
+  function calculatePoints(shape, radius, pointsPerSide, centerX, centerY) {
+  const pts = [];
+  if (shape === "circle") {
+    for (let i = 0; i < pointsPerSide; i++) {
+      const angle = (2 * Math.PI * i) / pointsPerSide - Math.PI / 2;
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
-      pts.push({x, y, angle});
+      pts.push({ x, y });
     }
-    return pts;
+  } else {
+    const sides = parseInt(shape);
+    const angleStep = (2 * Math.PI) / sides;
+    const rotationOffset = (sides === 4 ? Math.PI / 4 : 0);
+    const verts = [];
+    for (let i = 0; i < sides; i++) {
+      const a = angleStep * i - Math.PI / 2 + rotationOffset;
+      verts.push({ x: centerX + radius * Math.cos(a), y: centerY + radius * Math.sin(a) });
+    }
+    for (let e = 0; e < sides; e++) {
+      const v0 = verts[e];
+      const v1 = verts[(e + 1) % sides];
+      for (let j = 0; j < pointsPerSide; j++) {
+        const t = j / pointsPerSide;
+        const x = v0.x + (v1.x - v0.x) * t;
+        const y = v0.y + (v1.y - v0.y) * t;
+        pts.push({ x, y });
+      }
+    }
+  }
+  return pts;
+}
+
+function init() {
+  currentLineIndex = 0;
+  const radius = parseInt(radiusInput.value);
+  const shape = shapeSelect.value;
+
+  // 도형이 바뀔 때 점 개수 먼저 반영
+  if (shape === "circle") {
+    if (document.activeElement === shapeSelect) pointsInput.value = 30;
+  } else {
+    if (document.activeElement === shapeSelect) pointsInput.value = 5;
   }
 
-  function drawBase(radius, pointsCount) {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+  let perSide = parseInt(pointsInput.value);
 
-    // 배경 흰색 채우기
+  setupCanvas();
+  points = calculatePoints(shape, radius, perSide, canvas.width / 2, canvas.height / 2);
+  drawBase(shape, radius);
+}
+
+
+  function drawBase(shape, radius) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 원 그리기
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    if (shape === "circle") {
+      ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+    } else {
+      const sides = parseInt(shape);
+      const angleStep = (2 * Math.PI) / sides;
+      const rotationOffset = (sides === 4 ? Math.PI / 4 : 0);
+      for (let i = 0; i < sides; i++) {
+        const a = angleStep * i - Math.PI / 2 + rotationOffset;
+        const x = cx + radius * Math.cos(a);
+        const y = cy + radius * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    }
     ctx.stroke();
 
-    // 꼭짓점 그리기
     ctx.fillStyle = "#444";
     points.forEach(p => {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 3, 0, 2*Math.PI);
+      ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
       ctx.fill();
     });
 
-    // 숫자 그리기
     ctx.fillStyle = "#222";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    points.forEach((p, i) => {
-      const numberRadius = radius + 15;
-      const nx = canvas.width / 2 + numberRadius * Math.cos(p.angle);
-      const ny = canvas.height / 2 + numberRadius * Math.sin(p.angle);
-      ctx.fillText(i + 1, nx, ny);
+    const labelOffset = 20;
+    points.forEach(p => {
+      let nx = p.x;
+      let ny = p.y;
+      if (shape === "circle") {
+        const ang = Math.atan2(p.y - cy, p.x - cx);
+        nx = cx + (radius + labelOffset) * Math.cos(ang);
+        ny = cy + (radius + labelOffset) * Math.sin(ang);
+      } else {
+        const dirX = p.x - cx;
+        const dirY = p.y - cy;
+        const len = Math.sqrt(dirX*dirX + dirY*dirY);
+        nx = p.x + (dirX/len)*labelOffset;
+        ny = p.y + (dirY/len)*labelOffset;
+      }
+      ctx.fillText(points.indexOf(p) + 1, nx, ny);
     });
   }
 
   function clearLines() {
-    // 배경, 원, 점, 숫자만 그리기 (선은 지움)
     const radius = parseInt(radiusInput.value);
-    const pointsCount = parseInt(pointsInput.value);
-    drawBase(radius, pointsCount);
+    const shape = shapeSelect.value;
+    drawBase(shape, radius);
   }
 
-  function drawNextLine() {
-    const pointsCount = parseInt(pointsInput.value);
-    const skip = parseInt(skipInput.value);
-    const color = colorInput.value;
-
-    if (currentLineIndex >= pointsCount) {
-      return; // 다 그렸으면 더 이상 그리지 않음
+  function getLineColor(i) {
+    if (colorMode.value === "multi") {
+      const hue = (i * 137.508) % 360;
+      return `hsl(${hue}, 100%, 45%)`;
     }
+    return colorInput.value;
+  }
+  function drawNextLine() {
+    const n = points.length;
+    const baseSkip = parseInt(skipInput.value);
+    const inc = parseInt(skipAddInput.value);
+    if (currentLineIndex >= n) return;
 
     const start = points[currentLineIndex];
-    const endIndex = (currentLineIndex + skip) % pointsCount;
+    const skipForThis = baseSkip + inc * currentLineIndex;
+    const endIndex = (currentLineIndex + skipForThis) % n;
     const end = points[endIndex];
 
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = getLineColor(currentLineIndex);
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
@@ -159,55 +250,42 @@
   }
 
   function drawAllLines() {
-    const pointsCount = parseInt(pointsInput.value);
-    const skip = parseInt(skipInput.value);
-    const color = colorInput.value;
+    const n = points.length;
+    const baseSkip = parseInt(skipInput.value);
+    const inc = parseInt(skipAddInput.value);
 
-    ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
-
-    for(let i = 0; i < pointsCount; i++) {
+    for (let i = 0; i < n; i++) {
       const start = points[i];
-      const endIndex = (i + skip) % pointsCount;
+      const skipForThis = baseSkip + inc * i;
+      const endIndex = (i + skipForThis) % n;
       const end = points[endIndex];
+      ctx.strokeStyle = getLineColor(i);
       ctx.beginPath();
       ctx.moveTo(start.x, start.y);
       ctx.lineTo(end.x, end.y);
       ctx.stroke();
     }
-    currentLineIndex = pointsCount; // 모두 그려짐 표시
+    currentLineIndex = n;
   }
 
-  function init() {
-    currentLineIndex = 0;
-    const radius = parseInt(radiusInput.value);
-    const pointsCount = parseInt(pointsInput.value);
-    setupCanvas();
-    points = calculatePoints(radius, pointsCount, canvas.width / 2, canvas.height / 2);
-    drawBase(radius, pointsCount);
-  }
 
-  // 입력값 변경 시 초기화 (선 없음)
-  [radiusInput, pointsInput, skipInput, colorInput].forEach(input => {
-    input.addEventListener('input', () => {
-      init();
-    });
+
+
+  [radiusInput, pointsInput, shapeSelect, skipInput, skipAddInput, colorMode, colorInput].forEach(el => 
+    el.addEventListener('input', init)
+  );
+
+  drawOneBtn.addEventListener('click', drawNextLine);
+  drawAllBtn.addEventListener('click', () => { clearLines(); drawAllLines(); });
+  resetBtn.addEventListener('click', init);
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { e.preventDefault(); drawNextLine(); }
+    else if (e.code === 'Enter') { e.preventDefault(); clearLines(); drawAllLines(); }
+    else if (e.code === 'Escape') { e.preventDefault(); init(); }
   });
 
-  drawOneBtn.addEventListener('click', () => {
-    drawNextLine();
-  });
-
-  drawAllBtn.addEventListener('click', () => {
-    clearLines();
-    drawAllLines();
-  });
-
-  resetBtn.addEventListener('click', () => {
-    init(); // 초기화 : 선 모두 지움, 베이스만 그림
-  });
-
-  // 초기 실행
   init();
 </script>
 
