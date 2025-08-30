@@ -24,14 +24,9 @@
       margin: 10px;
       cursor: pointer;
       border: none;
-      border-radius: 50px;
-      background-color: #ffc107;
-      color: #343a40;
       transition: background-color 0.3s;
     }
-    button:hover {
-      background-color: #e0a800;
-    }
+
     .result {
       margin-top: 30px;
       font-size: 3rem;
@@ -43,33 +38,63 @@
     .result.failure {
       color: #dc3545;
     }
-    .pi-symbol {
-      font-size: 4rem;
-      color: #007bff;
-      margin-bottom: 20px;
+    .level-btn {
+      background-color: #e2e6ea;
+      color: #343a40;
+      border-radius: 5px;
+      padding: 10px 25px;
+      margin: 5px;
+    }
+    .level-btn.selected {
+      background-color: #60a5fa;
+      color: white;
+    }
+    #start, #stop {
+      border-radius: 50px;  /* 타원 */
+      padding: 10px 30px;
+      background-color: #ffc107;
+      color: #343a40;
+    }
+    #start:hover, #stop:hover {
+      background-color: #e0a800;
+    }
+    #reButton {
+      border-radius: 50px;  /* 타원 */
+      padding: 10px 30px;
+      background-color: #9ec4fd;
+      color: #343a40;
     }
   </style>
 </head>
 <body>
+  <div>
+    <button class="level-btn" id="easy">초급</button>
+    <button class="level-btn selected" id="medium">중급</button>
+    <button class="level-btn" id="hard">고급</button>
+  </div><br><br>
+
   <div class="timer">0.00</div>
   <button id="start">시작</button>
   <button id="stop" disabled>멈춤</button>
-  <button id="reButton" onclick="restart()" style="display: none; background-color: #9ec4fd;">다시 시작</button>
+  <button id="reButton" onclick="restart()" style="display: none;">다시 시작</button>
   
   <div style="font-size: 2em">3.14초에 멈추세요.</div>
-  <div class="result"></div>
+  <div class="result"></div><br>
+  <font style="font-size: 25px;">
+    ◈ 키보드<br>
+    시작, 멈춤: Space<br>
+    다시 시작: Esc
+  </font>
   
   <script>
-    // 마우스 오른쪽 버튼 클릭 금지
-    document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    });
+    document.addEventListener('contextmenu', e => e.preventDefault());
 
     let timer = 0;
-    let interval = null;
+    let interval = null; 
     let isRunning = false;
     let failureCount = 1;
-    let isSuccess = false; // 성공 여부를 저장
+    let isSuccess = false;
+    let successRange = [3.11, 3.17]; // 기본 중급
 
     const timerDisplay = document.querySelector('.timer');
     const resultDisplay = document.querySelector('.result');
@@ -77,11 +102,60 @@
     const stopButton = document.getElementById('stop');
     const reButton = document.getElementById('reButton');
 
+    const easyBtn = document.getElementById('easy');
+    const mediumBtn = document.getElementById('medium');
+    const hardBtn = document.getElementById('hard');
+
+    function setLevel(level) {
+      // 선택 표시
+      [easyBtn, mediumBtn, hardBtn].forEach(btn => btn.classList.remove('selected'));
+      level.classList.add('selected');
+
+      // 성공 범위 설정
+      if (level.id === 'easy') successRange = [3.08, 3.20];
+      else if (level.id === 'medium') successRange = [3.11, 3.17];
+      else if (level.id === 'hard') successRange = [3.13, 3.15];
+
+      resetAll();
+    }
+
+    function resetAll() {
+      clearInterval(interval);
+      timer = 0;
+      timerDisplay.textContent = timer.toFixed(2);
+      resultDisplay.textContent = '';
+      resultDisplay.className = 'result';
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      isRunning = false;
+      isSuccess = false;
+      failureCount = 1;
+      reButton.style.display = 'none';
+    }
+
+    function restart() {
+      // 현재 난이도 유지, 나머지 초기화
+      clearInterval(interval);
+      timer = 0;
+      timerDisplay.textContent = timer.toFixed(2);
+      resultDisplay.textContent = '';
+      resultDisplay.className = 'result';
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      isRunning = false;
+      isSuccess = false;
+      failureCount = 1;
+      reButton.style.display = 'none';
+    }
+
+    // 난이도 버튼 이벤트
+    [easyBtn, mediumBtn, hardBtn].forEach(btn => {
+      btn.addEventListener('click', () => setLevel(btn));
+    });
+
     function startTimer() {
       timer = 0;
       timerDisplay.textContent = timer.toFixed(2);
-      //resultDisplay.textContent = '';
-      //resultDisplay.className = 'result';
       startButton.disabled = true;
       stopButton.disabled = false;
       isRunning = true;
@@ -96,15 +170,12 @@
       stopButton.disabled = true;
       isRunning = false;
 
-      if (timer >= 3.11 && timer <= 3.17) {
+      if (timer >= successRange[0] && timer <= successRange[1]) {
         timerDisplay.textContent = "3.14";
         resultDisplay.textContent = `성공 - ${failureCount}번째`;
         resultDisplay.className = 'result success';
         reButton.style.display = 'inline-block';
         isSuccess = true;
-        //startButton.style.display = 'none';
-        //stopButton.style.display = 'none';
-        
       } else {
         startButton.disabled = false;
         resultDisplay.textContent = `실패 - ${failureCount}번째`;
@@ -119,18 +190,14 @@
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
-        if (isSuccess) return; // 성공 후에는 스페이스바 동작 안 함
-        if (!isRunning) {
-          startTimer();
-        } else {
-          stopTimer();
-        }
+        if (isSuccess) return;
+        if (!isRunning) startTimer();
+        else stopTimer();
+      } else if (e.code === 'Escape') {
+        e.preventDefault();
+        reButton.click();
       }
     });
-
-    function restart() {
-      location.reload(); // 페이지를 새로고침
-    }
   </script>
 </body>
 </html>
