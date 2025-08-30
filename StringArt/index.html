@@ -77,8 +77,11 @@
 
 <canvas id="canvas"></canvas>
 <br><br>
-<div>
-  키보드: 하나씩 그리기(Space), 전체 그리기(Enter), 초기화(Esc)
+<div style="font-size: 25px;">
+  ◈ 키보드<br>
+  하나씩 그리기: Space<br>
+  전체 그리기: Enter<br>
+  초기화: Esc<br>
 </div>
 
 <script>
@@ -287,7 +290,7 @@ function init() {
 
   document.addEventListener('keydown', e => {
     if (e.code === 'Space') { e.preventDefault(); drawNextLine(); }
-    else if (e.code === 'Enter') { e.preventDefault(); clearLines(); drawAllLines(); }
+    else if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); clearLines(); drawAllLines(); }
     else if (e.code === 'Escape') { e.preventDefault(); init(); }
   });
 
