@@ -143,11 +143,15 @@ function init() {
   const radius = parseInt(radiusInput.value);
   const shape = shapeSelect.value;
 
-  // 도형이 바뀔 때 점 개수 먼저 반영
-  if (shape === "circle") {
-    if (document.activeElement === shapeSelect) pointsInput.value = 30;
-  } else {
-    if (document.activeElement === shapeSelect) pointsInput.value = 5;
+  // 도형이 바뀔 때 기본값 설정
+  if (document.activeElement === shapeSelect) {
+    if (shape === "circle") {
+      pointsInput.value = 30;
+    } else {
+      pointsInput.value = 5;
+    }
+    skipInput.value = 6;
+    skipAddInput.value = 0;
   }
 
   let perSide = parseInt(pointsInput.value);
@@ -156,6 +160,7 @@ function init() {
   points = calculatePoints(shape, radius, perSide, canvas.width / 2, canvas.height / 2);
   drawBase(shape, radius);
 }
+
 
 
   function drawBase(shape, radius) {
