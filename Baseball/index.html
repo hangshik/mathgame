@@ -73,11 +73,13 @@
     <button id="submit-guess">제출</button>
     <div class="result" id="result"></div>
   </div>
+
+  <!-- ◈ 키보드<br> 게임 시작: Spcae <br> 제출: Enter -->
   
   <script>
     // 마우스 오른쪽 버튼 클릭 금지
     document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
+      e.preventDefault();
     });
 
     const startGameButton = document.getElementById('start-game');
@@ -106,7 +108,7 @@
     }
 
     // 게임 시작 버튼 클릭 시
-    startGameButton.addEventListener('click', () => {
+    function startGame() {
       const digitCount = parseInt(digitCountSelect.value, 10);
       answer = generateRandomNumber(digitCount);
       gameArea.classList.remove('hidden');
@@ -114,6 +116,24 @@
       resultDiv.innerHTML = '';
       userInput.maxLength = digitCount;
       userInput.placeholder = digitCount === 3 ? '예: 123' : '예: 1234';
+      // 커서를 input에 자동으로 위치시킴
+      setTimeout(() => {
+        userInput.focus();
+      }, 50);
+    }
+
+    startGameButton.addEventListener('click', startGame);
+
+    // Space 키로 "게임 시작" 버튼 동작
+    document.addEventListener('keydown', function(e) {
+      // input에 포커스가 있으면 Space로 게임시작 안되게(입력 중일 때 방지)
+      if (
+        (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') &&
+        document.activeElement !== userInput
+      ) {
+        e.preventDefault();
+        startGameButton.click();
+      }
     });
 
     // 입력된 숫자를 확인하는 함수
@@ -145,6 +165,8 @@
       const resultText = document.createElement('p');
       if (strikes === answer.length) {
         resultText.textContent = `정답입니다! 정답은 ${answer}였습니다.`;
+        resultText.style.color = 'green';
+        resultText.style.fontWeight = 'bold';
         resultDiv.appendChild(resultText);
       } else {
         resultText.textContent = `${guess}: ${strikes}S ${balls}B`;
@@ -152,6 +174,7 @@
       }
 
       userInput.value = '';
+      userInput.focus();
     }
 
     submitGuessButton.addEventListener('click', handleSubmit);
@@ -161,7 +184,6 @@
       }
     });
 
-    
   </script>
 </body>
 </html>
