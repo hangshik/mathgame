@@ -52,7 +52,8 @@
       font-size: 24px;
     }
 
-    #record-box {
+    /* 기록 박스 스타일 */
+    .record-box {
       background: white;
       border: 2px solid #ccc;
       border-radius: 10px;
@@ -75,20 +76,22 @@
       text-align: center;
     }
 
-    #reset-record-btn {
+    .reset-btn {   /* 🔧 수정됨: 박스 내부에 들어가는 초기화 버튼 스타일 */
       background-color: #dc3545;
-      margin-top: 10px;
+      margin-top: 15px;
+      width: 100%;
     }
-    #reset-record-btn:hover {
+    .reset-btn:hover {
       background-color: #b02a37;
     }
 
     #digit-count {
-    font-size: 25px;
+      font-size: 25px;
     }
   </style>
 </head>
 <body>
+
   <h1>숫자 야구 게임</h1>
 
   <label for="digit-count">숫자의 개수를 선택하세요:</label>
@@ -105,10 +108,22 @@
     <div class="result" id="result"></div>
   </div>
 
-  <div id="record-box">
-    <h2 id="record-title">누적 성공 기록</h2>
-    <div id="record-table"></div>
-    <button id="reset-record-btn">기록 초기화</button>
+  <!-- 3개 기록 박스 -->
+  <div id="record-box-3" class="record-box">
+    <h2>3개 숫자 누적 기록</h2>
+    <div id="record-table-3"></div>
+
+    <!-- 🔧 수정됨: 기록이 있을 때만 표시되는 초기화 버튼 -->
+    <button id="reset-record-3" class="reset-btn hidden">3개 기록 초기화</button>
+  </div>
+
+  <!-- 4개 기록 박스 -->
+  <div id="record-box-4" class="record-box">
+    <h2>4개 숫자 누적 기록</h2>
+    <div id="record-table-4"></div>
+
+    <!-- 🔧 수정됨: 기록이 있을 때만 표시되는 초기화 버튼 -->
+    <button id="reset-record-4" class="reset-btn hidden">4개 기록 초기화</button>
   </div>
 
   <script>
@@ -121,24 +136,42 @@
     const submitGuessButton = document.getElementById('submit-guess');
     const resultDiv = document.getElementById('result');
 
-    const recordBox = document.getElementById('record-box');
-    const recordTableDiv = document.getElementById('record-table');
-    const resetRecordBtn = document.getElementById('reset-record-btn');
+    const recordBox3 = document.getElementById('record-box-3');
+    const recordBox4 = document.getElementById('record-box-4');
+    const recordTable3 = document.getElementById('record-table-3');
+    const recordTable4 = document.getElementById('record-table-4');
+
+    const resetBtn3 = document.getElementById('reset-record-3');  // 🔧
+    const resetBtn4 = document.getElementById('reset-record-4');  // 🔧
 
     let answer = '';
     let attemptCount = 0;
     let gameFinished = false;
+    let digitCount = 3;
 
-    const successRecords = {};
+    const successRecords3 = {};
+    const successRecords4 = {};
 
-    function updateRecordTable() {
-      const keys = Object.keys(successRecords).map(Number).sort((a, b) => a - b);
+    function updateRecordTables() {
+      renderRecordTable(successRecords3, recordTable3, recordBox3, resetBtn3);
+      renderRecordTable(successRecords4, recordTable4, recordBox4, resetBtn4);
+    }
 
+    /* 테이블 렌더링 공통 함수 */
+    function renderRecordTable(records, tableDiv, boxDiv, resetButton) {
+      const keys = Object.keys(records).map(Number).sort((a, b) => a - b);
+
+      // 기록 없음 → 박스 숨김 + 초기화 버튼 숨김
       if (keys.length === 0) {
-        recordTableDiv.innerHTML = "";
-        recordBox.style.display = "none";
+        boxDiv.style.display = "none";
+        tableDiv.innerHTML = "";
+        resetButton.classList.add("hidden");
         return;
       }
+
+      // 기록 있음 → 박스 표시 + 초기화 버튼 표시
+      boxDiv.style.display = "block";
+      resetButton.classList.remove("hidden");
 
       let headerRow = "<tr><th>시도횟수</th>";
       let dataRow = "<tr><th>성공횟수</th>";
@@ -146,22 +179,21 @@
 
       keys.forEach(k => {
         headerRow += `<td>${k}</td>`;
-        dataRow += `<td>${successRecords[k]}</td>`;
-        total += successRecords[k];
+        dataRow += `<td>${records[k]}</td>`;
+        total += records[k];
       });
 
-      headerRow += `<td>합계</td></tr>`;
+      headerRow += "<td>합계</td></tr>";
       dataRow += `<td>${total}</td></tr>`;
 
-      recordTableDiv.innerHTML = `
+      tableDiv.innerHTML = `
         <table>
           ${headerRow}
           ${dataRow}
         </table>
       `;
-
-      recordBox.style.display = "block";
     }
+
 
     function generateRandomNumber(digits) {
       const numbers = [];
@@ -175,7 +207,8 @@
     }
 
     function startGame() {
-      const digitCount = parseInt(digitCountSelect.value, 10);
+      digitCount = parseInt(digitCountSelect.value);
+
       answer = generateRandomNumber(digitCount);
       attemptCount = 0;
       gameFinished = false;
@@ -184,36 +217,28 @@
       resultDiv.innerHTML = '';
       userInput.value = '';
       userInput.maxLength = digitCount;
-      userInput.placeholder = digitCount === 3 ? '예: 123' : '예: 1234';
+      userInput.placeholder = digitCount === 3 ? "예: 123" : "예: 1234";
 
-      submitGuessButton.disabled = false;   // ★ 제출 가능
-      userInput.disabled = false;           // ★ 입력창 활성화
+      submitGuessButton.disabled = false;
+      userInput.disabled = false;
 
+      updateRecordTables();
       setTimeout(() => userInput.focus(), 50);
     }
 
     startGameButton.addEventListener('click', startGame);
 
-    document.addEventListener('keydown', (e) => {
-      if ((e.code === 'Space' || e.key === ' ') && document.activeElement !== userInput) {
-        e.preventDefault();
-        startGameButton.click();
-      }
-    });
-
     function checkGuess(guess) {
       let strikes = 0, balls = 0;
-
       for (let i = 0; i < guess.length; i++) {
         if (guess[i] === answer[i]) strikes++;
         else if (answer.includes(guess[i])) balls++;
       }
-
       return { strikes, balls };
     }
 
     function handleSubmit() {
-      if (gameFinished) return;   // ★ 정답 후 제출 막기
+      if (gameFinished) return;
 
       const guess = userInput.value;
 
@@ -234,14 +259,16 @@
         resultDiv.appendChild(resultText);
 
         gameFinished = true;
-        submitGuessButton.disabled = true;  // ★ 제출 버튼 비활성화
-        userInput.disabled = true;          // ★ 입력창 비활성화
+        submitGuessButton.disabled = true;
+        userInput.disabled = true;
 
-        if (!successRecords[attemptCount]) successRecords[attemptCount] = 1;
-        else successRecords[attemptCount]++;
+        if (digitCount === 3) {
+          successRecords3[attemptCount] = (successRecords3[attemptCount] || 0) + 1;
+        } else {
+          successRecords4[attemptCount] = (successRecords4[attemptCount] || 0) + 1;
+        }
 
-        updateRecordTable();
-
+        updateRecordTables();
       } else {
         resultText.textContent = `${guess}: ${strikes}S ${balls}B`;
         resultDiv.appendChild(resultText);
@@ -252,19 +279,22 @@
     }
 
     submitGuessButton.addEventListener('click', handleSubmit);
-
-    userInput.addEventListener('keypress', (e) => {
-      if (gameFinished) {
-        e.preventDefault();  // ★ 정답 후 Enter 입력도 완전히 차단
-        return;
-      }
+    userInput.addEventListener('keypress', e => {
       if (e.key === 'Enter') handleSubmit();
     });
 
-    resetRecordBtn.addEventListener('click', () => {
-      for (let key in successRecords) delete successRecords[key];
-      updateRecordTable();
-      alert("기록이 초기화되었습니다.");
+    /* 🔧 3개 기록 초기화 버튼 */
+    resetBtn3.addEventListener('click', () => {
+      for (let k in successRecords3) delete successRecords3[k];
+      updateRecordTables();
+      alert("3개 숫자 기록이 초기화되었습니다.");
+    });
+
+    /* 🔧 4개 기록 초기화 버튼 */
+    resetBtn4.addEventListener('click', () => {
+      for (let k in successRecords4) delete successRecords4[k];
+      updateRecordTables();
+      alert("4개 숫자 기록이 초기화되었습니다.");
     });
 
   </script>
