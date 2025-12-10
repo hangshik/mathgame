@@ -42,13 +42,14 @@
             font-weight: bold;
         }
         .button-container {
+            /* flex-wrap: nowrap; 삭제 (작은 화면에서 줄바꿈 허용) */
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap; 
             gap: 10px;
             margin-top: 20px;
             justify-content: center;
             max-width: 800px;
-            overflow-x: auto;
+            /* overflow-x: auto; 제거 (스크롤 대신 줄바꿈 유도) */
         }
         button {
             padding: 0px;
@@ -97,30 +98,34 @@
             cursor: not-allowed;
         }
         #display {
+            /* 🚩 수정: 왼쪽 정렬 관련 속성 제거 및 중앙 정렬 추가 */
             margin-top: 20px;
             font-size: 20px;
-            text-align: left;
+            text-align: left; 
             width: 100%;
             max-width: 600px;
-            position: relative;
-            left: 60px;
+            /* 기존: position: relative; left: 60px; */
+            margin: 20px auto 0 auto; /* 상하 20px, 좌우 auto로 중앙 정렬 */
+            padding: 0 20px; /* 좌우 패딩 추가하여 너무 붙지 않게 함 */
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
         }
         #display div {
             margin-bottom: 5px;
             min-height: 24px;
         }
         #input-display {
+            /* 🚩 수정: 고정 너비 460px을 100%로 변경 */
             border: 2px solid #007BFF;
             background-color: #f0f8ff;
-            width: 460px;
+            width: 100%; /* 부모 (#display) 너비에 맞게 조정 */
             padding: 10px;
             border-radius: 8px;
             font-weight: bold;
             font-size: 1.2em;
             margin-bottom: 10px;
             color: #333;
-            position: relative;
-            left: 0px;
+            /* 기존: position: relative; left: 0px; */
+            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
         }
         .error-message {
             color: red;
@@ -148,7 +153,7 @@
         }
         .operator-row {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap; /* 🚩 수정: 연산자 버튼도 줄바꿈 허용 */
             gap: 10px;
             justify-content: center;
             margin-bottom: 8px;
