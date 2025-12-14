@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>기묘한 계산기</title>
+<style>
+body{
+  display:flex;flex-direction:column;align-items:center;
+  margin:0;padding:20px;font-family:Arial,sans-serif;
+}
+h2{margin-bottom:10px}
+
+/* 단계 버튼 */
+#level-selector{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:6px;
+  max-width:460px;
+  margin-bottom:20px;
+}
+#level-selector button{
+  height:40px;font-size:15px;
+  border-radius:5px;
+  border:1px solid #ccc;
+  background:#fff;cursor:pointer;
+}
+#level-selector button.active{
+  background:#007BFF;color:#fff;font-weight:bold;
+}
+#level-selector button.success{
+  background:#28a745;color:#fff;font-weight:bold;
+}
+
+/* 화면 */
+#display{
+  max-width:420px;width:100%;
+  border:2px solid #007BFF;border-radius:8px;
+  padding:15px;font-size:18px;
+  background:#f0f8ff;
+}
+#history{
+  min-height:90px;
+  border-top:1px dashed #aaa;
+  margin-top:10px;padding-top:8px;
+  font-size:16px;
+}
+#success-msg{
+  margin-top:12px;
+  font-weight:bold;
+  color:#28a745;
+  display:none;
+  text-align:center;
+}
+
+/* 버튼 공통 */
+.button-row{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-top:10px;
+}
+button.calc{
+  width:90px;height:45px;font-size:18px;
+  border:none;border-radius:5px;cursor:pointer;
+}
+button.calc:disabled{
+  opacity:0.4;cursor:not-allowed;
+}
+.op{background:#28A745;color:#fff;}
+.util{background:#6c757d;color:#fff;}
+.next{background:#007BFF;color:#fff;}
+</style>
+</head>
+
+<body>
+
+<h2>기묘한 계산기</h2>
+
+<div id="level-selector"></div>
+
+<div id="display">
+  <div id="stage-info"></div>
+  <div id="current-value"></div>
+  <div id="history"></div>
+</div>
+
+<div id="success-msg" style="font-size: 20pt;">성공하였습니다.</div>
+
+<!-- 연산 버튼 -->
+<div class="button-row">
+  <button class="calc op" onclick="applyOp('+',7)">+7</button>
+  <button class="calc op" onclick="applyOp('×',3)">×3</button>
+  <button class="calc op" onclick="applyOp('−',11)">−11</button>
+  <button class="calc op" onclick="applyOp('÷',2)">÷2</button>
+</div>
+
+<!-- 기능 버튼 -->
+<div class="button-row">
+  <button class="calc util" onclick="clearValue()">C</button>
+  <button class="calc util" onclick="undo()">←</button>
+  <button id="nextBtn" class="calc next" onclick="goNext()" disabled>다음 단계</button>
+</div>
+
+
+<script>
+/* -------- 단계 데이터 -------- */
+const stages={
+  1:{start:5,end:6,limit:2},
+  2:{start:6,end:7,limit:2},
+  3:{start:12,end:13,limit:2},
+  4:{start:13,end:14,limit:3},
+  5:{start:19,end:20,limit:3},
+  6:{start:26,end:27,limit:3},
+  7:{start:4,end:5,limit:4},
+  8:{start:30,end:31,limit:4},
+  9:{start:47,end:48,limit:4},
+  10:{start:61,end:62,limit:5},
+  11:{start:69,end:70,limit:5},
+  12:{start:87,end:88,limit:5},
+  13:{start:42,end:43,limit:6},
+  14:{start:60,end:61,limit:6},
+  15:{start:75,end:76,limit:6},
+  16:{start:117,end:118,limit:7},
+  17:{start:127,end:128,limit:7},
+  18:{start:139,end:140,limit:7}
+};
+
+/* -------- 상태 -------- */
+let currentStage=1;
+let value=0;
+let history=[];
+let successStages=new Set();
+let locked=false;
+
+/* -------- UI 초기화 -------- */
+const levelBox=document.getElementById('level-selector');
+const nextBtn=document.getElementById('nextBtn');
+const calcButtons=document.querySelectorAll('.calc:not(.next)');
+
+for(let i=1;i<=18;i++){
+  const b=document.createElement('button');
+  b.textContent=i+"단계";
+  b.onclick=()=>startStage(i);
+  levelBox.appendChild(b);
+}
+
+/* -------- 게임 로직 -------- */
+function startStage(n){
+  currentStage=n;
+  value=stages[n].start;
+  history=[];
+  locked=false;              // 다시 들어오면 활성화
+  nextBtn.disabled=true;
+  document.getElementById('success-msg').style.display='none';
+  setCalcDisabled(false);
+  updateButtons();
+  render();
+}
+
+function applyOp(op,num){
+  if(locked) return;
+
+  const before=value;
+  if(op==='+') value+=num;
+  if(op==='×') value*=num;
+  if(op==='−') value-=num;
+  if(op==='÷') value/=num;
+
+  history.push({before,op,num,after:value});
+  checkSuccess();
+  render();
+}
+
+function clearValue(){
+  if(locked) return;
+  value=stages[currentStage].start;
+  history=[];
+  render();
+}
+
+function undo(){
+  if(locked) return;
+  if(history.length>0){
+    value=history.pop().before;
+  }
+  render();
+}
+
+function checkSuccess(){
+  if(value===stages[currentStage].end){
+    successStages.add(currentStage);
+    locked=true;
+    setCalcDisabled(true);
+    nextBtn.disabled=(currentStage===18);
+    document.getElementById('success-msg').style.display='block';
+    updateButtons();
+  }
+}
+
+function goNext(){
+  if(currentStage<18){
+    startStage(currentStage+1);
+  }
+}
+
+/* -------- 화면 출력 -------- */
+function render(){
+  const stage = stages[currentStage];
+
+  document.getElementById('stage-info').innerHTML =
+    `단계 ${currentStage} | 시작 ${stage.start} → 목표 ${stage.end} (버튼 ${stage.limit}개 사용)`;
+
+  document.getElementById('current-value').innerHTML =
+    `현재 값 : <b>${value}</b>`;
+
+  document.getElementById('history').innerHTML =
+    history.map((h,i)=>
+      `${i+1}. ${h.before}${h.op}${h.num} = ${h.after}`
+    ).join("<br>");
+}
+
+
+function updateButtons(){
+  [...levelBox.children].forEach((b,i)=>{
+    const n=i+1;
+    b.classList.toggle('active',n===currentStage);
+    b.classList.toggle('success',successStages.has(n));
+  });
+}
+
+function setCalcDisabled(flag){
+  calcButtons.forEach(b=>b.disabled=flag);
+}
+
+/* 시작 */
+startStage(1);
+</script>
+
+</body>
+</html>
