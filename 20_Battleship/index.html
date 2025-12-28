@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>배틀쉽 퍼즐</title>
+  <style>
+    :root { --bg-color:#f8f9fa; --cell-size:clamp(50px,12vw,65px); }
+    body{
+      font-family:'Pretendard',sans-serif;background:var(--bg-color);
+      display:flex;flex-direction:column;align-items:center;
+      padding:10px;margin:0;touch-action:none;overflow:hidden;
+    }
+
+    .stage-container{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;justify-content:center;}
+    .stage-btn{
+      padding:8px 14px;border:2px solid #dee2e6;background:white;border-radius:12px;
+      cursor:pointer;font-size:13px;font-weight:800;
+    }
+    .stage-btn.active{background:#007bff;color:white;border-color:#007bff;}
+    .stage-btn.cleared{background:#28a745;color:white;border-color:#28a745;}
+
+    #status{min-height:26px;margin:6px 0 10px;font-weight:900;font-size:35px;color:#28a745;display:none;}
+
+    .grid-container{
+      display:grid;grid-template-columns:repeat(6,var(--cell-size));gap:6px;
+      background:#adb5bd;padding:12px;border-radius:18px;position:relative;
+    }
+    .cell{
+      width:var(--cell-size);height:var(--cell-size);background:white;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;position:relative;
+    }
+    .cell.hint{background:none;font-weight:900;color:#495057;font-size:1.3rem;}
+    .cell.hint.correct{color:#28a745;text-shadow:1px 1px 0px white;}
+    .cell.hint.over{color:#dc3545;text-shadow:1px 1px 0px white;} /* 초과=빨강 */
+    .cell.preview{background:rgba(0,123,255,0.22)!important;border:3px solid #007bff;box-sizing:border-box;}
+
+    .ship{
+      position:absolute;display:flex;border-radius:12px;cursor:grab;
+      box-shadow:0 5px 15px rgba(0,0,0,0.2);
+      z-index:50;touch-action:none;left:0;top:0;
+      user-select:none;-webkit-user-select:none;
+    }
+    .ship-part{
+      flex:1;display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:900;font-size:1.4rem;pointer-events:none;
+    }
+    .ship.horizontal{height:var(--cell-size);}
+    .ship.vertical{width:var(--cell-size);flex-direction:column;}
+
+    .drag-clone{
+      position:fixed !important;
+      left:0; top:0;
+      z-index:99999;
+      pointer-events:none;
+      opacity:0.92;
+      cursor:grabbing;
+      will-change:transform;
+      transform: translate3d(0,0,0) translate(-50%,-50%);
+    }
+
+    .dock{
+      display:flex;gap:15px;padding:20px;background:white;border-radius:20px;
+      margin-top:16px;min-height:var(--cell-size);width:90%;max-width:550px;
+      border:2px dashed #dee2e6;justify-content:center;align-items:center;
+    }
+    .controls{margin-top:14px;display:flex;gap:15px;}
+    button.action-btn{padding:14px 35px;border-radius:15px;border:none;cursor:pointer;font-weight:900;font-size:1rem;}
+  </style>
+</head>
+<body>
+
+  <div class="stage-container" id="stageButtons"></div>
+  <div id="status">성공입니다.</div>
+  <div id="grid" class="grid-container"></div>
+  <div id="dock" class="dock"></div>
+
+  <div class="controls">
+    <button class="action-btn" style="background:#6c757d;color:white;" onclick="resetCurrentStage()">초기화</button>
+  </div>
+
+<script>
+  const SIZE = 5;
+  let currentStage = 1;
+  let allStagesData = {};
+  let clearedStages = {};
+
+  // 색 교체 (1<->4), (2<->3)
+  const shipColors = ['', '#fcc419', '#51cf66', '#4dabf7', '#ff6b6b', '#cc5de8'];
+
+  // 힌트: 0은 표시/검사 제외
+  const stageHints = {
+    1:  { rSums: [0, 0, 0, 3, 6],  cSums: [2, 3, 4, 5, 0] },
+    2:  { rSums: [1, 5, 7, 6, 0],  cSums: [2, 6, 0, 0, 9] },
+    3:  { rSums: [3, 0, 0, 0, 7],  cSums: [7, 2, 0, 0, 7] },
+    4:  { rSums: [0, 9, 4, 3, 0],  cSums: [10, 0, 11, 0, 5] },
+    5:  { rSums: [8, 0, 0, 0, 7],  cSums: [0, 3, 4, 5, 6] },
+    6:  { rSums: [5, 7, 0, 0, 0],  cSums: [4, 0, 4, 5, 5] },
+    7:  { rSums: [6, 7, 0, 6, 7],  cSums: [0, 5, 0, 8, 5] },
+    8:  { rSums: [7, 0, 10, 0, 2], cSums: [0, 8, 0, 10, 3] },
+    9:  { rSums: [0, 0, 3, 5, 5],  cSums: [0, 0, 13, 11, 5] },
+    10: { rSums: [3, 3, 5, 0, 0],  cSums: [6, 9, 0, 0, 6] },
+    11: { rSums: [10, 0, 0, 3, 0], cSums: [0, 8, 0, 10, 6] },
+  };
+
+  let dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+
+  function init(){
+    for(let i=1;i<=11;i++){
+      allStagesData[i]=[];
+    }
+    renderStageButtons();
+    loadStage(1);
+  }
+
+  function renderStageButtons(){
+    const container=document.getElementById('stageButtons');
+    container.innerHTML='';
+    for(let i=1;i<=11;i++){
+      const btn=document.createElement('button');
+      btn.className=`stage-btn ${i===currentStage?'active':''} ${clearedStages[i]?'cleared':''}`;
+      btn.innerText=i+"단계";
+      btn.onclick=()=>loadStage(i);
+      container.appendChild(btn);
+    }
+  }
+
+  function setStatus(ok){
+    const el = document.getElementById('status');
+    el.style.display = ok ? 'block' : 'none';
+    el.textContent = ok ? '성공입니다.' : '';
+  }
+
+  // 합계 규칙:
+  //  - 가로(h): 행은 1번만, 열은 3칸 모두
+  //  - 세로(v): 열은 1번만, 행은 3칸 모두
+  function computeSumsUnified(ships){
+    let curR=[0,0,0,0,0], curC=[0,0,0,0,0];
+
+    ships.forEach(s=>{
+      if(s.dir === 'h'){
+        if(s.r>=0 && s.r<SIZE) curR[s.r] += s.id;
+        for(let i=0;i<3;i++){
+          const cc = s.c + i;
+          if(cc>=0 && cc<SIZE) curC[cc] += s.id;
+        }
+      } else {
+        if(s.c>=0 && s.c<SIZE) curC[s.c] += s.id;
+        for(let i=0;i<3;i++){
+          const rr = s.r + i;
+          if(rr>=0 && rr<SIZE) curR[rr] += s.id;
+        }
+      }
+    });
+
+    return {curR, curC};
+  }
+
+  function checkWinAndUpdateUI(){
+    const hints = stageHints[currentStage];
+    const ships = allStagesData[currentStage];
+    const {curR, curC} = computeSumsUnified(ships);
+
+    const rowOk = curR.every((v,i)=>{
+      const h = hints.rSums[i];
+      if(h === 0) return true;
+      return v === h;
+    });
+    const colOk = curC.every((v,i)=>{
+      const h = hints.cSums[i];
+      if(h === 0) return true;
+      return v === h;
+    });
+
+    const win = ships.length===5 && rowOk && colOk;
+
+    setStatus(win);
+    if(win) clearedStages[currentStage] = true;
+    renderStageButtons();
+
+    return win;
+  }
+
+  function loadStage(n){
+    currentStage=n;
+    setStatus(false);
+    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+    renderStageButtons();
+    renderBoard();
+    renderDock();
+  }
+
+  function renderBoard(){
+    const grid=document.getElementById('grid');
+    grid.innerHTML='';
+    const hints=stageHints[currentStage];
+    const ships=allStagesData[currentStage];
+    const {curR, curC} = computeSumsUnified(ships);
+
+    for(let r=0;r<=SIZE;r++){
+      for(let c=0;c<=SIZE;c++){
+        const cell=document.createElement('div');
+        if(r<SIZE && c<SIZE){
+          cell.className='cell';
+          cell.dataset.r=r; cell.dataset.c=c;
+        } else {
+          cell.className='cell hint';
+
+          if(r<SIZE && c===SIZE){
+            const hint=hints.rSums[r];
+            if(hint===0){
+              cell.innerText='';
+            } else {
+              cell.innerText=hint;
+              if(curR[r] === hint) cell.classList.add('correct');
+              else if(curR[r] > hint) cell.classList.add('over'); // 초과면 빨강
+            }
+          } else if(r===SIZE && c<SIZE){
+            const hint=hints.cSums[c];
+            if(hint===0){
+              cell.innerText='';
+            } else {
+              cell.innerText=hint;
+              if(curC[c] === hint) cell.classList.add('correct');
+              else if(curC[c] > hint) cell.classList.add('over'); // 초과면 빨강
+            }
+          }
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    ships.forEach(s=>drawShip(s,false));
+    checkWinAndUpdateUI();
+  }
+
+  function renderDock(){
+    const dock=document.getElementById('dock');
+    dock.innerHTML='';
+    const ships=allStagesData[currentStage];
+    const placedIds=ships.map(s=>s.id);
+    for(let i=1;i<=5;i++){
+      if(!placedIds.includes(i)){
+        drawShip({id:i,dir:(dockDir[i]||'h'),r:-1,c:-1},true);
+      }
+    }
+  }
+
+  function drawShip(s,inDock){
+    const ship=document.createElement('div');
+    const dir=s.dir||'h';
+    ship.className=`ship ${dir==='h'?'horizontal':'vertical'}`;
+    ship.style.backgroundColor=shipColors[s.id];
+    ship.dataset.id=s.id;
+    ship.dataset.dir=dir;
+
+    const sizeUnit=`var(--cell-size)`;
+    if(dir==='h'){
+      ship.style.width=`calc(${sizeUnit} * 3 + 12px)`;
+      ship.style.height=sizeUnit;
+    } else {
+      ship.style.width=sizeUnit;
+      ship.style.height=`calc(${sizeUnit} * 3 + 12px)`;
+    }
+
+    for(let i=0;i<3;i++){
+      const part=document.createElement('div');
+      part.className='ship-part';
+      if(i===1) part.innerText=s.id;
+      ship.appendChild(part);
+    }
+
+    if(inDock){
+      ship.style.position='relative';
+      ship.style.left='0px'; ship.style.top='0px';
+      document.getElementById('dock').appendChild(ship);
+    } else {
+      const cell=document.querySelector(`.cell[data-r="${s.r}"][data-c="${s.c}"]`);
+      cell.appendChild(ship);
+      ship.style.left='0px'; ship.style.top='0px';
+    }
+
+    bindDragWithCenterPlacement(ship, s.id);
+  }
+
+  function getTargetCell(x,y){
+    const cells=document.querySelectorAll('.cell[data-r]');
+    for(const cell of cells){
+      const rect=cell.getBoundingClientRect();
+      if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom){
+        return { r:parseInt(cell.dataset.r), c:parseInt(cell.dataset.c) };
+      }
+    }
+    return null;
+  }
+
+  // 커서가 있는 셀을 "배의 가운데 칸"으로 취급
+  function getAnchorFromPointerCell(pointerCell, dir){
+    if(!pointerCell) return null;
+    if(dir === 'h') return { r: pointerCell.r, c: pointerCell.c - 1 };
+    return { r: pointerCell.r - 1, c: pointerCell.c };
+  }
+
+  function updatePreview(x,y,dir,id){
+    clearPreview();
+    const pointerCell = getTargetCell(x,y);
+    const anchor = getAnchorFromPointerCell(pointerCell, dir);
+    if(anchor && canPlace(anchor.r, anchor.c, dir, id)){
+      for(let i=0;i<3;i++){
+        const rr = dir==='h'?anchor.r:anchor.r+i;
+        const cc = dir==='h'?anchor.c+i:anchor.c;
+        const cEl=document.querySelector(`.cell[data-r="${rr}"][data-c="${cc}"]`);
+        if(cEl) cEl.classList.add('preview');
+      }
+    }
+  }
+
+  function clearPreview(){
+    document.querySelectorAll('.cell').forEach(c=>c.classList.remove('preview'));
+  }
+
+  function canPlace(r,c,dir,id){
+    for(let i=0;i<3;i++){
+      const rr=dir==='h'?r:r+i;
+      const cc=dir==='h'?c+i:c;
+      if(rr<0 || cc<0 || rr>=SIZE || cc>=SIZE) return false;
+      if(allStagesData[currentStage].some(s=>s.id!==id && isOverlapping(s,rr,cc))) return false;
+    }
+    return true;
+  }
+
+  function isOverlapping(s,rr,cc){
+    for(let i=0;i<3;i++){
+      const sr=s.dir==='h'?s.r:s.r+i;
+      const sc=s.dir==='h'?s.c+i:s.c;
+      if(sr===rr && sc===cc) return true;
+    }
+    return false;
+  }
+
+  function placeShip(id,r,c,dir){
+    allStagesData[currentStage]=allStagesData[currentStage].filter(s=>s.id!==id);
+    allStagesData[currentStage].push({id,r,c,dir});
+    renderBoard(); renderDock();
+  }
+
+  // 클릭 회전: "가운데 칸" 고정
+  function rotateShip(id){
+    const ships=allStagesData[currentStage];
+    const s=ships.find(ss=>ss.id===id);
+
+    if(s){
+      const oldDir = s.dir;
+      const nextDir = oldDir === 'h' ? 'v' : 'h';
+
+      const centerR = (oldDir === 'h') ? s.r : (s.r + 1);
+      const centerC = (oldDir === 'h') ? (s.c + 1) : s.c;
+
+      const newR = (nextDir === 'h') ? centerR : (centerR - 1);
+      const newC = (nextDir === 'h') ? (centerC - 1) : centerC;
+
+      if(canPlace(newR, newC, nextDir, id)){
+        s.r = newR;
+        s.c = newC;
+        s.dir = nextDir;
+      }
+      renderBoard(); renderDock();
+    } else {
+      dockDir[id] = (dockDir[id] === 'h') ? 'v' : 'h';
+      renderDock();
+    }
+  }
+
+  // 드래그: 클론은 포인터 정중앙 + 배치도 가운데칸 기준
+  function bindDragWithCenterPlacement(el, id){
+    let down=false, dragging=false;
+    let startX=0, startY=0;
+    let clone=null;
+    const DRAG_START_THRESHOLD=7;
+
+    el.onpointerdown = (e)=>{
+      e.stopPropagation();
+      down=true; dragging=false;
+      startX=e.clientX; startY=e.clientY;
+      el.setPointerCapture(e.pointerId);
+    };
+
+    el.onpointermove = (e)=>{
+      if(!down) return;
+      const dx=e.clientX-startX, dy=e.clientY-startY;
+      if(!dragging && Math.hypot(dx,dy) < DRAG_START_THRESHOLD) return;
+
+      if(!dragging){
+        dragging=true;
+        clone = el.cloneNode(true);
+        clone.classList.add('drag-clone');
+        document.body.appendChild(clone);
+        el.style.visibility='hidden';
+      }
+
+      clone.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      updatePreview(e.clientX, e.clientY, clone.dataset.dir, id);
+    };
+
+    el.onpointerup = (e)=>{
+      if(!down) return;
+      down=false;
+
+      clearPreview();
+
+      if(!dragging){
+        rotateShip(id);
+        return;
+      }
+
+      if(clone){ clone.remove(); clone=null; }
+      el.style.visibility='';
+
+      const pointerCell = getTargetCell(e.clientX, e.clientY);
+      const dir = el.dataset.dir;
+      const anchor = getAnchorFromPointerCell(pointerCell, dir);
+
+      if(anchor && canPlace(anchor.r, anchor.c, dir, id)){
+        placeShip(id, anchor.r, anchor.c, dir);
+      } else {
+        allStagesData[currentStage] = allStagesData[currentStage].filter(s=>s.id!==id);
+        renderBoard(); renderDock();
+      }
+    };
+  }
+
+  function resetCurrentStage(){
+    allStagesData[currentStage]=[];
+    setStatus(false);
+    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+    renderBoard(); renderDock();
+  }
+
+  init();
+</script>
+</body>
+</html>
