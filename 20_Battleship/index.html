@@ -2,73 +2,104 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!-- viewport 설정에 viewport-fit=cover 추가 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>전함 퍼즐</title>
   <style>
-    :root { --bg-color:#f8f9fa; --cell-size:clamp(50px,12vw,65px); }
-    body{
-      font-family:'Pretendard',sans-serif;background:var(--bg-color);
-      display:flex;flex-direction:column;align-items:center;
-      padding:10px;margin:0;touch-action:none;overflow:auto;
+    /* 
+       [핵심 수정 1] 
+       --cell-size를 vw(너비) 기준에서 vmin(너비와 높이 중 작은 쪽) 기준으로 변경 
+       최대 크기도 65px -> 50px 정도로 줄여서 한 화면에 들어오도록 조정
+    */
+    :root { 
+      --bg-color:#f8f9fa; 
+      /* 화면이 좁거나 낮아도 비율을 유지하며 줄어들게 설정 */
+      --cell-size: clamp(28px, 9vmin, 50px); 
     }
 
-    .stage-container{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;justify-content:center;}
-    .stage-btn{
-      padding:8px 14px;border:2px solid #dee2e6;background:white;border-radius:12px;
-      cursor:pointer;font-size:13px;font-weight:800;transition:all 0.2s;
-    }
-    .stage-btn.active{background:#007bff;color:white;border-color:#007bff;}
-    .stage-btn.cleared{background:#28a745;color:white;border-color:#28a745;}
-
-    #status{min-height:26px;margin:6px 0 10px;font-weight:900;font-size:35px;color:#28a745;display:none;}
-
-    .grid-container{
-      display:grid;grid-template-columns:repeat(6,var(--cell-size));gap:6px;
-      background:#c9d0d6;padding:12px;border-radius:18px;position:relative;
-    }
-    .cell{
-      width:var(--cell-size);height:var(--cell-size);background:white;border-radius:10px;
-      display:flex;align-items:center;justify-content:center;position:relative;
-    }
-    .cell.hint{background:none;font-weight:900;color:#495057;font-size:1.3rem;}
-    .cell.hint.correct{color:#28a745;text-shadow:1px 1px 0px white;}
-    .cell.hint.over{color:#dc3545;text-shadow:1px 1px 0px white;}
-    .cell.preview{background:rgba(0,123,255,0.22)!important;border:3px solid #007bff;box-sizing:border-box;}
-
-    .ship{
-      position:absolute;display:flex;border-radius:12px;cursor:grab;
-      box-shadow:0 5px 15px rgba(0,0,0,0.2);
-      z-index:50;touch-action:none;left:0;top:0;
-      user-select:none;-webkit-user-select:none;
-    }
-    .ship-part{
-      flex:1;display:flex;align-items:center;justify-content:center;
-      color:white;font-weight:900;font-size:1.4rem;pointer-events:none;
-    }
-    .ship.horizontal{height:var(--cell-size);}
-    .ship.vertical{width:var(--cell-size);flex-direction:column;}
-
-    .drag-clone{
-      position:fixed !important; left:0; top:0; z-index:99999;
-      pointer-events:none; opacity:0.92; cursor:grabbing;
-      will-change:transform; 
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* [핵심 수정 2] 높이 설정 및 패딩 조정 */
+      min-height: 100dvh; /* 모바일 브라우저 동적 높이 대응 */
+      padding: 10px 10px 40px 10px; /* 아래쪽 패딩을 늘려 버튼 공간 확보 */
+      margin: 0;
+      box-sizing: border-box;
+      /* touch-action을 pan-y로 변경하여 게임판 밖에서는 스크롤 가능하게 함 */
+      touch-action: pan-y; 
+      overflow-x: hidden;
     }
 
-    .dock{
-      display:flex;gap:15px;padding:20px;background:white;border-radius:20px;
-      margin-top:16px;min-height:var(--cell-size);width:90%;max-width:550px;
-      border:2px dashed #dee2e6;justify-content:center;align-items:center;
+    h2 { margin: 10px 0; font-size: 1.2rem; }
+
+    .stage-container { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
+    .stage-btn {
+      padding: 6px 10px; border: 2px solid #dee2e6; background: white; border-radius: 8px;
+      cursor: pointer; font-size: 12px; font-weight: 800; transition: all 0.2s;
     }
-    .controls{margin-top:14px;display:flex;gap:15px;}
-    button.action-btn{padding:14px 25px;border-radius:15px;border:none;cursor:pointer;font-weight:900;font-size:1rem;}
+    .stage-btn.active { background: #007bff; color: white; border-color: #007bff; }
+    .stage-btn.cleared { background: #28a745; color: white; border-color: #28a745; }
+
+    #status { min-height: 24px; margin: 4px 0 8px; font-weight: 900; font-size: 24px; color: #28a745; display: none; }
+
+    /* 게임판과 독에는 터치 제스처(스크롤) 방지 */
+    .grid-container {
+      display: grid; grid-template-columns: repeat(6, var(--cell-size)); gap: 4px;
+      background: #c9d0d6; padding: 8px; border-radius: 12px; position: relative;
+      touch-action: none; /* 게임판 내부 스크롤 방지 */
+    }
+    .cell {
+      width: var(--cell-size); height: var(--cell-size); background: white; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; position: relative;
+      font-size: calc(var(--cell-size) * 0.5); /* 폰트 크기도 셀 크기에 비례 */
+    }
+    .cell.hint { background: none; font-weight: 900; color: #495057; }
+    .cell.hint.correct { color: #28a745; text-shadow: 1px 1px 0px white; }
+    .cell.hint.over { color: #dc3545; text-shadow: 1px 1px 0px white; }
+    .cell.preview { background: rgba(0,123,255,0.22)!important; border: 2px solid #007bff; box-sizing: border-box; }
+
+    .ship {
+      position: absolute; display: flex; border-radius: 8px; cursor: grab;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      z-index: 50; touch-action: none; left: 0; top: 0;
+      user-select: none; -webkit-user-select: none;
+    }
+    .ship-part {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 900; 
+      font-size: calc(var(--cell-size) * 0.6); /* 배 숫자 크기 조절 */
+      pointer-events: none;
+    }
+    .ship.horizontal { height: var(--cell-size); }
+    .ship.vertical { width: var(--cell-size); flex-direction: column; }
+
+    .drag-clone {
+      position: fixed !important; left: 0; top: 0; z-index: 99999;
+      pointer-events: none; opacity: 0.92; cursor: grabbing;
+      will-change: transform;
+    }
+
+    .dock {
+      display: flex; gap: 10px; padding: 15px; background: white; border-radius: 15px;
+      margin-top: 10px; min-height: var(--cell-size); width: 95%; max-width: 550px;
+      border: 2px dashed #dee2e6; justify-content: center; align-items: center;
+      box-sizing: border-box;
+      touch-action: none; /* 독 내부 스크롤 방지 */
+    }
     
-    button.hint-btn{background:#ffc107;color:#212529; transition: background 0.3s;}
-    button.hint-btn:disabled{
-      background: #adb5bd;
-      color: #6c757d;
-      cursor: not-allowed;
-      border: 1px solid #ced4da;
+    .controls { margin-top: 10px; display: flex; gap: 10px; margin-bottom: 20px; }
+    button.action-btn { 
+        padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; 
+        font-weight: 900; font-size: 0.9rem; 
+        /* 모바일 터치 영역 확보 */
+        min-width: 80px; 
     }
+    
+    button.hint-btn { background: #ffc107; color: #212529; transition: background 0.3s; }
+    button.hint-btn:disabled { background: #adb5bd; color: #6c757d; cursor: not-allowed; border: 1px solid #ced4da; }
   </style>
 </head>
 <body>
@@ -83,9 +114,11 @@
     <button id="btnHint" class="action-btn hint-btn" onclick="useHint()">힌트</button>
     <button class="action-btn" style="background:#007bff;color:white;" onclick="resetCurrentStage()">초기화</button>
   </div>
-  <br><br><br>
+  
+  <!-- <br> 태그 제거됨 -->
 
 <script>
+  // 스크립트 내용은 기존과 동일합니다.
   const SIZE = 5;
   const MAX_HINTS = 4;
 
@@ -93,7 +126,6 @@
   let allStagesData = {};
   let clearedStages = {};
   
-  // 힌트 상태 관리
   let stageHintStatus = {};
   let solutionCache = {};
 
@@ -138,14 +170,12 @@
     }
   }
 
-  // 다음 힌트로 어떤 배를 움직여야 하는지 계산
-  // (큰 배부터 검사하므로 5,4,3,2 순으로 체크됨)
   function findNextHintTarget(stageNum) {
     const solution = getSolution(stageNum);
     if (!solution || solution.length === 0) return null;
 
     let currentShips = allStagesData[stageNum];
-    const sortedSol = [...solution].sort((a,b) => b.id - a.id); // 5부터 1까지
+    const sortedSol = [...solution].sort((a,b) => b.id - a.id);
 
     for (let solShip of sortedSol) {
       const placed = currentShips.find(s => s.id === solShip.id);
@@ -160,7 +190,6 @@
     const btn = document.getElementById('btnHint');
     const status = stageHintStatus[currentStage];
     
-    // 이미 클리어했으면 버튼 비활성
     if (clearedStages[currentStage]) {
       btn.disabled = true;
       btn.innerText = "성공";
@@ -168,14 +197,11 @@
     }
 
     const targetShip = findNextHintTarget(currentStage);
-
     let canUse = false;
     if (targetShip) {
-      // 1. 횟수가 남았으면 무조건 가능
       if (status.count < MAX_HINTS) {
         canUse = true;
       }
-      // 2. 횟수가 꽉 찼어도, 타겟이 5, 4, 3, 2번 중 하나라면 가능 (혹은 이미 공개된 배)
       else if (targetShip.id >= 2 || status.revealedIds.has(targetShip.id)) {
         canUse = true;
       }
@@ -319,11 +345,6 @@
 
     if (!targetShip) return;
 
-    // 힌트 제한 검사 (수정됨)
-    // 카운트가 꽉 찼을 때, 
-    // 1. 이미 공개된 적 있는 배(revealedIds)이거나
-    // 2. 배 번호가 2, 3, 4, 5번인 경우 (사용자 요청)
-    // -> 실행 허용. 그 외(1번 배인데 처음 보는 경우)는 실행 차단.
     if (status.count >= MAX_HINTS) {
       const isLargeShip = targetShip.id >= 2;
       const isRevealed = status.revealedIds.has(targetShip.id);
@@ -332,16 +353,11 @@
       }
     }
 
-    // 배 배치 강제 수정
     allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id !== targetShip.id);
     allStagesData[currentStage].push({...targetShip});
     
-    // 카운트 증가 조건: 이미 공개된 적이 없어야 함
     if (!status.revealedIds.has(targetShip.id)) {
       status.revealedIds.add(targetShip.id);
-      // 만약 이미 4회 이상인데 강제로 실행된 경우(5,4,3,2번 배), 
-      // 카운트를 더 늘릴지 말지는 선택 사항이나, UI 상 (4)로 유지하는 게 깔끔하므로
-      // MAX 미만일 때만 증가시킵니다.
       if (status.count < MAX_HINTS) {
         status.count++;
       }
