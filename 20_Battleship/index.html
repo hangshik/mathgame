@@ -9,13 +9,13 @@
     body{
       font-family:'Pretendard',sans-serif;background:var(--bg-color);
       display:flex;flex-direction:column;align-items:center;
-      padding:10px;margin:0;touch-action:none;overflow:hidden;
+      padding:10px;margin:0;touch-action:none;overflow:auto;
     }
 
     .stage-container{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;justify-content:center;}
     .stage-btn{
       padding:8px 14px;border:2px solid #dee2e6;background:white;border-radius:12px;
-      cursor:pointer;font-size:13px;font-weight:800;
+      cursor:pointer;font-size:13px;font-weight:800;transition:all 0.2s;
     }
     .stage-btn.active{background:#007bff;color:white;border-color:#007bff;}
     .stage-btn.cleared{background:#28a745;color:white;border-color:#28a745;}
@@ -32,7 +32,7 @@
     }
     .cell.hint{background:none;font-weight:900;color:#495057;font-size:1.3rem;}
     .cell.hint.correct{color:#28a745;text-shadow:1px 1px 0px white;}
-    .cell.hint.over{color:#dc3545;text-shadow:1px 1px 0px white;} /* 초과=빨강 */
+    .cell.hint.over{color:#dc3545;text-shadow:1px 1px 0px white;}
     .cell.preview{background:rgba(0,123,255,0.22)!important;border:3px solid #007bff;box-sizing:border-box;}
 
     .ship{
@@ -49,14 +49,9 @@
     .ship.vertical{width:var(--cell-size);flex-direction:column;}
 
     .drag-clone{
-      position:fixed !important;
-      left:0; top:0;
-      z-index:99999;
-      pointer-events:none;
-      opacity:0.92;
-      cursor:grabbing;
-      will-change:transform;
-      transform: translate3d(0,0,0) translate(-50%,-50%);
+      position:fixed !important; left:0; top:0; z-index:99999;
+      pointer-events:none; opacity:0.92; cursor:grabbing;
+      will-change:transform; 
     }
 
     .dock{
@@ -65,7 +60,15 @@
       border:2px dashed #dee2e6;justify-content:center;align-items:center;
     }
     .controls{margin-top:14px;display:flex;gap:15px;}
-    button.action-btn{padding:14px 35px;border-radius:15px;border:none;cursor:pointer;font-weight:900;font-size:1rem;}
+    button.action-btn{padding:14px 25px;border-radius:15px;border:none;cursor:pointer;font-weight:900;font-size:1rem;}
+    
+    button.hint-btn{background:#ffc107;color:#212529; transition: background 0.3s;}
+    button.hint-btn:disabled{
+      background: #adb5bd;
+      color: #6c757d;
+      cursor: not-allowed;
+      border: 1px solid #ced4da;
+    }
   </style>
 </head>
 <body>
@@ -77,19 +80,25 @@
   <div id="dock" class="dock"></div>
 
   <div class="controls">
-    <button class="action-btn" style="background:#6c757d;color:white;" onclick="resetCurrentStage()">초기화</button>
+    <button id="btnHint" class="action-btn hint-btn" onclick="useHint()">힌트</button>
+    <button class="action-btn" style="background:#007bff;color:white;" onclick="resetCurrentStage()">초기화</button>
   </div>
+  <br><br><br>
 
 <script>
   const SIZE = 5;
+  const MAX_HINTS = 4;
+
   let currentStage = 1;
   let allStagesData = {};
   let clearedStages = {};
+  
+  // 힌트 상태 관리
+  let stageHintStatus = {};
+  let solutionCache = {};
 
-  // 색 교체 (1<->4), (2<->3)
   const shipColors = ['', '#fcc419', '#51cf66', '#4dabf7', '#ff6b6b', '#cc5de8'];
 
-  // 힌트: 0은 표시/검사 제외
   const stageHints = {
     1:  { rSums: [0, 0, 0, 3, 6],  cSums: [2, 3, 4, 5, 0] },
     2:  { rSums: [1, 5, 7, 6, 0],  cSums: [2, 6, 0, 0, 9] },
@@ -109,6 +118,7 @@
   function init(){
     for(let i=1;i<=11;i++){
       allStagesData[i]=[];
+      stageHintStatus[i] = { count: 0, revealedIds: new Set() };
     }
     renderStageButtons();
     loadStage(1);
@@ -119,10 +129,64 @@
     container.innerHTML='';
     for(let i=1;i<=11;i++){
       const btn=document.createElement('button');
+      const count = stageHintStatus[i].count;
+      const hintText = count > 0 ? `(${count})` : '';
       btn.className=`stage-btn ${i===currentStage?'active':''} ${clearedStages[i]?'cleared':''}`;
-      btn.innerText=i+"단계";
+      btn.innerText = i + "단계" + hintText;
       btn.onclick=()=>loadStage(i);
       container.appendChild(btn);
+    }
+  }
+
+  // 다음 힌트로 어떤 배를 움직여야 하는지 계산
+  // (큰 배부터 검사하므로 5,4,3,2 순으로 체크됨)
+  function findNextHintTarget(stageNum) {
+    const solution = getSolution(stageNum);
+    if (!solution || solution.length === 0) return null;
+
+    let currentShips = allStagesData[stageNum];
+    const sortedSol = [...solution].sort((a,b) => b.id - a.id); // 5부터 1까지
+
+    for (let solShip of sortedSol) {
+      const placed = currentShips.find(s => s.id === solShip.id);
+      if (!placed || placed.r !== solShip.r || placed.c !== solShip.c || placed.dir !== solShip.dir) {
+        return solShip;
+      }
+    }
+    return null; 
+  }
+
+  function updateHintButtonUI() {
+    const btn = document.getElementById('btnHint');
+    const status = stageHintStatus[currentStage];
+    
+    // 이미 클리어했으면 버튼 비활성
+    if (clearedStages[currentStage]) {
+      btn.disabled = true;
+      btn.innerText = "성공";
+      return;
+    }
+
+    const targetShip = findNextHintTarget(currentStage);
+
+    let canUse = false;
+    if (targetShip) {
+      // 1. 횟수가 남았으면 무조건 가능
+      if (status.count < MAX_HINTS) {
+        canUse = true;
+      }
+      // 2. 횟수가 꽉 찼어도, 타겟이 5, 4, 3, 2번 중 하나라면 가능 (혹은 이미 공개된 배)
+      else if (targetShip.id >= 2 || status.revealedIds.has(targetShip.id)) {
+        canUse = true;
+      }
+    }
+
+    if (canUse) {
+      btn.disabled = false;
+      btn.innerText = "힌트";
+    } else {
+      btn.disabled = true;
+      btn.innerText = status.count >= MAX_HINTS ? "힌트 끝" : "힌트";
     }
   }
 
@@ -132,12 +196,8 @@
     el.textContent = ok ? '성공입니다.' : '';
   }
 
-  // 합계 규칙:
-  //  - 가로(h): 행은 1번만, 열은 3칸 모두
-  //  - 세로(v): 열은 1번만, 행은 3칸 모두
   function computeSumsUnified(ships){
     let curR=[0,0,0,0,0], curC=[0,0,0,0,0];
-
     ships.forEach(s=>{
       if(s.dir === 'h'){
         if(s.r>=0 && s.r<SIZE) curR[s.r] += s.id;
@@ -153,7 +213,6 @@
         }
       }
     });
-
     return {curR, curC};
   }
 
@@ -174,11 +233,12 @@
     });
 
     const win = ships.length===5 && rowOk && colOk;
-
     setStatus(win);
-    if(win) clearedStages[currentStage] = true;
-    renderStageButtons();
-
+    if(win) {
+      clearedStages[currentStage] = true;
+      renderStageButtons();
+      updateHintButtonUI();
+    }
     return win;
   }
 
@@ -189,6 +249,108 @@
     renderStageButtons();
     renderBoard();
     renderDock();
+    updateHintButtonUI();
+  }
+
+  function getSolution(stageNum) {
+    if (solutionCache[stageNum]) return solutionCache[stageNum];
+    const shipsToPlace = [5, 4, 3, 2, 1];
+    const hints = stageHints[stageNum];
+    let result = null;
+
+    function solve(idx, currentShips) {
+      if (result) return;
+      if (idx >= shipsToPlace.length) {
+        const {curR, curC} = computeSumsUnified(currentShips);
+        const rowOk = curR.every((v,i) => hints.rSums[i] === 0 || v === hints.rSums[i]);
+        const colOk = curC.every((v,i) => hints.cSums[i] === 0 || v === hints.cSums[i]);
+        if (rowOk && colOk) result = JSON.parse(JSON.stringify(currentShips));
+        return;
+      }
+      const shipId = shipsToPlace[idx];
+      const {curR, curC} = computeSumsUnified(currentShips);
+      for(let i=0; i<SIZE; i++) {
+        if(hints.rSums[i] !== 0 && curR[i] > hints.rSums[i]) return;
+        if(hints.cSums[i] !== 0 && curC[i] > hints.cSums[i]) return;
+      }
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          for (let dir of ['h', 'v']) {
+            if (isValidPlacement(r, c, dir, shipId, currentShips)) {
+              currentShips.push({id: shipId, r, c, dir});
+              solve(idx + 1, currentShips);
+              if (result) return;
+              currentShips.pop();
+            }
+          }
+        }
+      }
+    }
+
+    function isValidPlacement(r, c, dir, id, placedShips) {
+      for(let i=0; i<3; i++) {
+        const rr = dir==='h'?r:r+i;
+        const cc = dir==='h'?c+i:c;
+        if(rr<0 || cc<0 || rr>=SIZE || cc>=SIZE) return false;
+        for (let s of placedShips) {
+            for(let j=0; j<3; j++) {
+                const sr = s.dir==='h'?s.r:s.r+j;
+                const sc = s.dir==='h'?s.c+j:s.c;
+                if(sr===rr && sc===cc) return false;
+            }
+        }
+      }
+      return true;
+    }
+
+    solve(0, []);
+    if (result) {
+      solutionCache[stageNum] = result;
+      return result;
+    }
+    return [];
+  }
+
+  function useHint() {
+    if (clearedStages[currentStage]) return;
+
+    const targetShip = findNextHintTarget(currentStage);
+    const status = stageHintStatus[currentStage];
+
+    if (!targetShip) return;
+
+    // 힌트 제한 검사 (수정됨)
+    // 카운트가 꽉 찼을 때, 
+    // 1. 이미 공개된 적 있는 배(revealedIds)이거나
+    // 2. 배 번호가 2, 3, 4, 5번인 경우 (사용자 요청)
+    // -> 실행 허용. 그 외(1번 배인데 처음 보는 경우)는 실행 차단.
+    if (status.count >= MAX_HINTS) {
+      const isLargeShip = targetShip.id >= 2;
+      const isRevealed = status.revealedIds.has(targetShip.id);
+      if (!isLargeShip && !isRevealed) {
+        return;
+      }
+    }
+
+    // 배 배치 강제 수정
+    allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id !== targetShip.id);
+    allStagesData[currentStage].push({...targetShip});
+    
+    // 카운트 증가 조건: 이미 공개된 적이 없어야 함
+    if (!status.revealedIds.has(targetShip.id)) {
+      status.revealedIds.add(targetShip.id);
+      // 만약 이미 4회 이상인데 강제로 실행된 경우(5,4,3,2번 배), 
+      // 카운트를 더 늘릴지 말지는 선택 사항이나, UI 상 (4)로 유지하는 게 깔끔하므로
+      // MAX 미만일 때만 증가시킵니다.
+      if (status.count < MAX_HINTS) {
+        status.count++;
+      }
+    }
+    
+    renderStageButtons();
+    renderBoard();
+    renderDock();
+    updateHintButtonUI();
   }
 
   function renderBoard(){
@@ -206,7 +368,6 @@
           cell.dataset.r=r; cell.dataset.c=c;
         } else {
           cell.className='cell hint';
-
           if(r<SIZE && c===SIZE){
             const hint=hints.rSums[r];
             if(hint===0){
@@ -214,7 +375,7 @@
             } else {
               cell.innerText=hint;
               if(curR[r] === hint) cell.classList.add('correct');
-              else if(curR[r] > hint) cell.classList.add('over'); // 초과면 빨강
+              else if(curR[r] > hint) cell.classList.add('over');
             }
           } else if(r===SIZE && c<SIZE){
             const hint=hints.cSums[c];
@@ -223,14 +384,13 @@
             } else {
               cell.innerText=hint;
               if(curC[c] === hint) cell.classList.add('correct');
-              else if(curC[c] > hint) cell.classList.add('over'); // 초과면 빨강
+              else if(curC[c] > hint) cell.classList.add('over');
             }
           }
         }
         grid.appendChild(cell);
       }
     }
-
     ships.forEach(s=>drawShip(s,false));
     checkWinAndUpdateUI();
   }
@@ -277,8 +437,10 @@
       document.getElementById('dock').appendChild(ship);
     } else {
       const cell=document.querySelector(`.cell[data-r="${s.r}"][data-c="${s.c}"]`);
-      cell.appendChild(ship);
-      ship.style.left='0px'; ship.style.top='0px';
+      if(cell) {
+        cell.appendChild(ship);
+        ship.style.left='0px'; ship.style.top='0px';
+      }
     }
 
     bindDragWithCenterPlacement(ship, s.id);
@@ -295,7 +457,6 @@
     return null;
   }
 
-  // 커서가 있는 셀을 "배의 가운데 칸"으로 취급
   function getAnchorFromPointerCell(pointerCell, dir){
     if(!pointerCell) return null;
     if(dir === 'h') return { r: pointerCell.r, c: pointerCell.c - 1 };
@@ -345,25 +506,18 @@
     renderBoard(); renderDock();
   }
 
-  // 클릭 회전: "가운데 칸" 고정
   function rotateShip(id){
     const ships=allStagesData[currentStage];
     const s=ships.find(ss=>ss.id===id);
-
     if(s){
       const oldDir = s.dir;
       const nextDir = oldDir === 'h' ? 'v' : 'h';
-
       const centerR = (oldDir === 'h') ? s.r : (s.r + 1);
       const centerC = (oldDir === 'h') ? (s.c + 1) : s.c;
-
       const newR = (nextDir === 'h') ? centerR : (centerR - 1);
       const newC = (nextDir === 'h') ? (centerC - 1) : centerC;
-
       if(canPlace(newR, newC, nextDir, id)){
-        s.r = newR;
-        s.c = newC;
-        s.dir = nextDir;
+        s.r = newR; s.c = newC; s.dir = nextDir;
       }
       renderBoard(); renderDock();
     } else {
@@ -372,23 +526,28 @@
     }
   }
 
-  // 드래그: 클론은 포인터 정중앙 + 배치도 가운데칸 기준
   function bindDragWithCenterPlacement(el, id){
-    let down=false, dragging=false;
     let startX=0, startY=0;
     let clone=null;
+    let dragging=false;
     const DRAG_START_THRESHOLD=7;
 
-    el.onpointerdown = (e)=>{
+    const onPointerDown = (e) => {
       e.stopPropagation();
-      down=true; dragging=false;
-      startX=e.clientX; startY=e.clientY;
-      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      
+      startX=e.clientX; 
+      startY=e.clientY;
+      dragging=false;
+
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+      document.addEventListener('pointercancel', onPointerUp);
     };
 
-    el.onpointermove = (e)=>{
-      if(!down) return;
+    const onPointerMove = (e) => {
       const dx=e.clientX-startX, dy=e.clientY-startY;
+      
       if(!dragging && Math.hypot(dx,dy) < DRAG_START_THRESHOLD) return;
 
       if(!dragging){
@@ -399,13 +558,16 @@
         el.style.visibility='hidden';
       }
 
-      clone.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-      updatePreview(e.clientX, e.clientY, clone.dataset.dir, id);
+      if(clone){
+        clone.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+        updatePreview(e.clientX, e.clientY, clone.dataset.dir, id);
+      }
     };
 
-    el.onpointerup = (e)=>{
-      if(!down) return;
-      down=false;
+    const onPointerUp = (e) => {
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
+      document.removeEventListener('pointercancel', onPointerUp);
 
       clearPreview();
 
@@ -414,7 +576,10 @@
         return;
       }
 
-      if(clone){ clone.remove(); clone=null; }
+      if(clone){ 
+        clone.remove(); 
+        clone=null; 
+      }
       el.style.visibility='';
 
       const pointerCell = getTargetCell(e.clientX, e.clientY);
@@ -428,13 +593,18 @@
         renderBoard(); renderDock();
       }
     };
+
+    el.addEventListener('pointerdown', onPointerDown);
   }
 
   function resetCurrentStage(){
     allStagesData[currentStage]=[];
     setStatus(false);
     dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
-    renderBoard(); renderDock();
+    renderStageButtons();
+    renderBoard(); 
+    renderDock();
+    updateHintButtonUI(); 
   }
 
   init();
