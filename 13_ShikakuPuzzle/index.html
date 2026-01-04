@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>사각형 퍼즐(Shikaku(시카쿠) 퍼즐)</title>
+<style>
+  /* 기존 스타일 동일 */
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  }
+  #stageButtons {
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .stage-btn {
+    width: 56px;
+    height: 30px;
+    line-height: 0px;
+    margin: 2px 0px;
+    border-radius: 10px;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .selected {
+    background-color: #3399ff !important;
+    color: white;
+  }
+  .completed {
+    background-color: #4caf50 !important;
+    color: white;
+  }
+  #toolbar {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  #board {
+    display: grid;
+    gap: 1px;
+    position: relative;
+    touch-action: none;
+    user-select: none;
+  }
+  .cell {
+    width: min(8vw, 50px);
+    height: min(8vw, 50px);
+    border: 1px solid #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    background: white;
+    box-sizing: border-box;
+  }
+  .number {
+    color: black;
+  }
+  .start-cell {
+    background-color: rgba(255, 0, 0, 0.4) !important;
+  }
+  .selected-cell {
+    background-color: rgba(100, 150, 255, 0.4);
+  }
+  .rectangle-border {
+    position: absolute;
+    border: 3px solid #228822;
+    pointer-events: auto;
+    border-radius: 4px;
+    background: transparent;
+    box-sizing: border-box;
+  }
+  button {
+    user-select: none;
+  }
+  #message {
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 1.5em;
+  }
+</style>
+</head>
+<body>
+
+<div id="stageButtons">
+  <button class="stage-btn" data-stage="1">1단계</button>
+  <button class="stage-btn" data-stage="2">2단계</button>
+  <button class="stage-btn" data-stage="3">3단계</button>
+  <button class="stage-btn" data-stage="4">4단계</button>
+  <button class="stage-btn" data-stage="5">5단계</button><br>
+  <button class="stage-btn" data-stage="6">6단계</button>
+  <button class="stage-btn" data-stage="7">7단계</button>
+  <button class="stage-btn" data-stage="8">8단계</button>
+  <button class="stage-btn" data-stage="9">9단계</button>
+  <button class="stage-btn" data-stage="10">10단계</button><br>
+  <button class="stage-btn" data-stage="11">11단계</button>
+  <button class="stage-btn" data-stage="12">12단계</button>
+  <button class="stage-btn" data-stage="13">13단계</button>
+  <button class="stage-btn" data-stage="14">14단계</button>
+  <button class="stage-btn" data-stage="15">15단계</button>
+</div>
+
+<div id="toolbar">
+  <button id="confirmBtn" style="font-size: 1em; padding: 0.5em 1em;">확정(Space)</button>
+  <button id="deleteBtn" style="font-size: 1em; padding: 0.5em 1em;">삭제(E)</button>
+  <button id="resetBtn" style="font-size: 1em; padding: 0.5em 1em;">초기화</button>
+</div>
+
+<div id="board"></div>
+<div id="message"></div>
+<br>
+<div>
+  <b>[사각형 퍼즐(Shikaku(시카쿠) 퍼즐) 규칙]</b><br>
+  1. 그림의 칸이 하나도 남지 않도록 정사각형 또는 직사각형으로만 나눕니다.<br>
+  2. 하나의 정사각형 또는 직사각형 안에는 반드시 한 개의 수가 들어갑니다.<br>
+  3. 2의 수는 정사각형 또는 직사각형을 이루고 있는 칸수를 나타냅니다.<br>
+  4. 하나의 칸을 두 개의 정사각형 또는 직사각형이 동시에 사용할 수 없습니다.<br><br>
+  ※ 정사각형 또는 직사각형은 2번 클릭 또는 드래그하여 선택한 후 "확정" 버튼을 클릭하면 됩니다.<br>
+  ※ 삭제할 때는 "삭제" 버튼을 클릭한 후 사각형을 클릭하면 됩니다.<br>
+</div>
+
+<script>
+(() => {
+  const board = document.getElementById("board");
+  const message = document.getElementById("message");
+  const stageButtons = document.querySelectorAll(".stage-btn");
+  const confirmBtn = document.getElementById("confirmBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  const stages = {
+    1: {
+      width: 5, height: 5,
+      puzzle: [
+        ["4", "", "", "", ""],
+        ["", "", "9", "", ""],
+        ["", "", "", "", ""],
+        ["6", "", "", "6", ""],
+        ["", "", "", "", ""]
+      ]
+    },
+    2: {
+      width: 6, height: 6,
+      puzzle: [
+        ["6", "", "", "", "", ""],
+        ["", "", "", "5", "", ""],
+        ["", "", "10", "", "", "3"],
+        ["", "", "", "", "", ""],
+        ["4", "", "8", "", "", ""],
+        ["", "", "", "", "", ""]
+      ]
+    },
+    3: {
+      width: 6, height: 6,
+      puzzle: [
+        ["4", "", "", "", "", ""],
+        ["", "", "8", "", "", "4"],
+        ["4", "", "", "", "", ""],
+        ["", "", "", "", "", "8"],
+        ["", "", "", "", "", ""],
+        ["4", "", "", "4", "", ""]
+      ]
+    },
+    4: {
+      width: 7, height: 7,
+      puzzle: [
+        ["","","2","","","","3"],
+        ["2","","","5","","",""],
+        ["3","","4","","2","2",""],
+        ["","","","","","",""],
+        ["","","4","","4","","5"],
+        ["","","3","","3","",""],
+        ["","2","","5","","",""]
+      ]
+    },
+    5: {
+      width: 7, height: 7,
+      puzzle: [
+        ["4","","","","3","",""],
+        ["4","","","","","",""],
+        ["4","","","","","4",""],
+        ["","","2","5","4","","6"],
+        ["","2","","","","4",""],
+        ["","4","","","","",""],
+        ["","","3","","","",""]
+      ]
+    },
+    6: {
+      width: 8, height: 8,
+      puzzle: [
+        ["", "", "", "", "6", "", "", ""],
+        ["", "8", "", "", "", "", "", "6"],
+        ["", "", "", "8", "", "", "", ""],
+        ["", "", "", "", "", "6", "", ""],
+        ["", "", "", "", "4", "", "", ""],
+        ["", "", "6", "", "", "6", "", ""],
+        ["", "", "", "", "", "", "8", ""],
+        ["", "", "", "6", "", "", "", ""]
+      ]
+    },
+    7: {
+      width: 8, height: 8,
+      puzzle: [
+        ["6", "", "", "", "", "", "4", ""],
+        ["", "4", "", "", "6", "", "", "6"],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "6", "", "4", ""],
+        ["", "", "8", "", "", "", "", ""],
+        ["", "", "", "", "4", "", "", ""],
+        ["", "", "6", "", "", "6", "", "4"],
+        ["", "", "", "", "", "", "", ""]
+      ]
+    },
+    8: {
+      width: 9, height: 9,
+      puzzle: [
+        ["","","","","","","","8",""],
+        ["","3","","","4","3","","3",""],
+        ["","5","","2","","","","",""],
+        ["4","","4","","","","2","",""],
+        ["","","","2","","","2","",""],
+        ["2","","","","","","","8",""],
+        ["","","","","","12","4","","6"],
+        ["3","","","","","","","",""],
+        ["","2","2","","","","","",""]
+      ]
+    },
+    9: {
+      width: 9, height: 9,
+      puzzle: [
+        ["","","","","","","","",""],
+        ["","","10","","","","","",""],
+        ["","2","","","","4","3","6",""],
+        ["","","","6","","","2","",""],
+        ["4","","","6","","","","",""],
+        ["4","4","6","","","","","4","3"],
+        ["","","","","2","","","3",""],
+        ["","","","","","","","","4"],
+        ["","","","2","2","","","4",""]
+      ]
+    },
+    10: {
+      width: 10, height: 10,
+      puzzle: [
+        ["","","","","","8","","","",""],
+        ["","8","","","","","","","",""],
+        ["","","","","","","","","",""],
+        ["","","","","","","","","",""],
+        ["","","6","","","","","15","",""],
+        ["","","","","","","16","","","4"],
+        ["","","","","6","","","","",""],
+        ["","12","","","","","4","","6",""],
+        ["","","","","10","","","","",""],
+        ["","","","","","","","5","",""]
+      ]
+    },
+    11: {
+      width: 10, height: 10,
+      puzzle: [
+        ["","","","","","","","","","10"],
+        ["","","","8","","","","","",""],
+        ["","","","","4","","","","","9"],
+        ["","","","6","","","9","","",""],
+        ["","12","","","","8","","","",""],
+        ["","","","","","","6","","",""],
+        ["","","","4","","","","","",""],
+        ["","","","","","6","","9","",""],
+        ["","","","","","","","","",""],
+        ["","","3","","","6","","","",""]
+      ]
+    },
+    12: {
+      width: 10, height: 10,
+      puzzle: [
+        ["","","","6","","","","","",""],
+        ["","","6","","","","","","6",""],
+        ["","","","","","","","","",""],
+        ["","6","3","","9","","","","",""],
+        ["","","","6","","","6","","",""],
+        ["","","6","","","4","","","","6"],
+        ["","","","","6","","","","",""],
+        ["","6","6","","","","6","","6",""],
+        ["","","","","","","","","",""],
+        ["","","6","","","","","","",""]
+      ]
+    },
+    13: {
+      width: 10, height: 10,
+      puzzle: [
+        ["","","","","","","","6","",""],
+        ["","4","","","4","","","","6",""],
+        ["","","","","","","","4","","4"],
+        ["","6","","","","6","","","",""],
+        ["","","","","","","","","",""],
+        ["","","","6","4","","6","","",""],
+        ["","","","","","6","","","","6"],
+        ["","","","","4","","4","","",""],
+        ["","6","","","","","","","",""],
+        ["6","","","","","6","","","6",""]
+      ]
+    },
+    14: {
+      width: 12, height: 12,
+      puzzle: [
+        ["","","","","","","","","","8","",""],
+        ["","","","","","","","","","","",""],
+        ["8","","","12","","8","","","6","","",""],
+        ["","","","","","","","","","","",""],
+        ["","","","","","","","","10","","","6"],
+        ["6","","6","","","10","","","","","",""],
+        ["","","","","","","","","","","",""],
+        ["","","","","","","","9","","","",""],
+        ["6","","4","","5","","","","","8","",""],
+        ["","","","","","","","","6","","",""],
+        ["6","","","","","","","8","","","",""],
+        ["","","","","","7","","","","","","5"]
+      ]
+    },
+    15: {
+      width: 12, height: 12,
+      puzzle: [
+        ["","","","","8","","","","","","",""],
+        ["","9","","","","","","","6","","",""],
+        ["","","","","","","8","","","","",""],
+        ["","","","","","","","","6","","","4"],
+        ["","","","","","6","","","","","",""],
+        ["","","","","","","","","","","8",""],
+        ["6","","","9","","8","","","","","",""],
+        ["","","","","","","","6","","10","","6"],
+        ["","8","","","4","","","","","","",""],
+        ["","","","","","","6","","","","",""],
+        ["4","","","8","","","","","","8","",""],
+        ["","","","","","6","","","","","",""]
+      ]
+    },                            
+  };
+
+  let stageStates = {};
+  let currentStage = 1;
+  let startCell = null;
+  let endCell = null;
+  let isDragging = false;
+  let deleteMode = false;
+  let interactionLocked = false;
+
+  // 마우스/터치 다운 좌표 저장용
+  let mouseDownPos = null;
+
+  function init() {
+    for (let s in stages) {
+      stageStates[s] = {
+        ...stages[s],
+        rectangles: [],
+        completed: false
+      };
+    }
+    renderStage(currentStage);
+  }
+
+  function renderStage(stage) {
+    const { width, height, puzzle, rectangles } = stageStates[stage];
+    board.innerHTML = "";
+    board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+    board.style.pointerEvents = "auto";
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        if (puzzle[y][x]) {
+          cell.textContent = puzzle[y][x];
+          cell.classList.add("number");
+        }
+        board.appendChild(cell);
+      }
+    }
+
+    rectangles.forEach(r => {
+      if (!r.element) {
+        r.element = drawBorder(r);
+      } else if (!board.contains(r.element)) {
+        board.appendChild(r.element);
+      }
+    });
+
+    updateStageButtons();
+
+    if (stageStates[stage].completed) lockInteraction();
+    else unlockInteraction();
+
+    startCell = null;
+    endCell = null;
+    updateCellStyles();
+    message.textContent = "";
+    message.style.color = "black";
+  }
+
+  function drawBorder({ x1, y1, x2, y2 }) {
+    const rect = document.createElement("div");
+    rect.className = "rectangle-border";
+
+    const c1 = getCell(x1, y1);
+    const c2 = getCell(x2, y2);
+
+    const left = Math.min(c1.offsetLeft, c2.offsetLeft);
+    const top = Math.min(c1.offsetTop, c2.offsetTop);
+    const right = Math.max(c1.offsetLeft + c1.offsetWidth, c2.offsetLeft + c2.offsetWidth);
+    const bottom = Math.max(c1.offsetTop + c1.offsetHeight, c2.offsetTop + c2.offsetHeight);
+
+    rect.style.left = left + "px";
+    rect.style.top = top + "px";
+    rect.style.width = (right - left) + "px";
+    rect.style.height = (bottom - top) + "px";
+
+    rect.addEventListener("click", e => {
+      if (deleteMode && !interactionLocked) {
+        rect.remove();
+        stageStates[currentStage].rectangles = stageStates[currentStage].rectangles.filter(r =>
+          !(r.x1 === x1 && r.y1 === y1 && r.x2 === x2 && r.y2 === y2));
+        checkComplete();
+      }
+    });
+
+    board.appendChild(rect);
+
+    return rect;
+  }
+
+  function getCell(x, y) {
+    return document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+  }
+
+  function updateCellStyles() {
+    document.querySelectorAll(".cell").forEach(cell => {
+      cell.classList.remove("selected-cell", "start-cell");
+    });
+    if (startCell && !endCell) {
+      startCell.classList.add("start-cell");
+    }
+    if (startCell && endCell) {
+      const x1 = Math.min(+startCell.dataset.x, +endCell.dataset.x);
+      const x2 = Math.max(+startCell.dataset.x, +endCell.dataset.x);
+      const y1 = Math.min(+startCell.dataset.y, +endCell.dataset.y);
+      const y2 = Math.max(+startCell.dataset.y, +endCell.dataset.y);
+      for (let y = y1; y <= y2; y++) {
+        for (let x = x1; x <= x2; x++) {
+          getCell(x, y)?.classList.add("selected-cell");
+        }
+      }
+    }
+  }
+
+  // 클릭 & 드래그/터치 이벤트 처리
+  // --- 마우스 이벤트 ---
+  board.addEventListener("mousedown", e => {
+    if (interactionLocked || deleteMode) return;
+    if (!e.target.classList.contains("cell")) return;
+
+    mouseDownPos = { x: e.clientX, y: e.clientY };
+    isDragging = false; // 아직 드래그 아님
+  });
+
+  board.addEventListener("mousemove", e => {
+    if (interactionLocked || deleteMode) return;
+    if (!mouseDownPos) return;
+    if (!e.target.classList.contains("cell")) return;
+
+    const dx = e.clientX - mouseDownPos.x;
+    const dy = e.clientY - mouseDownPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist > 5) { // 5px 이상 움직이면 드래그로 인식
+      if (!isDragging) {
+        isDragging = true;
+        startCell = e.target;
+        endCell = null;
+        updateCellStyles();
+      } else {
+        endCell = e.target;
+        if (startCell) startCell.classList.remove("start-cell");
+        updateCellStyles();
+      }
+    }
+  });
+
+  board.addEventListener("mouseup", e => {
+    if (interactionLocked || deleteMode) return;
+    if (!e.target.classList.contains("cell")) return;
+
+    if (!mouseDownPos) return;
+    const dx = e.clientX - mouseDownPos.x;
+    const dy = e.clientY - mouseDownPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist <= 5) {
+      // 클릭으로 처리 (드래그 아님)
+      handleCellClick(e.target);
+    } else {
+      // 드래그 끝
+      endCell = e.target;
+      if (startCell) startCell.classList.remove("start-cell");
+      updateCellStyles();
+    }
+    mouseDownPos = null;
+    isDragging = false;
+  });
+
+  // --- 터치 이벤트 ---
+  // 터치 위치에서 가장 가까운 cell을 찾는 함수
+  function getCellFromTouch(touch) {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (el && el.classList && el.classList.contains("cell")) return el;
+    return null;
+  }
+
+  board.addEventListener("touchstart", function(e) {
+    if (interactionLocked || deleteMode) return;
+    // 멀티터치 방지
+    if (e.touches.length > 1) return;
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch);
+    if (!cell) return;
+
+    mouseDownPos = { x: touch.clientX, y: touch.clientY };
+    isDragging = false;
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
+
+  board.addEventListener("touchmove", function(e) {
+    if (interactionLocked || deleteMode) return;
+    if (!mouseDownPos) return;
+    if (e.touches.length > 1) return;
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch);
+    if (!cell) return;
+
+    const dx = touch.clientX - mouseDownPos.x;
+    const dy = touch.clientY - mouseDownPos.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist > 5) {
+      if (!isDragging) {
+        isDragging = true;
+        startCell = cell;
+        endCell = null;
+        updateCellStyles();
+      } else {
+        endCell = cell;
+        if (startCell) startCell.classList.remove("start-cell");
+        updateCellStyles();
+      }
+    }
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
+
+  board.addEventListener("touchend", function(e) {
+    if (interactionLocked || deleteMode) return;
+    // e.changedTouches[0]이 마지막 터치 위치
+    let touch;
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      touch = e.changedTouches[0];
+    } else if (e.touches && e.touches.length > 0) {
+      touch = e.touches[0];
+    } else {
+      mouseDownPos = null;
+      isDragging = false;
+      return;
+    }
+    const cell = getCellFromTouch(touch);
+    if (!mouseDownPos) return;
+
+    let dx = 0, dy = 0, dist = 0;
+    if (touch && mouseDownPos) {
+      dx = touch.clientX - mouseDownPos.x;
+      dy = touch.clientY - mouseDownPos.y;
+      dist = Math.sqrt(dx*dx + dy*dy);
+    }
+
+    if (dist <= 5) {
+      // 탭으로 처리 (드래그 아님)
+      if (cell) handleCellClick(cell);
+    } else {
+      // 드래그 끝
+      if (cell) {
+        endCell = cell;
+        if (startCell) startCell.classList.remove("start-cell");
+        updateCellStyles();
+      }
+    }
+    mouseDownPos = null;
+    isDragging = false;
+    // prevent scrolling
+    e.preventDefault();
+  }, { passive: false });
+
+  // 클릭 시 동작 분리 함수
+  function handleCellClick(cell) {
+    if (interactionLocked || deleteMode) return;
+    if (!cell.classList.contains("cell")) return;
+
+    if (startCell === null) {
+      // 1번째 클릭
+      startCell = cell;
+      endCell = null;
+    } else if (startCell !== null && endCell === null) {
+      // 2번째 클릭
+      endCell = cell;
+      if (startCell) startCell.classList.remove("start-cell");
+    } else {
+      // 3번째 클릭 이후
+      startCell = cell;
+      endCell = null;
+    }
+    updateCellStyles();
+  }
+
+  confirmBtn.addEventListener("click", () => {
+    if (!startCell || !endCell) {
+      message.textContent = "시작 셀과 끝 셀을 선택하세요.";
+      message.style.color = "red";
+      return;
+    }
+
+    if (startCell) startCell.classList.remove("start-cell");
+
+    const x1 = Math.min(+startCell.dataset.x, +endCell.dataset.x);
+    const x2 = Math.max(+startCell.dataset.x, +endCell.dataset.x);
+    const y1 = Math.min(+startCell.dataset.y, +endCell.dataset.y);
+    const y2 = Math.max(+startCell.dataset.y, +endCell.dataset.y);
+    const area = (x2 - x1 + 1) * (y2 - y1 + 1);
+
+    const puzzle = stageStates[currentStage].puzzle;
+    let number = null, count = 0;
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        const val = puzzle[y][x];
+        if (val) {
+          number = Number(val);
+          count++;
+        }
+      }
+    }
+
+    if (count === 0) {
+      message.textContent = "사각형 내 숫자가 없습니다.";
+      message.style.color = "red";
+      return;
+    }
+    if (count > 1) {
+      message.textContent = "사각형 내 숫자가 2개 이상 있습니다.";
+      message.style.color = "red";
+      return;
+    }
+    if (area !== number) {
+      message.textContent = `사각형 크기(${area})와 숫자(${number})가 일치하지 않습니다.`;
+      message.style.color = "red";
+      return;
+    }
+
+    for (const r of stageStates[currentStage].rectangles) {
+      if (!(x2 < r.x1 || x1 > r.x2 || y2 < r.y1 || y1 > r.y2)) {
+        message.textContent = "다른 사각형과 겹칩니다.";
+        message.style.color = "red";
+        return;
+      }
+    }
+
+    const rect = { x1, y1, x2, y2 };
+    stageStates[currentStage].rectangles.push(rect);
+    rect.element = drawBorder(rect);
+
+    message.textContent = "";
+    startCell = null;
+    endCell = null;
+    updateCellStyles();
+    checkComplete();
+  });
+
+  deleteBtn.addEventListener("click", () => {
+    deleteMode = !deleteMode;
+    deleteBtn.style.backgroundColor = deleteMode ? "#f88" : "";
+  });
+
+  resetBtn.addEventListener("click", () => {
+    const s = stageStates[currentStage];
+    s.rectangles.forEach(r => r.element?.remove());
+    s.rectangles = [];
+    s.completed = false;
+    startCell = null;
+    endCell = null;
+    message.textContent = "";
+    message.style.color = "black";
+    renderStage(currentStage);
+  });
+
+  function checkComplete() {
+    const { width, height, rectangles } = stageStates[currentStage];
+    const covered = Array.from({ length: height }, () => Array(width).fill(false));
+
+    for (const r of rectangles) {
+      for (let y = r.y1; y <= r.y2; y++) {
+        for (let x = r.x1; x <= r.x2; x++) {
+          covered[y][x] = true;
+        }
+      }
+    }
+
+    const allCovered = covered.every(row => row.every(cell => cell));
+    if (allCovered) {
+      message.textContent = "퍼즐 성공!";
+      message.style.color = "green";
+      stageStates[currentStage].completed = true;
+      lockInteraction();
+      updateStageButtons();
+    }
+  }
+
+  function lockInteraction() {
+    interactionLocked = true;
+    confirmBtn.disabled = true;
+    deleteBtn.disabled = true;
+    board.style.pointerEvents = "none";
+  }
+
+  function unlockInteraction() {
+    interactionLocked = false;
+    confirmBtn.disabled = false;
+    deleteBtn.disabled = false;
+    board.style.pointerEvents = "auto";
+  }
+
+  function updateStageButtons() {
+    stageButtons.forEach(btn => {
+      const stage = +btn.dataset.stage;
+      btn.classList.remove("selected", "completed");
+      if (stage === currentStage) btn.classList.add("selected");
+      if (stageStates[stage]?.completed) btn.classList.add("completed");
+    });
+  }
+
+  stageButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentStage = +btn.dataset.stage;
+      renderStage(currentStage);
+    });
+  });
+
+  // 키보드 단축키: 스페이스바는 "확정", E/e는 "삭제" 버튼과 동일하게 동작
+  document.addEventListener("keydown", (e) => {
+    if (interactionLocked) return;
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      confirmBtn.click();
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      deleteBtn.click();
+    }
+  });
+
+
+  init();
+})();
+</script>
+
+</body>
+</html>

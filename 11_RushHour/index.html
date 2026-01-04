@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>러시아워</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 24px;  /* 30px * 0.8 */
+      color: #333;
+    }
+
+    .controls {
+      margin-bottom: 12px;  /* 15px * 0.8 */
+    }
+
+    .move-counter {
+      margin: 12px 0;  /* 15px * 0.8 */
+      font-weight: 600;
+      font-size: 18px;  /* 22px * 0.8 */
+      color: #495057;
+    }
+
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(6, 48px);  /* 60px * 0.8 */
+      grid-template-rows: repeat(6, 48px);  /* 60px * 0.8 */
+      position: relative;
+      border: 10px solid #8b8b8b;  /* 12px * 0.8 */
+      border-radius: 6px;  /* 8px * 0.8 */
+    }
+    .puzzle-container::after {
+      content: "";
+      position: absolute;
+      right: -10px;  /* -12px * 0.8 */
+      top: 96px;  /* 120px * 0.8 */
+      width: 10px;  /* 12px * 0.8 */
+      height: 48px;  /* 60px * 0.8 */
+      background-color: #ffffff;
+      z-index: 1;
+    }
+    
+    .puzzle-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+      pointer-events: none;
+      z-index: 0;
+      background-image: 
+        linear-gradient(to right, #000000 1px, transparent 2px),
+        linear-gradient(to bottom, #000000 1px, transparent 2px);
+      background-size: 48px 48px;  /* 60px * 0.8 */
+    }
+    .block {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #ffffff;
+      z-index: 1;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+      border-radius: 5px;  /* 6px * 0.8 */
+      background-color: #a8683a;
+    }
+
+    .two-one {
+      background-color: #ff4f4f;
+    }
+
+    .hole {
+      width: 48px;  /* 60px * 0.8 */
+      height: 48px;  /* 60px * 0.8 */
+      background-color: transparent;
+      position: absolute;
+      z-index: 0;
+      border: none;
+    }
+
+    .hole::before { content: none; }
+
+    #success {
+      margin-top: 16px;  /* 20px * 0.8 */
+      font-size: 26px;  /* 32px * 0.8 */
+      color: #40c057;
+      font-weight: 600;
+      display: none;
+    }
+
+    .stage-button {
+      font-size: 14px;  /* 18px * 0.8 */
+      margin: 3px;  /* 4px * 0.8 */
+      padding: 6px 13px;  /* 8px 16px * 0.8 */
+      border: none;
+      border-radius: 6px;  /* 8px * 0.8 */
+      cursor: pointer;
+      background-color: #e9ecef;
+      color: #495057;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .active {
+      background-color: #339af0;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stage-clear {
+      background-color: #4caf50 !important;
+      color: white !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>러시아워</h2>
+
+  <div>
+    <button id="btn1" class="stage-button" onclick="setStage(1)">1단계</button>
+    <button id="btn2" class="stage-button" onclick="setStage(2)">2단계</button>
+    <button id="btn3" class="stage-button" onclick="setStage(3)">3단계</button>
+    <button id="btn4" class="stage-button" onclick="setStage(4)">4단계</button><br>
+    <button id="btn5" class="stage-button" onclick="setStage(5)">5단계</button>
+    <button id="btn6" class="stage-button" onclick="setStage(6)">6단계</button>
+    <button id="btn7" class="stage-button" onclick="setStage(7)">7단계</button>
+  </div>
+
+  <br>
+  <div class="move-counter">이동 횟수: <span id="moveCount">0</span></div>
+  <div class="puzzle-container" id="puzzle"></div>
+  <div id="success">성공!</div>
+
+  <br>
+  <div class="controls">
+    <button class="stage-button" onclick="undoMove()">되돌리기</button>
+    <button class="stage-button" onclick="resetPuzzle()">처음으로</button>
+  </div>
+
+  <script>
+    const puzzle = document.getElementById("puzzle");
+    const moveCountEl = document.getElementById("moveCount");
+    const gridCols = 6;
+    const gridRows = 6;
+    const cellSize = 48;
+
+    let blocks = [];
+    let moveCount = 0;
+    let history = [];
+    let initialBlocks = [];
+    let currentStage = 1; // 현재 스테이지 번호
+
+    // 클리어한 스테이지를 저장하는 Set
+    const clearedStages = new Set();
+
+    const stageData = {
+      1: [
+        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 2, h: 1 },
+        { id: "b3", x: 5, y: 0, w: 1, h: 3 },
+        { id: "b4", x: 0, y: 1, w: 1, h: 3 },
+        { id: "b5", x: 3, y: 1, w: 1, h: 3 },
+        { id: "b6", x: 0, y: 4, w: 1, h: 2 },
+        { id: "b7", x: 4, y: 4, w: 2, h: 1 },
+        { id: "b8", x: 2, y: 5, w: 3, h: 1 }
+      ],
+      2: [
+        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 3, y: 2, w: 1, h: 3 },
+        { id: "b3", x: 1, y: 3, w: 2, h: 1 },
+        { id: "b4", x: 5, y: 3, w: 1, h: 3 },
+        { id: "b5", x: 1, y: 4, w: 1, h: 2 },
+        { id: "b6", x: 2, y: 5, w: 2, h: 1 }
+      ],
+      3: [
+        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 2, h: 1 },
+        { id: "b3", x: 2, y: 0, w: 1, h: 2 },
+        { id: "b4", x: 4, y: 0, w: 2, h: 1 },
+        { id: "b5", x: 0, y: 1, w: 2, h: 1 },
+        { id: "b6", x: 0, y: 2, w: 1, h: 3 },
+        { id: "b7", x: 5, y: 2, w: 1, h: 3 },
+        { id: "b8", x: 1, y: 3, w: 3, h: 1 },
+        { id: "b9", x: 3, y: 4, w: 1, h: 2 },
+        { id: "b10", x: 0, y: 5, w: 2, h: 1 },
+        { id: "b11", x: 4, y: 5, w: 2, h: 1 }
+      ],
+      4: [
+        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 1, h: 3 },
+        { id: "b3", x: 1, y: 0, w: 2, h: 1 },
+        { id: "b4", x: 3, y: 0, w: 1, h: 3 },
+        { id: "b5", x: 2, y: 3, w: 1, h: 2 },
+        { id: "b6", x: 3, y: 3, w: 3, h: 1 },
+        { id: "b7", x: 5, y: 4, w: 1, h: 2 },
+        { id: "b8", x: 2, y: 5, w: 3, h: 1 }
+      ],
+      5: [
+        { id: "b1", type: "two-one", x: 2, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 2, h: 1 },
+        { id: "b3", x: 2, y: 0, w: 1, h: 2 },
+        { id: "b4", x: 4, y: 1, w: 2, h: 1 },
+        { id: "b5", x: 0, y: 2, w: 1, h: 2 },
+        { id: "b6", x: 1, y: 2, w: 1, h: 2 },
+        { id: "b7", x: 4, y: 2, w: 1, h: 2 },
+        { id: "b8", x: 5, y: 2, w: 1, h: 2 },
+        { id: "b9", x: 2, y: 3, w: 2, h: 1 },
+        { id: "b10", x: 2, y: 4, w: 1, h: 2 },
+        { id: "b11", x: 4, y: 4, w: 2, h: 1 },
+        { id: "b12", x: 0, y: 5, w: 2, h: 1 }
+      ],
+      6: [
+        { id: "b1", type: "two-one", x: 0, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 1, h: 2 },
+        { id: "b3", x: 1, y: 0, w: 2, h: 1 },
+        { id: "b4", x: 3, y: 0, w: 1, h: 3 },
+        { id: "b5", x: 1, y: 1, w: 2, h: 1 },
+        { id: "b6", x: 2, y: 2, w: 1, h: 2 },
+        { id: "b7", x: 5, y: 2, w: 1, h: 3 },
+        { id: "b8", x: 3, y: 3, w: 2, h: 1 },
+        { id: "b9", x: 2, y: 4, w: 1, h: 2 },
+        { id: "b10", x: 3, y: 5, w: 3, h: 1 }
+      ],
+      7: [
+        { id: "b1", type: "two-one", x: 3, y: 2, w: 2, h: 1 },
+        { id: "b2", x: 0, y: 0, w: 1, h: 3 },
+        { id: "b3", x: 1, y: 0, w: 2, h: 1 },
+        { id: "b4", x: 4, y: 0, w: 1, h: 2 },
+        { id: "b5", x: 1, y: 1, w: 1, h: 2 },
+        { id: "b6", x: 2, y: 1, w: 1, h: 2 },
+        { id: "b7", x: 5, y: 1, w: 1, h: 3 },
+        { id: "b8", x: 0, y: 3, w: 3, h: 1 },
+        { id: "b9", x: 3, y: 3, w: 1, h: 2 },
+        { id: "b10", x: 2, y: 4, w: 1, h: 2 },
+        { id: "b11", x: 4, y: 4, w: 2, h: 1 },
+        { id: "b12", x: 0, y: 5, w: 2, h: 1 },
+        { id: "b13", x: 3, y: 5, w: 2, h: 1 }
+      ]
+    };
+
+    function setStage(stage) {
+      // Remove all active classes
+      document.querySelectorAll('.stage-button').forEach((btn, idx) => {
+        btn.classList.remove("active");
+        // stage-clear는 유지, 단, 클리어하지 않은 스테이지만 제거
+        const stageNum = idx + 1;
+        if (!clearedStages.has(stageNum)) {
+          btn.classList.remove("stage-clear");
+        }
+      });
+      document.getElementById("btn" + stage).classList.add("active");
+
+      currentStage = stage;
+      initialBlocks = stageData[stage];
+      resetPuzzle();
+    }
+
+    function renderBlocks() {
+      puzzle.innerHTML = "";
+
+      for (let i = 1; i <= 2; i++) {
+        const hole = document.createElement("div");
+        hole.className = "hole";
+        hole.style.left = `${i * cellSize}px`;
+        hole.style.top = `${4 * cellSize}px`;
+        puzzle.appendChild(hole);
+      }
+
+      for (const block of blocks) {
+        const div = document.createElement("div");
+        div.className = `block ${block.type}`;
+        div.style.left = `${block.x * cellSize + 2}px`;
+        div.style.top = `${block.y * cellSize + 2}px`;
+        div.style.width = `${block.w * cellSize - 2}px`;
+        div.style.height = `${block.h * cellSize - 2}px`;
+        div.setAttribute("id", block.id);
+        div.style.transition = 'all 0.2s ease-out';
+        puzzle.appendChild(div);
+
+        let originX, originY;
+        let isDragging = false;
+        let lastValidX = block.x;
+        let lastValidY = block.y;
+        let lastMoveTime = 0;
+        let ghostDiv = null;
+        const moveThreshold = 50; // 이동 감지 최소 거리 (픽셀)
+        const timeThreshold = 50; // 이동 감지 최소 시간 (밀리초)
+
+        function handleStart(e) {
+          e.preventDefault();
+          isDragging = true;
+          
+          const clientX = e.clientX || e.touches[0].clientX;
+          const clientY = e.clientY || e.touches[0].clientY;
+          
+          originX = clientX;
+          originY = clientY;
+          lastValidX = block.x;
+          lastValidY = block.y;
+          lastMoveTime = Date.now();
+          
+          div.style.transition = 'none';
+          div.style.zIndex = '1000';
+
+          // 고스트 블록 생성
+          ghostDiv = document.createElement("div");
+          ghostDiv.className = `block ${block.type} ghost`;
+          ghostDiv.style.width = `${block.w * cellSize - 2}px`;
+          ghostDiv.style.height = `${block.h * cellSize - 2}px`;
+          ghostDiv.style.opacity = '0.5';
+          ghostDiv.style.left = `${block.x * cellSize + 2}px`;
+          ghostDiv.style.top = `${block.y * cellSize + 2}px`;
+          puzzle.appendChild(ghostDiv);
+        }
+
+        function handleMove(e) {
+          if (!isDragging) return;
+          
+          const currentTime = Date.now();
+          if (currentTime - lastMoveTime < timeThreshold) return;
+          
+          const clientX = e.clientX || e.touches[0].clientX;
+          const clientY = e.clientY || e.touches[0].clientY;
+          
+          const movedX = clientX - originX;
+          const movedY = clientY - originY;
+
+          // 최소 이동 거리 체크
+          if (Math.abs(movedX) < moveThreshold && Math.abs(movedY) < moveThreshold) return;
+
+          let tempX = lastValidX;
+          let tempY = lastValidY;
+
+          // 블록의 크기에 따라 이동 방향 제한
+          if (block.w >= 2) {
+            tempX = lastValidX + (movedX > 0 ? 1 : -1);
+            tempY = lastValidY;
+          } else if (block.h >= 2) {
+            tempX = lastValidX;
+            tempY = lastValidY + (movedY > 0 ? 1 : -1);
+          } else {
+            if (Math.abs(movedX) > Math.abs(movedY)) {
+              tempX = lastValidX + (movedX > 0 ? 1 : -1);
+            } else {
+              tempY = lastValidY + (movedY > 0 ? 1 : -1);
+            }
+          }
+
+          if (canMove(block, tempX, tempY)) {
+            lastValidX = tempX;
+            lastValidY = tempY;
+            div.style.left = `${tempX * cellSize+2}px`;
+            div.style.top = `${tempY * cellSize+2}px`;
+            ghostDiv.style.left = `${tempX * cellSize+2}px`;
+            ghostDiv.style.top = `${tempY * cellSize+2}px`;
+            lastMoveTime = currentTime;
+            originX = clientX;
+            originY = clientY;
+          }
+        }
+
+        function handleEnd(e) {
+          if (!isDragging) return;
+          isDragging = false;
+          
+          // 고스트 블록 제거
+          if (ghostDiv) {
+            ghostDiv.remove();
+            ghostDiv = null;
+          }
+          
+          const newX = lastValidX;
+          const newY = lastValidY;
+
+          if (newX !== block.x || newY !== block.y) {
+            saveHistory();
+            block.x = newX;
+            block.y = newY;
+            moveCount += 1;
+            updateMoveCount();
+            checkWin();
+          }
+
+          div.style.zIndex = '';
+          div.style.transition = 'all 0.2s ease-out';
+          renderBlocks();
+        }
+
+        div.addEventListener("mousedown", handleStart);
+        document.addEventListener("mousemove", handleMove);
+        document.addEventListener("mouseup", handleEnd);
+
+        div.addEventListener("touchstart", handleStart);
+        document.addEventListener("touchmove", handleMove);
+        document.addEventListener("touchend", handleEnd);
+      }
+    }
+
+    // 나머지 함수들은 동일하게 유지
+    function canMove(block, newX, newY) {
+      if (
+        newX < 0 ||
+        newY < 0 ||
+        newX + block.w > gridCols ||
+        newY + block.h > gridRows
+      ) return false;
+
+      const startX = Math.min(block.x, newX);
+      const endX = Math.max(block.x + block.w - 1, newX + block.w - 1);
+      const startY = Math.min(block.y, newY);
+      const endY = Math.max(block.y + block.h - 1, newY + block.h - 1);
+
+      for (const other of blocks) {
+        if (other.id === block.id) continue;
+        
+        for (let x = startX; x <= endX; x++) {
+          for (let y = startY; y <= endY; y++) {
+            if (
+              x >= other.x && x < other.x + other.w &&
+              y >= other.y && y < other.y + other.h
+            ) {
+              return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function checkWin() {
+      const target = blocks.find(b => b.type === "two-one");
+      if (target.x === 4 && target.y === 2) {
+        document.getElementById("success").style.display = "block";
+        // 현재 스테이지를 클리어한 목록에 추가
+        clearedStages.add(currentStage);
+        // 현재 스테이지 버튼을 초록색으로 변경
+        const btn = document.getElementById("btn" + currentStage);
+        if (btn) {
+          btn.classList.remove("active");
+          btn.classList.add("stage-clear");
+        }
+      }
+    }
+
+    function updateMoveCount() {
+      moveCountEl.textContent = moveCount;
+    }
+
+    function saveHistory() {
+      history.push(JSON.parse(JSON.stringify(blocks)));
+    }
+
+    function undoMove() {
+      if (history.length === 0) return;
+      blocks = history.pop();
+      moveCount = Math.max(0, moveCount - 1);
+      updateMoveCount();
+      document.getElementById("success").style.display = "none";
+      // 성공 표시된 버튼 색상 원복 (단, 클리어한 스테이지는 유지)
+      const btn = document.getElementById("btn" + currentStage);
+      if (btn) {
+        if (!clearedStages.has(currentStage)) {
+          btn.classList.remove("stage-clear");
+          btn.classList.add("active");
+        }
+      }
+      renderBlocks();
+    }
+
+    function resetPuzzle() {
+      blocks = JSON.parse(JSON.stringify(initialBlocks));
+      history = [];
+      moveCount = 0;
+      updateMoveCount();
+      document.getElementById("success").style.display = "none";
+      // 성공 표시된 버튼 색상 원복 (단, 클리어한 스테이지는 유지)
+      const btn = document.getElementById("btn" + currentStage);
+      if (btn) {
+        if (!clearedStages.has(currentStage)) {
+          btn.classList.remove("stage-clear");
+          btn.classList.add("active");
+        }
+      }
+      renderBlocks();
+    }
+
+    // 시작 시 1단계 자동 설정
+    setStage(1);
+  </script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"/> -->
+  <title>좌회전 금지 미로</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+
+    .stage-buttons {
+      margin-bottom: 6px;
+    }
+
+    .stage-buttons button {
+      margin: 0 5px;
+      padding: 8px 14px;
+      font-size: 15px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .stage-buttons button:hover {
+      background-color: #0056b3;
+    }
+
+    #stageMsg {
+      margin-bottom: 12px;
+      font-size: 17px;
+      font-weight: 600;
+      color: #333;
+      height: 22px;
+    }
+
+    .map {
+      display: grid;
+      gap: 0;
+      position: relative;
+      user-select: none;
+      background-color: #fff;
+      border: 3px solid #007bff;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    }
+
+    .cell {
+      position: relative;
+      background: white;
+      border: 0px solid #ccc;
+      box-sizing: border-box;
+      width: 50px;
+      height: 50px;
+    }
+
+    .cell .dir {
+      position: absolute;
+      background: #333;
+    }
+
+    .cell .up {
+      top: 0;
+      left: 50%;
+      width: 8px;
+      height: 28px;
+      transform: translateX(-50%);
+    }
+
+    .cell .down {
+      bottom: 0;
+      left: 50%;
+      width: 8px;
+      height: 28px;
+      transform: translateX(-50%);
+    }
+
+    .cell .left {
+      left: 0;
+      top: 50%;
+      width: 28px;
+      height: 8px;
+      transform: translateY(-50%);
+    }
+
+    .cell .right {
+      right: 0;
+      top: 50%;
+      width: 28px;
+      height: 8px;
+      transform: translateY(-50%);
+    }
+
+    .label {
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: bold;
+      color: #444;
+      user-select: none;
+      z-index: 0;
+    }
+
+    .unit {
+      position: absolute;
+      top: 13px;
+      left: 13px;
+      width: 24px;
+      height: 24px;
+      transition: top 0.3s, left 0.3s, transform 0.3s;
+      transform-origin: center center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .triangle {
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 24px solid #007bff;
+    }
+
+    .controls {
+      margin-top: 15px;
+    }
+
+    .controls button {
+      margin: 0 5px;
+      padding: 6px 16px;
+      font-size: 15px;
+      height: 50px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .controls button:disabled {
+      background: #aaa;
+      cursor: default;
+    }
+
+    #msg {
+      margin-top: 12px;
+      font-size: 18px;
+      color: green;
+      font-weight: bold;
+      height: 24px;
+      user-select: none;
+    }
+
+    #timer {
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      user-select: none;
+    }
+
+    .stage-buttons button.active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .stage-buttons button.inactive {
+      background-color: #ccc;
+      color: #ffffff;
+    }
+
+    .stage-buttons button.cleared {
+      background-color: #4caf50 !important;
+      color: #fff !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="stage-buttons">
+  <button onclick="loadStage(1)">1단계</button>
+  <button onclick="loadStage(2)">2단계</button>
+  <button onclick="loadStage(3)">3단계</button>
+</div>
+<br>
+<!-- <div id="stageMsg">1단계 게임중입니다</div> -->
+<div class="map" id="map"></div>
+<br>
+<div class="controls">
+  <button id="btnForward" onclick="moveForward()">앞으로(↑)</button>
+  <button id="btnTurn" onclick="rotateRight()">우회전(→)</button>
+  <!-- <button onclick="undoMove()">되돌리기</button> -->
+  <button onclick="restartStage()">처음부터(R)</button>
+</div>
+
+<div id="msg"></div>
+<div id="timer">경과 시간: 0초</div>
+
+<script>
+let width, height;
+const mapEl = document.getElementById('map');
+const stageMsg = document.getElementById('stageMsg');
+const msgEl = document.getElementById('msg');
+const timerEl = document.getElementById('timer');
+
+const delta = { up: [-1, 0], right: [0, 1], down: [1, 0], left: [0, -1] };
+const opp = { up: 'down', down: 'up', left: 'right', right: 'left' };
+const dirs = ['up', 'right', 'down', 'left'];
+
+let configStages = {
+    1: {
+    width: 7,
+    height: 7,
+    start: [6, 5],
+    goal: [6, 1],
+    grid: [
+      ['DR','DLR','DLR','LR','DLR','LR','DL'],
+      ['UD','UDR','UDLR','LR','ULR','DLR','UDL'],
+      ['UD','UD','UR','DLR','DLR','UDL','UD'],
+      ['UR','UDLR','LR','UDLR','UL','UD','UD'],
+      ['','UDR','LR','ULR','DLR','UDL','UD'],
+      ['','UDR','LR','LR','ULR','UDLR','UL'],
+      ['','UD','','','','UD',''],
+      ['','','','','','','']
+    ]
+  },
+  
+    2: {
+    width: 7,
+    height: 7,
+    start: [6, 5],
+    goal: [6, 2],
+    grid: [
+      ['RD','DLR','LR','LR','DLR','LR','LD'],
+      ['UD','UDR','LR','DLR','ULR','DLR','UDL'],
+      ['UDR','UDLR','DLR','UDLR','DLR','UDL','UD'],
+      ['UD','UDR','UDL','UD','UDR','UDLR','UL'],
+      ['UR','UL','UDR','ULR','UDL','UD',''],
+      ['','','UDR','LR','ULR','UDL',''],
+      ['','','UD','','','UD','']
+    ]
+  },
+
+  3: {
+    width: 8,
+    height: 9,
+    start: [8, 0],
+    goal: [8, 3],
+    grid: [
+      ['DR','DLR','LR','LR','DLR','DL','DR','DL'],
+      ['UR','UDLR','DLR','DLR','UDL','UDR','ULR','UDL'],
+      ['DR','ULR','UDLR','UDL','UDR','UDLR','DL','UD'],
+      ['UD','DR','UDLR','UDLR','UDL','UDR','ULR','UDL'],
+      ['UDR','UDLR','UL','UDR','ULR','ULR','DL','UD'],
+      ['UD','UDR','DLR','ULR','DLR','DLR','UDLR','UL'],
+      ['UDR','UL','UDR','DLR','UDLR','UDLR','UDLR','DL'],
+      ['UD','','UR','UDLR','UL','UR','ULR','UL'],
+      ['UD','','','UD','','','','']
+    ]
+  }
+};
+
+let start, goal, configGrid, cellDirs;
+let unit, tri, uy, ux, dirIdx = 0;
+let moveStack = [];
+let currentStage = 1;
+
+// 성공한 단계 저장
+let clearedStages = new Set();
+
+let timer = null;
+let timeSec = 0;
+let hasStarted = false;
+
+const btnForward = document.getElementById('btnForward');
+const btnTurn = document.getElementById('btnTurn');
+
+function startTimer() {
+  clearInterval(timer);
+  timeSec = 0;
+  timerEl.textContent = `경과 시간: 0.00초`;
+  timer = setInterval(() => {
+    timeSec += 0.01;
+    timerEl.textContent = `경과 시간: ${timeSec.toFixed(2)}초`;
+  }, 10);
+}
+
+function stopTimer() {
+  clearInterval(timer);
+}
+
+function updateStageButtonStates() {
+  // 버튼 상태 업데이트
+  document.querySelectorAll('.stage-buttons button').forEach(btn => {
+    btn.classList.remove('active', 'inactive', 'cleared');
+    const btnNum = parseInt(btn.textContent);
+    if (btnNum === currentStage) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.add('inactive');
+    }
+    if (clearedStages.has(btnNum)) {
+      btn.classList.add('cleared');
+    }
+  });
+}
+
+function updateButtonState() {
+  const canGo = canMoveForward();
+  const canTurnAndGo = canTurnAndMove();
+
+  btnForward.disabled = !canGo;
+  btnTurn.disabled = !canTurnAndGo;
+
+  if (!canGo && !canTurnAndGo && !(uy === goal[0] && ux === goal[1])) {
+    msgEl.textContent = '🔴 실패했습니다.';
+    stopTimer();
+  } else {
+    if (!(uy === goal[0] && ux === goal[1])) {
+      msgEl.textContent = '';
+    }
+  }
+}
+
+function canTurnAndMove() {
+  const newDir = (dirIdx + 1) % 4;
+  const [dy, dx] = delta[dirs[newDir]];
+  const ny = uy + dy, nx = ux + dx;
+  if (ny < 0 || ny >= height || nx < 0 || nx >= width) return false;
+  return cellDirs[uy][ux].includes(dirs[newDir]) && cellDirs[ny][nx].includes(opp[dirs[newDir]]);
+}
+
+function loadStage(stageNum) {
+  btnForward.disabled = false;
+  btnTurn.disabled = true;
+  currentStage = stageNum;
+  msgEl.textContent = '';
+  mapEl.innerHTML = '';
+  moveStack = [];
+  hasStarted = false;
+  stopTimer();
+  timerEl.textContent = `경과 시간: 0초`;
+
+  updateStageButtonStates();
+
+  const stage = configStages[stageNum];
+  width = stage.width;
+  height = stage.height;
+  start = stage.start;
+  goal = stage.goal;
+  configGrid = stage.grid;
+
+  // 맵 CSS 그리드 사이즈 조정
+  mapEl.style.gridTemplateColumns = `repeat(${width}, 50px)`;
+  mapEl.style.gridTemplateRows = `repeat(${height}, 50px)`;
+
+  cellDirs = Array.from({ length: height }, () => Array(width).fill([]));
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const cfg = (configGrid[y] && configGrid[y][x]) || '';
+      cellDirs[y][x] = cfg ? cfg.split('').map(ch => {
+        if (ch === 'U') return 'up';
+        if (ch === 'D') return 'down';
+        if (ch === 'L') return 'left';
+        if (ch === 'R') return 'right';
+      }) : [];
+    }
+  }
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      cellDirs[y][x].forEach(d => {
+        const dirDiv = document.createElement('div');
+        dirDiv.className = `dir ${d}`;
+        cell.appendChild(dirDiv);
+      });
+
+      if (y === start[0] && x === start[1]) {
+        const lbl = document.createElement('div');
+        lbl.className = 'label';
+        lbl.textContent = '출발';
+        cell.appendChild(lbl);
+      }
+      if (y === goal[0] && x === goal[1]) {
+        const lbl = document.createElement('div');
+        lbl.className = 'label';
+        lbl.textContent = '도착';
+        cell.appendChild(lbl);
+      }
+
+      mapEl.appendChild(cell);
+    }
+  }
+
+  if (unit && unit.parentNode) unit.parentNode.removeChild(unit);
+  unit = document.createElement('div');
+  unit.className = 'unit';
+  tri = document.createElement('div');
+  tri.className = 'triangle';
+  unit.appendChild(tri);
+  uy = start[0];
+  ux = start[1];
+  dirIdx = 0;
+  mapEl.children[uy * width + ux].appendChild(unit);
+  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
+
+  stageMsg.textContent = `${stageNum}단계 게임중입니다`;
+
+  updateButtonState();
+}
+
+function canMoveForward() {
+  const d = dirs[dirIdx];
+  const [dy, dx] = delta[d];
+  const ny = uy + dy, nx = ux + dx;
+  if (ny < 0 || ny >= height || nx < 0 || nx >= width) return false;
+  return cellDirs[uy][ux].includes(d) && cellDirs[ny][nx].includes(opp[d]);
+}
+
+function moveForward() {
+  if (!canMoveForward()) return;
+
+  if (!hasStarted) {
+    startTimer();
+    hasStarted = true;
+  }
+
+  const d = dirs[dirIdx];
+  const [dy, dx] = delta[d];
+  const ny = uy + dy, nx = ux + dx;
+
+  moveStack.push([uy, ux, dirIdx]);
+  mapEl.children[uy * width + ux].removeChild(unit);
+  uy = ny;
+  ux = nx;
+  mapEl.children[uy * width + ux].appendChild(unit);
+
+  if (uy === goal[0] && ux === goal[1]) {
+    msgEl.textContent = '🟢 성공! 도착했습니다!';
+    stopTimer();
+    btnForward.disabled = true;
+    btnTurn.disabled = true;
+    // 성공한 단계 기록 및 버튼 색상 갱신
+    clearedStages.add(currentStage);
+    updateStageButtonStates();
+  } else {
+    updateButtonState();
+  }
+}
+
+function rotateRight() {
+  if (!canTurnAndMove()) return;
+
+  if (!hasStarted) {
+    startTimer();
+    hasStarted = true;
+  }
+
+  // 현재 상태 저장
+  moveStack.push([uy, ux, dirIdx]); // 회전 전 상태 저장
+
+  dirIdx = (dirIdx + 1) % 4;
+  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
+
+  // 전진 가능한 경우에만 자동 이동
+  if (canMoveForward()) {
+    moveForward(); // moveForward도 스택에 push함
+  } else {
+    updateButtonState(); // 회전만 하고 이동 안 되는 경우
+  }
+}
+
+function undoMove() {
+  if (moveStack.length === 0) return;
+
+  const [py2, px2, pd2] = moveStack.pop(); // 마지막 moveForward 또는 rotateRight 이전 상태
+  if (mapEl.children[uy * width + ux].contains(unit))
+    mapEl.children[uy * width + ux].removeChild(unit);
+
+  uy = py2;
+  ux = px2;
+  dirIdx = pd2;
+
+  mapEl.children[uy * width + ux].appendChild(unit);
+  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
+
+  updateButtonState();
+}
+
+function restartStage() {
+  loadStage(currentStage);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp') moveForward();
+  if (e.key === 'ArrowRight') rotateRight();
+  if (e.key === 'R') restartStage();
+  if (e.key === 'r') restartStage();
+});
+
+loadStage(1);
+</script>
+
+</body>
+</html>

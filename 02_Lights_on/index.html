@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lights on</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+    }
+
+    .circle-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+    }
+
+    .circle {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background-color: #3498db;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      /*마우스 드래그 금지*/
+      user-select: none
+    }
+
+    .circle.active {
+      background-color: #e74c3c;
+    }
+
+    .result {
+        width: 80%;
+        height: 40%;
+        margin: 10px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;        
+        border-radius: 10px;
+        }
+  </style>
+</head>
+<body>
+  
+  <font size=6px>Lights on</font>
+  <br>
+  <button onclick="main()" style="font-size:20px"> 시작 </button>
+  <hr style="width:98%; border-color:#9a9a9a;">
+  <div class="circle-container" id="circle-container"></div><br><br><br>
+  <div id="result" style="font-size:30px">
+    1. 게임의 목표는 모든 버튼을 켜는 것입니다.<br>
+    2. 버튼은 누르면 해당 버튼의 상태가 바뀌고, 인접한 두 버튼의 상태도 바뀝니다.
+  </div>
+  <script>
+    // 마우스 오른쪽 버튼 클릭 금지
+    document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    });
+
+    const container = document.getElementById("circle-container");
+    const numCircles = 7; // 원 개수
+    const radius = 130;   // 원형의 반지름
+    const startAngle = -Math.PI / 2; // 12시 방향
+
+    // 원 생성
+    for (let i = 0; i < numCircles; i++) {
+      const angle = startAngle + (i / numCircles) * 2 * Math.PI; // 각도 계산
+      const x = Math.cos(angle) * radius; // x 좌표
+      const y = Math.sin(angle) * radius; // y 좌표
+
+      const circle = document.createElement("div");
+      circle.className = "circle";
+      circle.style.transform = `translate(${x + 120}px, ${y + 140}px)`; // 위치 조정
+      circle.textContent = i + 1; // 번호 표시
+      circle.dataset.index = i; // 인덱스 저장
+      container.appendChild(circle);
+    }
+
+    // 클릭 이벤트 추가
+    container.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("circle")) return;
+
+      const circles = document.querySelectorAll(".circle");
+      const index = parseInt(e.target.dataset.index, 10);
+
+      // 클릭된 원과 인접한 2개의 색상 상태를 토글
+      const toggleClass = (circleIndex) => {
+        circles[circleIndex].classList.toggle("active");
+      };
+
+      const prevIndex = (index - 1 + numCircles) % numCircles; // 이전 원
+      const nextIndex = (index + 1) % numCircles; // 다음 원
+
+      toggleClass(index); // 클릭된 원
+      toggleClass(prevIndex); // 이전 원
+      toggleClass(nextIndex); // 다음 원
+
+      // 모든 원이 빨간색인지 확인
+      checkSuccess(circles);
+    });
+
+    // 성공 여부 확인
+    function checkSuccess(circles) {
+      const allRed = Array.from(circles).every(circle =>
+        circle.classList.contains("active")
+      );
+
+      if (allRed) {
+        // alert("성공했습니다! 모든 원이 빨간색입니다.");
+        let re = document.getElementById("result");
+        re.style.color="green";
+        re.textContent ="축하합니다. \n 성공하였습니다."
+      } else {
+        let re = document.getElementById("result");
+        re.innerHTML ="1. 게임의 목표는 모든 버튼을 켜는 것입니다.<br>2. 버튼은 누르면 해당 버튼의 상태가 바뀌고, 인접한 두 버튼의 상태도 바뀝니다."
+      }
+    }
+
+    function main() {
+      location.reload(); // 페이지를 새로고침
+    }
+  </script>
+  
+<!-- 2024-12-03 완성함. -->
+</body>
+</html>

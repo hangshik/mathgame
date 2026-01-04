@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>거울퍼즐</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f0f0f0;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      font-family: sans-serif;
+    }
+    .stage-buttons {
+      margin-bottom: 20px;
+    }
+    .stage-buttons button {
+      margin: 4px;
+      width: 68px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid #888;
+      background: white;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .stage-buttons button:hover {
+      background: #ddd;
+    }
+    .stage-buttons button.selected {
+      background: #007BFF;
+      color: white;
+      border: 1px solid #007BFF;
+    }
+    .stage-buttons button.completed {
+      background: #28a745;
+      color: white;
+      border: 1px solid #28a745;
+    }
+    .grid {
+      display: grid;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+    .cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      font-size: 20px;
+    }
+    .bordered {
+      border: 1px solid #ccc;
+    }
+    .button-cell {
+      border: none;
+      background: none;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .shape {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .circle {
+      border: 3px solid green;
+      border-radius: 50%;
+      background: transparent;
+      width: 30px;
+      height: 30px;
+      margin: auto;
+    }
+    .slash::before, .backslash::before {
+      content: "";
+      position: absolute;
+      width: 3px;
+      height: 141%;
+      background: red;
+      top: 50%;
+      left: 50%;
+      transform-origin: center;
+    }
+    .slash::before {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+    .backslash::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .result {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px;
+    }
+    .buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .buttons button {
+      flex: 1 1 0;
+      width: 120px;
+      height: 50px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 1px solid #888;
+      background: white;
+      border-radius: 4px;
+      transition: all 0.2s;
+      margin: 0;
+    }
+    .buttons button:hover {
+      background: #ddd;
+    }
+    button:focus {
+     outline: none;
+    }
+    /* 다음단계 버튼 상태 */
+    #nextBtn:disabled {
+      background: #ccc;
+      color: #666;
+      border: 1px solid #aaa;
+      cursor: not-allowed;
+    }
+    #nextBtn.enabled {
+      background: #007BFF;
+      color: white;
+      border: 1px solid #007BFF;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage-buttons" id="stageButtons"></div>
+  <div class="grid" id="grid"></div>
+  <div class="buttons">
+    <button id="resetBtn">처음으로</button>
+    <button id="checkBtn">정답확인</button>
+    <button id="nextBtn" disabled>다음단계</button>
+  </div>
+
+  <div id="result" class="result"></div>
+  <font>
+    ◈ 키보드<br>
+    처음으로: R<br>
+    정답확인: Space<br>
+    다음문제: Enter
+  </font>
+  <a href="example.html" style="
+    width: 250px;
+    padding: 20px;
+    border: 1px solid #333;
+    border-radius: 12px;
+    background-color: #ffffff;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 20px;
+    margin: 50px auto;
+    text-decoration: none;
+    color: #000;
+  ">
+    문제 설명
+  </a>
+  
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    const stageButtons = document.getElementById('stageButtons');
+    const grid = document.getElementById('grid');
+    const result = document.getElementById('result');
+    const resetBtn = document.getElementById('resetBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let buttons = [];
+    let currentData = [];
+    let gridSize = 5;
+    let innerSize = 3;
+    let currentStage = 1;
+    const completedStages = new Set();
+
+    const dataSets = [
+      [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
+      [[,,4,,],[4,0,0,1,],[4,0,0,2,],[,1,2,0,],[,,,1,]],
+      [[,4,1,,],[,0,2,1,],[,0,0,0,],[,1,0,0,],[,,,4,]],
+      [[,1,1,1,],[0,1,0,2,2],[,2,2,0,2],[0,1,1,0,2],[,,,,]],
+      [[,,,5,],[,1,1,0,],[0,2,0,0,],[,1,0,2,],[,,2,,]],
+      [[,,2,,],[,1,0,2,],[,1,1,0,],[,0,1,1,1],[,,1,0,]],
+      [[,,,3,],[,2,1,0,],[4,0,2,0,2],[,1,0,0,4],[,,,,]],
+      [[,,,,],[,0,0,1,],[1,2,0,0,],[,0,0,0,],[,3,3,4,]],
+      [[,,,,],[4,0,0,1,],[,1,0,2,],[,0,0,1,],[,1,3,2,]],
+      [[,,,,],[,2,0,1,],[,0,0,0,],[,0,1,2,],[,6,1,,]],
+      [[,,,,],[,1,0,2,1],[,0,0,0,],[1,0,1,1,1],[,2,1,2,]],
+      [[,,,,],[,0,0,1,],[,2,0,0,2],[,2,0,0,],[,2,3,4,]],
+      [[,,,,,],[7,0,0,0,1,],[7,0,0,1,0,],[7,0,0,0,2,],[,1,0,2,0,],[,,,,1,]],
+      [[,0,1,,3,],[2,1,1,1,0,],[,0,1,1,0,],[2,0,2,2,0,],[,2,2,0,1,],[,,,2,,]],
+      [[,2,,,,],[,0,0,0,1,],[,1,2,0,2,],[0,2,2,0,1,0],[,0,1,2,0,],[,5,1,1,5,]],
+      [[,1,,5,,],[,1,1,0,2,],[3,0,1,0,2,],[,2,0,2,0,],[0,1,0,0,1,],[,,,2,,]],
+      [[,,,,,],[,2,1,2,1,],[,1,0,0,0,],[,2,0,0,0,10],[,1,0,0,2,],[,,6,,,]],
+      [[,5,,,7,],[5,0,0,1,0,],[2,0,2,0,0,],[,1,0,0,0,],[1,0,1,0,2,],[,,,,,]],
+      [[,,,,,],[0,2,1,1,0,],[,0,2,2,0,],[,0,1,1,0,],[,0,2,2,2,],[,4,0,3,,]],
+      [[,,,,,],[6,0,0,0,1,],[7,0,0,1,0,],[,0,2,0,0,],[,1,0,2,0,],[,,3,,,]],
+      [[,,,,,],[,2,1,2,1,],[6,0,0,0,2,],[10,0,0,0,1,],[,1,0,0,2,],[,,,,,]],
+      [[,,,,,],[,0,0,1,0,],[,2,0,0,0,],[,1,0,0,1,2],[,2,0,0,0,],[,3,4,5,6,]],
+      [[,,,,,,],[2,0,1,1,0,2,],[,0,2,2,0,0,4],[,1,1,1,2,2,0],[,0,0,0,1,1,],[1,2,0,0,0,1,1],[,,4,2,4,,]],
+      [[,,1,,3,,],[,0,2,0,0,2,],[,1,0,0,0,1,0],[,0,1,0,1,0,],[2,0,2,0,0,0,],[,0,0,0,0,0,],[,3,4,5,6,7,]],
+      [[,,,,2,,],[,2,1,0,0,1,],[3,2,1,0,1,0,],[0,2,1,1,2,1,3],[6,0,2,1,2,1,0],[,1,0,0,0,0,6],[,,,,,,]],
+      [[,1,,22,,1,],[,0,2,0,1,0,],[,2,0,0,0,1,],[,0,0,0,0,2,],[,1,0,0,0,1,],[,0,1,2,1,2,],[,1,,,,,]]
+    ];
+    for (let i = 1; i <= 26; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = `${i}단계`;
+      btn.dataset.stage = i;
+      btn.addEventListener('click', () => loadStage(i));
+      stageButtons.appendChild(btn);
+
+      if (i % 5 === 0 && i !== 26) {
+        stageButtons.appendChild(document.createElement('br'));
+      }
+    }
+
+    function loadStage(stage) {
+      currentStage = stage;
+      gridSize = stage <= 12 ? 5 : stage <= 22 ? 6 : 7;
+      innerSize = stage <= 12 ? 3 : stage <= 22 ? 4 : 5;
+      currentData = dataSets[stage - 1];
+      renderGrid();
+      updateStageButtons();
+      result.textContent = '';
+      disableNextBtn(); // 새 스테이지 진입 시 다음단계 비활성화
+    }
+
+    function renderGrid() {
+      grid.innerHTML = '';
+      buttons = [];
+      grid.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
+      grid.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
+
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+          const isCenter = row >= 1 && row <= innerSize && col >= 1 && col <= innerSize;
+          const value = currentData[row][col];
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+
+          if (isCenter) {
+            cell.classList.add('bordered');
+            const btn = document.createElement('button');
+            btn.className = 'button-cell';
+            btn.dataset.state = 0;
+            const shape = document.createElement('div');
+            shape.className = 'shape circle';
+            btn.appendChild(shape);
+
+            btn.addEventListener('click', () => {
+              let current = parseInt(btn.dataset.state);
+              if (current === 0) current = 2;
+              else if (current === 2) current = 1;
+              else current = 0;
+              btn.dataset.state = current;
+              shape.className = `shape ${getShapeClass(current)}`;
+            });
+
+            cell.appendChild(btn);
+            buttons.push({ row, col, btn, shape });
+          } else {
+            cell.textContent = value;
+          }
+
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function getShapeClass(state) {
+      return state === 0 ? 'circle' : state === 1 ? 'slash' : 'backslash';
+    }
+
+    resetBtn.addEventListener('click', () => {
+      buttons.forEach(({ btn, shape }) => {
+        btn.dataset.state = 0;
+        shape.className = 'shape circle';
+      });
+      result.textContent = '';
+      disableNextBtn();
+    });
+
+    checkBtn.addEventListener('click', () => {
+      let correct = 0;
+      buttons.forEach(({ row, col, btn }) => {
+        const answer = currentData[row][col];
+        const state = parseInt(btn.dataset.state);
+        if (answer === state) correct++;
+      });
+      const total = buttons.length;
+      if (correct === total) {
+        result.textContent = '정답입니다!';
+        result.style.color = 'green';
+        completedStages.add(currentStage);
+        enableNextBtn(); // ✅ 정답 시 다음단계 활성화
+      } else {
+        result.textContent = `틀렸습니다! 현재 ${correct}/${total} 개 맞았습니다.`;
+        result.style.color = 'red';
+        disableNextBtn();
+      }
+      updateStageButtons();
+    });
+
+    function updateStageButtons() {
+      document.querySelectorAll('.stage-buttons button').forEach(btn => {
+        btn.classList.remove('selected', 'completed');
+        if (parseInt(btn.dataset.stage) === currentStage) {
+          btn.classList.add('selected');
+        }
+        if (completedStages.has(parseInt(btn.dataset.stage))) {
+          btn.classList.add('completed');
+        }
+      });
+    }
+
+    // ✅ 다음단계 버튼 제어
+    function enableNextBtn() {
+      nextBtn.disabled = false;
+      nextBtn.classList.add('enabled');
+    }
+    function disableNextBtn() {
+      nextBtn.disabled = true;
+      nextBtn.classList.remove('enabled');
+    }
+
+    // ✅ 다음단계 버튼 클릭 시 (이미 푼 단계 건너뛰기)
+    nextBtn.addEventListener('click', () => {
+      if (nextBtn.disabled) return;
+
+      let nextStage = currentStage + 1;
+      while (completedStages.has(nextStage) && nextStage <= dataSets.length) {
+        nextStage++;
+      }
+
+      if (nextStage <= dataSets.length) {
+        loadStage(nextStage);
+      } else {
+        result.textContent = '모든 단계를 완료했습니다!';
+        result.style.color = 'blue';
+      }
+    });
+
+    // 키보드 이벤트
+    document.addEventListener('keydown', function(e) {
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+        e.preventDefault();
+        checkBtn.click();
+      } else if (e.key === 'r' || e.key === 'R') {
+        resetBtn.click();
+      } else if (e.key === 'Enter') {
+        if (!nextBtn.disabled) nextBtn.click();
+      }
+    });
+
+    loadStage(1);
+  </script>
+</body>
+</html>

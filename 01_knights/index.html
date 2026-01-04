@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>기사의 여행</title>
+  <style>
+    body{
+        text-size-adjust: 50px;
+    }
+
+    div {
+        display: flex;
+        justify-content: center;
+        align-items: center;    
+        margin: auto;
+    }
+
+    .container{
+        display: grid;
+        gap:10px;
+    }
+
+    .row{
+        float: left;
+    }
+
+    .column{
+        width: 60px;
+        height: 60px;
+        background-color: #DDDDDD;
+        margin: -3px 2px -3px 2px;
+        float: left;
+        border-radius: 5px;
+        padding: 5px;
+        
+        user-select: none;
+    }
+
+    .game-btn {
+    width: 80px;
+    height: 50px;       /* 높이 고정 */
+    font-size: 20px;
+    line-height: 34px;  /* 세로 정렬 맞추기 */
+    padding: 0;         /* 패딩을 없애고 line-height로 맞춤 */
+    margin: 2px;
+    border: none;
+    border-radius: 8px;
+    background-color: lightgray;
+    color: black;
+    cursor: pointer;
+}
+
+
+        .game-btn.active {
+        background-color: #007BFF;
+        color: white;
+    }
+
+  </style>
+</head>
+<body>
+  <center>
+    <font size=6px>기사의 여행</font>
+    <br>
+    
+      <input type="number" id="txt1" value="5" style="font-size:20px;width:50px;height:40px;text-align:center;border-radius: 5px;">
+      <font size=5px>X </font>
+      <input type="number" id="txt2" value="5" style="font-size:20px;width:50px;height:40px;text-align:center;border-radius: 5px;">
+      <button id="btnStart" class="game-btn" onclick="main(txt1.value, txt2.value, 'btnStart')"> 시작 </button>&nbsp&nbsp&nbsp&nbsp&nbsp
+      <button id="btn4x4" class="game-btn" onclick="main4x4('btn4x4')"> 4x4 </button>
+    
+  </center>
+  <hr/><br>
+  <div id="area" style="font-size:30px"></div><br>
+  <div id="result" style="font-size:30px">Turn : 0</div>
+  <br>
+  <center>
+    <font size="5px">
+      <b>[기사의 여행의 규칙]</b><br>
+      1. 출발점에서 체스의 나이트가 움직이는 경로로 움직인다.<br>
+      2. 한 번 지나간 지점을 다시 갈 수 없다.<br>
+      3. 게임 판의 모든 지점을 지나가면 성공이다.
+    </font>
+  </center>
+
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    function getDisplayInfo() {
+      return {
+        width: window.innerWidth || document.body.clientWidth,
+        height: window.innerHeight || document.body.clientHeight
+      };
+    }
+
+    function bg(bl1,bl2) {
+      success_ck=false;
+      for(i=0;i<b1*b2;i++){
+        // 4x4 모서리 → 항상 흰색 유지
+        if (b1===4 && b2===4 && (i===0 || i===3 || i===12 || i===15)) {
+          document.getElementById(i).style.backgroundColor="white";
+          continue;
+        }
+
+        if (list[i]===1){
+          document.getElementById(i).style.backgroundColor="skyblue";
+        } else {
+          if((((parseInt(i/b2)-bl2)**2 + (i%b2-bl1)**2)==5)){
+            document.getElementById(i).style.backgroundColor="green";
+            success_ck=true;
+          } else {
+            document.getElementById(i).style.backgroundColor="#dddddd";
+          }
+        }
+      }
+      document.getElementById(bl1+bl2*b2).style.backgroundColor="red";
+    }
+
+    let count = 1;
+
+    function success(){
+      let re = document.getElementById("result");
+      const average = list.reduce((a,c)=>a+c)/list.length;
+      if(average==1){
+        re.style.color="green";
+        re.textContent ="축하합니다. 성공하였습니다.";
+      } else {
+        if(success_ck){
+          re.style.color="black";
+          re.textContent ="게임중입니다. 녹색을 선택하여 이동하십시오.";
+        } else {
+          re.style.color="red";
+          re.textContent ="더 이상 갈 곳이 없습니다. 빨간색을 선택하여 되돌아 가거나, 게임을 다시 시작하십시오.";
+        }
+      }
+    }
+
+    function clickbt(lo1, lo2) {
+      if(lo1==last_x && lo2==last_y){
+        if(list_number[lo1+lo2*b2]=="1"){
+          window.location.reload();
+        }
+        list[lo1+lo2*b2]=(list[lo1+lo2*b2]+1)%2;
+        list_number[lo1+lo2*b2]="0";
+        document.getElementById(lo1+lo2*b2).innerText = "";
+
+        let last_number1=list_number.indexOf(number-2);
+        lo2=parseInt(last_number1/b2);
+        lo1=last_number1%b2;
+
+        let last_number2=list_number.indexOf(number-3);
+        last_y=parseInt(last_number2/b2);
+        last_x=last_number2%b2;
+        number-=2;
+
+        const element = document.getElementById(lo1+lo2*b2);
+        element.innerText = number;
+        list_number[lo1+lo2*b2] = number;
+        number++;
+        bg(lo1,lo2);
+        last_x=lo1;
+        last_y=lo2;
+      }
+
+      if((last_x+last_y==-2 || (((last_x-lo1)**2 + (last_y-lo2)**2)==5))&& list[lo1+lo2*b2]==0 ){
+        list[lo1+lo2*b2]=(list[lo1+lo2*b2]+1)%2;
+        const element = document.getElementById(lo1+lo2*b2);
+        element.innerText = number;
+        list_number[lo1+lo2*b2] = number;
+        number++;
+        bg(lo1,lo2);
+        last_x=lo1;
+        last_y=lo2;
+      }
+      success();
+    }
+
+    function highlightButton(activeId){
+        // 모든 버튼에서 active 제거
+        document.querySelectorAll('.game-btn').forEach(btn => btn.classList.remove('active'));
+        // 선택된 버튼에 active 추가
+        document.getElementById(activeId).classList.add('active');
+    }
+
+
+    function main(a1, a2, btnId) {
+      highlightButton(btnId);
+      list=[];
+      list_number=[];
+      count=1; number = 1; last_x=-1; last_y=-1;
+      let tag="<div class='container'>";
+      b1=parseInt(a1); b2=parseInt(a2);
+      var size=getDisplayInfo();
+      s=Math.min((size.width-15*b2)/b2,60);
+      t=Math.min(Math.max((30-0.3*Math.max(b1,b2)),10),30);
+      for (j=0;j<b1;j++){ 
+        tag+="<div class='row'>";
+        for (i=0;i<b2;i++){
+          list.push(0);
+          tag+="<div class='column' id='"+(i+j*b2)+"' style=font-size:"+t+"px;width:"+s+"px;height:"+s+"px; onclick='clickbt("+i+","+j+")'></div>";
+        }
+        tag+="</div>";
+      }
+      tag+="</div>";
+      area.innerHTML=tag;
+      document.getElementById("result").style.color="black";
+      document.getElementById("result").textContent="네모칸을 선택하여 게임을 시작하십시오.";
+    }
+
+    function main4x4(btnId) {
+      highlightButton(btnId);
+      list=[1,0,0,1, 0,0,0,0, 0,0,0,0, 1,0,0,1];
+      list_number=[]; count=1; number=1; last_x=-1; last_y=-1;
+      let tag="<div class='container'>";
+      b1=4; b2=4;
+      var size=getDisplayInfo();
+      s=Math.min((size.width-15*b2)/b2,60);
+      for (j=0;j<b1;j++){ 
+        tag+="<div class='row'>";
+        for (i=0;i<b2;i++){
+          tag+="<div class='column' id='"+(i+j*b2)+"' style=width:"+s+"px;height:"+s+"px; onclick='clickbt("+i+","+j+")'></div>";
+        }
+        tag+="</div>";
+      }
+      tag+="</div>";
+      area.innerHTML=tag;
+      document.getElementById(0).style.backgroundColor="white";
+      document.getElementById(3).style.backgroundColor="white";
+      document.getElementById(12).style.backgroundColor="white";
+      document.getElementById(15).style.backgroundColor="white";
+      document.getElementById("result").style.color="black";
+      document.getElementById("result").textContent="네모칸을 선택하여 게임을 시작하십시오.";
+    }
+
+    onload=()=>{ main(txt1.value, txt2.value, 'btnStart'); }
+  </script>
+</body>
+</html>
