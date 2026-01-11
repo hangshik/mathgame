@@ -1,11 +1,11 @@
 
-https://www.puzzle-star-battle.com/
+<!-- https://www.puzzle-star-battle.com/
 
 https://puzzleresearchroom.tistory.com/entry/Star-Battle
 
-5x5 1,2번(문제와 정답)
-8x8 1번(문제와 정답)
-10x10 1번(문제만)
+
+https://starbattle.puzzlebaron.com/ -->
+
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -22,8 +22,9 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             --color-active: #007bff;
             --color-hint: #ffc107;
             --color-success: #28a745;
-            --color-bg-solved: #e8f5e9; /* 성공 시 배경색 (연한 녹색) */
-            --color-dot: #b0b8c0;       /* 회색 원 색상 */
+            --color-bg-solved: #e8f5e9;
+            --color-dot: #b0b8c0;
+            --color-hint-active: #e3f2fd; /* 힌트 강조색 (연한 파랑) */
             --bg-color: #f8f9fa;
         }
 
@@ -67,7 +68,7 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
 
         .level-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* 버튼 너비 약간 조정 */
             gap: 8px;
         }
 
@@ -98,7 +99,7 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             z-index: 2;
         }
         
-        /* 클리어 상태 (녹색 배경, 흰색 글씨) */
+        /* 클리어 상태 */
         .level-btn.cleared { background-color: #28a745; border-color: #218838; color: white; }
         .level-btn.cleared:hover { background-color: #218838; }
         
@@ -110,7 +111,7 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
         }
 
         .level-btn.cleared.active { 
-            background-color: #1e7e34; border-color: #1e7e34;
+            background-color: #28a745; border-color: #28a745;
             box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
         }
 
@@ -144,7 +145,6 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
 
         /* --- 보드 --- */
         .game-board {
-            /* 1. 초기에는 숨김 처리 */
             display: none; 
             grid-template-columns: repeat(var(--board-size), minmax(0, 1fr));
             grid-template-rows: repeat(var(--board-size), minmax(0, 1fr));
@@ -157,13 +157,13 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             aspect-ratio: 1;
             margin-bottom: 25px;
             transition: background-color 0.3s ease;
+            /* [추가] 자식 요소가 보드 너비를 기준으로 크기를 계산할 수 있게 설정 */
+            container-type: inline-size;
         }
 
-        /* 2. 성공 시 보드 전체 배경색 변경 (HTML 클래스 추가로 제어) */
         .game-board.solved-board .cell {
             background-color: var(--color-bg-solved);
         }
-        /* 성공 상태여도 hover 효과는 유지하되, 약간 어둡게 */
         .game-board.solved-board .cell:hover {
             background-color: #dcedc8;
         }
@@ -178,7 +178,8 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-size: clamp(16px, 5vw, 32px);
+            /* [수정] 보드 너비 / 칸 수 = 셀 크기. 그 값의 0.7배(70%)로 설정 */
+            font-size: calc((100cqw / var(--board-size)) * 0.7);
             cursor: pointer;
             box-sizing: border-box;
             background-color: #fff;
@@ -188,52 +189,116 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
         .thick-right { border-right: var(--border-thick); }
         .thick-bottom { border-bottom: var(--border-thick); }
 
-        .cell.star { color: #f39c12; text-shadow: 0 2px 0 rgba(0,0,0,0.1); }
-        
-        /* 3. 회색 원(Dot) 디자인 변경 */
-        .cell.cross {
-            /* 텍스트(×) 대신 CSS 도형 사용 */
-            color: transparent; 
+        .cell.star { 
+            color: #ffeb3b; /* 별 내부 색상 (밝은 노랑) */
+            
+            /* 외곽선 설정 (두께 1.5px, 검은색) */
+            -webkit-text-stroke: 1.5px black; 
+            
+            /* 입체감을 위한 가벼운 그림자 (선택 사항) */
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.15); 
         }
+        
+        /* (6) 회색 원 대신 빨간 X */
+        .cell.cross { color: transparent; }
+        .cell.cross::before,
         .cell.cross::after {
             content: '';
-            width: 30%;       /* 셀 크기에 비례 */
-            height: 30%;
-            background-color: var(--color-dot);
-            border-radius: 50%; /* 원형 */
-            display: block;
+            position: absolute;
+            width: 30%; /* [수정] 셀 너비의 50%로 변경 */
+            height: 3px; /* 필요시 두께도 조정 가능 (예: calc((100cqw/var(--board-size))*0.05)) */
+            background: #e53935; /* 빨간색 */
+            border-radius: 2px;
+        }
+        .cell.cross::before { transform: rotate(45deg); }
+        .cell.cross::after  { transform: rotate(-45deg); }
+
+
+        /* 힌트 하이라이트 (파란색) */
+        .cell.hint-active {
+            background-color: var(--color-hint-active) !important;
         }
 
-        /* 오류 표시는 가장 우선순위 높게 */
+        /* 오류 표시 (최우선) */
         .cell.error { background-color: var(--color-error) !important; }
 
-        /* --- 컨트롤 --- */
+        /* --- 컨트롤 (수정됨) --- */
         .controls {
             display: flex;
             gap: 12px;
             width: 100%;
             max-width: 500px;
         }
+        /* (1) 버튼 기본 파란색 스타일 적용 */
         .btn-ctrl {
+            /* 기존 공통 스타일 유지 */
             flex: 1;
             padding: 14px;
-            border: none;
             border-radius: 12px;
             cursor: pointer;
             font-weight: 700;
             font-size: 16px;
-            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 8px;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: all 0.1s;
+
+            /* [변경] 파란색 배경, 흰색 글씨 */
+            background-color: var(--color-active); /* #007bff */
+            color: white;
+            border: 1px solid #0056b3;
+            box-shadow: 0 4px 0 #004494; /* 짙은 파란 그림자 */
         }
-        .btn-ctrl:active { transform: translateY(2px); }
-        .btn-hint { background-color: var(--color-hint); color: #5a4a08; box-shadow: 0 4px 0 #d39e00; }
-        .btn-reset { background-color: #6c757d; box-shadow: 0 4px 0 #545b62; }
-        .btn-hint:active { box-shadow: 0 0 0 #d39e00; }
-        .btn-reset:active { box-shadow: 0 0 0 #545b62; }
+
+        /* 마우스 올렸을 때 */
+        .btn-ctrl:hover {
+            background-color: #0069d9;
+            border-color: #004085;
+        }
+
+        /* 버튼 눌렀을 때 */
+        .btn-ctrl:active { 
+            transform: translateY(4px);
+            box-shadow: none !important;
+        }
+
+        /* Color 버튼 활성화(체크) 상태 스타일 */
+        .btn-color.active {
+            background-color: #0056b3 !important; /* 더 진한 파란색 */
+            box-shadow: 0 2px 0 #003366 !important; /* 눌린 듯한 얕은 그림자 */
+            transform: translateY(2px);
+        }
+
+        /* (2) Color 버튼 내부 체크박스 아이콘 스타일 */
+        .check-box-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.7); /* 반투명 흰색 테두리 사각형 */
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        /* 활성화 시 체크박스 채우기 */
+        .btn-color.active .check-box-icon {
+            background-color: white;
+            border-color: white;
+        }
+
+        /* 활성화 시 체크 모양(✔) 표시 */
+        .btn-color.active .check-box-icon::after {
+            content: '✔';
+            position: absolute;
+            top: -4px;
+            left: 0;
+            font-size: 14px;
+            color: #0056b3; /* 파란색 체크 */
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
 
         /* --- 모달 --- */
         .modal-overlay {
@@ -273,7 +338,25 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             box-shadow: 0 4px 15px rgba(0,123,255,0.4);
             margin-top: 20px;
         }
-        .close-modal-btn:hover { background: #0056b3; }
+        .close-modal-btn:hover { background: #66a1e0; }
+
+                /* [추가] 메시지 표시 영역 스타일 */
+        .message-area {
+            display: none;       /* [변경] 기본적으로 화면에서 숨김 (공간 차지 X) */
+            margin-bottom: 12px; /* 메시지가 나타날 때만 아래 여백 적용됨 */
+            font-weight: 700;
+            font-size: 16px;
+            text-align: center;
+            color: #333;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        
+        /* 메시지 종류별 색상 */
+        .msg-success { color: #28a745; } /* 초록색 */
+        .msg-error { color: #e53935; }   /* 빨간색 */
+
 
     </style>
 </head>
@@ -306,14 +389,29 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
 
     <div id="board" class="game-board"></div>
 
+    <!-- [추가] 메시지가 표시될 영역 -->
+    <div id="messageArea" class="message-area"></div>
+
     <div class="controls">
-        <button class="btn-ctrl btn-hint" onclick="useHint()">
-            <span>💡</span> 힌트
+        <!-- (1) 별 확인 버튼: 힌트/초기화 왼쪽 -->
+        <button class="btn-ctrl btn-check" onclick="checkStars()">
+            별 확인
         </button>
+
+        <button class="btn-ctrl btn-hint" onclick="useHint()">
+            힌트
+        </button>
+
         <button class="btn-ctrl btn-reset" onclick="resetBoard()">
-            <span>🔄</span> 초기화
+            초기화
+        </button>
+
+        <!-- [변경] 내부에 check-box-icon 클래스를 가진 span 추가 -->
+        <button id="btnColor" class="btn-ctrl btn-color" aria-pressed="false" onclick="toggleColorMode()">
+            <span class="check-box-icon"></span> Color
         </button>
     </div>
+
 
     <br><div style="font-size: 18px;">
       <b>[규칙]</b><br>
@@ -343,6 +441,21 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
                     id: 2, size: 5, stars: 1,
                     solution: [0,0,0,1,0, 0,1,0,0,0, 0,0,0,0,1, 0,0,1,0,0, 1,0,0,0,0],
                     regions:  [0,0,0,1,2, 0,0,0,1,2, 3,3,3,3,2, 4,4,3,3,3, 4,4,4,4,4]
+                },
+                {
+                    id: 3, size: 5, stars: 1,
+                    solution: [0,1,0,0,0, 0,0,0,0,1, 0,0,1,0,0, 1,0,0,0,0, 0,0,0,1,0],
+                    regions:  [0,0,1,1,1, 2,2,2,2,1, 2,2,2,2,1, 3,2,2,4,4, 3,3,4,4,4]
+                },
+                {
+                    id: 4, size: 5, stars: 1,
+                    solution: [0,0,0,1,0, 1,0,0,0,0, 0,0,1,0,0, 0,0,0,0,1, 0,1,0,0,0],
+                    regions:  [0,0,1,1,1, 0,2,2,3,3, 2,2,2,3,3, 2,4,4,3,3, 2,4,4,4,4]
+                },
+                {
+                    id: 5, size: 5, stars: 1,
+                    solution: [0,0,1,0,0, 1,0,0,0,0, 0,0,0,0,1, 0,1,0,0,0, 0,0,0,1,0],
+                    regions:  [0,0,0,0,1, 2,2,0,0,1, 2,2,2,2,1, 2,3,3,3,4, 3,3,4,4,4]
                 }
             ],
             '8-1': [
@@ -354,22 +467,100 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
                     regions: [
                         0,0,0,0,0,0,0,0, 1,1,2,0,0,0,0,0, 1,1,2,2,0,0,3,0, 1,1,2,2,3,3,3,4, 1,1,2,2,5,3,5,4, 1,1,2,5,5,5,5,4, 1,1,2,6,6,6,7,4, 1,1,6,6,6,7,7,7
                     ]
+                },
+                {
+                    id: 2, size: 8, stars: 1,
+                    solution: [
+                        0,0,0,0,0,0,0,1, 0,0,0,1,0,0,0,0, 0,0,0,0,0,0,1,0, 0,1,0,0,0,0,0,0, 0,0,0,0,0,1,0,0, 0,0,1,0,0,0,0,0, 1,0,0,0,0,0,0,0, 0,0,0,0,1,0,0,0
+                    ],
+                    regions: [
+                        0,0,0,1,1,1,2,3, 0,0,0,1,1,1,2,3, 0,0,0,0,1,1,2,2, 0,0,0,0,4,4,5,2, 0,0,0,0,4,5,5,6, 7,0,4,4,4,4,6,6, 7,7,7,7,7,4,6,6, 7,7,7,7,6,6,6,6
+                    ]
+                },
+                {
+                    id: 3, size: 8, stars: 1,
+                    solution: [
+                        0,0,0,0,1,0,0,0, 0,0,0,0,0,0,1,0, 0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,1, 0,0,1,0,0,0,0,0, 0,0,0,0,0,1,0,0, 1,0,0,0,0,0,0,0, 0,0,0,1,0,0,0,0
+                    ],
+                    regions: [
+                        0,0,0,0,0,1,1,1, 2,2,0,3,3,3,3,1, 2,2,0,3,1,1,1,1, 4,2,2,3,3,1,1,1, 4,5,5,3,3,3,1,1, 4,4,5,5,3,6,6,1, 4,7,5,7,7,7,1,1, 7,7,7,7,1,1,1,1
+                    ]
+                },
+                {
+                    id: 4, size: 8, stars: 1,
+                    solution: [
+                        0,0,0,1,0,0,0,0, 0,0,0,0,0,1,0,0, 0,0,1,0,0,0,0,0, 1,0,0,0,0,0,0,0, 0,0,0,0,0,0,1,0, 0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,1, 0,0,0,0,1,0,0,0
+                    ],
+                    regions: [
+                        0,0,1,1,1,2,2,2, 0,0,3,2,2,2,4,2, 0,0,3,2,2,4,4,5, 0,0,0,6,6,4,5,5, 7,7,6,6,6,4,4,5, 7,6,6,5,5,5,5,5, 7,7,6,7,7,7,7,5, 7,7,7,7,7,7,7,7
+                    ]
+                },
+                {
+                    id: 5, size: 8, stars: 1,
+                    solution: [
+                        0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,1, 0,0,0,1,0,0,0,0, 0,0,0,0,0,0,1,0, 0,0,1,0,0,0,0,0, 0,0,0,0,0,1,0,0, 1,0,0,0,0,0,0,0, 0,0,0,0,1,0,0,0
+                    ],
+                    regions: [
+                        0,0,1,2,2,2,2,2, 0,1,1,2,3,3,2,4, 1,1,1,2,2,3,5,4, 1,1,3,3,3,3,5,5, 1,1,1,3,3,3,3,5, 1,1,3,3,6,3,3,5, 7,1,3,7,6,3,3,5, 7,7,7,7,6,6,6,5
+                    ]
                 }
             ],
             '10-2': [
                 {
                     id: 1, size: 10, stars: 2,
                     solution: [
-                        1,0,0,0,0,1,0,0,0,0, 0,0,1,0,0,0,0,1,0,0,
-                        0,0,0,0,1,0,0,0,0,1, 0,1,0,0,0,0,1,0,0,0,
-                        0,0,0,1,0,0,0,0,1,0, 1,0,0,0,0,1,0,0,0,0,
-                        0,0,1,0,0,0,0,1,0,0, 0,0,0,0,1,0,0,0,0,1,
-                        0,1,0,0,0,0,1,0,0,0, 0,0,0,1,0,0,0,0,1,0
+                        0,0,0,0,0,0,1,0,1,0, 1,0,0,0,1,0,0,0,0,0, 0,0,1,0,0,0,1,0,0,0, 0,0,0,0,1,0,0,0,0,1, 1,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,1,0, 0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,1,0,1, 0,0,0,1,0,1,0,0,0,0, 0,1,0,0,0,0,0,1,0,0
                     ],
                     regions: [
-                        0,0,0,1,1,1,1,1,1,2, 0,1,1,1,1,1,1,2,2,2, 0,3,3,3,1,1,4,4,2,2, 0,0,0,3,3,3,4,4,2,2, 5,5,5,6,7,3,4,4,8,2, 5,5,5,6,7,3,7,4,8,2, 5,5,5,6,7,7,7,4,8,8, 5,5,5,6,6,6,6,6,6,8, 5,5,9,9,9,9,9,8,8,8, 9,9,9,9,9,8,8,8,8,8
+                        0,0,0,1,1,2,2,2,2,2, 0,0,0,0,1,1,1,1,1,2, 0,3,3,4,4,4,1,1,1,1, 0,0,3,4,5,4,4,1,1,6, 0,0,3,4,5,4,4,1,6,6, 4,4,4,4,5,4,1,1,6,6, 4,7,4,8,5,4,4,4,9,6, 4,7,7,8,5,4,7,7,9,9, 4,4,7,8,5,5,7,9,9,9, 4,4,7,7,7,7,7,9,9,9
+                    ]
+                },
+                {
+                    id: 2, size: 10, stars: 2,
+                    solution: [
+                        1,0,0,0,1,0,0,0,0,0, 0,0,1,0,0,0,0,1,0,0, 0,0,0,0,1,0,0,0,0,1, 0,0,1,0,0,0,1,0,0,0, 1,0,0,0,0,0,0,0,0,1, 0,0,0,0,0,1,0,1,0,0, 0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,1,0,1,0, 0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,1,0
+                    ],
+                    regions: [
+                        0,0,0,0,1,2,2,2,2,2, 3,0,0,0,1,2,4,4,2,2, 3,0,0,0,1,2,4,2,2,2, 3,3,3,3,5,5,4,6,2,2, 3,7,7,5,5,5,4,6,6,2, 7,7,7,5,5,6,6,6,8,2, 7,7,7,5,5,5,5,8,8,8, 7,7,9,9,9,5,5,8,8,8, 7,7,9,9,9,9,5,8,8,8, 7,9,9,9,9,9,8,8,8,8
+                    ]
+                },
+                {
+                    id: 3, size: 10, stars: 2,
+                    solution: [
+                        0,0,0,1,0,0,1,0,0,0, 1,0,0,0,0,0,0,0,1,0, 0,0,1,0,1,0,0,0,0,0, 1,0,0,0,0,0,0,0,1,0, 0,0,0,0,1,0,1,0,0,0, 0,0,1,0,0,0,0,0,0,1, 0,0,0,0,0,1,0,1,0,0, 0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,0,1, 0,1,0,0,0,0,0,1,0,0
+                    ],
+                    regions: [
+                        0,0,0,0,0,0,1,1,1,1, 2,0,0,0,0,3,3,3,1,1, 2,0,0,0,3,3,3,4,4,1, 2,2,2,5,5,3,3,4,4,4, 2,2,5,5,3,3,4,4,4,6, 2,7,5,5,5,8,4,6,4,6, 2,7,5,5,5,8,6,6,6,6, 2,7,7,5,5,8,8,9,9,6, 2,7,7,7,5,8,8,8,9,9, 2,7,7,7,7,7,9,9,9,9
+                    ]
+                },
+                {
+                    id: 4, size: 10, stars: 2,
+                    solution: [
+                        0,0,0,1,0,0,0,0,0,1, 0,1,0,0,0,0,1,0,0,0, 0,0,0,1,0,0,0,0,1,0, 0,1,0,0,0,1,0,0,0,0, 0,0,0,0,0,0,0,1,0,1, 0,0,1,0,1,0,0,0,0,0, 1,0,0,0,0,0,0,0,1,0, 0,0,0,0,1,0,1,0,0,0, 1,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,1,0,1,0,0
+                    ],
+                    regions: [
+                        0,0,0,0,0,0,1,1,1,2, 0,0,0,0,0,3,1,1,2,2, 0,0,0,3,3,3,1,2,2,2, 0,4,0,3,3,1,1,2,2,5, 6,4,0,4,3,3,5,5,5,5, 6,4,4,4,3,7,8,8,5,5, 6,6,6,3,3,7,7,8,8,5, 6,6,7,7,7,7,8,8,8,8, 6,6,7,6,7,9,9,8,8,8, 6,6,6,6,6,9,9,9,8,8
+                    ]
+                },
+                {
+                    id: 5, size: 10, stars: 2,
+                    solution: [
+                        0,0,1,0,0,0,0,1,0,0, 0,0,0,0,1,0,0,0,0,1, 1,0,0,0,0,0,0,1,0,0, 0,0,0,0,0,1,0,0,0,1, 1,0,1,0,0,0,0,0,0,0, 0,0,0,0,1,0,1,0,0,0, 0,1,0,0,0,0,0,0,1,0, 0,0,0,1,0,1,0,0,0,0, 0,1,0,0,0,0,0,0,1,0, 0,0,0,1,0,0,1,0,0,0
+                    ],
+                    regions: [
+                        0,0,0,0,0,1,1,1,1,1, 0,0,2,2,3,3,3,1,1,1, 0,2,2,2,2,3,3,4,4,4, 2,2,2,5,2,3,3,3,3,4, 2,2,2,5,6,6,6,7,7,7, 8,8,5,5,6,6,6,6,6,7, 8,8,5,5,6,6,6,7,7,7, 8,8,5,5,5,5,6,6,7,7, 8,8,9,9,9,9,9,9,7,7, 9,9,9,9,9,9,9,9,7,7
                     ]
                 }
+                // ,
+                // {
+                //     id: 6, size: 10, stars: 2,
+                //     solution: [
+                //         1,0,0,0,0,1,0,0,0,0, 0,0,1,0,0,0,0,1,0,0, 0,0,0,0,1,0,0,0,0,1, 0,1,0,0,0,0,1,0,0,0, 0,0,0,1,0,0,0,0,1,0, 1,0,0,0,0,1,0,0,0,0, 0,0,1,0,0,0,0,1,0,0, 0,0,0,0,1,0,0,0,0,1, 0,1,0,0,0,0,1,0,0,0, 0,0,0,1,0,0,0,0,1,0
+                //     ],
+                //     regions: [
+                //         0,0,0,1,1,1,1,1,1,2, 0,1,1,1,1,1,1,2,2,2, 0,3,3,3,1,1,4,4,2,2, 0,0,0,3,3,3,4,4,2,2, 5,5,5,6,7,3,4,4,8,2, 5,5,5,6,7,3,7,4,8,2, 5,5,5,6,7,7,7,4,8,8, 5,5,5,6,6,6,6,6,6,8, 5,5,9,9,9,9,9,8,8,8, 9,9,9,9,9,8,8,8,8,8
+                //     ]
+                // }
             ]
         };
 
@@ -377,7 +568,20 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
         let gridState = [];
         let gameActive = false;
         const savedStates = {}; 
-        const records = {};     
+        const records = {};
+        const hintCounts = {}; // 레벨별 힌트 사용 횟수 저장
+        let lastHintIndex = -1; // 마지막으로 힌트가 적용된 셀 인덱스 (파란색 하이라이트용)
+
+        // (5) Color 모드 상태
+        let isColorMode = false;
+
+        // (5) 구역 색상 팔레트(필요하면 늘려도 됨)
+        const REGION_COLORS = [
+        '#FFE0E0', '#FFE8CC', '#FFF4CC', '#E8FFCC', '#CCFFE9',
+        '#CCF2FF', '#D9E7FF', '#E8D9FF', '#FFD9F2', '#E0E0E0',
+        '#D7F9F1', '#F9EED7', '#E5F1FF', '#E7FFE5', '#FFF1E5'
+        ];
+
         let startTime = 0;
         let timerInterval = null;
         let accumulatedTime = 0; 
@@ -401,6 +605,7 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
                 const btn = document.createElement('button');
                 btn.className = 'level-btn';
                 btn.id = `btn-${groupKey}-${level.id}`;
+                // 버튼 내부에 텍스트 span과 기록 span 배치
                 btn.innerHTML = `
                     <span>문제 ${level.id}</span>
                     <span class="btn-record" id="rec-${groupKey}-${level.id}"></span>
@@ -418,7 +623,8 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             
             savedStates[key] = {
                 grid: [...gridState],
-                totalTime: accumulatedTime + currentSessionTime
+                totalTime: accumulatedTime + currentSessionTime,
+                hintCount: hintCounts[key] || 0
             };
         }
 
@@ -427,8 +633,10 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
                 saveCurrentState();
             }
 
-            // 1. 문제 로드 시 보드 표시 (CSS display: grid)
             boardElement.style.display = 'grid';
+
+            // [추가] 레벨 변경 시 메시지 영역 지우기
+            showMessage("", "");
 
             currentLevelData = { ...levelData, groupKey: groupKey };
             const key = `${groupKey}-${levelData.id}`;
@@ -442,19 +650,26 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             successModal.style.display = 'none';
             stopTimer();
 
+            // 레벨 로드 시 이전 힌트 하이라이트는 초기화
+            lastHintIndex = -1;
+
             if (savedStates[key]) {
                 gridState = [...savedStates[key].grid];
                 accumulatedTime = savedStates[key].totalTime;
+                hintCounts[key] = savedStates[key].hintCount || 0;
             } else {
                 gridState = Array(levelData.size * levelData.size).fill(0);
                 accumulatedTime = 0;
+                hintCounts[key] = 0;
             }
 
-            // 성공 상태에 따라 보드 배경색 클래스 토글
+            // 버튼 텍스트(힌트 카운트) 업데이트
+            updateLevelBtnText(groupKey, levelData.id);
+
             if (alreadyCleared) {
                 gameActive = false; 
                 timerElement.innerText = formatTime(accumulatedTime);
-                boardElement.classList.add('solved-board'); // 2. 성공 시 연한 녹색
+                boardElement.classList.add('solved-board');
             } else {
                 gameActive = true; 
                 startTimer();
@@ -470,6 +685,21 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             if (activeBtn) activeBtn.classList.add('active');
         }
 
+        function updateLevelBtnText(groupKey, levelId) {
+            const key = `${groupKey}-${levelId}`;
+            const btn = document.getElementById(`btn-${key}`);
+            if (!btn) return;
+
+            const textSpan = btn.querySelector('span:first-child');
+            const count = hintCounts[key] || 0;
+
+            if (count > 0) {
+                textSpan.innerText = `문제 ${levelId}(${count})`;
+            } else {
+                textSpan.innerText = `문제 ${levelId}`;
+            }
+        }
+
         function resetBoard() {
             if (!currentLevelData) return;
             const key = `${currentLevelData.groupKey}-${currentLevelData.id}`;
@@ -478,9 +708,15 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             
             gridState.fill(0);
             accumulatedTime = 0;
-            gameActive = true; 
+            hintCounts[key] = 0; 
+            lastHintIndex = -1; 
             
-            // 초기화 시 성공 배경색 제거
+            updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
+
+            // [추가] 초기화 시 메시지 영역 지우기
+            showMessage("", ""); 
+
+            gameActive = true; 
             boardElement.classList.remove('solved-board');
             
             stopTimer();
@@ -488,41 +724,123 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             renderBoard();
         }
 
+
         function useHint() {
             if (!gameActive || !currentLevelData) return;
 
             const size = currentLevelData.size;
+            const key = `${currentLevelData.groupKey}-${currentLevelData.id}`;
+            
             const wrongStars = [];
-
             for (let i = 0; i < size * size; i++) {
                 if (gridState[i] === 1 && currentLevelData.solution[i] === 0) {
                     wrongStars.push(i);
                 }
             }
 
+            let pick = -1;
+            // 1. 오답 수정 힌트
             if (wrongStars.length > 0) {
-                const pick = wrongStars[Math.floor(Math.random() * wrongStars.length)];
-                gridState[pick] = 2;
-                renderBoard();
-                return;
+                pick = wrongStars[Math.floor(Math.random() * wrongStars.length)];
+                gridState[pick] = 2; // 회색 점으로 변경
+            } else {
+                // 2. 정답 채우기 힌트
+                const emptySpots = [];
+                for (let i = 0; i < size * size; i++) {
+                    if (currentLevelData.solution[i] === 1 && gridState[i] !== 1) {
+                        emptySpots.push(i);
+                    }
+                }
+
+                if (emptySpots.length === 0) {
+                    alert("모든 정답을 이미 찾았습니다.");
+                    return;
+                }
+                pick = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+                gridState[pick] = 1; // 별로 변경
             }
 
-            const emptySpots = [];
-            for (let i = 0; i < size * size; i++) {
-                if (currentLevelData.solution[i] === 1 && gridState[i] !== 1) {
-                    emptySpots.push(i);
+            // 힌트 적용 공통 로직
+            hintCounts[key] = (hintCounts[key] || 0) + 1;
+            updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
+            
+            lastHintIndex = pick; // 하이라이트할 셀 지정
+            renderBoard();
+        }
+
+        // [수정 후] checkStars 함수
+        function checkStars() {
+            if (!currentLevelData) return;
+
+            const size = currentLevelData.size;
+            const total = size * size;
+
+            let wrong = false;
+
+            for (let i = 0; i < total; i++) {
+                if (gridState[i] === 1 && currentLevelData.solution[i] !== 1) {
+                    wrong = true;
+                    break;
                 }
             }
 
-            if (emptySpots.length === 0) {
-                alert("모든 정답을 이미 찾았습니다.");
-                return;
+            if (wrong) {
+                showMessage("잘못된 별이 있습니다.", "error");
+            } else {
+                showMessage("모든 별이 정확합니다.", "success");
             }
 
-            const pick = emptySpots[Math.floor(Math.random() * emptySpots.length)];
-            gridState[pick] = 1;
+            // [변경됨] 좌클릭(click)과 우클릭(contextmenu) 모두 감지 등록
+            setTimeout(() => {
+                document.addEventListener('click', clearMessageOnce);
+                document.addEventListener('contextmenu', clearMessageOnce);
+            }, 0);
+        }
+
+        // [수정 후] clearMessageOnce 함수
+        function clearMessageOnce() {
+            showMessage("", ""); // 메시지 지우기
+            
+            // [변경됨] 등록했던 좌클릭, 우클릭 이벤트 리스너를 모두 제거
+            document.removeEventListener('click', clearMessageOnce);
+            document.removeEventListener('contextmenu', clearMessageOnce);
+        }
+
+
+        // [추가] 메시지 출력 헬퍼 함수
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('messageArea');
+            if (msgEl) {
+                // [추가됨] 텍스트가 없으면 숨기고(display: none), 있으면 보이게(display: block) 설정
+                if (text === "") {
+                    msgEl.style.display = 'none';
+                } else {
+                    msgEl.style.display = 'block';
+                }
+
+                msgEl.innerText = text;
+                msgEl.className = 'message-area'; 
+                
+                if (type === 'success') msgEl.classList.add('msg-success');
+                if (type === 'error') msgEl.classList.add('msg-error');
+            }
+        }
+
+
+        function toggleColorMode() {
+            isColorMode = !isColorMode;
+
+            const btn = document.getElementById('btnColor');
+            if (btn) {
+                btn.classList.toggle('active', isColorMode);
+                btn.setAttribute('aria-pressed', String(isColorMode));
+                // 체크 느낌으로 텍스트도 바꾸고 싶으면 아래 주석 해제
+                // btn.innerText = isColorMode ? "Color ✓" : "Color";
+            }
+
             renderBoard();
         }
+
 
         function renderBoard() {
             const size = currentLevelData.size;
@@ -537,14 +855,28 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
                 const cell = document.createElement('div');
                 cell.className = 'cell';
 
+                // (5) Color 모드면 구역별로 배경색 표시
+                if (isColorMode) {
+                    const rid = regions[i];
+                    const color = REGION_COLORS[rid % REGION_COLORS.length];
+                    cell.style.backgroundColor = color;
+                } else {
+                    cell.style.backgroundColor = '';
+                }
+
+
                 if (c < size - 1 && regions[i] !== regions[i + 1]) cell.classList.add('thick-right');
                 if (r < size - 1 && regions[i] !== regions[i + size]) cell.classList.add('thick-bottom');
+
+                // 힌트로 변경된 셀 파란색 배경 적용
+                if (i === lastHintIndex) {
+                    cell.classList.add('hint-active');
+                }
 
                 if (gridState[i] === 1) {
                     cell.innerText = '★';
                     cell.classList.add('star');
                 } else if (gridState[i] === 2) {
-                    // 3. 회색 원 (텍스트 없음, CSS로 처리)
                     cell.classList.add('cross');
                 }
 
@@ -565,6 +897,11 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
         }
 
         function handleInput(idx) {
+            // 사용자가 클릭 시 힌트 하이라이트 제거
+            if (lastHintIndex !== -1) {
+                lastHintIndex = -1;
+            }
+
             if (gridState[idx] === 0) gridState[idx] = 1;
             else if (gridState[idx] === 1) gridState[idx] = 2;
             else gridState[idx] = 0;
@@ -572,6 +909,11 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
         }
 
         function handleRightClick(idx) {
+            // 사용자가 클릭 시 힌트 하이라이트 제거
+            if (lastHintIndex !== -1) {
+                lastHintIndex = -1;
+            }
+
             if (gridState[idx] === 0) gridState[idx] = 2;
             else if (gridState[idx] === 2) gridState[idx] = 0;
             else if (gridState[idx] === 1) gridState[idx] = 2;
@@ -659,13 +1001,17 @@ https://puzzleresearchroom.tistory.com/entry/Star-Battle
             const key = `${currentLevelData.groupKey}-${currentLevelData.id}`;
             savedStates[key] = {
                 grid: [...gridState],
-                totalTime: accumulatedTime
+                totalTime: accumulatedTime,
+                hintCount: hintCounts[key] || 0
             };
             
             gameActive = false;
             
             // 성공 시 보드 배경색 변경
             boardElement.classList.add('solved-board');
+            // 성공 시 힌트 하이라이트 제거
+            lastHintIndex = -1;
+            renderBoard(); // 하이라이트 제거 반영을 위해 다시 렌더링
 
             if (!records[key]) records[key] = [];
             records[key].push(finalTimeStr);
