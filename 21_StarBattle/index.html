@@ -775,19 +775,29 @@ https://starbattle.puzzlebaron.com/ -->
             const size = currentLevelData.size;
             const total = size * size;
 
-            let wrong = false;
+            let hasWrongStar = false;
+            let hasWrongX = false;
 
             for (let i = 0; i < total; i++) {
+                // 1. 잘못된 별 확인: 유저 입력이 별(1)인데 정답이 아닌 경우
                 if (gridState[i] === 1 && currentLevelData.solution[i] !== 1) {
-                    wrong = true;
-                    break;
+                    hasWrongStar = true;
+                }
+                // 2. 잘못된 X 확인: 유저 입력이 X(2)인데 정답이 별(1)인 자리인 경우
+                if (gridState[i] === 2 && currentLevelData.solution[i] === 1) {
+                    hasWrongX = true;
                 }
             }
 
-            if (wrong) {
+            // 메시지 분기 처리
+            if (hasWrongStar && hasWrongX) {
+                showMessage("잘못된 별과 X가 있습니다.", "error");
+            } else if (hasWrongStar) {
                 showMessage("잘못된 별이 있습니다.", "error");
+            } else if (hasWrongX) {
+                showMessage("잘못된 X가 있습니다.", "error");
             } else {
-                showMessage("모든 별이 정확합니다.", "success");
+                showMessage("모든 확인된 표시가 정확합니다.", "success");
             }
 
             // [변경됨] 좌클릭(click)과 우클릭(contextmenu) 모두 감지 등록
