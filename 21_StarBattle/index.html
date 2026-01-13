@@ -168,23 +168,25 @@ https://starbattle.puzzlebaron.com/ -->
             background-color: #dcedc8;
         }
 
-        .cell {
-            position: relative;
-            border-right: var(--border-thin);
-            border-bottom: var(--border-thin);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            /* [수정] 보드 너비 / 칸 수 = 셀 크기. 그 값의 0.7배(70%)로 설정 */
-            font-size: calc((100cqw / var(--board-size)) * 0.7);
-            cursor: pointer;
-            box-sizing: border-box;
-            background-color: #fff;
-            transition: background-color 0.1s;
-        }
+.cell {
+    position: relative;
+    border-right: var(--border-thin);
+    border-bottom: var(--border-thin);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-size: calc((100cqw / var(--board-size)) * 0.7);
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color: #fff;
+    transition: background-color 0.1s;
+    
+    /* [수정 2번 적용] 별이 생길 때 셀 크기가 변하지 않도록 줄 높이 고정 */
+    line-height: 1; 
+}
 
         .thick-right { border-right: var(--border-thick); }
         .thick-bottom { border-bottom: var(--border-thick); }
@@ -956,18 +958,23 @@ https://starbattle.puzzlebaron.com/ -->
             }
         }
 
-        function handleInput(idx) {
-            // 사용자가 클릭 시 힌트 하이라이트 제거
-            if (lastHintIndex !== -1) {
-                lastHintIndex = -1;
-            }
 
-            if (gridState[idx] === 0) gridState[idx] = 1;
-            else if (gridState[idx] === 1) gridState[idx] = 2;
-            else gridState[idx] = 0;
-            renderBoard();
-        }
-
+function handleInput(idx) {
+    // 사용자가 클릭 시 힌트 하이라이트 제거
+    if (lastHintIndex !== -1) {
+        lastHintIndex = -1;
+    }
+    // [수정 1번 적용] 순서 변경: 빈칸(0) -> X(2) -> 별(1) -> 빈칸(0)
+    if (gridState[idx] === 0) {
+        gridState[idx] = 2; // 먼저 X 표시
+    } else if (gridState[idx] === 2) {
+        gridState[idx] = 1; // X 다음 별 표시
+    } else {
+        gridState[idx] = 0; // 별 다음 빈칸
+    }
+    
+    renderBoard();
+}
         function handleRightClick(idx) {
             // 사용자가 클릭 시 힌트 하이라이트 제거
             if (lastHintIndex !== -1) {
