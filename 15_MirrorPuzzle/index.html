@@ -2,6 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <!-- 1. 뷰포트 설정: user-scalable=no 로 확대 방지 시도 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>거울퍼즐</title>
   <style>
     body {
@@ -11,16 +13,27 @@
       background: #f0f0f0;
       min-height: 100vh;
       margin: 0;
-      padding: 20px;
+      padding: 10px;
       font-family: sans-serif;
+      
+      /* 2. CSS 설정: 더블 탭 확대 방지 및 터치 반응 속도 향상 */
+      touch-action: manipulation;
+      /* 스크롤 끝에서 튕기는 효과(바운스) 방지 */
+      overscroll-behavior: none;
+      -webkit-user-select: none; /* 텍스트 선택 방지 */
+      user-select: none;
     }
     .stage-buttons {
       margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      max-width: 600px;
     }
     .stage-buttons button {
-      margin: 4px;
-      width: 68px;
-      padding: 8px 12px;
+      width: 50px;
+      padding: 8px 0;
       font-size: 14px;
       cursor: pointer;
       border: 1px solid #888;
@@ -45,16 +58,23 @@
       display: grid;
       gap: 0;
       margin-bottom: 20px;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto 20px;
     }
     .cell {
       display: flex;
       justify-content: center;
       align-items: center;
       background: white;
-      font-size: 20px;
+      font-size: clamp(14px, 4vw, 20px);
+      width: 100%;
+      height: 100%;
     }
     .bordered {
       border: 1px solid #ccc;
+      box-sizing: border-box;
     }
     .button-cell {
       border: none;
@@ -63,6 +83,7 @@
       width: 100%;
       height: 100%;
       position: relative;
+      padding: 0;
     }
     .shape {
       width: 100%;
@@ -73,9 +94,11 @@
       border: 3px solid green;
       border-radius: 50%;
       background: transparent;
-      width: 30px;
-      height: 30px;
+      width: 60%;
+      height: 60%;
       margin: auto;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
     }
     .slash::before, .backslash::before {
       content: "";
@@ -97,6 +120,8 @@
       font-size: 20px;
       font-weight: bold;
       margin: 10px;
+      text-align: center;
+      min-height: 30px; /* 결과 텍스트 영역 확보 */
     }
     .buttons {
       display: flex;
@@ -104,19 +129,19 @@
       align-items: center;
       gap: 10px;
       margin-top: 10px;
+      width: 100%;
+      max-width: 420px;
     }
     .buttons button {
-      flex: 1 1 0;
-      width: 120px;
+      flex: 1;
       height: 50px;
-      padding: 8px 16px;
+      padding: 0;
       font-size: 16px;
       cursor: pointer;
       border: 1px solid #888;
       background: white;
       border-radius: 4px;
       transition: all 0.2s;
-      margin: 0;
     }
     .buttons button:hover {
       background: #ddd;
@@ -124,7 +149,6 @@
     button:focus {
      outline: none;
     }
-    /* 다음단계 버튼 상태 */
     #nextBtn:disabled {
       background: #ccc;
       color: #666;
@@ -136,6 +160,12 @@
       color: white;
       border: 1px solid #007BFF;
       cursor: pointer;
+    }
+    font {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        line-height: 1.5;
     }
   </style>
 </head>
@@ -156,6 +186,7 @@
     다음문제: Enter
   </font>
   <a href="example.html" style="
+    display: block;
     width: 250px;
     padding: 20px;
     border: 1px solid #333;
@@ -164,7 +195,7 @@
     text-align: center;
     font-family: sans-serif;
     font-size: 20px;
-    margin: 50px auto;
+    margin: 30px auto;
     text-decoration: none;
     color: #000;
   ">
@@ -172,6 +203,16 @@
   </a>
   
   <script>
+    // 3. JS 설정: iOS Safari 핀치 줌 방지 (손가락 두 개로 확대 차단)
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+
+    // 더블 탭 확대 방지 (일부 구형 브라우저 대응)
+    document.addEventListener('dblclick', function(event) {
+      event.preventDefault();
+    }, { passive: false });
+
     document.addEventListener('contextmenu', e => e.preventDefault());
 
     const stageButtons = document.getElementById('stageButtons');
@@ -187,6 +228,7 @@
     let innerSize = 3;
     let currentStage = 1;
     const completedStages = new Set();
+    const stageHistory = {};
 
     const dataSets = [
       [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
@@ -222,10 +264,6 @@
       btn.dataset.stage = i;
       btn.addEventListener('click', () => loadStage(i));
       stageButtons.appendChild(btn);
-
-      if (i % 5 === 0 && i !== 26) {
-        stageButtons.appendChild(document.createElement('br'));
-      }
     }
 
     function loadStage(stage) {
@@ -233,17 +271,23 @@
       gridSize = stage <= 12 ? 5 : stage <= 22 ? 6 : 7;
       innerSize = stage <= 12 ? 3 : stage <= 22 ? 4 : 5;
       currentData = dataSets[stage - 1];
+      
       renderGrid();
       updateStageButtons();
       result.textContent = '';
-      disableNextBtn(); // 새 스테이지 진입 시 다음단계 비활성화
+      
+      if(completedStages.has(currentStage)) {
+          enableNextBtn();
+      } else {
+          disableNextBtn();
+      }
     }
 
     function renderGrid() {
       grid.innerHTML = '';
       buttons = [];
-      grid.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
-      grid.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
+      grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
       for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
@@ -256,9 +300,17 @@
             cell.classList.add('bordered');
             const btn = document.createElement('button');
             btn.className = 'button-cell';
-            btn.dataset.state = 0;
+            
+            const historyKey = `${row},${col}`;
+            let savedState = 0;
+            if (stageHistory[currentStage] && stageHistory[currentStage][historyKey] !== undefined) {
+                savedState = stageHistory[currentStage][historyKey];
+            }
+            
+            btn.dataset.state = savedState;
+            
             const shape = document.createElement('div');
-            shape.className = 'shape circle';
+            shape.className = `shape ${getShapeClass(savedState)}`;
             btn.appendChild(shape);
 
             btn.addEventListener('click', () => {
@@ -266,8 +318,14 @@
               if (current === 0) current = 2;
               else if (current === 2) current = 1;
               else current = 0;
+              
               btn.dataset.state = current;
               shape.className = `shape ${getShapeClass(current)}`;
+              
+              if (!stageHistory[currentStage]) {
+                  stageHistory[currentStage] = {};
+              }
+              stageHistory[currentStage][`${row},${col}`] = current;
             });
 
             cell.appendChild(btn);
@@ -286,12 +344,19 @@
     }
 
     resetBtn.addEventListener('click', () => {
-      buttons.forEach(({ btn, shape }) => {
+      if (stageHistory[currentStage]) {
+          stageHistory[currentStage] = {};
+      }
+      
+      buttons.forEach(({ row, col, btn, shape }) => {
         btn.dataset.state = 0;
         shape.className = 'shape circle';
       });
       result.textContent = '';
-      disableNextBtn();
+      
+      if (!completedStages.has(currentStage)) {
+          disableNextBtn();
+      }
     });
 
     checkBtn.addEventListener('click', () => {
@@ -306,11 +371,14 @@
         result.textContent = '정답입니다!';
         result.style.color = 'green';
         completedStages.add(currentStage);
-        enableNextBtn(); // ✅ 정답 시 다음단계 활성화
+        enableNextBtn();
       } else {
         result.textContent = `틀렸습니다! 현재 ${correct}/${total} 개 맞았습니다.`;
         result.style.color = 'red';
-        disableNextBtn();
+        
+        if (!completedStages.has(currentStage)) {
+            disableNextBtn();
+        }
       }
       updateStageButtons();
     });
@@ -327,7 +395,6 @@
       });
     }
 
-    // ✅ 다음단계 버튼 제어
     function enableNextBtn() {
       nextBtn.disabled = false;
       nextBtn.classList.add('enabled');
@@ -337,7 +404,6 @@
       nextBtn.classList.remove('enabled');
     }
 
-    // ✅ 다음단계 버튼 클릭 시 (이미 푼 단계 건너뛰기)
     nextBtn.addEventListener('click', () => {
       if (nextBtn.disabled) return;
 
@@ -354,7 +420,6 @@
       }
     });
 
-    // 키보드 이벤트
     document.addEventListener('keydown', function(e) {
       if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
         e.preventDefault();
