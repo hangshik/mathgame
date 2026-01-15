@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nurikabe Puzzle</title>
+    <style>
+        :root {
+            --board-size: 5;
+            --color-wall: #343a40; /* 벽 색상 (검정/진회색) */
+            --color-clue: #212529; /* 숫자 색상 */
+            --color-bg-solved: #e8f5e9;
+            --color-active: #007bff;
+            --color-error: #ffebee;
+            --bg-color: #f8f9fa;
+            --grid-line-color: #444444; /* 짙은 회색 테두리 */
+        }
+
+        body {
+            font-family: 'Pretendard', 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px 10px;
+            color: #333;
+            min-height: 100vh;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        h1 { margin: 0 0 20px 0; font-size: 26px; color: #2c3e50; letter-spacing: -0.5px; }
+
+        .level-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        .level-group { margin-bottom: 15px; }
+        .level-group:last-child { margin-bottom: 0; }
+        
+        .level-group-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .level-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .level-btn {
+            position: relative;
+            padding: 10px 0;
+            background-color: #fff;
+            color: #555;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .level-btn:hover { background-color: #f1f3f5; border-color: #ced4da; }
+        .level-btn.active {
+            background-color: var(--color-active);
+            color: white;
+            border-color: var(--color-active);
+            box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+            z-index: 2;
+        }
+        .level-btn.cleared { background-color: #28a745; border-color: #218838; color: white; }
+        .level-btn.cleared::after {
+            content: '✔';
+            position: absolute;
+            top: 2px; right: 4px;
+            font-size: 9px; color: #fff;
+        }
+        .btn-record {
+            font-size: 10px;
+            font-weight: normal;
+            margin-top: 2px;
+            color: #888;
+        }
+        .level-btn.cleared .btn-record,
+        .level-btn.active .btn-record { color: white; opacity: 0.9; }
+
+        .game-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            box-sizing: border-box;
+        }
+        .info-title { font-weight: bold; font-size: 16px; }
+        .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 700; color: #333; }
+
+        .game-board {
+            display: none; 
+            grid-template-columns: repeat(var(--board-size), 1fr);
+            grid-template-rows: repeat(var(--board-size), 1fr);
+            
+            border: 2px solid var(--grid-line-color);
+            background-color: var(--grid-line-color); 
+            
+            gap: 1px;
+            user-select: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            margin-bottom: 25px;
+
+            /* [중요] 드래그 시 모바일 스크롤 방지 */
+            touch-action: none; 
+        }
+
+        .game-board.solved-board .cell:not(.wall) {
+            background-color: var(--color-bg-solved);
+        }
+
+        .cell {
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: calc((100vw / var(--board-size)) * 0.6);
+            cursor: pointer;
+            box-sizing: border-box;
+            font-weight: bold;
+            color: var(--color-clue);
+            position: relative;
+        }
+
+        @media (min-width: 500px) {
+            .cell { font-size: 24px; }
+        }
+
+        .cell.wall {
+            background-color: var(--color-wall);
+        }
+
+        .cell.clue { cursor: default; }
+        
+        /* 오류 스타일 */
+        .cell.error {
+            background-color: var(--color-error) !important;
+            color: #d32f2f !important;
+        }
+        .cell.wall.error {
+            background-color: #ef5350 !important;
+        }
+
+        /* [수정] 정답 확인 시 맞는 영역 스타일 (배경 전체) */
+        .cell.correct {
+            background-color: #e8f5e9 !important; /* 연한 녹색 배경 */
+        }
+        /* [수정] 정답 영역 안의 숫자 텍스트 색상 */
+        .cell.clue.correct {
+            color: #28a745 !important; 
+        }
+
+        .message-area {
+            display: none;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .msg-success { background-color: #d4edda; color: #155724; }
+        .msg-error { background-color: #f8d7da; color: #721c24; }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .btn-ctrl {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            border: none;
+            transition: all 0.1s;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-ctrl:active { transform: translateY(2px); box-shadow: none; }
+        .btn-check { background-color: var(--color-active); }
+        .btn-check:hover { background-color: #0056b3; }
+        .btn-reset { background-color: #6c757d; }
+        .btn-reset:hover { background-color: #545b62; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 280px;
+            width: 90%;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-title { font-size: 32px; margin: 0 0 15px 0; color: #28a745; }
+        .close-modal-btn {
+            background: var(--color-active);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .rules {
+            margin-top: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+        .rules b { color: #2c3e50; }
+
+        @media (hover: hover) {
+            .rules::after {
+                content: "⌨ 단축키: [Space/Enter] 확인, [C/R/Esc] 초기화";
+                display: block;
+                margin-top: 10px;
+                color: #888;
+                font-size: 12px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Nurikabe Puzzle</h1>
+
+    <div class="level-panel">
+        <div class="level-group">
+            <div class="level-group-title"><span>5x5 (입문)</span></div>
+            <div class="level-buttons" id="lvl-group-5"></div>
+        </div>
+        <div class="level-group">
+            <div class="level-group-title"><span>7x7 (보통)</span></div>
+            <div class="level-buttons" id="lvl-group-7"></div>
+        </div>
+        <div class="level-group">
+            <div class="level-group-title"><span>10x10 (어려움)</span></div>
+            <div class="level-buttons" id="lvl-group-10"></div>
+        </div>
+        <div class="level-group">
+            <div class="level-group-title"><span>12x12 (전문가)</span></div>
+            <div class="level-buttons" id="lvl-group-12"></div>
+        </div>
+    </div>
+
+    <div class="game-info-bar">
+        <div class="info-title" id="levelInfo">문제 선택 대기중</div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div id="board" class="game-board"></div>
+
+    <div id="messageArea" class="message-area"></div>
+
+    <div class="controls">
+        <button class="btn-ctrl btn-check" onclick="checkSolution()">
+            확인 (Check)
+        </button>
+        <button class="btn-ctrl btn-reset" onclick="resetBoard()">
+            초기화 (Reset)
+        </button>
+    </div>
+
+    <div class="rules">
+        <b>[누리카베 규칙]</b><br>
+        1. <b>흰색 섬:</b> 숫자가 적힌 칸은 섬입니다. 숫자는 그 섬의 칸 수를 의미합니다. 각 섬에는 숫자가 하나씩만 들어갑니다.<br>
+        2. <b>검은색 벽:</b> 섬이 아닌 모든 칸은 벽(검은색)입니다. 모든 벽은 하나로 연결되어야 합니다.<br>
+        3. <b>2x2 금지:</b> 검은색 벽이 2x2 형태의 덩어리가 되면 안 됩니다.<br>
+        4. 대각선으로 붙은 것은 연결되지 않은 것으로 봅니다.<br>
+        <br>
+        * <b>드래그</b>하여 여러 칸을 한 번에 선택할 수 있습니다.
+    </div>
+
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 class="modal-title">🎉 Clear!</h2>
+            <div style="font-size: 18px; color: #555;">
+                기록: <span id="currentClearTime" style="font-weight:bold; color:#28a745"></span>
+            </div>
+            <button class="close-modal-btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        const LEVELS = {
+            '5': [
+                { id: 1, size: 5, grid: [0,0,0,0,0, 0,0,0,1,0, 0,0,0,0,0, 0,3,0,0,0, 1,0,0,0,5] },
+                { id: 2, size: 5, grid: [0,0,0,0,0, 0,3,0,0,0, 0,0,0,0,1, 0,0,0,0,0, 0,0,3,0,1] },
+                { id: 3, size: 5, grid: [0,1,0,0,2, 0,0,0,0,0, 0,0,0,0,5, 0,0,0,0,0, 0,0,0,0,2] },
+                { id: 4, size: 5, grid: [0,0,0,2,0, 0,0,2,0,0, 0,0,0,0,0, 0,6,0,0,0, 0,0,0,0,0] },
+                { id: 5, size: 5, grid: [0,0,0,0,2, 0,1,0,0,0, 0,0,5,0,0, 0,0,0,0,0, 0,0,4,0,0] }
+            ],
+            '7': [
+                { id: 6, size: 7, grid: [0,0,5,0,0,0,0, 0,0,0,0,0,0,0, 0,0,1,0,5,0,1, 0,0,0,0,0,0,0, 1,0,5,0,1,0,0, 0,0,0,0,0,0,0, 0,0,0,0,5,0,0] },
+                { id: 7, size: 7, grid: [0,0,0,0,0,0,0, 0,0,0,0,0,0,0, 0,0,3,0,3,0,0, 0,1,0,0,0,2,0, 0,0,9,0,1,0,0, 0,0,0,0,0,0,0, 0,0,0,0,0,0,0] },
+                { id: 8, size: 7, grid: [0,0,0,0,0,0,0, 0,0,0,0,0,0,0, 0,2,0,2,0,0,4, 0,0,0,0,0,0,0, 4,0,0,1,0,3,0, 0,0,0,0,0,0,0, 0,0,0,0,0,0,0] },
+                { id: 9, size: 7, grid: [0,0,0,0,0,0,0, 0,0,0,0,0,0,0, 0,6,0,0,0,2,0, 2,0,0,0,0,0,0, 0,0,0,0,0,0,0, 0,0,0,0,0,3,0, 0,0,0,0,5,0,0] },
+                { id: 10, size: 7, grid: [0,0,0,0,0,0,0, 0,0,0,3,0,0,2, 0,0,0,0,3,0,0, 0,0,0,0,0,0,0, 0,5,0,0,0,0,0, 3,0,0,3,0,0,0, 0,0,0,0,0,0,0] }
+            ],
+            '10': [
+                { id: 11, size: 10, grid: [0,0,0,0,0,0,0,0,0,0, 0,6,0,0,0,0,0,0,1,0, 4,0,0,0,0,0,0,0,0,6, 0,0,0,2,0,0,2,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,2,0,0,4,0,0,0, 2,0,0,0,0,0,0,0,0,2, 0,2,0,0,0,0,0,0,5,0, 0,0,0,0,0,0,0,0,0,0] },
+                { id: 12, size: 10, grid: [0,0,0,0,0,0,0,0,0,1, 0,0,0,0,0,0,0,2,0,0, 0,2,0,0,0,2,0,0,0,0, 0,0,0,3,0,0,3,0,0,0, 0,0,7,0,0,0,0,0,0,0, 0,0,0,0,0,2,0,1,0,1, 0,0,0,3,0,0,3,0,0,0, 0,0,0,0,2,0,0,0,2,0, 0,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0] },
+                { id: 13, size: 10, grid: [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,3,0,0,0,0,0, 0,0,0,5,0,0,5,0,0,0, 0,0,0,0,0,0,0,11,0,0, 0,0,2,0,4,0,0,0,0,0, 0,0,0,1,0,0,3,0,0,0, 0,0,0,0,0,7,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0] },
+                { id: 14, size: 10, grid: [0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,7,0,0,0,0,0,0,2,0, 1,0,1,0,0,0,0,3,0,2, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 2,0,2,0,0,0,0,8,0,1, 0,2,0,0,0,0,0,0,7,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0] },
+                { id: 15, size: 10, grid: [1,0,0,0,0,0,0,0,0,9, 0,0,0,0,0,0,0,0,0,0, 1,0,1,0,0,0,0,0,0,0, 0,1,0,0,0,0,0,0,4,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 10,0,0,0,0,0,0,0,0,0, 0,0,10,0,0,0,0,5,0,0, 0,2,0,0,3,0,0,0,0,0] }
+            ],
+            '12': [
+                { id: 16, size: 12, grid: [0,0,0,0,0,2,0,0,0,0,0,0, 0,1,0,0,0,0,0,0,0,0,2,0, 0,0,0,0,3,0,0,0,0,0,0,0, 0,0,0,2,0,8,0,0,3,0,0,0, 0,0,0,0,0,0,0,0,0,6,0,0, 0,0,0,0,0,0,0,0,2,0,0,0, 0,0,0,2,0,0,0,0,0,0,0,0, 0,0,6,0,0,0,0,0,0,0,0,0, 0,0,0,1,0,0,2,0,1,0,0,0, 0,0,0,0,0,0,0,4,0,0,0,0, 0,2,0,0,0,0,0,0,0,0,2,0, 0,0,3,0,0,0,0,0,0,0,0,0] },
+                { id: 17, size: 12, grid: [0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,3,0,0,0,0,0,0,0,0, 0,0,0,0,0,4,0,0,0,0,0,0, 0,0,0,0,6,0,1,0,0,0,4,0, 0,0,0,0,0,0,0,0,3,0,0,0, 0,0,0,1,0,0,0,0,0,7,0,0, 0,0,1,0,0,0,0,0,2,0,0,0, 0,0,0,6,0,0,0,0,0,0,0,0, 0,2,0,0,0,6,0,1,0,0,0,0, 0,0,0,0,0,0,3,0,0,0,0,0, 0,0,0,0,0,0,0,0,2,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0] },
+                { id: 18, size: 12, grid: [0,0,2,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,2,0,0,0,0, 0,0,0,0,0,0,9,0,0,7,0,0, 0,0,0,5,0,0,0,2,0,0,0,0, 0,0,0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,2,0,0,0,3,0, 0,0,0,0,4,0,0,0,3,0,0,0, 0,0,4,0,0,2,0,0,0,0,0,0, 0,0,0,0,3,0,0,0,0,0,1,0, 0,0,0,0,0,0,2,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,2,0,0] },
+                { id: 19, size: 12, grid: [0,0,0,0,0,1,0,4,0,0,0,0, 0,4,0,0,2,0,0,0,0,0,0,0, 0,0,1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,5,0, 0,0,0,0,0,0,1,0,0,0,0,0, 0,0,0,0,0,5,0,0,0,0,0,0, 0,0,0,0,0,0,4,0,0,0,0,0, 0,0,0,0,0,10,0,0,0,0,0,0, 0,5,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,11,0,0, 0,0,0,0,0,0,0,1,0,0,3,0, 0,0,0,0,4,0,1,0,0,0,0,0] },
+                { id: 20, size: 12, grid: [0,0,0,0,0,0,0,0,0,0,0,0, 0,0,2,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 1,0,1,0,0,10,0,0,0,0,0,0, 0,0,0,2,0,0,0,0,2,0,0,0, 0,0,0,0,0,1,0,1,0,6,0,0, 0,0,4,0,1,0,1,0,0,0,0,2, 0,0,0,2,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,3,0,0,5,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 0,2,0,0,0,0,0,0,0,5,0,0, 0,0,0,2,0,0,0,0,0,0,0,1] }
+            ],
+        };
+
+        let currentLevel = null;
+        let boardState = []; // 0: White, 1: Wall
+        let gameActive = false;
+        
+        let isDragging = false;
+        let dragTargetState = null;
+
+        const savedStates = {}; 
+        const records = {};
+
+        let startTime = 0;
+        let timerInterval = null;
+        let accumulatedTime = 0; 
+
+        const boardElement = document.getElementById('board');
+        const timerElement = document.getElementById('timer');
+        const levelInfo = document.getElementById('levelInfo');
+        const successModal = document.getElementById('successModal');
+        const messageArea = document.getElementById('messageArea');
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive || successModal.style.display === 'flex') return;
+            const key = e.key.toLowerCase();
+            if (key === 'enter' || key === ' ') {
+                e.preventDefault();
+                checkSolution();
+            }
+            if (key === 'c' || key === 'r' || key === 'escape') {
+                resetBoard();
+            }
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; dragTargetState = null; });
+        document.addEventListener('touchend', () => { isDragging = false; dragTargetState = null; });
+
+        function init() {
+            createLevelButtons('lvl-group-5', LEVELS['5'], '5');
+            createLevelButtons('lvl-group-7', LEVELS['7'], '7');
+            createLevelButtons('lvl-group-10', LEVELS['10'], '10');
+            createLevelButtons('lvl-group-12', LEVELS['12'], '12');
+            successModal.onclick = closeModal;
+        }
+
+        function createLevelButtons(containerId, dataList, groupKey) {
+            const container = document.getElementById(containerId);
+            dataList.forEach((level) => {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn';
+                btn.id = `btn-${groupKey}-${level.id}`;
+                btn.innerHTML = `
+                    <span>${level.id}단계</span>
+                    <span class="btn-record" id="rec-${groupKey}-${level.id}"></span>
+                `;
+                btn.onclick = () => loadLevel(level, groupKey);
+                container.appendChild(btn);
+            });
+        }
+
+        function saveCurrentState() {
+            if (!currentLevel) return;
+            const key = `lvl-${currentLevel.id}`;
+            const now = Date.now();
+            const currentSessionTime = gameActive ? (now - startTime) : 0;
+            
+            savedStates[key] = {
+                board: [...boardState],
+                totalTime: accumulatedTime + currentSessionTime
+            };
+        }
+
+        function loadLevel(levelData, groupKey) {
+            if (gameActive && currentLevel) saveCurrentState();
+
+            showMessage(""); 
+            boardElement.style.display = 'grid';
+            
+            currentLevel = levelData;
+            const key = `lvl-${levelData.id}`;
+            const isCleared = (records[key]);
+
+            document.documentElement.style.setProperty('--board-size', levelData.size);
+            levelInfo.innerText = `${levelData.size}x${levelData.size} - ${levelData.id}단계`;
+
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${groupKey}-${levelData.id}`).classList.add('active');
+
+            stopTimer();
+
+            if (savedStates[key]) {
+                boardState = [...savedStates[key].board];
+                accumulatedTime = savedStates[key].totalTime;
+            } else {
+                boardState = new Array(levelData.size * levelData.size).fill(0);
+                accumulatedTime = 0;
+            }
+
+            if (isCleared) {
+                gameActive = false;
+                timerElement.innerText = formatTime(accumulatedTime);
+                boardElement.classList.add('solved-board');
+            } else {
+                gameActive = true;
+                startTimer();
+                boardElement.classList.remove('solved-board');
+            }
+
+            renderBoard();
+        }
+
+        function resetBoard() {
+            if (!currentLevel) return;
+            const key = `lvl-${currentLevel.id}`;
+            if (savedStates[key]) delete savedStates[key];
+            
+            boardState = new Array(currentLevel.size * currentLevel.size).fill(0);
+            accumulatedTime = 0;
+            
+            gameActive = true;
+            boardElement.classList.remove('solved-board');
+            showMessage("");
+            
+            stopTimer();
+            startTimer();
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const size = currentLevel.size;
+            boardElement.innerHTML = '';
+            boardElement.ontouchmove = handleTouchMove;
+
+            currentLevel.grid.forEach((clue, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = idx; 
+                
+                if (clue > 0) {
+                    cell.innerText = clue;
+                    cell.classList.add('clue');
+                    cell.onmousedown = () => { if(gameActive) clearErrorVisuals(); };
+                    cell.ontouchstart = () => { if(gameActive) clearErrorVisuals(); };
+                } else {
+                    if (boardState[idx] === 1) cell.classList.add('wall');
+                    
+                    cell.onmousedown = (e) => {
+                        if(!gameActive) return;
+                        e.preventDefault();
+                        startDrag(idx);
+                    };
+                    cell.onmouseenter = () => {
+                        if(!gameActive) return;
+                        if(isDragging) applyDrag(idx);
+                    };
+                    cell.ontouchstart = (e) => {
+                        if(!gameActive) return;
+                        startDrag(idx);
+                    };
+                }
+                boardElement.appendChild(cell);
+            });
+        }
+
+        function clearErrorVisuals() {
+            const cells = boardElement.children;
+            for(let i=0; i<cells.length; i++) {
+                cells[i].classList.remove('error', 'correct');
+            }
+            showMessage(""); 
+        }
+
+        function startDrag(idx) {
+            if(!gameActive) return;
+            clearErrorVisuals();
+            isDragging = true;
+            dragTargetState = (boardState[idx] === 1) ? 0 : 1;
+            applyDrag(idx);
+        }
+
+        function applyDrag(idx) {
+            if (currentLevel.grid[idx] > 0) return;
+            if (boardState[idx] === dragTargetState) return;
+
+            boardState[idx] = dragTargetState;
+            
+            const cell = boardElement.children[idx];
+            if (dragTargetState === 1) cell.classList.add('wall');
+            else cell.classList.remove('wall');
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging || !gameActive) return;
+            const touch = e.touches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (target && target.classList.contains('cell')) {
+                const idx = parseInt(target.dataset.index);
+                if (!isNaN(idx)) applyDrag(idx);
+            }
+        }
+
+        function checkSolution() {
+            if (!currentLevel || !gameActive) return;
+            showMessage("검사 중...", "");
+
+            const size = currentLevel.size;
+            const grid = currentLevel.grid; 
+            const state = boardState;       
+            
+            const idx = (r, c) => r * size + c;
+            const isValid = (r, c) => r >= 0 && r < size && c >= 0 && c < size;
+            
+            const cells = boardElement.children;
+            for(let i=0; i<cells.length; i++) cells[i].classList.remove('error', 'correct');
+
+            // 1. 2x2 벽 검사
+            for (let r = 0; r < size - 1; r++) {
+                for (let c = 0; c < size - 1; c++) {
+                    const indices = [idx(r,c), idx(r+1,c), idx(r,c+1), idx(r+1,c+1)];
+                    if (indices.every(i => state[i] === 1)) {
+                        indices.forEach(i => cells[i].classList.add('error'));
+                        showMessage("2x2 크기의 벽 덩어리가 있습니다.", "error");
+                        return;
+                    }
+                }
+            }
+
+            // 2. 벽 연결성 검사
+            let wallCount = 0;
+            let startWall = -1;
+            for(let i=0; i<state.length; i++) {
+                if(state[i] === 1) {
+                    wallCount++;
+                    startWall = i;
+                }
+            }
+
+            if (wallCount > 0) {
+                let visitedWalls = new Set();
+                let queue = [startWall];
+                visitedWalls.add(startWall);
+                
+                while(queue.length > 0) {
+                    let curr = queue.shift();
+                    let r = Math.floor(curr / size);
+                    let c = curr % size;
+                    
+                    [[r+1,c], [r-1,c], [r,c+1], [r,c-1]].forEach(([nr, nc]) => {
+                        if(isValid(nr, nc)) {
+                            let nIdx = idx(nr, nc);
+                            if(state[nIdx] === 1 && !visitedWalls.has(nIdx)) {
+                                visitedWalls.add(nIdx);
+                                queue.push(nIdx);
+                            }
+                        }
+                    });
+                }
+                if (visitedWalls.size !== wallCount) {
+                    for(let i=0; i<state.length; i++) {
+                        if(state[i]===1 && !visitedWalls.has(i)) cells[i].classList.add('error');
+                    }
+                    showMessage("모든 벽이 하나로 연결되지 않았습니다.", "error");
+                    return;
+                }
+            }
+
+            // 3. 섬 검사
+            let visited = new Array(size * size).fill(false);
+            let islandErrorFound = false;
+            let firstErrorMessage = "";
+
+            for (let i = 0; i < size * size; i++) {
+                if (state[i] !== 1 && !visited[i]) {
+                    let regionCells = [];
+                    let cluesInRegion = [];
+                    let q = [i];
+                    visited[i] = true;
+
+                    while (q.length > 0) {
+                        let curr = q.shift();
+                        regionCells.push(curr);
+                        if (grid[curr] > 0) cluesInRegion.push({val: grid[curr], idx: curr});
+
+                        let r = Math.floor(curr / size);
+                        let c = curr % size;
+
+                        [[r+1,c], [r-1,c], [r,c+1], [r,c-1]].forEach(([nr, nc]) => {
+                            if(isValid(nr, nc)) {
+                                let nIdx = idx(nr, nc);
+                                if (state[nIdx] !== 1 && !visited[nIdx]) {
+                                    visited[nIdx] = true;
+                                    q.push(nIdx);
+                                }
+                            }
+                        });
+                    }
+
+                    if (cluesInRegion.length === 0) {
+                        regionCells.forEach(ci => cells[ci].classList.add('error'));
+                        islandErrorFound = true;
+                        if (!firstErrorMessage) firstErrorMessage = "숫자가 없는 흰색 영역이 있습니다.";
+                    }
+                    else if (cluesInRegion.length > 1) {
+                        regionCells.forEach(ci => cells[ci].classList.add('error'));
+                        islandErrorFound = true;
+                        if (!firstErrorMessage) firstErrorMessage = "하나의 섬에 두 개 이상의 숫자가 있습니다.";
+                    }
+                    else {
+                        let targetSize = cluesInRegion[0].val;
+                        if (regionCells.length !== targetSize) {
+                            regionCells.forEach(ci => cells[ci].classList.add('error'));
+                            islandErrorFound = true;
+                            if (!firstErrorMessage) firstErrorMessage = `숫자 ${targetSize}인 섬의 크기가 ${regionCells.length}칸 입니다.`;
+                        } else {
+                            // [수정] 정답인 섬의 모든 칸(regionCells)을 녹색으로 표시
+                            regionCells.forEach(ci => cells[ci].classList.add('correct'));
+                        }
+                    }
+                }
+            }
+
+            if (islandErrorFound) {
+                showMessage(firstErrorMessage, "error");
+                return;
+            }
+
+            gameWin();
+        }
+
+        function gameWin() {
+            stopTimer();
+            const now = Date.now();
+            accumulatedTime += (now - startTime);
+            const finalTimeStr = formatTime(accumulatedTime);
+
+            gameActive = false;
+            boardElement.classList.add('solved-board');
+            showMessage("정답입니다! 완벽해요!", "success");
+
+            const key = `lvl-${currentLevel.id}`;
+            records[key] = true; 
+            
+            // [수정됨] 사이즈에 따라 그룹 ID를 명확하게 찾도록 변경
+            let groupKey;
+            if (currentLevel.size === 5) groupKey = '5';
+            else if (currentLevel.size === 7) groupKey = '7';
+            else if (currentLevel.size === 10) groupKey = '10';
+            else groupKey = '12'; // 12x12 처리 추가
+
+            const btn = document.getElementById(`btn-${groupKey}-${currentLevel.id}`);
+            if (btn) {
+                btn.classList.add('cleared');
+                const recSpan = document.getElementById(`rec-${groupKey}-${currentLevel.id}`);
+                if(recSpan) recSpan.innerText = finalTimeStr;
+            }
+            saveCurrentState();
+
+            document.getElementById('currentClearTime').innerText = finalTimeStr;
+            successModal.style.display = 'flex';
+        }
+
+
+        function showMessage(msg, type) {
+            if (!msg) {
+                messageArea.style.display = 'none';
+                return;
+            }
+            messageArea.innerText = msg;
+            messageArea.style.display = 'block';
+            messageArea.className = 'message-area';
+            if (type === 'success') messageArea.classList.add('msg-success');
+            if (type === 'error') messageArea.classList.add('msg-error');
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const s = String(totalSeconds % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const currentMs = accumulatedTime + (now - startTime);
+                timerElement.innerText = formatTime(currentMs);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function closeModal() {
+            successModal.style.display = 'none';
+        }
+
+        init();
+    </script>
+</body>
+</html>
