@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nurikabe Puzzle</title>
+    <title>누리카베(Nurikabe Puzzle)</title>
     <style>
         :root {
             --board-size: 5;
@@ -134,8 +134,6 @@
             max-width: 500px;
             aspect-ratio: 1;
             margin-bottom: 25px;
-
-            /* [중요] 드래그 시 모바일 스크롤 방지 */
             touch-action: none; 
         }
 
@@ -160,6 +158,11 @@
             .cell { font-size: 24px; }
         }
 
+        /* 15x15일 때 폰트 사이즈 조금 조절 */
+        @media (min-width: 500px) {
+            .game-board[style*="--board-size: 15"] .cell { font-size: 18px; }
+        }
+
         .cell.wall {
             background-color: var(--color-wall);
         }
@@ -175,11 +178,10 @@
             background-color: #ef5350 !important;
         }
 
-        /* [수정] 정답 확인 시 맞는 영역 스타일 (배경 전체) */
+        /* 정답 스타일 */
         .cell.correct {
-            background-color: #e8f5e9 !important; /* 연한 녹색 배경 */
+            background-color: #e8f5e9 !important; 
         }
-        /* [수정] 정답 영역 안의 숫자 텍스트 색상 */
         .cell.clue.correct {
             color: #28a745 !important; 
         }
@@ -288,24 +290,28 @@
 </head>
 <body>
 
-    <h1>Nurikabe Puzzle</h1>
+    <h1>누리카베(Nurikabe Puzzle)</h1>
 
     <div class="level-panel">
         <div class="level-group">
-            <div class="level-group-title"><span>5x5 (입문)</span></div>
+            <!-- <div class="level-group-title"><span>5x5 (입문)</span></div> -->
             <div class="level-buttons" id="lvl-group-5"></div>
         </div>
         <div class="level-group">
-            <div class="level-group-title"><span>7x7 (보통)</span></div>
+            <!-- <div class="level-group-title"><span>7x7 (보통)</span></div> -->
             <div class="level-buttons" id="lvl-group-7"></div>
         </div>
         <div class="level-group">
-            <div class="level-group-title"><span>10x10 (어려움)</span></div>
+            <!-- <div class="level-group-title"><span>10x10 (어려움)</span></div> -->
             <div class="level-buttons" id="lvl-group-10"></div>
         </div>
         <div class="level-group">
-            <div class="level-group-title"><span>12x12 (전문가)</span></div>
+            <!-- <div class="level-group-title"><span>12x12 (전문가)</span></div> -->
             <div class="level-buttons" id="lvl-group-12"></div>
+        </div>
+        <div class="level-group">
+            <!-- <div class="level-group-title"><span>15x15 (마스터)</span></div> -->
+            <div class="level-buttons" id="lvl-group-15"></div>
         </div>
     </div>
 
@@ -377,6 +383,13 @@
                 { id: 19, size: 12, grid: [0,0,0,0,0,1,0,4,0,0,0,0, 0,4,0,0,2,0,0,0,0,0,0,0, 0,0,1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,5,0, 0,0,0,0,0,0,1,0,0,0,0,0, 0,0,0,0,0,5,0,0,0,0,0,0, 0,0,0,0,0,0,4,0,0,0,0,0, 0,0,0,0,0,10,0,0,0,0,0,0, 0,5,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,11,0,0, 0,0,0,0,0,0,0,1,0,0,3,0, 0,0,0,0,4,0,1,0,0,0,0,0] },
                 { id: 20, size: 12, grid: [0,0,0,0,0,0,0,0,0,0,0,0, 0,0,2,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 1,0,1,0,0,10,0,0,0,0,0,0, 0,0,0,2,0,0,0,0,2,0,0,0, 0,0,0,0,0,1,0,1,0,6,0,0, 0,0,4,0,1,0,1,0,0,0,0,2, 0,0,0,2,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,3,0,0,5,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 0,2,0,0,0,0,0,0,0,5,0,0, 0,0,0,2,0,0,0,0,0,0,0,1] }
             ],
+            '15': [
+                { id: 21, size: 15, grid: [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0, 0,0,0,0,2,0,0,0,0,0,2,0,0,0,0, 0,2,0,0,0,0,0,3,0,0,0,0,2,0,0, 0,0,0,1,0,0,2,0,2,0,0,0,0,4,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,7,0,0,0,0,0,0,2,0,1,0, 0,2,0,0,0,0,0,0,0,4,0,0,0,0,0, 0,0,0,2,0,0,0,0,0,0,0,1,0,0,0, 0,0,0,0,0,2,0,0,0,1,0,0,0,2,0, 0,2,0,2,0,0,0,0,0,0,5,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,1,0,0,0,0,3,0,5,0,0,2,0,0,0, 0,0,3,0,0,0,0,2,0,0,0,0,0,1,0, 0,0,0,0,2,0,0,0,0,0,3,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,1,0] },
+                { id: 22, size: 15, grid: [0,0,0,0,0,1,0,1,0,1,0,0,0,0,0, 0,0,0,3,0,0,0,0,0,0,0,0,2,0,0, 0,0,0,0,0,0,0,6,0,0,2,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,2,0,0,3, 0,0,3,0,0,3,0,0,1,0,3,0,0,0,0, 0,0,0,1,0,0,0,0,0,0,0,0,2,0,0, 0,2,0,0,0,0,0,0,2,0,0,0,0,0,0, 0,0,0,3,0,0,0,0,0,0,0,1,0,0,0, 0,0,0,0,0,0,4,0,0,0,0,0,0,2,0, 0,0,1,0,0,0,0,0,0,0,0,1,0,0,0, 0,0,0,0,2,0,1,0,0,2,0,0,5,0,0, 5,0,0,2,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,2,0,0,1,0,0,0,0,0,0,0, 0,0,1,0,0,0,0,0,0,0,0,1,0,0,0, 0,0,0,0,1,0,0,2,0,6,0,0,0,0,0] },
+                { id: 23, size: 15, grid: [7,0,1,0,0,0,0,0,0,2,0,0,0,0,7, 0,0,0,0,2,0,0,0,2,0,0,0,0,0,0, 0,0,0,0,0,3,0,0,0,0,0,0,0,0,2, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,2,0,2,0,0,0,3,0,0,1,0, 2,0,0,0,0,0,0,0,0,0,0,0,3,0,0, 0,2,0,0,2,0,0,0,0,0,14,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,1,0,0,0,0,0,0,0,0,1,0, 0,0,2,0,0,0,0,0,0,0,0,0,0,0,0, 0,4,0,0,2,0,0,0,1,0,8,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 5,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,4,0,0,0,1,0,0,0,0, 2,0,0,0,0,1,0,0,0,0,0,0,5,0,6] },
+                { id: 24, size: 15, grid: [0,0,0,0,2,0,1,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,4,0,0,0,0,1,0,3,0,0,0, 0,0,2,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,5,0,1,0,0,1,0,9, 0,0,1,0,2,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,1,0,2,0,0,0,0,0,9, 0,0,0,0,1,0,0,0,0,0,4,0,0,0,0, 9,0,0,0,0,0,1,0,2,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,2,0,4,0,0, 2,0,8,0,0,2,0,1,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,1,0,0,2,0,0, 0,0,0,1,0,3,0,0,0,0,1,0,0,0,0, 0,0,2,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,4,0,2,0,0,0,0] },
+                { id: 25, size: 15, grid: [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,6,0,0,0,2,0,0,0,3, 0,0,0,0,0,0,0,0,0,2,0,0,0,0,0, 0,0,0,0,2,0,3,0,0,0,0,0,0,0,0, 0,2,0,0,0,0,0,0,0,2,0,4,0,0,0, 0,0,2,0,2,0,0,0,0,0,0,0,0,0,0, 1,0,0,0,0,0,1,0,2,0,0,1,0,1,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,7,0,1,0,0,5,0,3,0,0,0,0,0,1, 0,0,0,0,0,0,0,0,0,0,1,0,4,0,0, 0,0,0,2,0,1,0,0,0,0,0,0,0,4,0, 0,0,0,0,0,0,0,0,1,0,4,0,0,0,0, 0,0,0,0,0,3,0,0,0,0,0,0,0,0,0, 0,0,0,0,1,0,0,0,2,0,0,0,0,0,0, 0,0,0,0,0,0,1,0,0,0,0,0,0,0,0] }
+            ]
         };
 
         let currentLevel = null;
@@ -419,6 +432,7 @@
             createLevelButtons('lvl-group-7', LEVELS['7'], '7');
             createLevelButtons('lvl-group-10', LEVELS['10'], '10');
             createLevelButtons('lvl-group-12', LEVELS['12'], '12');
+            createLevelButtons('lvl-group-15', LEVELS['15'], '15');
             successModal.onclick = closeModal;
         }
 
@@ -534,7 +548,7 @@
                     };
                     cell.ontouchstart = (e) => {
                         if(!gameActive) return;
-                        if (e.cancelable) e.preventDefault(); // 이 줄을 추가하여 마우스 이벤트 중복 발생 방지
+                        if (e.cancelable) e.preventDefault(); 
                         startDrag(idx);
                     };
                 }
@@ -693,7 +707,6 @@
                             islandErrorFound = true;
                             if (!firstErrorMessage) firstErrorMessage = `숫자 ${targetSize}인 섬의 크기가 ${regionCells.length}칸 입니다.`;
                         } else {
-                            // [수정] 정답인 섬의 모든 칸(regionCells)을 녹색으로 표시
                             regionCells.forEach(ci => cells[ci].classList.add('correct'));
                         }
                     }
@@ -721,12 +734,12 @@
             const key = `lvl-${currentLevel.id}`;
             records[key] = true; 
             
-            // [수정됨] 사이즈에 따라 그룹 ID를 명확하게 찾도록 변경
             let groupKey;
             if (currentLevel.size === 5) groupKey = '5';
             else if (currentLevel.size === 7) groupKey = '7';
             else if (currentLevel.size === 10) groupKey = '10';
-            else groupKey = '12'; // 12x12 처리 추가
+            else if (currentLevel.size === 12) groupKey = '12';
+            else groupKey = '15';
 
             const btn = document.getElementById(`btn-${groupKey}-${currentLevel.id}`);
             if (btn) {
