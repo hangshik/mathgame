@@ -534,6 +534,7 @@
                     };
                     cell.ontouchstart = (e) => {
                         if(!gameActive) return;
+                        if (e.cancelable) e.preventDefault(); // 이 줄을 추가하여 마우스 이벤트 중복 발생 방지
                         startDrag(idx);
                     };
                 }
