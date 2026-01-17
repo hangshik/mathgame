@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=0.95">
   <title>좌회전 금지 미로</title>
   <style>
     body {
@@ -196,14 +196,19 @@
 <div class="map" id="map"></div>
 <br>
 <div class="controls">
-  <button id="btnForward" onclick="moveForward()">앞으로(↑)</button>
-  <button id="btnTurn" onclick="rotateRight()">우회전(→)</button>
+  <button id="btnForward" onclick="moveForward()">앞으로</button>
+  <button id="btnTurn" onclick="rotateRight()">우회전</button>
   <!-- <button onclick="undoMove()">되돌리기</button> -->
-  <button onclick="restartStage()">처음부터(R)</button>
+  <button onclick="restartStage()">처음부터</button>
 </div>
 
 <div id="msg"></div>
 <div id="timer">경과 시간: 0초</div>
+<br>
+<div style="font-size: 18px;">
+    ◈ 키보드<br>
+    앞으로: ↑, 우회전: →, 처음부터: R
+</div>
 
 <script>
 let width, height;
