@@ -1,527 +1,250 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <!-- user-scalable=yes와 maximum-scale을 추가하여 두 손가락 줌을 명시적으로 허용 -->
-  <meta name="viewport" content="width=device-width, initial-scale=0.90, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=0.90, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
+<title>기묘한 계산기</title>
+<style>
+body{
+  display:flex;flex-direction:column;align-items:center;
+  margin:0;padding:20px;font-family:Arial,sans-serif;
+}
+h2{margin-bottom:10px}
 
-  <title>좌회전 금지 미로</title>
-  <style>
-    body {
-      /* 추가된 속성: 더블 탭 확대는 막고, 핀치 줌(두 손가락)과 스크롤은 허용합니다 */
-      touch-action: manipulation; 
-      
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      background: #f0f0f0;
-    }
+/* 단계 버튼 */
+#level-selector{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:6px;max-width:460px;margin-bottom:20px;
+}
+#level-selector button{
+  height:40px;font-size:14px;border-radius:5px;
+  border:1px solid #ccc;background:#fff;cursor:pointer;
+}
+#level-selector button.active{background:#007BFF;color:#fff;font-weight:bold;}
+#level-selector button.success{background:#28a745;color:#fff;font-weight:bold;}
 
+/* 화면 */
+#display{
+  max-width:420px;width:100%;
+  border:2px solid #007BFF;border-radius:8px;
+  padding:15px;font-size:18px;background:#f0f8ff;
+}
+#history{
+  min-height:90px;border-top:1px dashed #aaa;
+  margin-top:10px;padding-top:8px;font-size:16px;
+}
 
-    .stage-buttons {
-      margin-bottom: 6px;
-    }
+/* 메시지 */
+#success-msg{margin-top:12px;font-weight:bold;color:#28a745;display:none;text-align:center;font-size:20pt;}
+#fail-msg{margin-top:12px;font-weight:bold;color:#dc3545;display:none;text-align:center;font-size:18pt;}
 
-    .stage-buttons button {
-      margin: 0 5px;
-      padding: 8px 14px;
-      font-size: 15px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+/* 버튼 */
+.button-row{display:flex;gap:10px;justify-content:center;margin-top:10px;width: 500px;}
+button.calc{
+  width:90px;height:45px;font-size:17px;border:none;border-radius:5px;cursor:pointer;
+}
+button.calc:disabled{opacity:0.4;cursor:not-allowed;}
+.op{background:#28A745;color:#fff;}
+.util{background:#6c757d;color:#fff;}
+.next{background:#007BFF;color:#fff;}
+.retry{background:#dc3545;color:#fff;}
 
-    .stage-buttons button:hover {
-      background-color: #0056b3;
-    }
-
-    #stageMsg {
-      margin-bottom: 12px;
-      font-size: 17px;
-      font-weight: 600;
-      color: #333;
-      height: 22px;
-    }
-
-    .map {
-      display: grid;
-      gap: 0;
-      position: relative;
-      user-select: none;
-      background-color: #fff;
-      border: 3px solid #007bff;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-    }
-
-    .cell {
-      position: relative;
-      background: white;
-      border: 0px solid #ccc;
-      box-sizing: border-box;
-      width: 50px;
-      height: 50px;
-    }
-
-    .cell .dir {
-      position: absolute;
-      background: #333;
-    }
-
-    .cell .up {
-      top: 0;
-      left: 50%;
-      width: 8px;
-      height: 28px;
-      transform: translateX(-50%);
-    }
-
-    .cell .down {
-      bottom: 0;
-      left: 50%;
-      width: 8px;
-      height: 28px;
-      transform: translateX(-50%);
-    }
-
-    .cell .left {
-      left: 0;
-      top: 50%;
-      width: 28px;
-      height: 8px;
-      transform: translateY(-50%);
-    }
-
-    .cell .right {
-      right: 0;
-      top: 50%;
-      width: 28px;
-      height: 8px;
-      transform: translateY(-50%);
-    }
-
-    .label {
-      position: absolute;
-      bottom: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 12px;
-      font-weight: bold;
-      color: #444;
-      user-select: none;
-      z-index: 0;
-    }
-
-    .unit {
-      position: absolute;
-      top: 13px;
-      left: 13px;
-      width: 24px;
-      height: 24px;
-      transition: top 0.3s, left 0.3s, transform 0.3s;
-      transform-origin: center center;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    .triangle {
-      width: 0;
-      height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-bottom: 24px solid #007bff;
-    }
-
-    .controls {
-      margin-top: 15px;
-    }
-
-    .controls button {
-      margin: 0 5px;
-      padding: 6px 16px;
-      font-size: 15px;
-      height: 50px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .controls button:disabled {
-      background: #aaa;
-      cursor: default;
-    }
-
-    #msg {
-      margin-top: 12px;
-      font-size: 18px;
-      color: green;
-      font-weight: bold;
-      height: 24px;
-      user-select: none;
-    }
-
-    #timer {
-      margin-top: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      user-select: none;
-    }
-
-    .stage-buttons button.active {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .stage-buttons button.inactive {
-      background-color: #ccc;
-      color: #ffffff;
-    }
-
-    .stage-buttons button.cleared {
-      background-color: #4caf50 !important;
-      color: #fff !important;
-    }
-  </style>
+/* 설명 */
+#game-desc{
+  max-width:500px;margin-top:25px;padding-top:15px;
+  border-top:1px solid #ccc;font-size:14px;color:#333;line-height:1.6;
+}
+</style>
 </head>
+
 <body>
 
-<div class="stage-buttons">
-  <button onclick="loadStage(1)">1단계</button>
-  <button onclick="loadStage(2)">2단계</button>
-  <button onclick="loadStage(3)">3단계</button>
-</div>
-<br>
-<!-- <div id="stageMsg">1단계 게임중입니다</div> -->
-<div class="map" id="map"></div>
-<br>
-<div class="controls">
-  <button id="btnForward" onclick="moveForward()">앞으로</button>
-  <button id="btnTurn" onclick="rotateRight()">우회전</button>
-  <!-- <button onclick="undoMove()">되돌리기</button> -->
-  <button onclick="restartStage()">처음부터</button>
+<h2>기묘한 계산기</h2>
+
+<div id="level-selector"></div>
+
+<div id="display">
+  <div id="stage-info"></div>
+  <div id="current-value"></div>
+  <div id="history"></div>
 </div>
 
-<div id="msg"></div>
-<div id="timer">경과 시간: 0초</div>
-<br>
-<div style="font-size: 18px;">
-    ◈ 키보드<br>
-    앞으로: ↑, 우회전: →, 처음부터: R
+<div id="success-msg">성공하였습니다.</div>
+<div id="fail-msg">실패하였습니다.</div>
+
+<!-- 연산 버튼 -->
+<div class="button-row">
+  <button class="calc op" onclick="applyOp('+',7)">+7</button>
+  <button class="calc op" onclick="applyOp('×',3)">×3</button>
+  <button class="calc op" onclick="applyOp('−',11)">−11</button>
+  <button class="calc op" onclick="applyOp('÷',2)">÷2</button>
 </div>
+
+<!-- 기능 버튼 (요청한 순서) -->
+<div class="button-row">
+  <button class="calc util" onclick="clearValue()">C</button>
+  <button class="calc util" onclick="undo()">←</button>
+  <button id="nextBtn" class="calc next" onclick="goNext()" disabled>다음 단계</button>
+  <button id="retryBtn" class="calc retry" onclick="retry()" style="display:none;">재도전</button>
+</div>
+
+<!-- 게임 설명 -->
+<div id="game-desc">
+  <b>게임 설명</b><br>
+  시작 숫자에서 계산 버튼을 사용하여 목표 숫자를 만들어 보세요.<br>
+  각 단계마다 사용할 수 있는 버튼 횟수가 제한되어 있습니다.<br>
+  제한 횟수 안에 목표 숫자를 만들면 성공, 초과하면 실패합니다.<br>
+  키보드 입력도 사용할 수 있습니다.
+</div>
+<br>
+    <div style="font-size: 15px;">
+        ◈ 키보드<br>
+        +7 : 숫자 1,
+        ×3 : 숫자 2,
+        -11 : 숫자 3,
+        ÷2 : 숫자 4<br>
+        C (초기화): C, Esc<br>
+        ←: Backspace<br>
+        다음 단계: Space<br>
+        재도전: R
+    </div>
 
 <script>
-let width, height;
-const mapEl = document.getElementById('map');
-const stageMsg = document.getElementById('stageMsg');
-const msgEl = document.getElementById('msg');
-const timerEl = document.getElementById('timer');
-
-const delta = { up: [-1, 0], right: [0, 1], down: [1, 0], left: [0, -1] };
-const opp = { up: 'down', down: 'up', left: 'right', right: 'left' };
-const dirs = ['up', 'right', 'down', 'left'];
-
-let configStages = {
-    1: {
-    width: 7,
-    height: 7,
-    start: [6, 5],
-    goal: [6, 1],
-    grid: [
-      ['DR','DLR','DLR','LR','DLR','LR','DL'],
-      ['UD','UDR','UDLR','LR','ULR','DLR','UDL'],
-      ['UD','UD','UR','DLR','DLR','UDL','UD'],
-      ['UR','UDLR','LR','UDLR','UL','UD','UD'],
-      ['','UDR','LR','ULR','DLR','UDL','UD'],
-      ['','UDR','LR','LR','ULR','UDLR','UL'],
-      ['','UD','','','','UD',''],
-      ['','','','','','','']
-    ]
-  },
-  
-    2: {
-    width: 7,
-    height: 7,
-    start: [6, 5],
-    goal: [6, 2],
-    grid: [
-      ['RD','DLR','LR','LR','DLR','LR','LD'],
-      ['UD','UDR','LR','DLR','ULR','DLR','UDL'],
-      ['UDR','UDLR','DLR','UDLR','DLR','UDL','UD'],
-      ['UD','UDR','UDL','UD','UDR','UDLR','UL'],
-      ['UR','UL','UDR','ULR','UDL','UD',''],
-      ['','','UDR','LR','ULR','UDL',''],
-      ['','','UD','','','UD','']
-    ]
-  },
-
-  3: {
-    width: 8,
-    height: 9,
-    start: [8, 0],
-    goal: [8, 3],
-    grid: [
-      ['DR','DLR','LR','LR','DLR','DL','DR','DL'],
-      ['UR','UDLR','DLR','DLR','UDL','UDR','ULR','UDL'],
-      ['DR','ULR','UDLR','UDL','UDR','UDLR','DL','UD'],
-      ['UD','DR','UDLR','UDLR','UDL','UDR','ULR','UDL'],
-      ['UDR','UDLR','UL','UDR','ULR','ULR','DL','UD'],
-      ['UD','UDR','DLR','ULR','DLR','DLR','UDLR','UL'],
-      ['UDR','UL','UDR','DLR','UDLR','UDLR','UDLR','DL'],
-      ['UD','','UR','UDLR','UL','UR','ULR','UL'],
-      ['UD','','','UD','','','','']
-    ]
-  }
+/* -------- 단계 데이터 -------- */
+const stages={
+  1:{start:5,end:6,limit:2}, 2:{start:6,end:7,limit:2}, 3:{start:12,end:13,limit:2},
+  4:{start:13,end:14,limit:3},5:{start:19,end:20,limit:3},6:{start:26,end:27,limit:3},
+  7:{start:4,end:5,limit:4}, 8:{start:30,end:31,limit:4}, 9:{start:47,end:48,limit:4},
+  10:{start:61,end:62,limit:5},11:{start:69,end:70,limit:5},12:{start:87,end:88,limit:5},
+  13:{start:42,end:43,limit:6},14:{start:60,end:61,limit:6},15:{start:75,end:76,limit:6},
+  16:{start:117,end:118,limit:7},17:{start:127,end:128,limit:7},18:{start:139,end:140,limit:7}
 };
 
-let start, goal, configGrid, cellDirs;
-let unit, tri, uy, ux, dirIdx = 0;
-let moveStack = [];
-let currentStage = 1;
+/* -------- 상태 -------- */
+let currentStage=1, value=0, history=[];
+let successStages=new Set();
+let failCounts={};
+let locked=false;
 
-// 성공한 단계 저장
-let clearedStages = new Set();
+/* -------- UI -------- */
+const levelBox=document.getElementById('level-selector');
+const nextBtn=document.getElementById('nextBtn');
+const retryBtn=document.getElementById('retryBtn');
+const calcButtons=document.querySelectorAll('.calc.op, .calc.util');
 
-let timer = null;
-let timeSec = 0;
-let hasStarted = false;
+for(let i=1;i<=18;i++){
+  failCounts[i]=0;
+  const b=document.createElement('button');
+  b.onclick=()=>startStage(i);
+  levelBox.appendChild(b);
+}
+updateButtons();
 
-const btnForward = document.getElementById('btnForward');
-const btnTurn = document.getElementById('btnTurn');
-
-function startTimer() {
-  clearInterval(timer);
-  timeSec = 0;
-  timerEl.textContent = `경과 시간: 0.00초`;
-  timer = setInterval(() => {
-    timeSec += 0.01;
-    timerEl.textContent = `경과 시간: ${timeSec.toFixed(2)}초`;
-  }, 10);
+/* -------- 게임 로직 -------- */
+function startStage(n){
+  currentStage=n;
+  value=stages[n].start;
+  history=[];
+  locked=false;
+  nextBtn.disabled=true;
+  retryBtn.style.display='none';
+  document.getElementById('success-msg').style.display='none';
+  document.getElementById('fail-msg').style.display='none';
+  setCalcDisabled(false);
+  updateButtons();
+  render();
 }
 
-function stopTimer() {
-  clearInterval(timer);
+function retry(){ startStage(currentStage); }
+
+function applyOp(op,num){
+  if(locked) return;
+  const before=value;
+  if(op==='+') value+=num;
+  if(op==='×') value*=num;
+  if(op==='−') value-=num;
+  if(op==='÷') value/=num;
+  history.push({before,op,num,after:value});
+  checkSuccess(); checkFail(); render();
 }
 
-function updateStageButtonStates() {
-  // 버튼 상태 업데이트
-  document.querySelectorAll('.stage-buttons button').forEach(btn => {
-    btn.classList.remove('active', 'inactive', 'cleared');
-    const btnNum = parseInt(btn.textContent);
-    if (btnNum === currentStage) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.add('inactive');
-    }
-    if (clearedStages.has(btnNum)) {
-      btn.classList.add('cleared');
-    }
+function clearValue(){
+  if(locked) return;
+  value=stages[currentStage].start;
+  history=[]; render();
+}
+
+function undo(){
+  if(locked) return;
+  if(history.length>0) value=history.pop().before;
+  render();
+}
+
+function checkSuccess(){
+  if(value===stages[currentStage].end){
+    successStages.add(currentStage);
+    locked=true; setCalcDisabled(true);
+    nextBtn.disabled=(currentStage===18);
+    document.getElementById('success-msg').style.display='block';
+    updateButtons();
+  }
+}
+
+function checkFail(){
+  const limit=stages[currentStage].limit;
+  if(history.length>=limit && value!==stages[currentStage].end){
+    failCounts[currentStage]++;
+    locked=true; setCalcDisabled(true);
+    nextBtn.disabled=true;
+    retryBtn.style.display='inline-block';
+    document.getElementById('fail-msg').style.display='block';
+    updateButtons();
+  }
+}
+
+function goNext(){
+  if(!nextBtn.disabled && currentStage<18) startStage(currentStage+1);
+}
+
+/* -------- 화면 -------- */
+function render(){
+  const s=stages[currentStage];
+  document.getElementById('stage-info').innerHTML=
+    `단계 ${currentStage} | 시작 ${s.start} → 목표 ${s.end} (버튼 ${s.limit}개 사용)`;
+  document.getElementById('current-value').innerHTML=`현재 값 : <b>${value}</b>`;
+  document.getElementById('history').innerHTML=
+    history.map((h,i)=>`${i+1}. ${h.before}${h.op}${h.num} = ${h.after}`).join("<br>");
+}
+
+function updateButtons(){
+  [...levelBox.children].forEach((b,i)=>{
+    const n=i+1, f=failCounts[n];
+    b.textContent = f>0 ? `${n}단계(${f})` : `${n}단계`;
+    b.classList.toggle('active',n===currentStage);
+    b.classList.toggle('success',successStages.has(n));
   });
 }
 
-function updateButtonState() {
-  const canGo = canMoveForward();
-  const canTurnAndGo = canTurnAndMove();
+function setCalcDisabled(flag){ calcButtons.forEach(b=>b.disabled=flag); }
 
-  btnForward.disabled = !canGo;
-  btnTurn.disabled = !canTurnAndGo;
+/* -------- 키보드 입력 -------- */
+document.addEventListener('keydown',(e)=>{
+  if(e.repeat) return;
+  const k=e.key;
+  if(['1','2','3','4',' ','Backspace','Escape','c','C','r','R'].includes(k)) e.preventDefault();
 
-  if (!canGo && !canTurnAndGo && !(uy === goal[0] && ux === goal[1])) {
-    msgEl.textContent = '🔴 실패했습니다.';
-    stopTimer();
-  } else {
-    if (!(uy === goal[0] && ux === goal[1])) {
-      msgEl.textContent = '';
-    }
-  }
-}
-
-function canTurnAndMove() {
-  const newDir = (dirIdx + 1) % 4;
-  const [dy, dx] = delta[dirs[newDir]];
-  const ny = uy + dy, nx = ux + dx;
-  if (ny < 0 || ny >= height || nx < 0 || nx >= width) return false;
-  return cellDirs[uy][ux].includes(dirs[newDir]) && cellDirs[ny][nx].includes(opp[dirs[newDir]]);
-}
-
-function loadStage(stageNum) {
-  btnForward.disabled = false;
-  btnTurn.disabled = true;
-  currentStage = stageNum;
-  msgEl.textContent = '';
-  mapEl.innerHTML = '';
-  moveStack = [];
-  hasStarted = false;
-  stopTimer();
-  timerEl.textContent = `경과 시간: 0초`;
-
-  updateStageButtonStates();
-
-  const stage = configStages[stageNum];
-  width = stage.width;
-  height = stage.height;
-  start = stage.start;
-  goal = stage.goal;
-  configGrid = stage.grid;
-
-  // 맵 CSS 그리드 사이즈 조정
-  mapEl.style.gridTemplateColumns = `repeat(${width}, 50px)`;
-  mapEl.style.gridTemplateRows = `repeat(${height}, 50px)`;
-
-  cellDirs = Array.from({ length: height }, () => Array(width).fill([]));
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const cfg = (configGrid[y] && configGrid[y][x]) || '';
-      cellDirs[y][x] = cfg ? cfg.split('').map(ch => {
-        if (ch === 'U') return 'up';
-        if (ch === 'D') return 'down';
-        if (ch === 'L') return 'left';
-        if (ch === 'R') return 'right';
-      }) : [];
-    }
-  }
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-
-      cellDirs[y][x].forEach(d => {
-        const dirDiv = document.createElement('div');
-        dirDiv.className = `dir ${d}`;
-        cell.appendChild(dirDiv);
-      });
-
-      if (y === start[0] && x === start[1]) {
-        const lbl = document.createElement('div');
-        lbl.className = 'label';
-        lbl.textContent = '출발';
-        cell.appendChild(lbl);
-      }
-      if (y === goal[0] && x === goal[1]) {
-        const lbl = document.createElement('div');
-        lbl.className = 'label';
-        lbl.textContent = '도착';
-        cell.appendChild(lbl);
-      }
-
-      mapEl.appendChild(cell);
-    }
-  }
-
-  if (unit && unit.parentNode) unit.parentNode.removeChild(unit);
-  unit = document.createElement('div');
-  unit.className = 'unit';
-  tri = document.createElement('div');
-  tri.className = 'triangle';
-  unit.appendChild(tri);
-  uy = start[0];
-  ux = start[1];
-  dirIdx = 0;
-  mapEl.children[uy * width + ux].appendChild(unit);
-  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
-
-  stageMsg.textContent = `${stageNum}단계 게임중입니다`;
-
-  updateButtonState();
-}
-
-function canMoveForward() {
-  const d = dirs[dirIdx];
-  const [dy, dx] = delta[d];
-  const ny = uy + dy, nx = ux + dx;
-  if (ny < 0 || ny >= height || nx < 0 || nx >= width) return false;
-  return cellDirs[uy][ux].includes(d) && cellDirs[ny][nx].includes(opp[d]);
-}
-
-function moveForward() {
-  if (!canMoveForward()) return;
-
-  if (!hasStarted) {
-    startTimer();
-    hasStarted = true;
-  }
-
-  const d = dirs[dirIdx];
-  const [dy, dx] = delta[d];
-  const ny = uy + dy, nx = ux + dx;
-
-  moveStack.push([uy, ux, dirIdx]);
-  mapEl.children[uy * width + ux].removeChild(unit);
-  uy = ny;
-  ux = nx;
-  mapEl.children[uy * width + ux].appendChild(unit);
-
-  if (uy === goal[0] && ux === goal[1]) {
-    msgEl.textContent = '🟢 성공! 도착했습니다!';
-    stopTimer();
-    btnForward.disabled = true;
-    btnTurn.disabled = true;
-    // 성공한 단계 기록 및 버튼 색상 갱신
-    clearedStages.add(currentStage);
-    updateStageButtonStates();
-  } else {
-    updateButtonState();
-  }
-}
-
-function rotateRight() {
-  if (!canTurnAndMove()) return;
-
-  if (!hasStarted) {
-    startTimer();
-    hasStarted = true;
-  }
-
-  // 현재 상태 저장
-  moveStack.push([uy, ux, dirIdx]); // 회전 전 상태 저장
-
-  dirIdx = (dirIdx + 1) % 4;
-  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
-
-  // 전진 가능한 경우에만 자동 이동
-  if (canMoveForward()) {
-    moveForward(); // moveForward도 스택에 push함
-  } else {
-    updateButtonState(); // 회전만 하고 이동 안 되는 경우
-  }
-}
-
-function undoMove() {
-  if (moveStack.length === 0) return;
-
-  const [py2, px2, pd2] = moveStack.pop(); // 마지막 moveForward 또는 rotateRight 이전 상태
-  if (mapEl.children[uy * width + ux].contains(unit))
-    mapEl.children[uy * width + ux].removeChild(unit);
-
-  uy = py2;
-  ux = px2;
-  dirIdx = pd2;
-
-  mapEl.children[uy * width + ux].appendChild(unit);
-  tri.style.transform = `rotate(${dirIdx * 90}deg)`;
-
-  updateButtonState();
-}
-
-function restartStage() {
-  loadStage(currentStage);
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowUp') moveForward();
-  if (e.key === 'ArrowRight') rotateRight();
-  if (e.key === 'R') restartStage();
-  if (e.key === 'r') restartStage();
+  if(k==='1') applyOp('+',7);
+  if(k==='2') applyOp('×',3);
+  if(k==='3') applyOp('−',11);
+  if(k==='4') applyOp('÷',2);
+  if(k==='Backspace') undo();
+  if(k==='Escape' || k==='c' || k==='C') clearValue();
+  if(k===' ') goNext();
+  if(k==='r' || k==='R') retry();
 });
 
-loadStage(1);
+/* 시작 */
+startStage(1);
 </script>
 
 </body>
