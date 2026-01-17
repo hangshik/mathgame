@@ -2,10 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=0.95">
+  <!-- user-scalable=yes와 maximum-scale을 추가하여 두 손가락 줌을 명시적으로 허용 -->
+  <meta name="viewport" content="width=device-width, initial-scale=0.90, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
+
   <title>좌회전 금지 미로</title>
   <style>
     body {
+      /* 추가된 속성: 더블 탭 확대는 막고, 핀치 줌(두 손가락)과 스크롤은 허용합니다 */
+      touch-action: manipulation; 
+      
       font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
@@ -13,6 +18,7 @@
       padding: 20px;
       background: #f0f0f0;
     }
+
 
     .stage-buttons {
       margin-bottom: 6px;
