@@ -20,7 +20,45 @@
           display: grid;
           gap:10px;
       }
-      .row{
+            /* ✅ 수정된 style */
+      
+      /* 줄(Row) 정렬: Flexbox 사용 */
+      .row {
+          display: flex;       
+          justify-content: center; 
+          width: 100%;        
+      }
+
+      /* 칸(Column) 스타일 */
+      .column {
+          /* 1. 디자인 공통 설정 */
+          background-color: #DDDDDD;
+          margin: -3px 2px -3px 2px;    
+          border-radius: 5px;
+          user-select: none;
+          cursor: pointer;
+          
+          /* 2. 텍스트 정중앙 정렬 (line-height 대신 flex 사용) */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          /* 3. PC 기본 설정 (수정 전과 동일한 고정 크기) */
+          width: 70px;
+          height: 70px;
+          font-size: 30px;
+      }
+
+      /* ✅ 핵심: 모바일 전용 설정 (화면 너비가 768px 이하일 때만 적용) */
+      @media (max-width: 768px) {
+          .column {
+              width: 16vw;       /* 모바일에서는 화면의 16% 크기로 변경 */
+              height: 16vw;      /* 정사각형 유지 */
+              font-size: 8vw;    /* 글자 크기도 화면에 맞춰 조절 */
+          }
+      }
+
+      /* .row{
           float: left;
       }
       .column{
@@ -36,7 +74,7 @@
           line-height: 60px;
           font-size: 30px;
           cursor: pointer;
-      }
+      } */
       #result1 {
           white-space: pre-line;
       }
@@ -59,10 +97,10 @@
 </head>
 <body>
     <!-- ✅ 단계 버튼 영역 (화면 가장 위) -->
-    <center id="stageButtons" class="stage-buttons">
-        <button data-hearts="0" onclick="setHearts(0)">하트 0개</button>
-        <button data-hearts="3" onclick="setHearts(3)">하트 3개</button>
-        <button data-hearts="5" onclick="setHearts(5)">하트 5개</button>
+    <center id="stageButtons" class="stage-buttons">하트: 
+        <button data-hearts="0" onclick="setHearts(0)">0개</button>
+        <button data-hearts="3" onclick="setHearts(3)">3개</button>
+        <button data-hearts="5" onclick="setHearts(5)">5개</button>
     </center>
 
     <center>
