@@ -18,8 +18,8 @@
             --color-error: #ff8787;
             --color-active: #228be6;
             --color-count-text: #868e96;
-            --color-count-correct: #40c057; /* 정답일 때 녹색 */
-            --color-count-excess: #fa5252; /* 초과일 때 빨간색 */
+            --color-count-correct: #40c057; 
+            --color-count-excess: #fa5252; 
             --cell-size: 0px; 
         }
 
@@ -119,18 +119,13 @@
         
         .count-cell {
             display: flex; align-items: center; justify-content: center;
-            /* [수정] 글자 크기 18px -> 24px로 확대 */
             font-size: 24px; 
             font-weight: 700;
             color: var(--color-count-text);
             opacity: 0; transition: opacity 0.2s, color 0.2s;
         }
         .count-cell.visible { opacity: 1; }
-        
-        /* [기존] 정답 시 녹색 */
         .count-cell.correct { color: var(--color-count-correct); font-weight: 800; }
-        
-        /* [추가] 초과 시 빨간색 */
         .count-cell.excess { color: var(--color-count-excess); font-weight: 900; }
 
         .cell {
@@ -161,10 +156,13 @@
             box-shadow: 0 -4px 15px rgba(0,0,0,0.03); margin-bottom: 15px; box-sizing: border-box;
         }
         .palette-label { font-size: 17px; color: #555; margin-bottom: 12px; font-weight: bold; }
+        
+        /* [수정] touch-action: none 추가로 모바일 스크롤 방지 */
         .palette-shape-container {
             display: flex; justify-content: center; align-items: center;
             width: 80px; height: 80px; cursor: pointer;
             transition: transform 0.1s; padding: 5px; border-radius: 8px;
+            touch-action: none; 
         }
         .palette-shape-container:active { transform: scale(0.95); background-color: #f1f3f5; }
 
@@ -602,7 +600,6 @@
                 const div = document.createElement('div');
                 div.className = 'count-cell' + (showCounts ? ' visible' : '');
                 
-                // [수정] 정답/초과 체크
                 if (rowSums[r] === targetPerRow) div.classList.add('correct');
                 else if (rowSums[r] > targetPerRow) div.classList.add('excess');
 
@@ -615,7 +612,6 @@
                 const div = document.createElement('div');
                 div.className = 'count-cell' + (showCounts ? ' visible' : '');
                 
-                // [수정] 정답/초과 체크
                 if (colSums[c] === targetPerCol) div.classList.add('correct');
                 else if (colSums[c] > targetPerCol) div.classList.add('excess');
 
