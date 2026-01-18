@@ -6,14 +6,20 @@
     <title>매직 필(Magic Fill)</title>
     <style>
         :root {
-            --board-size: 5;
+            --board-rows: 5;
+            --board-cols: 5;
+            
             --color-bg: #f8f9fa;
             --color-cell-empty: #ffffff;
             --color-shape: #4dabf7;
             --color-shape-fixed: #339af0;
+            --color-shape-border: #1864ab;
             --color-preview: rgba(77, 171, 247, 0.4);
             --color-error: #ff8787;
             --color-active: #228be6;
+            --color-count-text: #868e96;
+            --color-count-correct: #40c057; /* 정답일 때 녹색 */
+            --color-count-excess: #fa5252; /* 초과일 때 빨간색 */
             --cell-size: 0px; 
         }
 
@@ -41,222 +47,168 @@
             align-items: center;
             width: 100%;
             max-width: 500px;
-            height: auto; 
         }
 
         .level-panel {
-            background: white;
-            padding: 15px;
-            border-radius: 16px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            width: 100%;
-            box-sizing: border-box;
+            background: white; padding: 15px; border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
+            width: 100%; box-sizing: border-box;
         }
-        .level-buttons {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-        }
+        .level-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .level-btn {
-            padding: 10px 0;
-            background-color: #fff;
-            color: #555;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 15px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            min-height: 50px;
+            padding: 10px 0; background-color: #fff; color: #555;
+            border: 1px solid #dee2e6; border-radius: 10px; cursor: pointer;
+            font-weight: 700; font-size: 15px; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.2s; min-height: 50px;
         }
         .level-btn:hover { background-color: #f1f3f5; }
         .level-btn.active {
-            background-color: var(--color-active);
-            color: white;
+            background-color: var(--color-active); color: white;
             border-color: var(--color-active);
-            box-shadow: 0 4px 10px rgba(34,139,230,0.3);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(34,139,230,0.3); transform: translateY(-2px);
         }
         .level-btn.cleared { background-color: #40c057; border-color: #2f9e44; color: white; }
-        
-        .lvl-record {
-            font-size: 11px;
-            font-weight: normal;
-            margin-top: 2px;
-            opacity: 0.9;
-        }
+        .lvl-record { font-size: 11px; font-weight: normal; margin-top: 2px; opacity: 0.9; }
 
         .game-info-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-            box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; margin-bottom: 20px; background: white;
+            padding: 15px 20px; border-radius: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); box-sizing: border-box;
         }
-        
         .info-left { display: flex; flex-direction: column; width: 30%; }
         .info-title { font-weight: 800; font-size: 20px; margin-bottom: 4px; color: #333; }
         .info-sub { font-size: 15px; color: #666; font-weight: 600; }
-
         .info-center {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40%;
-            font-size: 28px; 
-            font-weight: 800;
-            color: var(--color-active);
-            font-family: 'Pretendard', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            width: 40%; font-size: 28px; font-weight: 800; color: var(--color-active);
         }
         .info-center.full { color: #2b8a3e; }
-
         .info-right { display: flex; justify-content: flex-end; width: 30%; }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #333; }
 
         .game-board-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
+            margin-bottom: 20px; width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 30px; 
+            grid-template-rows: auto 30px;
+            gap: 5px; justify-items: center; align-items: center;
         }
+
         .game-board {
+            grid-column: 1 / 2; grid-row: 1 / 2;
             display: grid; 
-            grid-template-columns: repeat(var(--board-size), 1fr);
-            grid-template-rows: repeat(var(--board-size), 1fr);
-            border: 2px solid #adb5bd;
-            background-color: #adb5bd; 
-            gap: 1px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            width: 100%;
-            aspect-ratio: 1;
-            touch-action: none; 
+            grid-template-columns: repeat(var(--board-cols), 1fr);
+            grid-template-rows: repeat(var(--board-rows), 1fr);
+            border: 2px solid #adb5bd; background-color: #adb5bd; 
+            gap: 1px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            width: 100%; touch-action: none; 
         }
+
+        .counts-col {
+            grid-column: 1 / 2; grid-row: 2 / 3;
+            width: 100%; height: 100%; display: grid;
+            grid-template-columns: repeat(var(--board-cols), 1fr); gap: 1px;
+        }
+        .counts-row {
+            grid-column: 2 / 3; grid-row: 1 / 2;
+            height: 100%; width: 100%; display: grid;
+            grid-template-rows: repeat(var(--board-rows), 1fr); gap: 1px;
+        }
+        
+        .count-cell {
+            display: flex; align-items: center; justify-content: center;
+            /* [수정] 글자 크기 18px -> 24px로 확대 */
+            font-size: 24px; 
+            font-weight: 700;
+            color: var(--color-count-text);
+            opacity: 0; transition: opacity 0.2s, color 0.2s;
+        }
+        .count-cell.visible { opacity: 1; }
+        
+        /* [기존] 정답 시 녹색 */
+        .count-cell.correct { color: var(--color-count-correct); font-weight: 800; }
+        
+        /* [추가] 초과 시 빨간색 */
+        .count-cell.excess { color: var(--color-count-excess); font-weight: 900; }
 
         .cell {
-            background-color: var(--color-cell-empty);
-            position: relative;
-            box-sizing: border-box;
+            background-color: var(--color-cell-empty); position: relative;
+            box-sizing: border-box; aspect-ratio: 1; 
+            border: 0px solid var(--color-shape-border);
         }
-        .cell.shape {
-            background-color: var(--color-shape);
-            border-radius: 4px;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-        }
-        .cell.fixed {
-            background-color: var(--color-shape-fixed);
-        }
+        .cell.b-top { border-top-width: 2px; }
+        .cell.b-bottom { border-bottom-width: 2px; }
+        .cell.b-left { border-left-width: 2px; }
+        .cell.b-right { border-right-width: 2px; }
+
+        .cell.shape { background-color: var(--color-shape); }
+        .cell.fixed { background-color: var(--color-shape-fixed); }
         .cell.fixed::after {
-            content: '🔒';
-            position: absolute;
-            font-size: 14px;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.6;
+            content: '🔒'; position: absolute; font-size: 14px;
+            top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.6;
         }
-        .cell.error { background-color: var(--color-error) !important; }
+        .cell.error { background-color: var(--color-error) !important; border-color: #c92a2a !important; }
         
-        .cell.preview-valid {
-            background-color: var(--color-preview);
-            box-shadow: inset 0 0 0 3px var(--color-active);
-        }
-        .cell.preview-invalid {
-            background-color: rgba(255, 135, 135, 0.4);
-            box-shadow: inset 0 0 0 3px var(--color-error);
-        }
+        .cell.preview-valid { background-color: var(--color-preview); box-shadow: inset 0 0 0 3px var(--color-active); }
+        .cell.preview-invalid { background-color: rgba(255, 135, 135, 0.4); box-shadow: inset 0 0 0 3px var(--color-error); }
 
         .palette-area {
-            width: 100%;
-            background: white;
-            border-radius: 16px;
-            padding: 15px;
-            min-height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            touch-action: none; 
+            width: 100%; background: white; border-radius: 16px; padding: 15px;
+            min-height: 110px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03); margin-bottom: 15px; box-sizing: border-box;
         }
-        .palette-label {
-            font-size: 17px; color: #555; margin-bottom: 12px; font-weight: bold;
-        }
+        .palette-label { font-size: 17px; color: #555; margin-bottom: 12px; font-weight: bold; }
         .palette-shape-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 80px;
-            height: 80px;
-            cursor: pointer;
-            transition: transform 0.1s;
-            padding: 5px;
-            border-radius: 8px;
+            display: flex; justify-content: center; align-items: center;
+            width: 80px; height: 80px; cursor: pointer;
+            transition: transform 0.1s; padding: 5px; border-radius: 8px;
         }
         .palette-shape-container:active { transform: scale(0.95); background-color: #f1f3f5; }
 
         .ghost-shape {
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.7;
-            display: grid;
-            gap: 1px;
+            position: fixed; pointer-events: none; z-index: 9999;
+            opacity: 0.8; display: grid; gap: 1px;
             transform: translate(-50%, -50%);
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
         }
         .ghost-cell {
-            width: 100%; height: 100%;
-            background-color: var(--color-shape);
-            border-radius: 4px;
+            width: 100%; height: 100%; background-color: var(--color-shape);
+            box-sizing: border-box; border: 0px solid var(--color-shape-border);
         }
+        .ghost-cell.b-top { border-top-width: 2px; }
+        .ghost-cell.b-bottom { border-bottom-width: 2px; }
+        .ghost-cell.b-left { border-left-width: 2px; }
+        .ghost-cell.b-right { border-right-width: 2px; }
 
         .mini-grid { display: grid; gap: 2px; }
         .mini-cell { width: 22px; height: 22px; background-color: transparent; }
         .mini-cell.filled { background-color: var(--color-shape); border-radius: 3px; }
 
-        /* 메시지 표시 영역 (신규) */
         .msg-area {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 15px;
-            box-sizing: border-box;
-            display: none;
-            animation: fadeIn 0.2s;
+            width: 100%; padding: 12px; margin-bottom: 10px;
+            border-radius: 8px; text-align: center; font-weight: bold; font-size: 15px;
+            box-sizing: border-box; display: none; animation: fadeIn 0.2s;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* 오류 메시지 스타일 */
-        .msg-error {
-            background-color: #ffebee;
-            color: #d32f2f; /* 붉은색 텍스트 */
-            border: 1px solid #ffcdd2;
-        }
-        /* 일반 알림 스타일 (파란색 계열) */
-        .msg-info {
-            background-color: #e3f2fd;
-            color: #1976d2;
-            border: 1px solid #bbdefb;
-        }
+        .msg-error { background-color: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; }
+        .msg-info { background-color: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
 
-        .controls { display: flex; gap: 10px; width: 100%; margin-bottom: 30px; }
+        .controls {
+            display: flex; align-items: center; gap: 15px;
+            width: 100%; margin-bottom: 30px;
+        }
+        .chk-wrapper {
+            display: flex; align-items: center; background: white;
+            padding: 0 15px; height: 52px; border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 600;
+            color: #555; cursor: pointer; user-select: none;
+        }
+        .chk-wrapper input {
+            width: 18px; height: 18px; margin-right: 8px; cursor: pointer;
+            accent-color: var(--color-active);
+        }
         .btn-ctrl {
             flex: 1; padding: 15px; border-radius: 12px;
             cursor: pointer; font-weight: 700; font-size: 18px;
@@ -265,38 +217,23 @@
         .btn-reset { background-color: #868e96; }
 
         .rules {
-            font-size: 15px;
-            line-height: 1.6;
-            color: #495057;
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 40px;
+            font-size: 15px; line-height: 1.6; color: #495057;
+            background: white; padding: 20px; border-radius: 16px;
+            width: 100%; box-sizing: border-box; margin-bottom: 40px;
         }
         .rules b { color: #212529; font-size: 16px; }
         .highlight { color: #228be6; font-weight: bold; }
 
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3); display: none;
+            justify-content: center; align-items: center;
+            z-index: 10000; backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            width: 80%;
-            max-width: 280px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            animation: popIn 0.3s;
+            background: white; padding: 30px; border-radius: 20px;
+            text-align: center; width: 80%; max-width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); animation: popIn 0.3s;
         }
         @keyframes popIn {
             from { transform: scale(0.8); opacity: 0; }
@@ -306,16 +243,9 @@
         .modal-record-label { font-size: 14px; color: #555; margin-bottom: 5px; }
         #clearTimeText { font-size: 24px; font-weight: 800; color: #228be6; }
         .btn-modal {
-            background-color: var(--color-active);
-            color: white;
-            border: none;
-            padding: 12px 0;
-            width: 100%;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
+            background-color: var(--color-active); color: white; border: none;
+            padding: 12px 0; width: 100%; border-radius: 10px;
+            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px;
         }
     </style>
 </head>
@@ -333,9 +263,7 @@
                 <span class="info-title" id="levelTitle">Level 1</span>
                 <span class="info-sub" id="gridInfo">5x5</span>
             </div>
-            <div class="info-center" id="countDisplay">
-                0/3
-            </div>
+            <div class="info-center" id="countDisplay">0/3</div>
             <div class="info-right">
                 <div class="timer" id="timer">00:00</div>
             </div>
@@ -343,6 +271,8 @@
 
         <div class="game-board-wrapper">
             <div id="board" class="game-board"></div>
+            <div id="rowCounts" class="counts-row"></div>
+            <div id="colCounts" class="counts-col"></div>
         </div>
 
         <div id="msgArea" class="msg-area"></div>
@@ -352,10 +282,11 @@
             <div class="palette-shape-container" id="paletteShape"></div>
         </div>
 
-        
-        
-
         <div class="controls">
+            <label class="chk-wrapper">
+                <input type="checkbox" id="chkShowCounts" onchange="toggleCounts()">
+                셀 갯수
+            </label>
             <button class="btn-ctrl btn-reset" onclick="resetLevel()">초기화 (Reset)</button>
         </div>
 
@@ -363,7 +294,7 @@
             <b>[게임 규칙]</b><br>
             1. <b>목표:</b> 모양을 배치하여 목표 개수를 채우세요.<br>
             2. <span class="highlight">중요: 각 가로줄과 세로줄에 채워지는 칸의 개수가 모두 동일해야 합니다.</span><br>
-            3. <b>회전:</b> 아래 모양을 <b>클릭</b>하면 회전합니다.<br>
+            3. <b>회전:</b> 모양을 <b>클릭</b>하면 회전합니다.<br>
             4. <b>배치:</b> 드래그하여 격자에 놓으세요.<br>
             5. 모양끼리 겹치거나 격자를 벗어날 수 없습니다.
         </div>
@@ -382,7 +313,7 @@
         const LEVELS = [
             { id: 1, size: 5, target: 4, shape: [[1,1,1], [1,0,1]], fixedPos: { r: 3, c: 2, rot: 0 } },
             { id: 2, size: 6, target: 4, shape: [[0,1,1,0], [1,1,1,1]], fixedPos: { r: 4, c: 1, rot: 0 } },
-            { id: 3, size: 7, target: 4, shape: [[0,0,1,1], [1,1,1,1]], fixedPos: { r: 5, c: 3, rot: 0 } },
+            { id: 3, size: 6, target: 4, shape: [[0,0,1,1], [1,1,1,1]], fixedPos: { r: 4, c: 2, rot: 0 } },
             { id: 4, size: 8, target: 8, shape: [[1,1,1,1],[1,0,0,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
             { id: 5, size: 8, target: 8, shape: [[0,0,1,0], [1,1,1,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
             { id: 6, size: 8, target: 8, shape: [[0,0,0,1,1],[1,1,1,1,1]], fixedPos: { r: 6, c: 1, rot: 0 } },
@@ -392,19 +323,17 @@
         ];
 
         const levelStates = {}; 
-
         let currentLevelIdx = 0;
         let activeShapes = []; 
         let shapeIdCounter = 1;
         let gameActive = false;
+        let showCounts = false; 
         
         let timerInterval = null;
         let currentLevelElapsedTime = 0; 
         let sessionStartTime = 0; 
-
         let paletteRotation = 0; 
 
-        // Drag Vars
         let isDragging = false;
         let dragSource = null; 
         let draggedShapeData = null; 
@@ -412,6 +341,9 @@
         let ghostElement = null;
 
         const boardElement = document.getElementById('board');
+        const rowCountsElement = document.getElementById('rowCounts');
+        const colCountsElement = document.getElementById('colCounts');
+        
         const timerElement = document.getElementById('timer');
         const paletteShape = document.getElementById('paletteShape');
         const paletteLabel = document.getElementById('paletteLabel');
@@ -421,11 +353,26 @@
 
         function init() {
             createLevelButtons();
+            
+            const chk = document.getElementById('chkShowCounts');
+            chk.checked = true;
+            showCounts = true;
+
             loadLevel(0);
             
             document.addEventListener('pointermove', handlePointerMove, { passive: false });
             document.addEventListener('pointerup', handlePointerUp);
             document.addEventListener('pointercancel', handlePointerUp);
+        }
+
+        function toggleCounts() {
+            showCounts = document.getElementById('chkShowCounts').checked;
+            renderBoard();
+        }
+
+        function getDims(level) {
+            if (level.cols && level.rows) return { rows: level.rows, cols: level.cols };
+            return { rows: level.size, cols: level.size };
         }
 
         function createLevelButtons() {
@@ -467,17 +414,18 @@
         function loadLevel(idx) {
             currentLevelIdx = idx;
             const levelData = LEVELS[idx];
-            
+            const dims = getDims(levelData);
+
             document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-lvl-${levelData.id}`).classList.add('active');
             
             document.getElementById('levelTitle').innerText = `${levelData.id}단계`;
-            gridInfo.innerText = `${levelData.size}x${levelData.size}`;
+            gridInfo.innerText = `${dims.cols}x${dims.rows}`;
             
-            document.documentElement.style.setProperty('--board-size', levelData.size);
+            document.documentElement.style.setProperty('--board-cols', dims.cols);
+            document.documentElement.style.setProperty('--board-rows', dims.rows);
+            
             boardElement.style.display = 'grid'; 
-
-            // 레벨 변경 시 메시지 숨김
             hideMessage();
 
             if (levelStates[idx]) {
@@ -582,31 +530,45 @@
 
         function renderBoard() {
             const level = LEVELS[currentLevelIdx];
-            const size = level.size;
+            const dims = getDims(level);
+            const totalCells = dims.rows * dims.cols;
+            
             boardElement.innerHTML = '';
+            rowCountsElement.innerHTML = '';
+            colCountsElement.innerHTML = '';
 
-            const gridMap = new Array(size * size).fill(null);
+            const gridMap = new Array(totalCells).fill(null);
             
             activeShapes.forEach(shape => {
                 const cells = getOccupiedCells(shape);
                 cells.forEach(cell => {
                     if (isValidPos(cell.r, cell.c)) {
-                        const idx = cell.r * size + cell.c;
+                        const idx = cell.r * dims.cols + cell.c;
                         if (gridMap[idx] !== null) gridMap[idx] = 'collision';
                         else gridMap[idx] = shape.id;
                     }
                 });
             });
 
-            for (let i = 0; i < size * size; i++) {
+            // 보드 렌더링
+            for (let i = 0; i < totalCells; i++) {
                 const cellDiv = document.createElement('div');
                 cellDiv.className = 'cell';
                 cellDiv.dataset.idx = i;
                 
                 const val = gridMap[i];
-                if (val === 'collision') cellDiv.classList.add('shape', 'error');
-                else if (val !== null) {
+                const r = Math.floor(i / dims.cols);
+                const c = i % dims.cols;
+
+                if (val === 'collision') {
+                    cellDiv.classList.add('shape', 'error');
+                } else if (val !== null) {
                     cellDiv.classList.add('shape');
+                    if (r === 0 || gridMap[(r-1)*dims.cols + c] !== val) cellDiv.classList.add('b-top');
+                    if (r === dims.rows-1 || gridMap[(r+1)*dims.cols + c] !== val) cellDiv.classList.add('b-bottom');
+                    if (c === 0 || gridMap[r*dims.cols + (c-1)] !== val) cellDiv.classList.add('b-left');
+                    if (c === dims.cols-1 || gridMap[r*dims.cols + (c+1)] !== val) cellDiv.classList.add('b-right');
+
                     const shapeObj = activeShapes.find(s => s.id === val);
                     if (shapeObj && shapeObj.isFixed) cellDiv.classList.add('fixed');
                     else if (shapeObj) cellDiv.onpointerdown = (e) => startDrag(e, 'board', shapeObj, i);
@@ -614,6 +576,51 @@
                 
                 cellDiv.oncontextmenu = (e) => e.preventDefault();
                 boardElement.appendChild(cellDiv);
+            }
+
+            // 목표 개수 계산
+            let cellsPerShape = 0;
+            level.shape.forEach(row => row.forEach(v => { if(v) cellsPerShape++; }));
+            const totalTargetCells = cellsPerShape * level.target;
+            const targetPerRow = totalTargetCells / dims.rows;
+            const targetPerCol = totalTargetCells / dims.cols;
+
+            // 현재 합계 계산
+            const rowSums = new Array(dims.rows).fill(0);
+            const colSums = new Array(dims.cols).fill(0);
+            for (let i = 0; i < totalCells; i++) {
+                if (gridMap[i] !== null) { 
+                    const r = Math.floor(i / dims.cols);
+                    const c = i % dims.cols;
+                    rowSums[r]++;
+                    colSums[c]++;
+                }
+            }
+
+            // 가로 합계 렌더링
+            for(let r=0; r<dims.rows; r++) {
+                const div = document.createElement('div');
+                div.className = 'count-cell' + (showCounts ? ' visible' : '');
+                
+                // [수정] 정답/초과 체크
+                if (rowSums[r] === targetPerRow) div.classList.add('correct');
+                else if (rowSums[r] > targetPerRow) div.classList.add('excess');
+
+                div.innerText = rowSums[r];
+                rowCountsElement.appendChild(div);
+            }
+
+            // 세로 합계 렌더링
+            for(let c=0; c<dims.cols; c++) {
+                const div = document.createElement('div');
+                div.className = 'count-cell' + (showCounts ? ' visible' : '');
+                
+                // [수정] 정답/초과 체크
+                if (colSums[c] === targetPerCol) div.classList.add('correct');
+                else if (colSums[c] > targetPerCol) div.classList.add('excess');
+
+                div.innerText = colSums[c];
+                colCountsElement.appendChild(div);
             }
         }
 
@@ -628,6 +635,7 @@
             dragStartPos = { x: e.clientX, y: e.clientY };
             
             const level = LEVELS[currentLevelIdx];
+            const dims = getDims(level);
 
             if (source === 'palette') {
                 const matrix = getRotatedShape(level.shape, paletteRotation);
@@ -652,9 +660,8 @@
                     originalRot: shapeObj.rot
                 };
                 
-                // 클릭된 셀의 상대 좌표 (Offset)
-                const clickR = Math.floor(cellIdx / level.size);
-                const clickC = cellIdx % level.size;
+                const clickR = Math.floor(cellIdx / dims.cols);
+                const clickC = cellIdx % dims.cols;
                 draggedShapeData.offsetR = clickR - shapeObj.r;
                 draggedShapeData.offsetC = clickC - shapeObj.c;
                 
@@ -674,7 +681,8 @@
             const rows = matrix.length;
             const cols = matrix[0].length;
             const boardRect = boardElement.getBoundingClientRect();
-            const cellSize = boardRect.width / LEVELS[currentLevelIdx].size;
+            const dims = getDims(LEVELS[currentLevelIdx]);
+            const cellSize = boardRect.width / dims.cols;
             document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
 
             ghostElement.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
@@ -683,7 +691,13 @@
             for(let r=0; r<rows; r++){
                 for(let c=0; c<cols; c++){
                     const cell = document.createElement('div');
-                    if (matrix[r][c]) cell.className = 'ghost-cell';
+                    if (matrix[r][c]) {
+                        cell.className = 'ghost-cell';
+                        if (r===0 || matrix[r-1][c]===0) cell.classList.add('b-top');
+                        if (r===rows-1 || matrix[r+1][c]===0) cell.classList.add('b-bottom');
+                        if (c===0 || matrix[r][c-1]===0) cell.classList.add('b-left');
+                        if (c===cols-1 || matrix[r][c+1]===0) cell.classList.add('b-right');
+                    }
                     ghostElement.appendChild(cell);
                 }
             }
@@ -703,7 +717,8 @@
             
             const boardRect = boardElement.getBoundingClientRect();
             const level = LEVELS[currentLevelIdx];
-            const cellSize = boardRect.width / level.size;
+            const dims = getDims(level);
+            const cellSize = boardRect.width / dims.cols;
 
             if (x < boardRect.left || x > boardRect.right || y < boardRect.top || y > boardRect.bottom) return;
 
@@ -732,7 +747,7 @@
                         if (!isValidPos(br, bc)) {
                             isValid = false; 
                         } else {
-                            previewCells.push(br * level.size + bc);
+                            previewCells.push(br * dims.cols + bc);
                         }
                     }
                 }
@@ -770,7 +785,6 @@
 
             if (isClick) {
                 if (dragSource === 'board') {
-                    // [수정 1] 클릭 지점 중심 회전 적용
                     handleBoardRotation();
                 } else if (dragSource === 'palette') {
                     paletteRotation = (paletteRotation + 1) % 4;
@@ -788,7 +802,8 @@
         function handleDrop(x, y) {
             const boardRect = boardElement.getBoundingClientRect();
             const level = LEVELS[currentLevelIdx];
-            const cellSize = boardRect.width / level.size;
+            const dims = getDims(level);
+            const cellSize = boardRect.width / dims.cols;
 
             if (x < boardRect.left || x > boardRect.right || y < boardRect.top || y > boardRect.bottom) {
                 if (dragSource === 'board') {
@@ -938,18 +953,18 @@
         }
 
         function isValidPos(r, c) {
-            const size = LEVELS[currentLevelIdx].size;
-            return r >= 0 && r < size && c >= 0 && c < size;
+            const dims = getDims(LEVELS[currentLevelIdx]);
+            return r >= 0 && r < dims.rows && c >= 0 && c < dims.cols;
         }
 
         function checkAutoWin() {
             if (!gameActive) return;
             const level = LEVELS[currentLevelIdx];
+            const dims = getDims(level);
             
             if (activeShapes.length !== level.target) return;
 
-            const size = level.size;
-            const gridState = Array.from({ length: size }, () => Array(size).fill(0));
+            const gridState = Array.from({ length: dims.rows }, () => Array(dims.cols).fill(0));
             let isOverlap = false;
 
             for(const s of activeShapes) {
@@ -966,13 +981,12 @@
 
             if (isOverlap) return; 
 
-            // 규칙 확인
             let totalFilled = 0;
-            const rowSums = new Array(size).fill(0);
-            const colSums = new Array(size).fill(0);
+            const rowSums = new Array(dims.rows).fill(0);
+            const colSums = new Array(dims.cols).fill(0);
 
-            for(let r=0; r<size; r++) {
-                for(let c=0; c<size; c++) {
+            for(let r=0; r<dims.rows; r++) {
+                for(let c=0; c<dims.cols; c++) {
                     if (gridState[r][c] === 1) {
                         rowSums[r]++;
                         colSums[c]++;
@@ -981,16 +995,24 @@
                 }
             }
 
-            if (totalFilled % size !== 0) return; 
-            const expected = totalFilled / size;
-
-            for(let i=0; i<size; i++) {
-                if (rowSums[i] !== expected || colSums[i] !== expected) {
-                    showMessage(`모든 행/열의 칸 수가 ${expected}개가 되어야 합니다.`, "error");
-                    return; 
+            if (totalFilled % dims.rows !== 0) return; 
+            const expectedRow = totalFilled / dims.rows;
+            for(let r=0; r<dims.rows; r++) {
+                if (rowSums[r] !== expectedRow) {
+                     showMessage(`모든 가로줄의 칸 수가 ${expectedRow}개가 되어야 합니다.`, "error");
+                     return;
                 }
             }
 
+            if (totalFilled % dims.cols !== 0) return; 
+            const expectedCol = totalFilled / dims.cols;
+            for(let c=0; c<dims.cols; c++) {
+                if (colSums[c] !== expectedCol) {
+                    showMessage(`모든 세로줄의 칸 수가 ${expectedCol}개가 되어야 합니다.`, "error");
+                    return;
+                }
+            }
+            
             gameWin();
         }
 
@@ -1046,7 +1068,6 @@
             }
         }
 
-        // 통합 메시지 표시 함수
         function showMessage(msg, type = 'info') {
             msgArea.innerText = msg;
             msgArea.className = 'msg-area'; 
