@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>매직 필(Magic Fill)</title>
+    <style>
+        :root {
+            --board-size: 5;
+            --color-bg: #f8f9fa;
+            --color-cell-empty: #ffffff;
+            --color-shape: #4dabf7;
+            --color-shape-fixed: #339af0;
+            --color-preview: rgba(77, 171, 247, 0.4);
+            --color-error: #ff8787;
+            --color-active: #228be6;
+            --cell-size: 0px; 
+        }
+
+        body {
+            font-family: 'Pretendard', 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--color-bg);
+            margin: 0;
+            padding: 20px 10px;
+            color: #333;
+            min-height: 100vh;
+            touch-action: pan-y; 
+            user-select: none;
+            -webkit-user-select: none;
+            font-size: 16px; 
+        }
+
+        h1 { margin: 0 0 20px 0; font-size: 32px; color: #343a40; font-weight: 800; }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            height: auto; 
+        }
+
+        .level-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .level-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .level-btn {
+            padding: 10px 0;
+            background-color: #fff;
+            color: #555;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            min-height: 50px;
+        }
+        .level-btn:hover { background-color: #f1f3f5; }
+        .level-btn.active {
+            background-color: var(--color-active);
+            color: white;
+            border-color: var(--color-active);
+            box-shadow: 0 4px 10px rgba(34,139,230,0.3);
+            transform: translateY(-2px);
+        }
+        .level-btn.cleared { background-color: #40c057; border-color: #2f9e44; color: white; }
+        
+        .lvl-record {
+            font-size: 11px;
+            font-weight: normal;
+            margin-top: 2px;
+            opacity: 0.9;
+        }
+
+        .game-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            box-sizing: border-box;
+        }
+        
+        .info-left { display: flex; flex-direction: column; width: 30%; }
+        .info-title { font-weight: 800; font-size: 20px; margin-bottom: 4px; color: #333; }
+        .info-sub { font-size: 15px; color: #666; font-weight: 600; }
+
+        .info-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40%;
+            font-size: 28px; 
+            font-weight: 800;
+            color: var(--color-active);
+            font-family: 'Pretendard', sans-serif;
+        }
+        .info-center.full { color: #2b8a3e; }
+
+        .info-right { display: flex; justify-content: flex-end; width: 30%; }
+        .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #333; }
+
+        .game-board-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .game-board {
+            display: grid; 
+            grid-template-columns: repeat(var(--board-size), 1fr);
+            grid-template-rows: repeat(var(--board-size), 1fr);
+            border: 2px solid #adb5bd;
+            background-color: #adb5bd; 
+            gap: 1px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            aspect-ratio: 1;
+            touch-action: none; 
+        }
+
+        .cell {
+            background-color: var(--color-cell-empty);
+            position: relative;
+            box-sizing: border-box;
+        }
+        .cell.shape {
+            background-color: var(--color-shape);
+            border-radius: 4px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .cell.fixed {
+            background-color: var(--color-shape-fixed);
+        }
+        .cell.fixed::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 14px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.6;
+        }
+        .cell.error { background-color: var(--color-error) !important; }
+        
+        .cell.preview-valid {
+            background-color: var(--color-preview);
+            box-shadow: inset 0 0 0 3px var(--color-active);
+        }
+        .cell.preview-invalid {
+            background-color: rgba(255, 135, 135, 0.4);
+            box-shadow: inset 0 0 0 3px var(--color-error);
+        }
+
+        .palette-area {
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            touch-action: none; 
+        }
+        .palette-label {
+            font-size: 17px; color: #555; margin-bottom: 12px; font-weight: bold;
+        }
+        .palette-shape-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .palette-shape-container:active { transform: scale(0.95); background-color: #f1f3f5; }
+
+        .ghost-shape {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.7;
+            display: grid;
+            gap: 1px;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        .ghost-cell {
+            width: 100%; height: 100%;
+            background-color: var(--color-shape);
+            border-radius: 4px;
+        }
+
+        .mini-grid { display: grid; gap: 2px; }
+        .mini-cell { width: 22px; height: 22px; background-color: transparent; }
+        .mini-cell.filled { background-color: var(--color-shape); border-radius: 3px; }
+
+        /* 메시지 표시 영역 (신규) */
+        .msg-area {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+            box-sizing: border-box;
+            display: none;
+            animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 오류 메시지 스타일 */
+        .msg-error {
+            background-color: #ffebee;
+            color: #d32f2f; /* 붉은색 텍스트 */
+            border: 1px solid #ffcdd2;
+        }
+        /* 일반 알림 스타일 (파란색 계열) */
+        .msg-info {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .controls { display: flex; gap: 10px; width: 100%; margin-bottom: 30px; }
+        .btn-ctrl {
+            flex: 1; padding: 15px; border-radius: 12px;
+            cursor: pointer; font-weight: 700; font-size: 18px;
+            border: none; color: white;
+        }
+        .btn-reset { background-color: #868e96; }
+
+        .rules {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #495057;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 40px;
+        }
+        .rules b { color: #212529; font-size: 16px; }
+        .highlight { color: #228be6; font-weight: bold; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: popIn 0.3s;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-title { font-size: 26px; margin: 0 0 10px 0; color: #40c057; font-weight: 800; }
+        .modal-record-label { font-size: 14px; color: #555; margin-bottom: 5px; }
+        #clearTimeText { font-size: 24px; font-weight: 800; color: #228be6; }
+        .btn-modal {
+            background-color: var(--color-active);
+            color: white;
+            border: none;
+            padding: 12px 0;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>매직 필(Magic Fill)</h1>
+
+        <div class="level-panel">
+            <div class="level-buttons" id="level-container"></div>
+        </div>
+
+        <div class="game-info-bar">
+            <div class="info-left">
+                <span class="info-title" id="levelTitle">Level 1</span>
+                <span class="info-sub" id="gridInfo">5x5</span>
+            </div>
+            <div class="info-center" id="countDisplay">
+                0/3
+            </div>
+            <div class="info-right">
+                <div class="timer" id="timer">00:00</div>
+            </div>
+        </div>
+
+        <div class="game-board-wrapper">
+            <div id="board" class="game-board"></div>
+        </div>
+
+        <div id="msgArea" class="msg-area"></div>
+
+        <div class="palette-area" id="paletteArea">
+            <div class="palette-label" id="paletteLabel"></div>
+            <div class="palette-shape-container" id="paletteShape"></div>
+        </div>
+
+        
+        
+
+        <div class="controls">
+            <button class="btn-ctrl btn-reset" onclick="resetLevel()">초기화 (Reset)</button>
+        </div>
+
+        <div class="rules">
+            <b>[게임 규칙]</b><br>
+            1. <b>목표:</b> 모양을 배치하여 목표 개수를 채우세요.<br>
+            2. <span class="highlight">중요: 각 가로줄과 세로줄에 채워지는 칸의 개수가 모두 동일해야 합니다.</span><br>
+            3. <b>회전:</b> 아래 모양을 <b>클릭</b>하면 회전합니다.<br>
+            4. <b>배치:</b> 드래그하여 격자에 놓으세요.<br>
+            5. 모양끼리 겹치거나 격자를 벗어날 수 없습니다.
+        </div>
+    </div>
+
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title">🎉 Clear!</h2>
+            <div class="modal-record-label">기록</div>
+            <div id="clearTimeText"></div>
+            <button class="btn-modal" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        const LEVELS = [
+            { id: 1, size: 5, target: 4, shape: [[1,1,1], [1,0,1]], fixedPos: { r: 3, c: 2, rot: 0 } },
+            { id: 2, size: 6, target: 4, shape: [[0,1,1,0], [1,1,1,1]], fixedPos: { r: 4, c: 1, rot: 0 } },
+            { id: 3, size: 7, target: 4, shape: [[0,0,1,1], [1,1,1,1]], fixedPos: { r: 5, c: 3, rot: 0 } },
+            { id: 4, size: 8, target: 8, shape: [[1,1,1,1],[1,0,0,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
+            { id: 5, size: 8, target: 8, shape: [[0,0,1,0], [1,1,1,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
+            { id: 6, size: 8, target: 8, shape: [[0,0,0,1,1],[1,1,1,1,1]], fixedPos: { r: 6, c: 1, rot: 0 } },
+            { id: 7, size: 12, target: 8, shape: [[0,0,1],[0,0,1],[1,1,1],[1,0,0]], fixedPos: { r: 8, c: 9, rot: 0 } },
+            { id: 8, size: 12, target: 8, shape: [[0,0,0,1,1], [1,1,1,1,0]], fixedPos: { r: 10, c: 6, rot: 0 } },
+            { id: 9, size: 10, target: 10, shape: [[1,1,0,0,0,0], [0,1,1,1,1,1]], fixedPos: { r: 8, c: 3, rot: 0 } }
+        ];
+
+        const levelStates = {}; 
+
+        let currentLevelIdx = 0;
+        let activeShapes = []; 
+        let shapeIdCounter = 1;
+        let gameActive = false;
+        
+        let timerInterval = null;
+        let currentLevelElapsedTime = 0; 
+        let sessionStartTime = 0; 
+
+        let paletteRotation = 0; 
+
+        // Drag Vars
+        let isDragging = false;
+        let dragSource = null; 
+        let draggedShapeData = null; 
+        let dragStartPos = { x: 0, y: 0 };
+        let ghostElement = null;
+
+        const boardElement = document.getElementById('board');
+        const timerElement = document.getElementById('timer');
+        const paletteShape = document.getElementById('paletteShape');
+        const paletteLabel = document.getElementById('paletteLabel');
+        const gridInfo = document.getElementById('gridInfo');
+        const countDisplay = document.getElementById('countDisplay');
+        const msgArea = document.getElementById('msgArea');
+
+        function init() {
+            createLevelButtons();
+            loadLevel(0);
+            
+            document.addEventListener('pointermove', handlePointerMove, { passive: false });
+            document.addEventListener('pointerup', handlePointerUp);
+            document.addEventListener('pointercancel', handlePointerUp);
+        }
+
+        function createLevelButtons() {
+            const container = document.getElementById('level-container');
+            container.innerHTML = '';
+            LEVELS.forEach((lvl, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'level-btn';
+                btn.id = `btn-lvl-${lvl.id}`;
+                btn.innerHTML = `
+                    <span style="font-size:15px">${lvl.id}단계</span>
+                    <span class="lvl-record" id="rec-${lvl.id}"></span>
+                `;
+                btn.onclick = () => switchLevel(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function switchLevel(newIdx) {
+            if (currentLevelIdx === newIdx) return;
+            saveCurrentState(); 
+            loadLevel(newIdx);  
+        }
+
+        function saveCurrentState() {
+            if (gameActive) {
+                const now = Date.now();
+                currentLevelElapsedTime += Math.floor((now - sessionStartTime) / 1000);
+            }
+            levelStates[currentLevelIdx] = {
+                activeShapes: JSON.parse(JSON.stringify(activeShapes)),
+                elapsedTime: currentLevelElapsedTime,
+                gameActive: gameActive,
+                paletteRotation: paletteRotation,
+                shapeIdCounter: shapeIdCounter
+            };
+        }
+
+        function loadLevel(idx) {
+            currentLevelIdx = idx;
+            const levelData = LEVELS[idx];
+            
+            document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-lvl-${levelData.id}`).classList.add('active');
+            
+            document.getElementById('levelTitle').innerText = `${levelData.id}단계`;
+            gridInfo.innerText = `${levelData.size}x${levelData.size}`;
+            
+            document.documentElement.style.setProperty('--board-size', levelData.size);
+            boardElement.style.display = 'grid'; 
+
+            // 레벨 변경 시 메시지 숨김
+            hideMessage();
+
+            if (levelStates[idx]) {
+                restoreLevelState(idx);
+            } else {
+                initLevelData(levelData);
+            }
+        }
+
+        function initLevelData(levelData) {
+            stopTimer();
+            gameActive = true;
+            activeShapes = [];
+            shapeIdCounter = 1;
+            paletteRotation = 0;
+            currentLevelElapsedTime = 0;
+
+            if (levelData.fixedPos) {
+                activeShapes.push({
+                    id: shapeIdCounter++,
+                    r: levelData.fixedPos.r,
+                    c: levelData.fixedPos.c,
+                    rot: levelData.fixedPos.rot,
+                    isFixed: true
+                });
+            }
+
+            renderBoard();
+            renderPalette();
+            updateGameUI();
+            startTimer();
+        }
+
+        function restoreLevelState(idx) {
+            const state = levelStates[idx];
+            stopTimer();
+            
+            activeShapes = JSON.parse(JSON.stringify(state.activeShapes));
+            currentLevelElapsedTime = state.elapsedTime;
+            gameActive = state.gameActive;
+            paletteRotation = state.paletteRotation;
+            shapeIdCounter = state.shapeIdCounter;
+
+            renderBoard();
+            renderPalette();
+            updateGameUI();
+            updateTimerDisplay(currentLevelElapsedTime);
+
+            if (gameActive) {
+                startTimer();
+            }
+        }
+
+        function resetLevel() {
+            delete levelStates[currentLevelIdx];
+            loadLevel(currentLevelIdx);
+        }
+
+        function renderPalette() {
+            const level = LEVELS[currentLevelIdx];
+            const matrix = getRotatedShape(level.shape, paletteRotation);
+
+            paletteShape.innerHTML = '';
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const miniGrid = document.createElement('div');
+            miniGrid.className = 'mini-grid';
+            miniGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            
+            for(let r=0; r<rows; r++){
+                for(let c=0; c<cols; c++){
+                    const cell = document.createElement('div');
+                    cell.className = 'mini-cell ' + (matrix[r][c] ? 'filled' : '');
+                    miniGrid.appendChild(cell);
+                }
+            }
+            paletteShape.appendChild(miniGrid);
+            paletteShape.onpointerdown = (e) => startDrag(e, 'palette');
+        }
+
+        function updateGameUI() {
+            const level = LEVELS[currentLevelIdx];
+            const currentCount = activeShapes.length;
+            
+            countDisplay.innerText = `${currentCount}/${level.target}`;
+            if (currentCount === level.target) {
+                countDisplay.classList.add('full');
+            } else {
+                countDisplay.classList.remove('full');
+            }
+
+            if (currentCount >= level.target) {
+                paletteShape.style.opacity = '0.3';
+                paletteShape.style.pointerEvents = 'none';
+                paletteLabel.innerText = "모두 배치완료";
+            } else {
+                paletteShape.style.opacity = '1';
+                paletteShape.style.pointerEvents = 'auto';
+                paletteLabel.innerText = "클릭하여 회전 / 드래그하여 배치";
+            }
+        }
+
+        function renderBoard() {
+            const level = LEVELS[currentLevelIdx];
+            const size = level.size;
+            boardElement.innerHTML = '';
+
+            const gridMap = new Array(size * size).fill(null);
+            
+            activeShapes.forEach(shape => {
+                const cells = getOccupiedCells(shape);
+                cells.forEach(cell => {
+                    if (isValidPos(cell.r, cell.c)) {
+                        const idx = cell.r * size + cell.c;
+                        if (gridMap[idx] !== null) gridMap[idx] = 'collision';
+                        else gridMap[idx] = shape.id;
+                    }
+                });
+            });
+
+            for (let i = 0; i < size * size; i++) {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                cellDiv.dataset.idx = i;
+                
+                const val = gridMap[i];
+                if (val === 'collision') cellDiv.classList.add('shape', 'error');
+                else if (val !== null) {
+                    cellDiv.classList.add('shape');
+                    const shapeObj = activeShapes.find(s => s.id === val);
+                    if (shapeObj && shapeObj.isFixed) cellDiv.classList.add('fixed');
+                    else if (shapeObj) cellDiv.onpointerdown = (e) => startDrag(e, 'board', shapeObj, i);
+                }
+                
+                cellDiv.oncontextmenu = (e) => e.preventDefault();
+                boardElement.appendChild(cellDiv);
+            }
+        }
+
+        // --- Drag & Drop ---
+
+        function startDrag(e, source, shapeObj = null, cellIdx = -1) {
+            if (!gameActive) return;
+            e.preventDefault();
+
+            isDragging = true;
+            dragSource = source;
+            dragStartPos = { x: e.clientX, y: e.clientY };
+            
+            const level = LEVELS[currentLevelIdx];
+
+            if (source === 'palette') {
+                const matrix = getRotatedShape(level.shape, paletteRotation);
+                draggedShapeData = {
+                    id: shapeIdCounter++, 
+                    rot: paletteRotation, 
+                    matrix: matrix,
+                    centerR: Math.floor(matrix.length / 2),
+                    centerC: Math.floor(matrix[0].length / 2)
+                };
+            } else if (source === 'board') {
+                if (shapeObj.isFixed) return;
+                
+                draggedShapeData = {
+                    id: shapeObj.id,
+                    r: shapeObj.r,
+                    c: shapeObj.c,
+                    rot: shapeObj.rot,
+                    matrix: getRotatedShape(level.shape, shapeObj.rot),
+                    originalR: shapeObj.r,
+                    originalC: shapeObj.c,
+                    originalRot: shapeObj.rot
+                };
+                
+                // 클릭된 셀의 상대 좌표 (Offset)
+                const clickR = Math.floor(cellIdx / level.size);
+                const clickC = cellIdx % level.size;
+                draggedShapeData.offsetR = clickR - shapeObj.r;
+                draggedShapeData.offsetC = clickC - shapeObj.c;
+                
+                activeShapes = activeShapes.filter(s => s.id !== shapeObj.id);
+                renderBoard(); 
+            }
+
+            createGhost(e.clientX, e.clientY, draggedShapeData.matrix);
+        }
+
+        function createGhost(x, y, matrix) {
+            if (ghostElement) ghostElement.remove();
+            
+            ghostElement = document.createElement('div');
+            ghostElement.className = 'ghost-shape';
+            
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const boardRect = boardElement.getBoundingClientRect();
+            const cellSize = boardRect.width / LEVELS[currentLevelIdx].size;
+            document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+
+            ghostElement.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+            ghostElement.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+
+            for(let r=0; r<rows; r++){
+                for(let c=0; c<cols; c++){
+                    const cell = document.createElement('div');
+                    if (matrix[r][c]) cell.className = 'ghost-cell';
+                    ghostElement.appendChild(cell);
+                }
+            }
+            document.body.appendChild(ghostElement);
+            moveGhost(x, y);
+        }
+
+        function moveGhost(x, y) {
+            if (!ghostElement) return;
+            ghostElement.style.left = x + 'px';
+            ghostElement.style.top = y + 'px';
+            updateGridPreview(x, y);
+        }
+
+        function updateGridPreview(x, y) {
+            clearPreview();
+            
+            const boardRect = boardElement.getBoundingClientRect();
+            const level = LEVELS[currentLevelIdx];
+            const cellSize = boardRect.width / level.size;
+
+            if (x < boardRect.left || x > boardRect.right || y < boardRect.top || y > boardRect.bottom) return;
+
+            const dropC = Math.floor((x - boardRect.left) / cellSize);
+            const dropR = Math.floor((y - boardRect.top) / cellSize);
+
+            let targetR, targetC;
+            if (dragSource === 'palette') {
+                targetR = dropR - draggedShapeData.centerR;
+                targetC = dropC - draggedShapeData.centerC;
+            } else {
+                targetR = dropR - draggedShapeData.offsetR;
+                targetC = dropC - draggedShapeData.offsetC;
+            }
+
+            const matrix = draggedShapeData.matrix;
+            const cellsDOM = boardElement.children;
+            let isValid = true;
+            const previewCells = [];
+
+            for(let r=0; r<matrix.length; r++){
+                for(let c=0; c<matrix[0].length; c++){
+                    if(matrix[r][c] === 1) {
+                        const br = targetR + r;
+                        const bc = targetC + c;
+                        if (!isValidPos(br, bc)) {
+                            isValid = false; 
+                        } else {
+                            previewCells.push(br * level.size + bc);
+                        }
+                    }
+                }
+            }
+            
+            if (isValid) {
+                previewCells.forEach(idx => cellsDOM[idx]?.classList.add('preview-valid'));
+            } else {
+                previewCells.forEach(idx => cellsDOM[idx]?.classList.add('preview-invalid'));
+            }
+        }
+
+        function clearPreview() {
+            const cells = boardElement.children;
+            for(let i=0; i<cells.length; i++) {
+                cells[i].classList.remove('preview-valid', 'preview-invalid');
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            moveGhost(e.clientX, e.clientY);
+        }
+
+        function handlePointerUp(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            if (ghostElement) ghostElement.remove();
+            ghostElement = null;
+            clearPreview();
+
+            const dist = Math.hypot(e.clientX - dragStartPos.x, e.clientY - dragStartPos.y);
+            const isClick = dist < 10;
+
+            if (isClick) {
+                if (dragSource === 'board') {
+                    // [수정 1] 클릭 지점 중심 회전 적용
+                    handleBoardRotation();
+                } else if (dragSource === 'palette') {
+                    paletteRotation = (paletteRotation + 1) % 4;
+                    renderPalette();
+                    showMessage("모양 회전됨", "info");
+                }
+            } else {
+                handleDrop(e.clientX, e.clientY);
+            }
+            
+            dragSource = null;
+            draggedShapeData = null;
+        }
+
+        function handleDrop(x, y) {
+            const boardRect = boardElement.getBoundingClientRect();
+            const level = LEVELS[currentLevelIdx];
+            const cellSize = boardRect.width / level.size;
+
+            if (x < boardRect.left || x > boardRect.right || y < boardRect.top || y > boardRect.bottom) {
+                if (dragSource === 'board') {
+                    showMessage("삭제됨", "info");
+                    renderBoard();
+                    updateGameUI();
+                } else {
+                    renderBoard(); 
+                }
+                return;
+            }
+
+            const dropC = Math.floor((x - boardRect.left) / cellSize);
+            const dropR = Math.floor((y - boardRect.top) / cellSize);
+
+            let finalR, finalC;
+            if (dragSource === 'palette') {
+                finalR = dropR - draggedShapeData.centerR;
+                finalC = dropC - draggedShapeData.centerC;
+            } else {
+                finalR = dropR - draggedShapeData.offsetR;
+                finalC = dropC - draggedShapeData.offsetC;
+            }
+
+            const matrix = draggedShapeData.matrix;
+            let isOutOfBounds = false;
+            for(let r=0; r<matrix.length; r++){
+                for(let c=0; c<matrix[0].length; c++){
+                    if(matrix[r][c] === 1) {
+                        if (!isValidPos(finalR + r, finalC + c)) {
+                            isOutOfBounds = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isOutOfBounds) {
+                if (dragSource === 'board') {
+                    activeShapes.push({
+                        id: draggedShapeData.id,
+                        r: draggedShapeData.originalR,
+                        c: draggedShapeData.originalC,
+                        rot: draggedShapeData.originalRot,
+                        isFixed: false
+                    });
+                    showMessage("격자를 벗어날 수 없습니다.", "error");
+                }
+                renderBoard();
+                return;
+            }
+
+            activeShapes.push({
+                id: draggedShapeData.id,
+                r: finalR,
+                c: finalC,
+                rot: draggedShapeData.rot,
+                isFixed: false
+            });
+            
+            renderBoard();
+            updateGameUI();
+            checkAutoWin();
+        }
+
+        function handleBoardRotation() {
+            const level = LEVELS[currentLevelIdx];
+            const oldRot = draggedShapeData.rot;
+            const newRot = (oldRot + 1) % 4;
+            const currentMatrix = draggedShapeData.matrix;
+            const newMatrix = getRotatedShape(level.shape, newRot);
+            
+            const offsetR = draggedShapeData.offsetR;
+            const offsetC = draggedShapeData.offsetC;
+            const height = currentMatrix.length;
+            
+            const newOffsetR = offsetC;
+            const newOffsetC = height - 1 - offsetR;
+
+            const globalPivotR = draggedShapeData.originalR + offsetR;
+            const globalPivotC = draggedShapeData.originalC + offsetC;
+
+            const targetR = globalPivotR - newOffsetR;
+            const targetC = globalPivotC - newOffsetC;
+
+            let isOutOfBounds = false;
+            for(let r=0; r<newMatrix.length; r++){
+                for(let c=0; c<newMatrix[0].length; c++){
+                    if(newMatrix[r][c] === 1) {
+                        if (!isValidPos(targetR + r, targetC + c)) {
+                            isOutOfBounds = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isOutOfBounds) {
+                showMessage("회전 시 격자를 벗어납니다.", "error");
+                activeShapes.push({
+                    id: draggedShapeData.id,
+                    r: draggedShapeData.originalR,
+                    c: draggedShapeData.originalC,
+                    rot: draggedShapeData.originalRot,
+                    isFixed: false
+                });
+            } else {
+                activeShapes.push({
+                    id: draggedShapeData.id,
+                    r: targetR,
+                    c: targetC,
+                    rot: newRot,
+                    isFixed: false
+                });
+                showMessage("모양 회전됨", "info");
+            }
+            renderBoard();
+            checkAutoWin();
+        }
+
+        function getRotatedShape(baseShape, rot) {
+            let matrix = JSON.parse(JSON.stringify(baseShape));
+            for (let i = 0; i < (rot % 4); i++) matrix = rotate90(matrix);
+            return matrix;
+        }
+
+        function rotate90(matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            let newMatrix = Array.from({ length: cols }, () => Array(rows).fill(0));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) newMatrix[c][rows - 1 - r] = matrix[r][c];
+            }
+            return newMatrix;
+        }
+
+        function getOccupiedCells(shapeInstance) {
+            const level = LEVELS[currentLevelIdx];
+            const matrix = getRotatedShape(level.shape, shapeInstance.rot);
+            const cells = [];
+            for (let r = 0; r < matrix.length; r++) {
+                for (let c = 0; c < matrix[0].length; c++) {
+                    if (matrix[r][c] === 1) cells.push({ r: shapeInstance.r + r, c: shapeInstance.c + c });
+                }
+            }
+            return cells;
+        }
+
+        function isValidPos(r, c) {
+            const size = LEVELS[currentLevelIdx].size;
+            return r >= 0 && r < size && c >= 0 && c < size;
+        }
+
+        function checkAutoWin() {
+            if (!gameActive) return;
+            const level = LEVELS[currentLevelIdx];
+            
+            if (activeShapes.length !== level.target) return;
+
+            const size = level.size;
+            const gridState = Array.from({ length: size }, () => Array(size).fill(0));
+            let isOverlap = false;
+
+            for(const s of activeShapes) {
+                const cells = getOccupiedCells(s);
+                for(const cell of cells) {
+                    if (gridState[cell.r][cell.c] !== 0) {
+                        isOverlap = true;
+                        break;
+                    }
+                    gridState[cell.r][cell.c] = 1;
+                }
+                if(isOverlap) break;
+            }
+
+            if (isOverlap) return; 
+
+            // 규칙 확인
+            let totalFilled = 0;
+            const rowSums = new Array(size).fill(0);
+            const colSums = new Array(size).fill(0);
+
+            for(let r=0; r<size; r++) {
+                for(let c=0; c<size; c++) {
+                    if (gridState[r][c] === 1) {
+                        rowSums[r]++;
+                        colSums[c]++;
+                        totalFilled++;
+                    }
+                }
+            }
+
+            if (totalFilled % size !== 0) return; 
+            const expected = totalFilled / size;
+
+            for(let i=0; i<size; i++) {
+                if (rowSums[i] !== expected || colSums[i] !== expected) {
+                    showMessage(`모든 행/열의 칸 수가 ${expected}개가 되어야 합니다.`, "error");
+                    return; 
+                }
+            }
+
+            gameWin();
+        }
+
+        function gameWin() {
+            gameActive = false;
+            stopTimer();
+            const now = Date.now();
+            currentLevelElapsedTime += Math.floor((now - sessionStartTime) / 1000);
+            
+            const timeStr = formatTime(currentLevelElapsedTime);
+            const levelId = LEVELS[currentLevelIdx].id;
+            
+            const btn = document.getElementById(`btn-lvl-${levelId}`);
+            if(btn) {
+                btn.classList.add('cleared');
+                const recSpan = document.getElementById(`rec-${levelId}`);
+                if (recSpan) recSpan.innerText = timeStr;
+            }
+
+            document.getElementById('clearTimeText').innerText = timeStr;
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').style.display = 'none';
+        }
+
+        function startTimer() {
+            sessionStartTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const sessionElapsed = Math.floor((now - sessionStartTime) / 1000);
+                const totalElapsed = currentLevelElapsedTime + sessionElapsed;
+                updateTimerDisplay(totalElapsed);
+            }, 1000);
+        }
+
+        function updateTimerDisplay(totalSeconds) {
+            timerElement.innerText = formatTime(totalSeconds);
+        }
+
+        function formatTime(totalSeconds) {
+            const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const s = String(totalSeconds % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // 통합 메시지 표시 함수
+        function showMessage(msg, type = 'info') {
+            msgArea.innerText = msg;
+            msgArea.className = 'msg-area'; 
+            if (type === 'error') {
+                msgArea.classList.add('msg-error');
+            } else {
+                msgArea.classList.add('msg-info');
+            }
+            msgArea.style.display = 'block';
+
+            if (window.msgTimeout) clearTimeout(window.msgTimeout);
+            window.msgTimeout = setTimeout(() => {
+                msgArea.style.display = 'none';
+            }, 2000);
+        }
+
+        function hideMessage() {
+            msgArea.style.display = 'none';
+        }
+
+        init();
+    </script>
+</body>
+</html>
