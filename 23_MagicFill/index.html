@@ -20,7 +20,7 @@
             --color-count-text: #868e96;
             --color-count-correct: #40c057; 
             --color-count-excess: #fa5252; 
-            --cell-size: 0px; 
+            --cell-size: 40px; 
         }
 
         body {
@@ -119,10 +119,11 @@
         
         .count-cell {
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; 
+            font-size: min(24px, calc(var(--cell-size) * 0.5)); 
             font-weight: 700;
             color: var(--color-count-text);
-            opacity: 0; transition: opacity 0.2s, color 0.2s;
+            opacity: 0; transition: opacity 0.2s, color 0.2s, font-size 0.2s;
+            overflow: hidden; 
         }
         .count-cell.visible { opacity: 1; }
         .count-cell.correct { color: var(--color-count-correct); font-weight: 800; }
@@ -157,7 +158,6 @@
         }
         .palette-label { font-size: 17px; color: #555; margin-bottom: 12px; font-weight: bold; }
         
-        /* [수정] touch-action: none 추가로 모바일 스크롤 방지 */
         .palette-shape-container {
             display: flex; justify-content: center; align-items: center;
             width: 80px; height: 80px; cursor: pointer;
@@ -194,7 +194,7 @@
         .msg-info { background-color: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
 
         .controls {
-            display: flex; align-items: center; gap: 15px;
+            display: flex; align-items: center; gap: 10px; 
             width: 100%; margin-bottom: 30px;
         }
         .chk-wrapper {
@@ -202,17 +202,23 @@
             padding: 0 15px; height: 52px; border-radius: 12px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 600;
             color: #555; cursor: pointer; user-select: none;
+            white-space: nowrap;
         }
         .chk-wrapper input {
             width: 18px; height: 18px; margin-right: 8px; cursor: pointer;
             accent-color: var(--color-active);
         }
         .btn-ctrl {
-            flex: 1; padding: 15px; border-radius: 12px;
-            cursor: pointer; font-weight: 700; font-size: 18px;
+            flex: 1; padding: 15px 5px; border-radius: 12px;
+            cursor: pointer; font-weight: 700; font-size: 16px;
             border: none; color: white;
+            white-space: nowrap;
         }
         .btn-reset { background-color: #868e96; }
+        
+        .btn-hint { background-color: #fab005; color: white; display: flex; align-items: center; justify-content: center; }
+        .btn-hint:active { background-color: #f08c00; }
+        .btn-hint svg { margin-right: 5px; fill: white; width: 16px; height: 16px; }
 
         .rules {
             font-size: 15px; line-height: 1.6; color: #495057;
@@ -285,7 +291,11 @@
                 <input type="checkbox" id="chkShowCounts" onchange="toggleCounts()">
                 셀 갯수
             </label>
-            <button class="btn-ctrl btn-reset" onclick="resetLevel()">초기화 (Reset)</button>
+            <button class="btn-ctrl btn-hint" onclick="useHint()">
+                <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+                힌트
+            </button>
+            <button class="btn-ctrl btn-reset" onclick="resetLevel()">초기화</button>
         </div>
 
         <div class="rules">
@@ -309,18 +319,101 @@
 
     <script>
         const LEVELS = [
-            { id: 1, size: 5, target: 4, shape: [[1,1,1], [1,0,1]], fixedPos: { r: 3, c: 2, rot: 0 } },
-            { id: 2, size: 6, target: 4, shape: [[0,1,1,0], [1,1,1,1]], fixedPos: { r: 4, c: 1, rot: 0 } },
-            { id: 3, size: 6, target: 4, shape: [[0,0,1,1], [1,1,1,1]], fixedPos: { r: 4, c: 2, rot: 0 } },
-            { id: 4, size: 8, target: 8, shape: [[1,1,1,1],[1,0,0,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
-            { id: 5, size: 8, target: 8, shape: [[0,0,1,0], [1,1,1,1]], fixedPos: { r: 6, c: 4, rot: 0 } },
-            { id: 6, size: 8, target: 8, shape: [[0,0,0,1,1],[1,1,1,1,1]], fixedPos: { r: 6, c: 1, rot: 0 } },
-            { id: 7, size: 12, target: 8, shape: [[0,0,1],[0,0,1],[1,1,1],[1,0,0]], fixedPos: { r: 8, c: 9, rot: 0 } },
-            { id: 8, size: 12, target: 8, shape: [[0,0,0,1,1], [1,1,1,1,0]], fixedPos: { r: 10, c: 6, rot: 0 } },
-            { id: 9, size: 10, target: 10, shape: [[1,1,0,0,0,0], [0,1,1,1,1,1]], fixedPos: { r: 8, c: 3, rot: 0 } }
+            { 
+                id: 1, size: 5, target: 4, shape: [[1,1,1], [1,0,1]], 
+                fixedPos: { r: 3, c: 2, rot: 0 },
+                solutions: [
+                    { r: 3, c: 2, rot: 0 }, 
+                    { r: 2, c: 0, rot: 1 }, 
+                    { r: 0, c: 0, rot: 2 }, 
+                    { r: 0, c: 3, rot: 3 }  
+                ]
+            },
+            { 
+                id: 2, size: 6, target: 4, shape: [[0,1,1,0], [1,1,1,1]], 
+                fixedPos: { r: 4, c: 1, rot: 0 },
+                solutions: [
+                    { r: 4, c: 1, rot: 0 },
+                    { r: 1, c: 0, rot: 1 },
+                    { r: 0, c: 1, rot: 2 },
+                    { r: 1, c: 4, rot: 3 }
+                ]
+            },
+            { 
+                id: 3, size: 6, target: 4, shape: [[0,0,1,1], [1,1,1,1]], 
+                fixedPos: { r: 4, c: 2, rot: 0 },
+                solutions: [
+                    { r: 4, c: 2, rot: 0 },
+                    { r: 3, c: 0, rot: 2 },
+                    { r: 0, c: 0, rot: 2 },
+                    { r: 1, c: 2, rot: 0 }
+                ]
+            },
+            { 
+                id: 4, size: 8, target: 8, shape: [[1,1,1,1],[1,0,0,1]], 
+                fixedPos: { r: 6, c: 4, rot: 0 },
+                solutions: [
+                    { r: 6, c: 4, rot: 0 },
+                    { r: 4, c: 0, rot: 1 }, { r: 0, c: 0, rot: 2 }, { r: 0, c: 6, rot: 3 },
+                    { r: 4, c: 2, rot: 3 }, { r: 2, c: 0, rot: 0 }, { r: 0, c: 4, rot: 1 },
+                    { r: 4, c: 4, rot: 2 }
+                ]
+            },
+            { 
+                id: 5, size: 8, target: 8, shape: [[0,0,1,0], [1,1,1,1]], 
+                fixedPos: { r: 6, c: 4, rot: 0 },
+                solutions: [
+                    { r: 6, c: 4, rot: 0 },
+                    { r: 6, c: 2, rot: 2 }, { r: 0, c: 0, rot: 3 }, { r: 2, c: 0, rot: 1 },
+                    { r: 1, c: 2, rot: 1 }, { r: 0, c: 3, rot: 2 }, { r: 1, c: 6, rot: 3 },
+                    { r: 4, c: 3, rot: 4 }
+                ]
+            },
+            { 
+                id: 6, size: 8, target: 8, shape: [[0,0,0,1,1],[1,1,1,1,1]], 
+                fixedPos: { r: 6, c: 1, rot: 0 },
+                solutions: [
+                    { r: 6, c: 1, rot: 0 },
+                    { r: 3, c: 6, rot: 1 }, { r: 0, c: 6, rot: 3 }, { r: 0, c: 0, rot: 2 },
+                    { r: 2, c: 0, rot: 1 }, { r: 2, c: 1, rot: 3 }, { r: 1, c: 3, rot: 1 },
+                    { r: 1, c: 4, rot: 3 }
+                ]
+            },
+            { 
+                id: 7, size: 12, target: 8, shape: [[0,0,1],[0,0,1],[1,1,1],[1,0,0]], 
+                fixedPos: { r: 8, c: 9, rot: 0 },
+                solutions: [
+                    { r: 8, c: 9, rot: 0 },
+                    { r: 9, c: 0, rot: 1 }, { r: 0, c: 0, rot: 2 }, { r: 0, c: 8, rot: 3 },
+                    { r: 2, c: 3, rot: 0 }, { r: 3, c: 6, rot: 1 }, { r: 6, c: 6, rot: 2 },
+                    { r: 6, c: 2, rot: 3 }
+                ]
+            },
+            { 
+                id: 8, size: 12, target: 8, shape: [[0,0,0,1,1], [1,1,1,1,0]], 
+                fixedPos: { r: 10, c: 6, rot: 0 },
+                solutions: [
+                    { r: 10, c: 6, rot: 0 },
+                    { r: 9, c: 4, rot: 2 }, { r: 7, c: 6, rot: 0 }, { r: 3, c: 0, rot: 1 },
+                    { r: 1, c: 1, rot: 3 }, { r: 3, c: 3, rot: 1 }, { r: 0, c: 4, rot: 2 },
+                    { r: 1, c: 10, rot: 3 }
+                ]
+            },
+            { 
+                id: 9, size: 10, target: 10, shape: [[1,1,0,0,0,0], [0,1,1,1,1,1]], 
+                fixedPos: { r: 8, c: 3, rot: 0 },
+                solutions: [
+                    { r: 8, c: 3, rot: 0 },
+                    { r: 7, c: 4, rot: 2 }, { r: 0, c: 0, rot: 1 }, { r: 4, c: 0, rot: 3 },
+                    { r: 0, c: 3, rot: 2 }, { r: 1, c: 2, rot: 0 }, { r: 0, c: 8, rot: 3 },
+                    { r: 3, c: 2, rot: 2 }, { r: 4, c: 2, rot: 1 }, { r: 5, c: 4, rot: 0 }
+                ]
+            }
         ];
 
         const levelStates = {}; 
+        const levelHintCounts = {}; 
+
         let currentLevelIdx = 0;
         let activeShapes = []; 
         let shapeIdCounter = 1;
@@ -361,6 +454,10 @@
             document.addEventListener('pointermove', handlePointerMove, { passive: false });
             document.addEventListener('pointerup', handlePointerUp);
             document.addEventListener('pointercancel', handlePointerUp);
+            
+            window.addEventListener('resize', () => {
+                requestAnimationFrame(renderBoard);
+            });
         }
 
         function toggleCounts() {
@@ -380,13 +477,26 @@
                 const btn = document.createElement('div');
                 btn.className = 'level-btn';
                 btn.id = `btn-lvl-${lvl.id}`;
+                
+                const hintCount = levelHintCounts[lvl.id] || 0;
+                const hintText = hintCount > 0 ? `(${hintCount})` : '';
+
                 btn.innerHTML = `
-                    <span style="font-size:15px">${lvl.id}단계</span>
+                    <span id="lvl-title-${lvl.id}" style="font-size:15px">${lvl.id}단계${hintText}</span>
                     <span class="lvl-record" id="rec-${lvl.id}"></span>
                 `;
                 btn.onclick = () => switchLevel(idx);
                 container.appendChild(btn);
             });
+        }
+
+        function updateLevelBtnText(levelId) {
+            const span = document.getElementById(`lvl-title-${levelId}`);
+            if(span) {
+                const count = levelHintCounts[levelId] || 0;
+                const hintText = count > 0 ? `(${count})` : '';
+                span.innerText = `${levelId}단계${hintText}`;
+            }
         }
 
         function switchLevel(newIdx) {
@@ -405,7 +515,8 @@
                 elapsedTime: currentLevelElapsedTime,
                 gameActive: gameActive,
                 paletteRotation: paletteRotation,
-                shapeIdCounter: shapeIdCounter
+                shapeIdCounter: shapeIdCounter,
+                hintCount: levelHintCounts[LEVELS[currentLevelIdx].id] || 0 
             };
         }
 
@@ -440,6 +551,13 @@
             shapeIdCounter = 1;
             paletteRotation = 0;
             currentLevelElapsedTime = 0;
+            
+            // [수정] 힌트 카운트가 없을 때(최초 실행 시)만 0으로 초기화
+            // 초기화 버튼을 눌러서 이 함수가 실행되더라도 기존 값이 있으면 유지됨
+            if (levelHintCounts[levelData.id] === undefined) {
+                levelHintCounts[levelData.id] = 0;
+            }
+            updateLevelBtnText(levelData.id);
 
             if (levelData.fixedPos) {
                 activeShapes.push({
@@ -466,6 +584,9 @@
             gameActive = state.gameActive;
             paletteRotation = state.paletteRotation;
             shapeIdCounter = state.shapeIdCounter;
+            
+            levelHintCounts[LEVELS[idx].id] = state.hintCount || 0;
+            updateLevelBtnText(LEVELS[idx].id);
 
             renderBoard();
             renderPalette();
@@ -534,6 +655,12 @@
             boardElement.innerHTML = '';
             rowCountsElement.innerHTML = '';
             colCountsElement.innerHTML = '';
+
+            const boardRect = boardElement.getBoundingClientRect();
+            if (boardRect.width > 0) {
+                const cellSize = boardRect.width / dims.cols;
+                document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+            }
 
             const gridMap = new Array(totalCells).fill(null);
             
@@ -620,6 +747,51 @@
             }
         }
 
+        // --- 힌트 로직 (Solutions 기반) ---
+        function useHint() {
+            if (!gameActive) return;
+            const level = LEVELS[currentLevelIdx];
+            
+            if (!level.solutions) {
+                showMessage("이 레벨의 정답 데이터가 없습니다.", "error");
+                return;
+            }
+
+            if (activeShapes.length >= level.target) {
+                showMessage("이미 모든 모양이 배치되었습니다.", "info");
+                return;
+            }
+
+            const nextPiece = level.solutions.find(sol => {
+                const exists = activeShapes.some(active => 
+                    active.r === sol.r && 
+                    active.c === sol.c && 
+                    active.rot === sol.rot
+                );
+                return !exists;
+            });
+
+            if (nextPiece) {
+                activeShapes.push({
+                    id: shapeIdCounter++,
+                    r: nextPiece.r,
+                    c: nextPiece.c,
+                    rot: nextPiece.rot,
+                    isFixed: true 
+                });
+                
+                levelHintCounts[level.id] = (levelHintCounts[level.id] || 0) + 1;
+                updateLevelBtnText(level.id);
+
+                renderBoard();
+                updateGameUI();
+                checkAutoWin();
+                showMessage("정답 위치에 배치했습니다.", "info");
+            } else {
+                showMessage("더 이상 배치할 정답 위치가 없습니다.", "info");
+            }
+        }
+
         // --- Drag & Drop ---
 
         function startDrag(e, source, shapeObj = null, cellIdx = -1) {
@@ -679,6 +851,7 @@
             const boardRect = boardElement.getBoundingClientRect();
             const dims = getDims(LEVELS[currentLevelIdx]);
             const cellSize = boardRect.width / dims.cols;
+            
             document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
 
             ghostElement.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
