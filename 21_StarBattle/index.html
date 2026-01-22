@@ -1,12 +1,3 @@
-
-<!-- https://www.puzzle-star-battle.com/
-
-https://puzzleresearchroom.tistory.com/entry/Star-Battle
-
-
-https://starbattle.puzzlebaron.com/ -->
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -360,7 +351,18 @@ https://starbattle.puzzlebaron.com/ -->
         /* 메시지 종류별 색상 */
         .msg-success { color: #28a745; } /* 초록색 */
         .msg-error { color: #e53935; }   /* 빨간색 */
-
+        .rules {
+            margin-top: 30px;
+            font-size: 19px;
+            line-height: 1.6;
+            color: #555;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
 
     </style>
 </head>
@@ -417,11 +419,12 @@ https://starbattle.puzzlebaron.com/ -->
     </div>
 
 
-    <br><div style="font-size: 18px;">
-      <b>[규칙]</b><br>
-      1. 각 가로줄, 각 세로줄, 그리고 굵은 줄로 나뉜 각 구역에 별1개 또는 2개가 들어간다.<br>
-      2. 별들이 서로 닿아선 안 된다. 대각선으로도 닿을 수 없다.
+    <div class="rules">
+        <b>[규칙]</b><br>
+        1. 각 가로줄, 각 세로줄, 그리고 굵은 줄로 나뉜 각 구역에 별1개 또는 2개가 들어간다.<br>
+        2. 별들이 서로 닿아선 안 된다. 대각선으로도 닿을 수 없다.
     </div>
+
 
     <div id="successModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
