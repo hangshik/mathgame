@@ -2,11 +2,46 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>몬드리안 블록 퍼즐</title>
 
 <style>
-:root { --cell: 60px; }
+:root {
+  --cell: 60px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --cell: calc( min( 9vw, 44px ) );
+  }
+  #stage-wrapper, #dock {
+    max-width: 100vw;
+  }
+  body {
+    padding: 10px 2px;
+  }
+  #modal-content {
+    padding: 18px 5vw;
+  }
+  #controls {
+    margin: 10px 0;
+  }
+}
+
+/* Allow board to shrink gracefully and fit mobile screens */
+#board {
+  touch-action: none;
+  position: relative;
+  width: calc(var(--cell) * 8);
+  height: calc(var(--cell) * 8);
+  background: white;
+  display: grid;
+  grid-template-columns: repeat(8, var(--cell));
+  grid-template-rows: repeat(8, var(--cell));
+  border: 4px solid black;
+  max-width: 98vw;
+  max-height: 98vw;
+}
 
 body {
   margin: 0;
@@ -16,9 +51,9 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 20px 12px;
+  overflow-x: hidden;
 }
 
-/* 단계 표시 영역 */
 #stage-wrapper {
   width: 100%;
   max-width: 800px;
@@ -39,9 +74,9 @@ body {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
 }
 
-/* 단계 버튼 내부 레이아웃 */
 .stage-btn {
   padding: 8px 16px;
   border-radius: 8px;
@@ -54,7 +89,19 @@ body {
   align-items: center;
   min-width: 100px;
   transition: all 0.2s;
+  font-size: 1rem;
 }
+@media (max-width: 480px) {
+  .stage-btn {
+    min-width: 70px;
+    font-size: 0.9rem;
+    padding: 7px 6px;
+  }
+  #timer-display {
+    font-size: 1rem;
+  }
+}
+
 .stage-btn .time-label {
   font-size: 0.8rem;
   font-weight: 400;
@@ -80,16 +127,6 @@ body {
 }
 
 /* 게임 보드 */
-#board {
-  position: relative;
-  width: calc(var(--cell) * 8);
-  height: calc(var(--cell) * 8);
-  background: white;
-  display: grid;
-  grid-template-columns: repeat(8, var(--cell));
-  grid-template-rows: repeat(8, var(--cell));
-  border: 4px solid black;
-}
 .cell { border: 1px solid #eee; box-sizing: border-box; }
 
 .block {
@@ -98,6 +135,7 @@ body {
   box-sizing: border-box;
   cursor: grab;
   z-index: 1000;
+  touch-action: none;
 }
 
 #dock {
@@ -115,7 +153,9 @@ body {
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
+  overflow-x: auto;
 }
+
 #dock .block {
   position: relative !important;
   transform: scale(0.45);
@@ -146,6 +186,13 @@ button.reset-btn {
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 0 #e03131;
+  font-size: 1rem;
+}
+@media (max-width: 480px) {
+  button.reset-btn {
+    font-size: 0.92rem;
+    padding: 10px 18px;
+  }
 }
 
 /* 성공 팝업 모달 */
@@ -166,6 +213,8 @@ button.reset-btn {
   border: 4px solid #343a40;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 95vw;
+  box-sizing: border-box;
 }
 #modal-content h2 { margin-top: 0; font-size: 2rem; color: #51cf66; }
 #modal-content p { font-size: 1.2rem; margin-bottom: 25px; }
@@ -179,12 +228,27 @@ button.reset-btn {
   cursor: pointer;
   font-weight: bold;
 }
+@media (max-width: 480px) {
+  #modal-content {
+    padding: 16px 8vw;
+  }
+  #modal-content h2 {
+    font-size: 1.25rem;
+  }
+  #modal-content p {
+    font-size: 1rem;
+  }
+  #modal-content button {
+    font-size: 1rem;
+    padding: 8px 20px;
+  }
+}
 </style>
 </head>
 
 <body>
 
-  <h2>몬드리안 블록 퍼즐</h2>
+  <h2 style="text-align:center;font-size:clamp(1.3rem,4vw,2.2rem)">몬드리안 블록 퍼즐</h2>
 <div id="stage-wrapper">
   <div id="stages"></div>
   <div id="timer-display">시간: 0.0s</div>
@@ -206,7 +270,7 @@ button.reset-btn {
 </div>
 
 <script>
-const cell = 60;
+const cell = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell'), 10);
 const board = document.getElementById("board");
 const dock = document.getElementById("dock");
 const stagesEl = document.getElementById("stages");
@@ -241,6 +305,11 @@ const movableBlocksInfo = [
   {id:'m8',w:3,h:4,c:"#fcc419"}
 ];
 
+// For resizing on orientation change
+window.addEventListener('resize', () => {
+  refreshUI();
+});
+
 let blockStates = {};
 movableBlocksInfo.forEach(b => blockStates[b.id] = { w: b.w, h: b.h });
 
@@ -253,14 +322,15 @@ function buildGrid() {
   }
 }
 
+// Board rendering
 function renderBoard() {
   buildGrid();
   stages[currentStage].fixed.forEach(b => {
     const d = document.createElement("div");
     d.className = "block";
     Object.assign(d.style, {
-      left: b.x * cell + "px", top: b.y * cell + "px",
-      width: b.w * cell + "px", height: b.h * cell + "px",
+      left: b.x * getCell() + "px", top: b.y * getCell() + "px",
+      width: b.w * getCell() + "px", height: b.h * getCell() + "px",
       background: "black", zIndex: 10
     });
     board.appendChild(d);
@@ -273,15 +343,16 @@ function renderBoard() {
     d.id = p.id;
     d.style.background = info.c;
     d.dataset.w = p.w; d.dataset.h = p.h;
-    d.style.width = p.w * cell + "px";
-    d.style.height = p.h * cell + "px";
-    d.style.left = p.x * cell + "px";
-    d.style.top = p.y * cell + "px";
+    d.style.width = p.w * getCell() + "px";
+    d.style.height = p.h * getCell() + "px";
+    d.style.left = p.x * getCell() + "px";
+    d.style.top = p.y * getCell() + "px";
     enableDrag(d);
     board.appendChild(d);
   });
 }
 
+// Dock rendering
 function renderDock() {
   dock.innerHTML = "";
   movableBlocksInfo.forEach(b => {
@@ -292,11 +363,15 @@ function renderDock() {
     d.id = b.id;
     d.style.background = b.c;
     d.dataset.w = s.w; d.dataset.h = s.h;
-    d.style.width = s.w * cell + "px";
-    d.style.height = s.h * cell + "px";
+    d.style.width = s.w * getCell() + "px";
+    d.style.height = s.h * getCell() + "px";
     enableDrag(d);
     dock.appendChild(d);
   });
+}
+
+function getCell() {
+  return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell'), 10);
 }
 
 function enableDrag(el) {
@@ -306,21 +381,43 @@ function enableDrag(el) {
   let isDragging = false;
   let mouseDownTime = 0;
 
+  // ----------- Desktop (mouse) -----------
   el.onmousedown = e => {
-    e.preventDefault();
+    if (e.button !== 0) return;
+    doDragStart(e, "mouse");
+  };
+
+  // ----------- Touch device -----------
+  el.ontouchstart = e => {
+    if (e.touches.length > 1) return;
+    doDragStart(e.touches[0], "touch", e);
+  };
+
+  // ----------- Drag handler (shared) -----------
+  function doDragStart(point, mode, origTouchEvent) {
+    if (origTouchEvent) origTouchEvent.preventDefault();
+    else point.preventDefault && point.preventDefault();
     mouseDownTime = Date.now();
     const w = +el.dataset.w;
     const h = +el.dataset.h;
     const rect = el.getBoundingClientRect();
 
-    dragOffsetX = (e.clientX - rect.left) * ( (w * cell) / rect.width );
-    dragOffsetY = (e.clientY - rect.top) * ( (h * cell) / rect.height );
+    dragOffsetX = (point.clientX - rect.left) * ( (w * getCell()) / rect.width );
+    dragOffsetY = (point.clientY - rect.top) * ( (h * getCell()) / rect.height );
 
-    startX = e.clientX; startY = e.clientY;
+    startX = point.clientX; startY = point.clientY;
 
     const onMove = ev => {
-      if (!isDragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) > 5) {
+      let clientX, clientY;
+      if (mode === "mouse") {
+        clientX = ev.clientX; clientY = ev.clientY;
+      } else if (mode === "touch") {
+        if (ev.touches.length > 1) return;
+        clientX = ev.touches[0].clientX; clientY = ev.touches[0].clientY;
+      }
+      if (!isDragging && Math.hypot(clientX - startX, clientY - startY) > 5) {
         isDragging = true;
+        // Dock에서는 배치중일때도 제거해야 중복 방지
         stageHistory[currentStage].placed = stageHistory[currentStage].placed.filter(p => p.id !== el.id);
         if (dock.contains(el)) {
           el.style.left = rect.left + "px"; el.style.top = rect.top + "px";
@@ -329,26 +426,36 @@ function enableDrag(el) {
         el.classList.add("dragging");
         preview = document.createElement("div");
         preview.className = "preview";
-        preview.style.width = w * cell + "px"; preview.style.height = h * cell + "px";
+        preview.style.width = w * getCell() + "px"; preview.style.height = h * getCell() + "px";
         board.appendChild(preview);
       }
       if (isDragging) {
-        el.style.left = ev.clientX - dragOffsetX + "px";
-        el.style.top = ev.clientY - dragOffsetY + "px";
+        el.style.left = clientX - dragOffsetX + "px";
+        el.style.top = clientY - dragOffsetY + "px";
         const br = board.getBoundingClientRect();
-        const gx = Math.round((ev.clientX - br.left - dragOffsetX) / cell);
-        const gy = Math.round((ev.clientY - br.top - dragOffsetY) / cell);
+        const gx = Math.round((clientX - br.left - dragOffsetX) / getCell());
+        const gy = Math.round((clientY - br.top - dragOffsetY) / getCell());
         preview.className = "preview " + (isValid(gx, gy, w, h) ? "ok" : "bad");
-        preview.style.left = gx * cell + "px"; preview.style.top = gy * cell + "px";
+        preview.style.left = gx * getCell() + "px"; preview.style.top = gy * getCell() + "px";
       }
     };
 
     const onUp = ev => {
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-      const moveDist = Math.hypot(ev.clientX - startX, ev.clientY - startY);
+      let clientX, clientY;
+      if (mode === "mouse") {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        clientX = ev.clientX; clientY = ev.clientY;
+      } else {
+        document.removeEventListener("touchmove", onMove);
+        document.removeEventListener("touchend", onUp);
+        const changedTouch = ev.changedTouches ? ev.changedTouches[0] : ev.touches[0];
+        clientX = changedTouch.clientX; clientY = changedTouch.clientY;
+      }
+      const moveDist = Math.hypot(clientX - startX, clientY - startY);
 
-      if (Date.now() - mouseDownTime < 250 && moveDist < 6) {
+      if (Date.now() - mouseDownTime < 300 && moveDist < 10) {
+        // Rotate block
         const state = blockStates[el.id];
         const newW = state.h; const newH = state.w;
         const placedIdx = stageHistory[currentStage].placed.findIndex(p => p.id === el.id);
@@ -362,9 +469,10 @@ function enableDrag(el) {
           } else { stageHistory[currentStage].placed = currentPlaced; }
         } else { state.w = newW; state.h = newH; }
       } else if (isDragging) {
+        // Try to place
         const br = board.getBoundingClientRect();
-        const gx = Math.round((ev.clientX - br.left - dragOffsetX) / cell);
-        const gy = Math.round((ev.clientY - br.top - dragOffsetY) / cell);
+        const gx = Math.round((clientX - br.left - dragOffsetX) / getCell());
+        const gy = Math.round((clientY - br.top - dragOffsetY) / getCell());
         if (isValid(gx, gy, w, h)) {
           stageHistory[currentStage].placed.push({ id: el.id, x: gx, y: gy, w, h });
           checkClear();
@@ -372,19 +480,31 @@ function enableDrag(el) {
       }
       preview?.remove(); el.remove(); refreshUI();
     };
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  };
+
+    if (mode === "mouse") {
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    } else if (mode === "touch") {
+      document.addEventListener("touchmove", onMove, { passive: false });
+      document.addEventListener("touchend", onUp, { passive: false });
+    }
+  }
 }
 
+// 판별 함수
 function isValid(x, y, w, h) {
   if (x < 0 || y < 0 || x + w > 8 || y + h > 8) return false;
   if (stages[currentStage].fixed.some(p => x < p.x + p.w && x + w > p.x && y < p.y + p.h && y + h > p.y)) return false;
   return !stageHistory[currentStage].placed.some(p => x < p.x + p.w && x + w > p.x && y < p.y + p.h && y + h > p.y);
 }
 
-function refreshUI() { renderBoard(); renderDock(); renderStages(); }
+function refreshUI() {
+  renderBoard();
+  renderDock();
+  renderStages();
+}
 
+// 타이머
 function startTimer() {
   clearInterval(timerInterval);
   startTime = Date.now();
@@ -402,16 +522,22 @@ function checkClear() {
     // 모달 표시
     document.getElementById("clear-time-text").textContent = `기록: ${t}초`;
     modal.style.display = "flex";
+    // Prevent background scroll on mobile
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
   }
 }
 
 function closeModal() {
   modal.style.display = "none";
+  document.body.style.overflow = "";
+  document.body.style.touchAction = "";
   // 다음 단계로 이동
   if (currentStage < 3) loadStage(currentStage + 1);
   else refreshUI();
 }
 
+// 단계 버튼 표시
 function renderStages() {
   stagesEl.innerHTML = "";
   [1, 2, 3].forEach(i => {
@@ -447,6 +573,11 @@ function resetCurrentStageOnly() {
 
 // 초기화
 loadStage(1);
+
+// Prevent scrolling during touch drag on mobile
+document.body.addEventListener("touchmove", function(e) {
+  if (document.querySelector('.dragging')) e.preventDefault();
+}, { passive: false });
 </script>
 
 </body>
