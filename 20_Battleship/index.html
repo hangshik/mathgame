@@ -35,7 +35,20 @@
 
     h2 { margin: 10px 0; font-size: 1.2rem; }
 
-    .stage-container { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
+    .stage-container { 
+      display: flex; 
+      gap: 4px; 
+      margin-bottom: 8px; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      background: white; 
+      border-radius: 15px;
+      padding: 15px;
+      width: 95%;
+      max-width: 550px;
+      border: 2px solid #dee2e6;
+      box-sizing: border-box;
+    }
     .stage-btn {
       padding: 6px 10px; border: 2px solid #dee2e6; background: white; border-radius: 8px;
       cursor: pointer; font-size: 12px; font-weight: 800; transition: all 0.2s;
@@ -85,12 +98,24 @@
     .dock {
       display: flex; gap: 10px; padding: 15px; background: white; border-radius: 15px;
       margin-top: 10px; min-height: var(--cell-size); width: 95%; max-width: 550px;
-      border: 2px dashed #dee2e6; justify-content: center; align-items: center;
+      border: 2px solid #dee2e6; justify-content: center; align-items: center;
       box-sizing: border-box;
       touch-action: none; /* 독 내부 스크롤 방지 */
     }
     
-    .controls { margin-top: 10px; display: flex; gap: 10px; margin-bottom: 20px; }
+    .controls { 
+      margin-top: 10px; 
+      width: 95%; max-width: 550px;
+      display: flex; 
+      gap: 10px; 
+      margin-bottom: 20px; 
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 12px;
+      padding: 16px 10px;
+      justify-content: center;
+      box-sizing: border-box;
+    }
     button.action-btn { 
         padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; 
         font-weight: 900; font-size: 0.9rem; 
@@ -103,7 +128,7 @@
   </style>
 </head>
 <body>
-<h2>전함 퍼즐</h2>
+<h2>🚢 전함 퍼즐</h2>
 
   <div class="stage-container" id="stageButtons"></div>
   <div id="status">성공입니다.</div>
