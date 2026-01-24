@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>강아지 퍼즐</title>
+  <title>강아지 퍼즐 - 모바일 최적화</title>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
@@ -14,8 +14,9 @@
       margin: 0;
       padding: 20px;
       color: #333;
-      /* 모바일에서 불필요한 바운스 방지 */
+      /* 모바일 전체 스크롤 및 바운스 방지 */
       overscroll-behavior: none;
+      touch-action: none; 
     }
 
     .move-counter {
@@ -33,11 +34,10 @@
       border: 10px solid #343a40;
       border-radius: 10px;
       background-color: #e9ecef;
-      width: 348px; /* 58 * 6 */
-      height: 290px; /* 58 * 5 */
+      width: 348px; 
+      height: 290px; 
       box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      
-      /* 핵심: 모바일에서 드래그 시 스크롤 방지 */
+      /* 모바일 드래그 최적화 */
       touch-action: none; 
       user-select: none;
       -webkit-user-select: none;
@@ -68,11 +68,12 @@
     .block {
       position: absolute;
       z-index: 1;
-      transition: all 0.1s ease-out;
+      transition: transform 0.1s ease-out, left 0.1s, top 0.1s;
       cursor: grab;
       filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.2));
       -webkit-tap-highlight-color: transparent;
-      touch-action: none; /* 블록 개별에도 터치 액션 제한 */
+      /* 핵심: 블록 자체에서 브라우저 터치 액션 막기 */
+      touch-action: none; 
     }
     .block:active { cursor: grabbing; z-index: 100; }
 
@@ -102,7 +103,7 @@
 
     .controls { margin-top: 24px; display: flex; gap: 12px; }
     .btn {
-      font-size: 16px; padding: 10px 20px; border: none; border-radius: 8px;
+      font-size: 16px; padding: 12px 24px; border: none; border-radius: 8px;
       cursor: pointer; background-color: #339af0; color: white;
       font-weight: 600; transition: 0.2s;
       box-shadow: 0 4px 0 #1c7ed6;
@@ -113,7 +114,7 @@
 </head>
 <body>
   <h1>강아지 퍼즐</h1>
-  <h2 style="margin-bottom: 10px; color:#1c7ed6">빨강 ↔ 파랑 스와프</h2>
+  <h2 style="margin-bottom: 10px; color:#1c7ed6">미션: 빨강 ↔ 파랑 위치교환</h2>
   <div class="move-counter">이동: <span id="moveCount">0</span></div>
   
   <div class="puzzle-container" id="puzzle"></div>
@@ -208,29 +209,25 @@
 
     function addDragEvents(el, block) {
       let startX, startY;
+      let isDragging = false;
 
+      // PointerEvents: 마우스와 터치를 모두 포함하는 현대적인 방식
       const onStart = (e) => {
-        // [수정] 모바일에서 터치 시 스크롤 방지
-        if (e.cancelable) e.preventDefault();
-        
-        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-        startX = clientX; startY = clientY;
+        // 모바일에서 터치 시 엉뚱한 요소가 잡히지 않도록 캡처
+        el.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = true;
       };
 
       const onMove = (e) => {
-        if (startX === undefined) return;
+        if (!isDragging) return;
+
+        const distX = (e.clientX - startX) / cellSize;
+        const distY = (e.clientY - startY) / cellSize;
         
-        // [수정] 드래그 중 화면 이동(스크롤) 방지
-        if (e.cancelable) e.preventDefault();
-        
-        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-        
-        const distX = (clientX - startX) / cellSize;
-        const distY = (clientY - startY) / cellSize;
-        
-        if (Math.abs(distX) > 0.35 || Math.abs(distY) > 0.35) {
+        // 이동 감도: 모바일에서는 0.3 정도가 적당함
+        if (Math.abs(distX) > 0.3 || Math.abs(distY) > 0.3) {
           let dx = 0, dy = 0;
           if (Math.abs(distX) > Math.abs(distY)) dx = distX > 0 ? 1 : -1;
           else dy = distY > 0 ? 1 : -1;
@@ -238,29 +235,31 @@
           const chain = new Set();
           if (getPushChain(block, dx, dy, chain)) {
             chain.forEach(b => { b.x += dx; b.y += dy; });
-            startX = clientX; startY = clientY;
+            startX = e.clientX;
+            startY = e.clientY;
             renderBlocks();
           }
         }
       };
 
-      const onEnd = () => {
-        if (startX === undefined) return;
+      const onEnd = (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.releasePointerCapture(e.pointerId);
+
         if (JSON.stringify(history[history.length-1]) !== JSON.stringify(blocks)) {
-          saveHistory(); moveCount++; updateMoveCount();
+          saveHistory(); 
+          moveCount++; 
+          updateMoveCount();
         }
-        startX = undefined; renderBlocks();
+        renderBlocks();
       };
 
-      // 마우스 이벤트
-      el.addEventListener("mousedown", onStart);
-      window.addEventListener("mousemove", onMove);
-      window.addEventListener("mouseup", onEnd);
-      
-      // 터치 이벤트 (passive: false를 통해 preventDefault가 동작하도록 함)
-      el.addEventListener("touchstart", onStart, {passive: false});
-      window.addEventListener("touchmove", onMove, {passive: false});
-      window.addEventListener("touchend", onEnd);
+      // 포인터 이벤트 리스너 등록
+      el.addEventListener("pointerdown", onStart);
+      el.addEventListener("pointermove", onMove);
+      el.addEventListener("pointerup", onEnd);
+      el.addEventListener("pointercancel", onEnd); // 전화가 오는 등 이벤트 중단 시 대응
     }
 
     function checkWin() {
