@@ -27,7 +27,6 @@
 
     .puzzle-container {
       display: grid;
-      /* 72px * 0.8 = 57.6px -> 58px로 올림 조정 */
       grid-template-columns: repeat(6, 58px);
       grid-template-rows: repeat(5, 58px); 
       position: relative;
@@ -57,7 +56,7 @@
 
     .target-guide {
       position: absolute;
-      width: 54px; /* 58 - 4 */
+      width: 54px; 
       height: 54px;
       border: 3px dashed;
       border-radius: 8px;
@@ -72,8 +71,8 @@
       transition: all 0.1s ease-out;
       cursor: grab;
       filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.2));
-      /* 모바일 터치 피드백 제거 */
       -webkit-tap-highlight-color: transparent;
+      touch-action: none; /* 블록 개별에도 터치 액션 제한 */
     }
     .block:active { cursor: grabbing; z-index: 100; }
 
@@ -113,8 +112,8 @@
   </style>
 </head>
 <body>
-  <h1 style="margin-bottom: 10px;">강아지 퍼즐</h1>
-  <h2 style="margin-bottom: 10px;color:#1c7ed6">빨강 ↔ 파랑 스와프</h2>
+  <h1>강아지 퍼즐</h1>
+  <h2 style="margin-bottom: 10px; color:#1c7ed6">빨강 ↔ 파랑 스와프</h2>
   <div class="move-counter">이동: <span id="moveCount">0</span></div>
   
   <div class="puzzle-container" id="puzzle"></div>
@@ -211,7 +210,9 @@
       let startX, startY;
 
       const onStart = (e) => {
-        // 터치/클릭 시 스크롤 방지
+        // [수정] 모바일에서 터치 시 스크롤 방지
+        if (e.cancelable) e.preventDefault();
+        
         const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
         const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
         startX = clientX; startY = clientY;
@@ -220,13 +221,15 @@
       const onMove = (e) => {
         if (startX === undefined) return;
         
+        // [수정] 드래그 중 화면 이동(스크롤) 방지
+        if (e.cancelable) e.preventDefault();
+        
         const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
         const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
         
         const distX = (clientX - startX) / cellSize;
         const distY = (clientY - startY) / cellSize;
         
-        // 이동 감도 최적화
         if (Math.abs(distX) > 0.35 || Math.abs(distY) > 0.35) {
           let dx = 0, dy = 0;
           if (Math.abs(distX) > Math.abs(distY)) dx = distX > 0 ? 1 : -1;
@@ -249,11 +252,12 @@
         startX = undefined; renderBlocks();
       };
 
+      // 마우스 이벤트
       el.addEventListener("mousedown", onStart);
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onEnd);
       
-      // 모바일 터치 이벤트
+      // 터치 이벤트 (passive: false를 통해 preventDefault가 동작하도록 함)
       el.addEventListener("touchstart", onStart, {passive: false});
       window.addEventListener("touchmove", onMove, {passive: false});
       window.addEventListener("touchend", onEnd);
