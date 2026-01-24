@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>러시아워 - 위치 교환 & 푸시 (확대 버전)</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 40px;
+      color: #333;
+    }
+
+    .move-counter {
+      margin: 18px 0;
+      font-weight: 600;
+      font-size: 24px;
+      color: #495057;
+    }
+
+    .puzzle-container {
+      display: grid;
+      /* 48px * 1.5 = 72px */
+      grid-template-columns: repeat(6, 72px);
+      grid-template-rows: repeat(5, 72px); 
+      position: relative;
+      border: 12px solid #343a40;
+      border-radius: 12px;
+      background-color: #e9ecef;
+      width: 432px; /* 72 * 6 */
+      height: 360px; /* 72 * 5 */
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    /* 배경 격자 */
+    .puzzle-container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      background-image: 
+        linear-gradient(to right, #dee2e6 2px, transparent 2px),
+        linear-gradient(to bottom, #dee2e6 2px, transparent 2px);
+      background-size: 72px 72px;
+    }
+
+    .target-guide {
+      position: absolute;
+      width: 68px; /* 72 - 4 */
+      height: 68px;
+      border: 4px dashed;
+      border-radius: 10px;
+      opacity: 0.4;
+      z-index: 0;
+      box-sizing: border-box;
+    }
+
+    .block {
+      position: absolute;
+      z-index: 1;
+      transition: all 0.1s ease-out;
+      cursor: grab;
+      /* 블록 전체에 드롭 섀도우를 주어 입체감 부여 */
+      filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+    }
+    .block:active { cursor: grabbing; z-index: 100; }
+
+    .cell {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      box-sizing: border-box;
+      /* 셀 간의 경계를 없애기 위해 테두리 대신 안쪽 그림자 사용 */
+      border: 0.5px solid rgba(0,0,0,0.1); 
+    }
+
+    /* 각 색상별 스타일: 하나의 덩어리처럼 보이게 배경색 통일 */
+    .red .cell { background-color: #ff4f4f; border: 2px solid #c92a2a; border-radius: 8px; }
+    .blue .cell { background-color: #339af0; border: 2px solid #1864ab; border-radius: 8px; }
+    .green1 .cell { background-color: #51cf66; border: 2px solid #2b8a3e; border-radius: 8px; }
+    .green2 .cell { background-color: #2b8a3e; border: 2px solid #1b4332; border-radius: 8px; }
+    .yellow .cell { background-color: #fcc419; border: 1px solid #e67700; }
+    .fixed .cell { background-color: #343a40; border: 2px solid #000; border-radius: 4px; }
+
+    /* 노란색처럼 복잡한 블록의 모서리 처리를 위한 설정 (선택 사항) */
+    .yellow .cell { border-radius: 4px; }
+
+    #success {
+      margin-top: 24px;
+      font-size: 28px;
+      color: #40c057;
+      font-weight: 800;
+      display: none;
+      text-align: center;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .controls { margin-top: 30px; display: flex; gap: 15px; }
+    .btn {
+      font-size: 18px; padding: 12px 24px; border: none; border-radius: 8px;
+      cursor: pointer; background-color: #339af0; color: white;
+      font-weight: 600; transition: 0.2s;
+      box-shadow: 0 4px 0 #1c7ed6;
+    }
+    .btn:hover { background-color: #1c7ed6; transform: translateY(-2px); }
+    .btn:active { transform: translateY(2px); box-shadow: none; }
+    .btn-secondary { background-color: #adb5bd; box-shadow: 0 4px 0 #868e96; }
+    .btn-secondary:hover { background-color: #868e96; }
+  </style>
+</head>
+<body>
+  <h2>빨강 ↔ 파랑 스와프 미션 (1.5x)</h2>
+  <div class="move-counter">이동 횟수: <span id="moveCount">0</span></div>
+  
+  <div class="puzzle-container" id="puzzle"></div>
+  <div id="success">🎉 미션 성공! 자리를 바꿨습니다!</div>
+
+  <div class="controls">
+    <button class="btn btn-secondary" onclick="undoMove()">되돌리기</button>
+    <button class="btn" onclick="resetPuzzle()">다시 시작</button>
+  </div>
+
+  <script>
+    const puzzle = document.getElementById("puzzle");
+    const moveCountEl = document.getElementById("moveCount");
+    const successEl = document.getElementById("success");
+    const cellSize = 72; // 48 * 1.5
+    const gridCols = 6;
+    const gridRows = 5;
+
+    let blocks = [];
+    let moveCount = 0;
+    let history = [];
+
+    const initialBlocks = [
+      { id: "red", color: "red", x: 3, y: 3, shape: [{dx:0, dy:0}], fixed: false },
+      { id: "blue", color: "blue", x: 5, y: 3, shape: [{dx:0, dy:0}], fixed: false },
+      { id: "green1", color: "green1", x: 3, y: 0, shape: [{dx:0, dy:0}], fixed: false },
+      { id: "green2", color: "green2", x: 4, y: 0, shape: [{dx:0, dy:0}, {dx:1, dy:0}], fixed: false },
+      { id: "yellow", color: "yellow", x: 1, y: 1, shape: [[1,1,0,0,0],[0,1,1,1,0],[0,1,0,1,0],[1,1,0,1,1]].flatMap((row,y)=>row.map((v,x)=>v?{dx:x,dy:y}:null).filter(v=>v)), fixed: false },
+      { id: "f1", color: "fixed", x: 0, y: 2, shape: [{dx:0, dy:0}], fixed: true },
+      { id: "f2", color: "fixed", x: 5, y: 1, shape: [{dx:0, dy:0}], fixed: true },
+      { id: "f3", color: "fixed", x: 3, y: 4, shape: [{dx:0, dy:0}], fixed: true }
+    ];
+
+    const startPos = {
+      red: { x: 3, y: 3 },
+      blue: { x: 5, y: 3 }
+    };
+
+    function renderBlocks() {
+      puzzle.innerHTML = "";
+      
+      // 목표 가이드라인 (크기 조정됨)
+      const g1 = document.createElement("div");
+      g1.className = "target-guide"; 
+      g1.style.left = `${startPos.blue.x * cellSize + 2}px`; 
+      g1.style.top = `${startPos.blue.y * cellSize + 2}px`;
+      g1.style.borderColor = "#ff4f4f"; puzzle.appendChild(g1);
+      
+      const g2 = document.createElement("div");
+      g2.className = "target-guide"; 
+      g2.style.left = `${startPos.red.x * cellSize + 2}px`; 
+      g2.style.top = `${startPos.red.y * cellSize + 2}px`;
+      g2.style.borderColor = "#339af0"; puzzle.appendChild(g2);
+
+      blocks.forEach(block => {
+        const blockDiv = document.createElement("div");
+        blockDiv.className = `block ${block.color}`;
+        blockDiv.style.left = `${block.x * cellSize}px`;
+        blockDiv.style.top = `${block.y * cellSize}px`;
+
+        block.shape.forEach(pos => {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          // 셀 간격을 없애기 위해 2px 오프셋 제거 및 정사이즈 배치
+          cell.style.left = `${pos.dx * cellSize}px`;
+          cell.style.top = `${pos.dy * cellSize}px`;
+          blockDiv.appendChild(cell);
+        });
+
+        if (!block.fixed) addDragEvents(blockDiv, block);
+        puzzle.appendChild(blockDiv);
+      });
+      checkWin();
+    }
+
+    function getPushChain(block, dx, dy, chain) {
+      if (block.fixed) return false;
+      if (chain.has(block)) return true;
+      chain.add(block);
+
+      for (let p of block.shape) {
+        const nx = block.x + p.dx + dx;
+        const ny = block.y + p.dy + dy;
+        if (nx < 0 || nx >= gridCols || ny < 0 || ny >= gridRows) return false;
+        
+        for (let other of blocks) {
+          if (chain.has(other)) continue;
+          for (let op of other.shape) {
+            if (nx === other.x + op.dx && ny === other.y + op.dy) {
+              if (!getPushChain(other, dx, dy, chain)) return false;
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function addDragEvents(el, block) {
+      let startX, startY;
+
+      const onStart = (e) => {
+        e.preventDefault();
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        startX = clientX; startY = clientY;
+      };
+
+      const onMove = (e) => {
+        if (startX === undefined) return;
+        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+        
+        const distX = (clientX - startX) / cellSize;
+        const distY = (clientY - startY) / cellSize;
+        
+        // 이동 민감도 조정
+        if (Math.abs(distX) > 0.4 || Math.abs(distY) > 0.4) {
+          let dx = 0, dy = 0;
+          if (Math.abs(distX) > Math.abs(distY)) dx = distX > 0 ? 1 : -1;
+          else dy = distY > 0 ? 1 : -1;
+
+          const chain = new Set();
+          if (getPushChain(block, dx, dy, chain)) {
+            chain.forEach(b => { b.x += dx; b.y += dy; });
+            startX = clientX; startY = clientY;
+            renderBlocks();
+          }
+        }
+      };
+
+      const onEnd = () => {
+        if (startX === undefined) return;
+        if (JSON.stringify(history[history.length-1]) !== JSON.stringify(blocks)) {
+          saveHistory(); moveCount++; updateMoveCount();
+        }
+        startX = undefined; renderBlocks();
+      };
+
+      el.addEventListener("mousedown", onStart);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onEnd);
+      el.addEventListener("touchstart", onStart, {passive: false});
+      window.addEventListener("touchmove", onMove, {passive: false});
+      window.addEventListener("touchend", onEnd);
+    }
+
+    function checkWin() {
+      const red = blocks.find(b => b.id === "red");
+      const blue = blocks.find(b => b.id === "blue");
+      if (red.x === startPos.blue.x && red.y === startPos.blue.y &&
+          blue.x === startPos.red.x && blue.y === startPos.red.y) {
+        successEl.style.display = "block";
+      } else { successEl.style.display = "none"; }
+    }
+
+    function saveHistory() {
+      history.push(JSON.parse(JSON.stringify(blocks)));
+      if (history.length > 50) history.shift();
+    }
+
+    function undoMove() {
+      if (history.length <= 1) return;
+      history.pop();
+      blocks = JSON.parse(JSON.stringify(history[history.length - 1]));
+      moveCount++; updateMoveCount(); renderBlocks();
+    }
+
+    function updateMoveCount() { moveCountEl.textContent = moveCount; }
+    function resetPuzzle() {
+      blocks = JSON.parse(JSON.stringify(initialBlocks));
+      history = []; saveHistory(); moveCount = 0; updateMoveCount(); renderBlocks();
+    }
+
+    resetPuzzle();
+  </script>
+</body>
+</html>
