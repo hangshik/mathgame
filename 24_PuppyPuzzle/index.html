@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>강아지 퍼즐</title>
   <style>
     body {
@@ -12,49 +12,55 @@
       align-items: center;
       background-color: #f8f9fa;
       margin: 0;
-      padding: 40px;
+      padding: 20px;
       color: #333;
+      /* 모바일에서 불필요한 바운스 방지 */
+      overscroll-behavior: none;
     }
 
     .move-counter {
-      margin: 18px 0;
+      margin: 12px 0;
       font-weight: 600;
-      font-size: 24px;
+      font-size: 20px;
       color: #495057;
     }
 
     .puzzle-container {
       display: grid;
-      /* 48px * 1.5 = 72px */
-      grid-template-columns: repeat(6, 72px);
-      grid-template-rows: repeat(5, 72px); 
+      /* 72px * 0.8 = 57.6px -> 58px로 올림 조정 */
+      grid-template-columns: repeat(6, 58px);
+      grid-template-rows: repeat(5, 58px); 
       position: relative;
-      border: 12px solid #343a40;
-      border-radius: 12px;
+      border: 10px solid #343a40;
+      border-radius: 10px;
       background-color: #e9ecef;
-      width: 432px; /* 72 * 6 */
-      height: 360px; /* 72 * 5 */
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 348px; /* 58 * 6 */
+      height: 290px; /* 58 * 5 */
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      
+      /* 핵심: 모바일에서 드래그 시 스크롤 방지 */
+      touch-action: none; 
+      user-select: none;
+      -webkit-user-select: none;
     }
     
-    /* 배경 격자 */
     .puzzle-container::before {
       content: "";
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none;
       background-image: 
-        linear-gradient(to right, #dee2e6 2px, transparent 2px),
-        linear-gradient(to bottom, #dee2e6 2px, transparent 2px);
-      background-size: 72px 72px;
+        linear-gradient(to right, #dee2e6 1px, transparent 1px),
+        linear-gradient(to bottom, #dee2e6 1px, transparent 1px);
+      background-size: 58px 58px;
     }
 
     .target-guide {
       position: absolute;
-      width: 68px; /* 72 - 4 */
-      height: 68px;
-      border: 4px dashed;
-      border-radius: 10px;
+      width: 54px; /* 58 - 4 */
+      height: 54px;
+      border: 3px dashed;
+      border-radius: 8px;
       opacity: 0.4;
       z-index: 0;
       box-sizing: border-box;
@@ -65,61 +71,54 @@
       z-index: 1;
       transition: all 0.1s ease-out;
       cursor: grab;
-      /* 블록 전체에 드롭 섀도우를 주어 입체감 부여 */
-      filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+      filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.2));
+      /* 모바일 터치 피드백 제거 */
+      -webkit-tap-highlight-color: transparent;
     }
     .block:active { cursor: grabbing; z-index: 100; }
 
     .cell {
       position: absolute;
-      width: 72px;
-      height: 72px;
+      width: 58px;
+      height: 58px;
       box-sizing: border-box;
-      /* 셀 간의 경계를 없애기 위해 테두리 대신 안쪽 그림자 사용 */
-      border: 0.5px solid rgba(0,0,0,0.1); 
+      border: 0.5px solid rgba(0,0,0,0.05); 
     }
 
-    /* 각 색상별 스타일: 하나의 덩어리처럼 보이게 배경색 통일 */
-    .red .cell { background-color: #ff4f4f; border: 2px solid #c92a2a; border-radius: 8px; }
-    .blue .cell { background-color: #339af0; border: 2px solid #1864ab; border-radius: 8px; }
-    .green1 .cell { background-color: #51cf66; border: 2px solid #2b8a3e; border-radius: 8px; }
-    .green2 .cell { background-color: #2b8a3e; border: 2px solid #1b4332; border-radius: 8px; }
-    .yellow .cell { background-color: #fcc419; border: 1px solid #e67700; }
+    .red .cell { background-color: #ff4f4f; border: 2px solid #c92a2a; border-radius: 6px; }
+    .blue .cell { background-color: #339af0; border: 2px solid #1864ab; border-radius: 6px; }
+    .green1 .cell { background-color: #51cf66; border: 2px solid #2b8a3e; border-radius: 6px; }
+    .green2 .cell { background-color: #2b8a3e; border: 2px solid #1b4332; border-radius: 6px; }
+    .yellow .cell { background-color: #fcc419; border: 1.5px solid #e67700; border-radius: 4px; }
     .fixed .cell { background-color: #343a40; border: 2px solid #000; border-radius: 4px; }
 
-    /* 노란색처럼 복잡한 블록의 모서리 처리를 위한 설정 (선택 사항) */
-    .yellow .cell { border-radius: 4px; }
-
     #success {
-      margin-top: 24px;
-      font-size: 28px;
+      margin-top: 20px;
+      font-size: 24px;
       color: #40c057;
       font-weight: 800;
       display: none;
       text-align: center;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
 
-    .controls { margin-top: 30px; display: flex; gap: 15px; }
+    .controls { margin-top: 24px; display: flex; gap: 12px; }
     .btn {
-      font-size: 18px; padding: 12px 24px; border: none; border-radius: 8px;
+      font-size: 16px; padding: 10px 20px; border: none; border-radius: 8px;
       cursor: pointer; background-color: #339af0; color: white;
       font-weight: 600; transition: 0.2s;
       box-shadow: 0 4px 0 #1c7ed6;
     }
-    .btn:hover { background-color: #1c7ed6; transform: translateY(-2px); }
     .btn:active { transform: translateY(2px); box-shadow: none; }
     .btn-secondary { background-color: #adb5bd; box-shadow: 0 4px 0 #868e96; }
-    .btn-secondary:hover { background-color: #868e96; }
   </style>
 </head>
 <body>
-  <h1>강아지 퍼즐</h1>
-  <h2 style="color: #1c7ed6;">목표: 빨강 ↔ 파랑</h2>
-  <div class="move-counter">이동 횟수: <span id="moveCount">0</span></div>
+  <h1 style="margin-bottom: 10px;">강아지 퍼즐</h1>
+  <h2 style="margin-bottom: 10px;color:#1c7ed6">빨강 ↔ 파랑 스와프</h2>
+  <div class="move-counter">이동: <span id="moveCount">0</span></div>
   
   <div class="puzzle-container" id="puzzle"></div>
-  <div id="success">🎉 미션 성공! 자리를 바꿨습니다!</div>
+  <div id="success">🎉 미션 성공!</div>
 
   <div class="controls">
     <button class="btn btn-secondary" onclick="undoMove()">되돌리기</button>
@@ -130,7 +129,7 @@
     const puzzle = document.getElementById("puzzle");
     const moveCountEl = document.getElementById("moveCount");
     const successEl = document.getElementById("success");
-    const cellSize = 72; // 48 * 1.5
+    const cellSize = 58; 
     const gridCols = 6;
     const gridRows = 5;
 
@@ -149,15 +148,11 @@
       { id: "f3", color: "fixed", x: 3, y: 4, shape: [{dx:0, dy:0}], fixed: true }
     ];
 
-    const startPos = {
-      red: { x: 3, y: 3 },
-      blue: { x: 5, y: 3 }
-    };
+    const startPos = { red: { x: 3, y: 3 }, blue: { x: 5, y: 3 } };
 
     function renderBlocks() {
       puzzle.innerHTML = "";
       
-      // 목표 가이드라인 (크기 조정됨)
       const g1 = document.createElement("div");
       g1.className = "target-guide"; 
       g1.style.left = `${startPos.blue.x * cellSize + 2}px`; 
@@ -179,7 +174,6 @@
         block.shape.forEach(pos => {
           const cell = document.createElement("div");
           cell.className = "cell";
-          // 셀 간격을 없애기 위해 2px 오프셋 제거 및 정사이즈 배치
           cell.style.left = `${pos.dx * cellSize}px`;
           cell.style.top = `${pos.dy * cellSize}px`;
           blockDiv.appendChild(cell);
@@ -217,22 +211,23 @@
       let startX, startY;
 
       const onStart = (e) => {
-        e.preventDefault();
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
+        // 터치/클릭 시 스크롤 방지
+        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
         startX = clientX; startY = clientY;
       };
 
       const onMove = (e) => {
         if (startX === undefined) return;
+        
         const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
         const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
         
         const distX = (clientX - startX) / cellSize;
         const distY = (clientY - startY) / cellSize;
         
-        // 이동 민감도 조정
-        if (Math.abs(distX) > 0.4 || Math.abs(distY) > 0.4) {
+        // 이동 감도 최적화
+        if (Math.abs(distX) > 0.35 || Math.abs(distY) > 0.35) {
           let dx = 0, dy = 0;
           if (Math.abs(distX) > Math.abs(distY)) dx = distX > 0 ? 1 : -1;
           else dy = distY > 0 ? 1 : -1;
@@ -257,6 +252,8 @@
       el.addEventListener("mousedown", onStart);
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onEnd);
+      
+      // 모바일 터치 이벤트
       el.addEventListener("touchstart", onStart, {passive: false});
       window.addEventListener("touchmove", onMove, {passive: false});
       window.addEventListener("touchend", onEnd);
@@ -265,7 +262,7 @@
     function checkWin() {
       const red = blocks.find(b => b.id === "red");
       const blue = blocks.find(b => b.id === "blue");
-      if (red.x === startPos.blue.x && red.y === startPos.blue.y &&
+      if (red && blue && red.x === startPos.blue.x && red.y === startPos.blue.y &&
           blue.x === startPos.red.x && blue.y === startPos.red.y) {
         successEl.style.display = "block";
       } else { successEl.style.display = "none"; }
