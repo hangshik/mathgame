@@ -57,7 +57,6 @@
     }
     .rules b { color: #212529; font-size: 18px; }
 
-    /* 기록 보드 초기 상태: 숨김 */
     .record-board {
       display: none; 
       background: white; padding: 20px; border-radius: 16px;
@@ -119,7 +118,7 @@
     </div>
 
     <div class="record-board" id="recordBoard">
-      <div class="record-title">🏆 누적 성공 기록</div>
+      <div class="record-title">🏆 실시간 성공 기록</div>
       <div class="record-container" id="recordList"></div>
     </div>
   </div>
@@ -150,6 +149,9 @@
     let timerInterval = null;
     let seconds = 0;
     let gameStarted = false;
+
+    // 누적 기록을 세션용 배열에 저장 (새로고침 시 초기화됨)
+    let sessionRecords = [];
 
     const initialBlocks = [
       { id: "red", color: "red", x: 3, y: 3, shape: [{dx:0, dy:0}] },
@@ -282,23 +284,26 @@
     }
 
     function saveRecord(moves, time) {
-      const records = JSON.parse(localStorage.getItem('puppyPuzzleRecords') || '[]');
-      records.unshift({ moves, time, date: new Date().toLocaleDateString() });
-      localStorage.setItem('puppyPuzzleRecords', JSON.stringify(records.slice(0, 20)));
+      // 현재 시간을 '시:분' 형식으로 추출
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+
+      // 세션 배열에 추가 (영구 저장인 localStorage 사용 안 함)
+      sessionRecords.unshift({ moves, time, displayTime: timeString });
       displayRecords();
     }
 
     function displayRecords() {
-      const records = JSON.parse(localStorage.getItem('puppyPuzzleRecords') || '[]');
-      
-      // 기록이 있을 때만 보이게 처리
-      if (records.length > 0) {
+      if (sessionRecords.length > 0) {
         recordBoardEl.style.display = "block";
         recordListEl.innerHTML = '';
-        records.forEach((r, i) => {
+        sessionRecords.forEach((r, i) => {
           const item = document.createElement('div');
           item.className = 'record-item';
-          item.innerHTML = `<span>#${records.length - i} (${r.date})</span> <strong>${r.moves}회 / ${r.time}</strong>`;
+          // 날짜 대신 현재 시간(displayTime)을 표시
+          item.innerHTML = `<span>#${sessionRecords.length - i} (${r.displayTime})</span> <strong>${r.moves}회 / ${r.time}</strong>`;
           recordListEl.appendChild(item);
         });
       } else {
