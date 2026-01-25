@@ -3,19 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>강아지 퍼즐 - 프로 에디션 (연속 이동 수정본)</title>
+  <title>강아지 퍼즐 - 프로 에디션</title>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-      overscroll-behavior: none;
-      touch-action: none; 
+      display: flex; flex-direction: column; align-items: center;
+      background-color: #f0f2f5; margin: 0; padding: 20px; color: #333;
+      overscroll-behavior: none; touch-action: none; 
     }
     .status-bar { display: flex; gap: 20px; margin-bottom: 15px; }
     .info-box {
@@ -54,15 +48,26 @@
     .yellow .cell { background-color: #fcc419; border: 2px solid #e67700; border-radius: 6px; }
     .fixed .cell { background-color: #495057; border: 2px solid #212529; border-radius: 6px; }
 
+    /* 모달 및 기록 스타일 */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);
       display: none; justify-content: center; align-items: center; z-index: 1000;
     }
     .modal-content {
-      background: white; padding: 30px; border-radius: 24px; text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-width: 80%;
+      background: white; padding: 25px; border-radius: 24px; text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); width: 85%; max-width: 350px;
     }
+    .record-container {
+      margin-top: 15px; max-height: 150px; overflow-y: auto;
+      background: #f8f9fa; border-radius: 12px; padding: 10px; text-align: left;
+    }
+    .record-item {
+      font-size: 13px; border-bottom: 1px solid #eee; padding: 5px 0;
+      display: flex; justify-content: space-between;
+    }
+    .record-item:last-child { border-bottom: none; }
+
     .controls { margin-top: 24px; display: flex; gap: 12px; }
     .btn {
       font-size: 16px; padding: 14px 28px; border: none; border-radius: 12px;
@@ -70,8 +75,7 @@
       font-weight: 600; transition: 0.2s; box-shadow: 0 4px 0 #1c7ed6;
     }
     .btn:active { transform: translateY(2px); box-shadow: none; }
-    .btn-secondary { background-color: #adb5bd; box-shadow: 0 4px 0 #868e96; }
-    .btn-success { background-color: #40c057; box-shadow: 0 4px 0 #2b8a3e; margin-top: 10px; }
+    .btn-success { background-color: #40c057; box-shadow: 0 4px 0 #2b8a3e; margin-top: 10px; width: 100%; }
   </style>
 </head>
 <body>
@@ -86,7 +90,7 @@
   <div class="puzzle-container" id="puzzle"></div>
 
   <div class="controls">
-    <button class="btn btn-secondary" onclick="undoMove()">되돌리기</button>
+    <button class="btn" onclick="undoMove()">되돌리기</button>
     <button class="btn" onclick="resetPuzzle()">다시 시작</button>
   </div>
 
@@ -94,9 +98,12 @@
     <div class="modal-content">
       <h2>🎉 미션 성공!</h2>
       <div class="modal-stats">
-        <p>이동 횟수: <strong id="finalMoves">0</strong>회</p>
-        <p>소요 시간: <strong id="finalTime">00:00</strong></p>
+        <p>현재 기록: <strong>이동 <span id="finalMoves">0</span>회 / <span id="finalTime">00:00</span></strong></p>
       </div>
+      <hr>
+      <div style="font-weight: bold; margin-bottom: 5px; font-size: 14px;">🏆 누적 성공 기록</div>
+      <div class="record-container" id="recordList">
+        </div>
       <button class="btn btn-success" onclick="closeModal()">확인</button>
     </div>
   </div>
@@ -106,6 +113,7 @@
     const moveCountEl = document.getElementById("moveCount");
     const timerEl = document.getElementById("timerDisplay");
     const successModal = document.getElementById("successModal");
+    const recordListEl = document.getElementById("recordList");
     
     const cellSize = 58; 
     const gridCols = 6;
@@ -118,6 +126,7 @@
     let seconds = 0;
     let gameStarted = false;
 
+    // 블록 데이터
     const initialBlocks = [
       { id: "red", color: "red", x: 3, y: 3, shape: [{dx:0, dy:0}] },
       { id: "blue", color: "blue", x: 5, y: 3, shape: [{dx:0, dy:0}] },
@@ -131,10 +140,15 @@
 
     const startPos = { red: { x: 3, y: 3 }, blue: { x: 5, y: 3 } };
 
+    // 진동 함수 (이동 불가 시 호출)
+    function triggerVibration() {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(50); // 0.05초 진동
+      }
+    }
+
     function initPuzzle() {
       puzzle.innerHTML = "";
-      
-      // 가이드 생성
       const createGuide = (x, y, color) => {
         const g = document.createElement("div");
         g.className = "target-guide";
@@ -146,13 +160,10 @@
       createGuide(startPos.blue.x, startPos.blue.y, "#ff4f4f");
       createGuide(startPos.red.x, startPos.red.y, "#339af0");
 
-      // 블록 요소 생성
       blocks.forEach(block => {
         const blockDiv = document.createElement("div");
         blockDiv.className = `block ${block.color}`;
-        blockDiv.id = `block-${block.id}`;
-        block.el = blockDiv; // DOM 참조 저장
-
+        block.el = blockDiv;
         block.shape.forEach(pos => {
           const cell = document.createElement("div");
           cell.className = "cell";
@@ -160,14 +171,12 @@
           cell.style.top = `${pos.dy * cellSize}px`;
           blockDiv.appendChild(cell);
         });
-
         if (!block.fixed) addDragEvents(blockDiv, block);
         puzzle.appendChild(blockDiv);
       });
       updateBlockStyles();
     }
 
-    // 스타일만 업데이트하여 끊김 방지
     function updateBlockStyles() {
       blocks.forEach(block => {
         block.el.style.left = `${block.x * cellSize}px`;
@@ -179,12 +188,10 @@
       if (block.fixed) return false;
       if (chain.has(block)) return true;
       chain.add(block);
-
       for (let p of block.shape) {
         const nx = block.x + p.dx + dx;
         const ny = block.y + p.dy + dy;
         if (nx < 0 || nx >= gridCols || ny < 0 || ny >= gridRows) return false;
-        
         for (let other of blocks) {
           if (chain.has(other)) continue;
           for (let op of other.shape) {
@@ -205,20 +212,17 @@
       const onStart = (e) => {
         startTimer();
         el.setPointerCapture(e.pointerId);
-        startX = e.clientX;
-        startY = e.clientY;
-        isDragging = true;
-        movedInThisDrag = false;
+        startX = e.clientX; startY = e.clientY;
+        isDragging = true; movedInThisDrag = false;
         el.classList.add('dragging');
       };
 
       const onMove = (e) => {
         if (!isDragging) return;
-
         let distX = e.clientX - startX;
         let distY = e.clientY - startY;
 
-        // X축 연속 이동
+        // X축 연속 이동 및 진동 처리
         while (Math.abs(distX) >= cellSize) {
           let dx = distX > 0 ? 1 : -1;
           let chain = new Set();
@@ -227,10 +231,13 @@
             startX += dx * cellSize;
             distX = e.clientX - startX;
             movedInThisDrag = true;
-          } else { break; }
+          } else { 
+            triggerVibration(); // 막혔을 때 진동
+            break; 
+          }
         }
 
-        // Y축 연속 이동
+        // Y축 연속 이동 및 진동 처리
         while (Math.abs(distY) >= cellSize) {
           let dy = distY > 0 ? 1 : -1;
           let chain = new Set();
@@ -239,12 +246,13 @@
             startY += dy * cellSize;
             distY = e.clientY - startY;
             movedInThisDrag = true;
-          } else { break; }
+          } else { 
+            triggerVibration(); // 막혔을 때 진동
+            break; 
+          }
         }
 
-        if (movedInThisDrag) {
-          updateBlockStyles();
-        }
+        if (movedInThisDrag) updateBlockStyles();
       };
 
       const onEnd = (e) => {
@@ -252,12 +260,8 @@
         isDragging = false;
         el.releasePointerCapture(e.pointerId);
         el.classList.remove('dragging');
-
         if (movedInThisDrag) {
-          saveHistory(); 
-          moveCount++; 
-          updateMoveCount();
-          checkWin();
+          saveHistory(); moveCount++; updateMoveCount(); checkWin();
         }
       };
 
@@ -267,7 +271,38 @@
       el.addEventListener("pointercancel", onEnd);
     }
 
-    // 타이머 및 기타 기능들
+    // 기록 저장 및 불러오기 로직
+    function saveRecord(moves, time) {
+      const records = JSON.parse(localStorage.getItem('puppyPuzzleRecords') || '[]');
+      records.unshift({ moves, time, date: new Date().toLocaleDateString() });
+      localStorage.setItem('puppyPuzzleRecords', JSON.stringify(records.slice(0, 20))); // 최근 20개만 보관
+      displayRecords();
+    }
+
+    function displayRecords() {
+      const records = JSON.parse(localStorage.getItem('puppyPuzzleRecords') || '[]');
+      recordListEl.innerHTML = records.length ? '' : '<div style="font-size:12px;color:#888;">아직 기록이 없습니다.</div>';
+      records.forEach((r, i) => {
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        item.innerHTML = `<span>#${records.length - i} (${r.date})</span> <span>${r.moves}회 / ${r.time}</span>`;
+        recordListEl.appendChild(item);
+      });
+    }
+
+    function checkWin() {
+      const red = blocks.find(b => b.id === "red");
+      const blue = blocks.find(b => b.id === "blue");
+      if (red.x === startPos.blue.x && red.y === startPos.blue.y &&
+          blue.x === startPos.red.x && blue.y === startPos.red.y) {
+        stopTimer();
+        document.getElementById("finalMoves").textContent = moveCount;
+        document.getElementById("finalTime").textContent = timerEl.textContent;
+        saveRecord(moveCount, timerEl.textContent); // 기록 저장
+        successModal.style.display = "flex";
+      }
+    }
+
     function startTimer() {
       if (gameStarted) return;
       gameStarted = true;
@@ -279,17 +314,6 @@
       }, 1000);
     }
     function stopTimer() { clearInterval(timerInterval); }
-    function checkWin() {
-      const red = blocks.find(b => b.id === "red");
-      const blue = blocks.find(b => b.id === "blue");
-      if (red.x === startPos.blue.x && red.y === startPos.blue.y &&
-          blue.x === startPos.red.x && blue.y === startPos.red.y) {
-        stopTimer();
-        document.getElementById("finalMoves").textContent = moveCount;
-        document.getElementById("finalTime").textContent = timerEl.textContent;
-        successModal.style.display = "flex";
-      }
-    }
     function closeModal() { successModal.style.display = "none"; resetPuzzle(); }
     function saveHistory() {
       const snapshot = blocks.map(b => ({ id: b.id, x: b.x, y: b.y }));
@@ -311,11 +335,8 @@
       stopTimer(); seconds = 0; gameStarted = false;
       timerEl.textContent = "00:00";
       blocks = JSON.parse(JSON.stringify(initialBlocks));
-      history = [];
-      saveHistory();
-      moveCount = 0;
-      updateMoveCount();
-      initPuzzle();
+      history = []; saveHistory(); moveCount = 0;
+      updateMoveCount(); initPuzzle();
     }
 
     resetPuzzle();
