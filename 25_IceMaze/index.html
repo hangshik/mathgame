@@ -238,8 +238,8 @@
 
     <div class="control-section">
         <div class="side-actions">
-            <button class="side-btn" onclick="undo()">되돌리기</button>
-            <button class="side-btn" onclick="resetCurrentLevel()">리셋</button>
+            <button class="side-btn" onclick="undo()">되돌리기(Z)</button>
+            <button class="side-btn" onclick="resetCurrentLevel()">초기화(R)</button>
         </div>
 
         <div class="d-pad">
@@ -502,7 +502,7 @@ function closeModal() {
         let nextLvl = (currentLevel + 1) % levels.length;
         initGame(nextLvl);
     } else {
-        // 실패했다면 현재 단계 리셋
+        // 실패했다면 현재 단계 초기화
         resetCurrentLevel(); 
     }
 }
@@ -516,6 +516,16 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') handleMove(-1, 0);
     if (e.key === 'ArrowRight') handleMove(1, 0);
     if (e.key === ' ') switchPlayer();
+
+    /* 되돌리기: Z 또는 Ctrl+Z */
+    if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) {
+        undo();
+    }
+
+    /* 초기화: R 또는 Esc */
+    if (e.key === 'r' || e.key === 'R' || e.key === 'Escape') {
+        resetCurrentLevel();
+    }
 });
 
 initGame(0);
