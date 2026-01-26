@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>얼음미로</title>
+<style>
+    :root {
+        --ice-bg: #e3f2fd;
+        --wall-color: #fff;
+        --hole-color: #3e2723;
+        --lava-color: #ff3d00;
+        --btn-blue: #2196f3;
+        --btn-hover: #1976d2;
+        --success-green: #28a745;
+        --fail-red: #f44336;
+        --shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    body {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        background: #f0f2f5;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        min-height: 100vh;
+        padding-bottom: 50px;
+    }
+
+    h1 { 
+        margin: 25px 0 10px; 
+        color: #1a237e; 
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+
+    .stats { 
+        font-size: 1.1rem; 
+        font-weight: 700; 
+        color: #555; 
+        margin-bottom: 20px;
+        background: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .level-selector { 
+        display: flex; 
+        gap: 10px; 
+        margin-bottom: 25px; 
+        flex-wrap: wrap; 
+        justify-content: center;
+        max-width: 400px;
+    }
+
+.lvl-btn {
+    width: 80px;
+    height: 44px;
+    position: relative;
+            padding: 5px 0;
+            background-color: #fff;
+            color: #555;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+}
+
+/* 미완료 단계 hover */
+.lvl-btn:hover:not(.active) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 완료한 단계 */
+.lvl-btn.completed {
+    background-color: #28a745; border-color: #218838; color: white; }
+
+/* 현재 단계 */
+.lvl-btn.active {
+    background: #228be6;
+    color: white;
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(34,139,230,0.4);
+    z-index: 2;
+}
+
+
+    #canvas-container {
+        position: relative; 
+        background: white; 
+        padding: 12px; 
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
+        border: 4px solid var(--wall-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 10px;
+        min-width: 180px;
+        min-height: 180px;
+    }
+
+    canvas { 
+        display: block; 
+        border-radius: 4px;
+        image-rendering: pixelated; 
+    }
+
+    .control-section {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        margin: 20px 0;
+    }
+
+    .side-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .side-btn {
+        width: 85px; 
+        height: 50px; 
+        border: none; 
+        border-radius: 12px;
+        background: var(--btn-blue); 
+        color: white; 
+        font-weight: bold;
+        cursor: pointer; 
+        box-shadow: var(--shadow);
+        transition: all 0.2s;
+    }
+
+.d-pad { 
+    display: grid; 
+    grid-template-columns: repeat(3, 70px); 
+    grid-template-rows: repeat(3, 70px); 
+    gap: 5px; 
+}
+
+/* 각 버튼 위치 고정 */
+.btn-up {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.btn-left {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.btn-center {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.btn-right {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.btn-down {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+
+    .d-btn {
+        background: white; 
+        border: none; 
+        border-radius: 20px;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.1); 
+        font-size: 1.6rem;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+        transition: background 0.1s, transform 0.1s;
+    }
+
+    .btn-center { 
+        background: var(--btn-blue); 
+        color: white; 
+        font-size: 1rem; 
+        font-weight: bold; 
+    }
+
+    .rules-container {
+        max-width: 360px; 
+        background: white; 
+        padding: 20px; 
+        border-radius: 18px;
+        margin: 10px 0 40px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-left: 6px solid var(--btn-blue);
+    }
+
+    #game-modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content { 
+        padding: 40px; border-radius: 30px; text-align: center; width: 300px; color: white;
+    }
+    .modal-content.success { background: var(--success-green); }
+    .modal-content.fail { background: var(--fail-red); }
+    
+    .modal-btn { 
+        background: white; color: #333; border: none; padding: 14px 40px; 
+        border-radius: 50px; font-weight: 800; cursor: pointer; margin-top: 25px;
+    }
+</style>
+</head>
+<body>
+
+    <h1>얼음미로</h1>
+    <div class="stats">이동: <span id="move-count">0</span> / 목표: <span id="target-count">0</span></div>
+
+    <div class="level-selector" id="lvl-selector"></div>
+
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="control-section">
+        <div class="side-actions">
+            <button class="side-btn" onclick="undo()">되돌리기</button>
+            <button class="side-btn" onclick="resetCurrentLevel()">리셋</button>
+        </div>
+
+        <div class="d-pad">
+            <button class="d-btn btn-up" onclick="handleMove(0, -1)">↑</button>
+            <button class="d-btn btn-left" onclick="handleMove(-1, 0)">←</button>
+            <button class="d-btn btn-center" onclick="switchPlayer()">교체</button>
+            <button class="d-btn btn-right" onclick="handleMove(1, 0)">→</button>
+            <button class="d-btn btn-down" onclick="handleMove(0, 1)">↓</button>
+        </div>
+    </div>
+
+    <div class="rules-container">
+        <h3>📝 게임 규칙</h3>
+        <ul>
+            <li><b>목표:</b> 두 플레이어(빨간원, 파란원)가 서로 다른 구멍(갈색 원)에 넣습니다.</li>
+            <li>플레이어는 벽에 부딪힐 때까지 미끄러집니다.</li>
+            <li>모든 플레이어를 서로 다른 구멍에 넣으면 성공!</li>
+            <li>이미 찬 구멍에 들어가거나 용암에 닿으면 실패합니다.</li>
+            <li>플레이어가 다른 플레이어와 부딪히면 벽에 부딪힌 것처럼 멈춥니다. 이는 다른 플레이어에게는 아무런 영향을 미치지 않습니다.</li>
+        </ul>
+    </div>
+
+    <div id="game-modal">
+        <div id="modal-box" class="modal-content">
+            <h2 id="modal-title" style="margin:0">🎉 성공!</h2>
+            <p id="modal-msg">완벽합니다!</p>
+            <button class="modal-btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const TILE_SIZE = 45;
+
+let currentLevel = 0;
+let moves = 0;
+let players = [];
+let history = [];
+let occupiedHoles = [];
+let completedStages = new Set();
+const levelSavedStates = {};
+let isLastResultSuccess = false; // 성공 여부 체크용 플래그
+
+const levels = [
+    { target: 15, map: [[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,2,2,1],[1,1,1,1,1]], 
+      players: [{x:3, y:1, color:'#03a9f4'}, {x:2, y:1, color:'#f44336'}] },
+
+    { target: 15, map: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,0,0,1,0,1],[1,0,0,2,0,0,0,1],[1,0,0,0,2,0,0,1],[1,0,1,0,0,3,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], 
+      players: [{x:1, y:1, color:'#03a9f4'}, {x:6, y:1, color:'#f44336'}] },
+
+    { target: 15, map: [[1,1,1,1,1,1,1,1,1,1], [1,1,0,3,0,3,0,0,0,1], [1,1,2,0,0,0,0,0,0,1], [1,0,0,0,0,1,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,1,2,1,0,0,0,0,1], [1,0,3,3,3,0,1,3,0,1], [1,0,0,0,1,3,3,1,0,1], [1,1,1,1,1,1,1,1,1,1]], 
+      players: [{x:8, y:1, color:'#03a9f4'}, {x:7, y:4, color:'#f44336'}] },
+
+    { target: 24, map: [[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,0,0,1,0,1],[1,2,0,0,0,0,2,1],[1,0,0,0,2,0,0,1],[1,0,1,0,0,3,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]], 
+      players: [{x:1, y:1, color:'#03a9f4'}, {x:6, y:1, color:'#f44336'}, {x:3, y:6, color:'#4caf50'}] }
+];
+
+function saveCurrentLevelState() {
+    if (players.length > 0) {
+        levelSavedStates[currentLevel] = {
+            moves,
+            players: players.map(p => ({...p})),
+            occupiedHoles: [...occupiedHoles],
+            history: [...history]
+        };
+    }
+}
+
+function initGame(idx, isReset = false) {
+    if (!isReset && players.length > 0) saveCurrentLevelState();
+
+    currentLevel = idx;
+    const lvl = levels[idx];
+    canvas.width = lvl.map[0].length * TILE_SIZE;
+    canvas.height = lvl.map.length * TILE_SIZE;
+    document.getElementById('target-count').innerText = lvl.target;
+
+    if (levelSavedStates[idx] && !isReset) {
+        const state = levelSavedStates[idx];
+        moves = state.moves;
+        players = state.players.map(p => ({...p}));
+        occupiedHoles = [...state.occupiedHoles];
+        history = [...state.history];
+    } else {
+        moves = 0;
+        players = lvl.players.map((p, i) => ({ ...p, active: i === 0, done: false }));
+        occupiedHoles = [];
+        history = [];
+    }
+    
+    document.getElementById('move-count').innerText = moves;
+    updateUI();
+}
+
+function resetCurrentLevel() {
+    delete levelSavedStates[currentLevel];
+    initGame(currentLevel, true);
+}
+
+function updateUI() {
+    const container = document.getElementById('lvl-selector');
+    container.innerHTML = '';
+    levels.forEach((_, i) => {
+        const btn = document.createElement('button');
+        btn.className = `lvl-btn ${completedStages.has(i) ? 'completed' : ''} ${i === currentLevel ? 'active' : ''}`;
+        btn.innerText = `${i+1}단계`;
+        btn.onclick = () => initGame(i);
+        container.appendChild(btn);
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const map = levels[currentLevel].map;
+
+    map.forEach((row, y) => {
+        row.forEach((type, x) => {
+            const px = x * TILE_SIZE, py = y * TILE_SIZE;
+            ctx.fillStyle = (type === 1) ? '#263238' : '#e3f2fd';
+            ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+            if(type !== 1) { ctx.strokeStyle = '#bbdefb'; ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE); }
+
+            if (type === 2) {
+                const isOccupied = occupiedHoles.some(h => h.x === x && h.y === y);
+                ctx.fillStyle = isOccupied ? '#ff3d00' : '#964b00';
+                ctx.beginPath(); ctx.arc(px+TILE_SIZE/2, py+TILE_SIZE/2, 16, 0, Math.PI*2); ctx.fill();
+            }
+            if (type === 3) {
+                ctx.fillStyle = '#ff3d00'; ctx.fillRect(px+4, py+4, TILE_SIZE-8, TILE_SIZE-8);
+            }
+        });
+    });
+
+    players.forEach(p => {
+        if (p.done) return;
+        const cx = p.x * TILE_SIZE + TILE_SIZE/2, cy = p.y * TILE_SIZE + TILE_SIZE/2;
+        
+        if (p.active) {
+            ctx.save();
+            ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI*2); ctx.stroke();
+            ctx.restore();
+        }
+        ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI*2);
+        ctx.fillStyle = p.color; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+}
+
+function handleMove(dx, dy) {
+    if (document.getElementById('game-modal').style.display === 'flex') return;
+    const p = players.find(p => p.active);
+    if (!p || p.done) return;
+
+    const prevState = JSON.stringify({moves, players: players.map(pl => ({...pl})), occupiedHoles: [...occupiedHoles]});
+    let nx = p.x, ny = p.y, moved = false;
+    const map = levels[currentLevel].map;
+
+    while (true) {
+        let tx = nx + dx, ty = ny + dy;
+        if (ty < 0 || ty >= map.length || tx < 0 || tx >= map[0].length || map[ty][tx] === 1) break;
+        if (players.find(o => !o.done && o !== p && o.x === tx && o.y === ty)) break;
+
+        nx = tx; ny = ty; moved = true;
+        if (map[ny][nx] === 2) { 
+            if (occupiedHoles.some(h => h.x === nx && h.y === ny)) { showPopup(false); return; }
+            p.done = true; 
+            occupiedHoles.push({x: nx, y: ny});
+            break; 
+        }
+        if (map[ny][nx] === 3) { showPopup(false); return; }
+    }
+
+    if (moved) {
+        history.push(prevState);
+        p.x = nx; p.y = ny;
+        document.getElementById('move-count').innerText = ++moves;
+        if (p.done) switchPlayer();
+        if (players.every(p => p.done)) {
+            completedStages.add(currentLevel);
+            updateUI();
+            showPopup(true);
+        }
+        saveCurrentLevelState();
+    }
+}
+
+function undo() {
+    if (history.length === 0) return;
+    const last = JSON.parse(history.pop());
+    players = last.players;
+    moves = last.moves;
+    occupiedHoles = last.occupiedHoles;
+    document.getElementById('move-count').innerText = moves;
+    saveCurrentLevelState();
+}
+
+function switchPlayer() {
+    const activeIdx = players.findIndex(p => p.active);
+    players.forEach(p => p.active = false);
+    let next = (activeIdx + 1) % players.length;
+    let count = 0;
+    while(players[next].done && count < players.length) {
+        next = (next + 1) % players.length;
+        count++;
+    }
+    if (!players[next].done) players[next].active = true;
+    saveCurrentLevelState();
+}
+
+function showPopup(isSuccess) {
+    isLastResultSuccess = isSuccess; // 성공 여부 기록
+    const modal = document.getElementById('game-modal');
+    modal.style.display = 'flex';
+    const box = document.getElementById('modal-box');
+    if(isSuccess) {
+        box.className = 'modal-content success';
+        document.getElementById('modal-title').innerText = '🎉 성공!';
+        document.getElementById('modal-msg').innerText = `${moves}번 만에 성공했습니다!`;
+    } else {
+        box.className = 'modal-content fail';
+        document.getElementById('modal-title').innerText = '💀 실패...';
+        document.getElementById('modal-msg').innerText = '함정에 빠졌습니다.';
+    }
+}
+
+function closeModal() {
+    document.getElementById('game-modal').style.display = 'none';
+    if (isLastResultSuccess) {
+        // 성공했다면 다음 단계로 이동
+        let nextLvl = (currentLevel + 1) % levels.length;
+        initGame(nextLvl);
+    } else {
+        // 실패했다면 현재 단계 리셋
+        resetCurrentLevel(); 
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('game-modal');
+    if (modal.style.display === 'flex' && e.key === 'Enter') { closeModal(); return; }
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+    if (e.key === 'ArrowUp') handleMove(0, -1);
+    if (e.key === 'ArrowDown') handleMove(0, 1);
+    if (e.key === 'ArrowLeft') handleMove(-1, 0);
+    if (e.key === 'ArrowRight') handleMove(1, 0);
+    if (e.key === ' ') switchPlayer();
+});
+
+initGame(0);
+draw();
+</script>
+</body>
+</html>
