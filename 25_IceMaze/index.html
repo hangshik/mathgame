@@ -245,7 +245,7 @@
         <div class="d-pad">
             <button class="d-btn btn-up" onclick="handleMove(0, -1)">↑</button>
             <button class="d-btn btn-left" onclick="handleMove(-1, 0)">←</button>
-            <button class="d-btn btn-center" onclick="switchPlayer()">교체</button>
+            <button class="d-btn btn-center" onclick="switchPlayer()">교체(Space)</button>
             <button class="d-btn btn-right" onclick="handleMove(1, 0)">→</button>
             <button class="d-btn btn-down" onclick="handleMove(0, 1)">↓</button>
         </div>
@@ -254,11 +254,12 @@
     <div class="rules-container">
         <h3>📝 게임 규칙</h3>
         <ul>
-            <li><b>목표:</b> 색깔 원(빨간원, 파란원, 녹색원)가 서로 다른 구멍(갈색 원)에 넣습니다.</li>
-            <li>플레이어는 벽에 부딪힐 때까지 미끄러집니다.</li>
-            <li>모든 플레이어를 서로 다른 구멍에 넣으면 성공!</li>
-            <li>이미 찬 구멍에 들어가거나 빨간 사각형에 닿으면 실패합니다.</li>
-            <li>플레이어가 다른 플레이어와 부딪히면 벽에 부딪힌 것처럼 멈춥니다. 이는 다른 플레이어에게는 아무런 영향을 미치지 않습니다.</li>
+            <li><b>목표:</b> 색깔 원(빨간원, 파란원, 녹색원)을 서로 다른 갈색 원에 넣습니다.</li>
+            <li>색깔 원은 벽에 부딪힐 때까지 미끄러집니다.</li>
+            <li>모든 색깔 원을 서로 갈색 원에 넣으면 성공!</li>
+            <li>이미 들어간 구멍에 가거나 빨간 사각형에 닿으면 실패합니다.</li>
+            <li>색깔 원이 다른 색깔 원과 부딪히면 벽에 부딪힌 것처럼 멈춥니다. 이는 다른 색깔 원에게는 아무런 영향을 미치지 않습니다.</li>
+            <br><li style="color: red;">나도 모든 정답을 알고 있지는 않습니다.</li>
         </ul>
     </div>
 
