@@ -99,14 +99,14 @@
     #canvas-container {
         position: relative; 
         background: white; 
-        padding: 12px; 
-        border-radius: 16px;
+        padding: 5px; 
+        border-radius: 5px;
         box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
         border: 4px solid var(--wall-color);
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
         min-width: 180px;
         min-height: 180px;
     }
@@ -273,7 +273,9 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const TILE_SIZE = 45;
+
+// 게임판 사각형 한개의 크기
+const TILE_SIZE = 36;
 
 let currentLevel = 0;
 let moves = 0;
@@ -366,10 +368,10 @@ function draw() {
             if (type === 2) {
                 const isOccupied = occupiedHoles.some(h => h.x === x && h.y === y);
                 ctx.fillStyle = isOccupied ? '#ff3d00' : '#964b00';
-                ctx.beginPath(); ctx.arc(px+TILE_SIZE/2, py+TILE_SIZE/2, 16, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(px+TILE_SIZE/2, py+TILE_SIZE/2, TILE_SIZE*0.35, 0, Math.PI*2); ctx.fill();
             }
             if (type === 3) {
-                ctx.fillStyle = '#ff3d00'; ctx.fillRect(px+4, py+4, TILE_SIZE-8, TILE_SIZE-8);
+                ctx.fillStyle = '#ff3d00'; ctx.fillRect(px+2, py+2, TILE_SIZE-4, TILE_SIZE-4);
             }
         });
     });
@@ -383,10 +385,10 @@ function draw() {
             ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, TILE_SIZE*0.35+2, 0, Math.PI*2); ctx.stroke();
             ctx.restore();
         }
-        ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(cx, cy, TILE_SIZE*0.35, 0, Math.PI*2);
         ctx.fillStyle = p.color; ctx.fill();
     });
     requestAnimationFrame(draw);
