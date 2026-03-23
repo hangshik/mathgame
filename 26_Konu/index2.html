@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>호박고누</title>
+  <title>호박고누 (확대 버전)</title>
   <style>
     body {
       display: flex;
@@ -10,27 +10,27 @@
       align-items: center;
       background-color: #f4f1ea;
       font-family: 'Malgun Gothic', sans-serif;
-      padding: 24px; /* 30px * 0.8 */
+      padding: 28.8px; /* 24px * 1.2 */
       margin: 0;
     }
     #game-container {
       position: relative;
-      width: 480px;  /* 600px * 0.8 */
-      height: 600px; /* 750px * 0.8 */
-      border-radius: 18px; /* 22.5px * 0.8 */
-      box-shadow: 0 9.6px 19.2px rgba(0,0,0,0.1);
+      width: 576px;  /* 480px * 1.2 */
+      height: 720px; /* 600px * 1.2 */
+      border-radius: 21.6px; /* 18px * 1.2 */
+      box-shadow: 0 11.52px 23.04px rgba(0,0,0,0.1); /* 9.6px * 1.2 */
       background-image: url('pumpkin.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       transition: border 0.3s ease, box-shadow 0.3s ease;
-      border: 6px solid #ff4d4d; /* 7.5px * 0.8 */
+      border: 7.2px solid #ff4d4d; /* 6px * 1.2 */
       box-sizing: border-box;
     }
     .node {
       position: absolute;
-      width: 60px;  /* 75px * 0.8 */
-      height: 60px; /* 75px * 0.8 */
+      width: 72px;  /* 60px * 1.2 */
+      height: 72px; /* 60px * 1.2 */
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -38,27 +38,27 @@
       cursor: pointer;
       z-index: 2;
       transition: transform 0.2s, box-shadow 0.2s;
-      border: 3.6px solid #ddd; /* 4.5px * 0.8 */
+      border: 4.32px solid #ddd; /* 3.6px * 1.2 */
       box-sizing: border-box;
     }
     .node.empty { background-color: rgba(255, 255, 255, 0.7); border-color: #eee; }
-    .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 4.8px 0 #b30000; }
-    .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 4.8px 0 #0047b3; }
+    .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 5.76px 0 #b30000; }
+    .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 5.76px 0 #0047b3; }
     
-    .node.selected { transform: scale(1.2); outline: 4.8px solid #ffd700; z-index: 3; }
-    .node.hint { border: 3.6px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
+    .node.selected { transform: scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
+    .node.hint { border: 4.32px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
 
     #info-panel {
-      margin-top: 24px;
+      margin-top: 28.8px;
       text-align: center;
-      width: 480px; /* 게임판 너비와 일치 */
+      width: 576px; 
     }
     .status-badge {
-      padding: 9.6px 24px;
-      border-radius: 24px;
+      padding: 11.52px 28.8px;
+      border-radius: 28.8px;
       font-weight: bold;
-      font-size: 1.44rem; /* 1.8rem * 0.8 */
-      margin-bottom: 18px;
+      font-size: 1.728rem; /* 1.44rem * 1.2 */
+      margin-bottom: 21.6px;
       display: inline-block;
     }
     .red-turn { background-color: #ffe6e6; color: #b30000; }
@@ -66,13 +66,13 @@
     
     .rules-box {
       background: #fff;
-      padding: 18px;
-      border-radius: 12px;
-      font-size: 0.96rem; /* 1.2rem * 0.8 */
+      padding: 21.6px;
+      border-radius: 14.4px;
+      font-size: 1.152rem; /* 0.96rem * 1.2 */
       text-align: left;
-      border: 1.2px solid #ddd;
+      border: 1.44px solid #ddd;
       line-height: 1.6;
-      width: 100%; /* 부모(info-panel) 너비에 맞춤 */
+      width: 100%;
       box-sizing: border-box;
     }
 
@@ -82,7 +82,7 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(9.6px);
+      backdrop-filter: blur(11.52px);
       z-index: 100;
       justify-content: center;
       align-items: center;
@@ -90,11 +90,11 @@
 
     .modal-content {
       background: white;
-      padding: 48px;
-      border-radius: 24px;
+      padding: 57.6px;
+      border-radius: 28.8px;
       text-align: center;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.2);
-      border-top: 12px solid #28a745;
+      box-shadow: 0 28.8px 57.6px rgba(0,0,0,0.2);
+      border-top: 14.4px solid #28a745;
       animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
@@ -104,26 +104,26 @@
     }
 
     .modal-title {
-      font-size: 3rem; /* 3.75rem * 0.8 */
+      font-size: 3.6rem; /* 3rem * 1.2 */
       font-weight: bold;
-      margin-bottom: 12px;
+      margin-bottom: 14.4px;
       color: #333;
     }
 
     .winner-text {
-      font-size: 1.8rem; /* 2.25rem * 0.8 */
-      margin-bottom: 36px;
+      font-size: 2.16rem; /* 1.8rem * 1.2 */
+      margin-bottom: 43.2px;
       color: #666;
     }
 
     .restart-btn {
-      padding: 14.4px 48px;
-      font-size: 1.32rem; /* 1.65rem * 0.8 */
+      padding: 17.28px 57.6px;
+      font-size: 1.584rem; /* 1.32rem * 1.2 */
       font-weight: bold;
       color: white;
       background-color: #28a745;
       border: none;
-      border-radius: 36px;
+      border-radius: 43.2px;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -145,7 +145,7 @@
       • <b>금지구역:</b> 상대방의 집(3칸)은 들어갈 수 없음.<br>
       • <b>승리조건:</b> 상대가 더이상 움직이지 못하도록 가두면 승리!
     </div>
-    <button onclick="location.reload()" style="margin-top:18px; padding:9.6px 24px; cursor:pointer; border-radius: 6px; border: 1.2px solid #ccc; font-size: 0.96rem;">게임 초기화</button>
+    <button onclick="location.reload()" style="margin-top:21.6px; padding:11.52px 28.8px; cursor:pointer; border-radius: 7.2px; border: 1.44px solid #ccc; font-size: 1.152rem;">게임 초기화</button>
   </div>
 
   <div id="victory-modal">
@@ -162,12 +162,12 @@
   const victoryModal = document.getElementById('victory-modal');
   const winnerDisplay = document.getElementById('winner-display');
 
-  // 좌표값들에 0.8을 곱하여 노드 위치 재설정 (이전 1.5배 버전 기준 좌표 대비 0.8배)
+  // 좌표값들에 1.2를 곱하여 노드 위치 재설정
   const nodes = [
-    { x: 120, y: 84,  type: 'red-home' }, { x: 240, y: 84,  type: 'red-home' }, { x: 360, y: 84,  type: 'red-home' },
-    { x: 120, y: 300, type: 'circle' },   { x: 240, y: 204, type: 'circle' },   { x: 240, y: 300, type: 'circle' }, 
-    { x: 360, y: 300, type: 'circle' },   { x: 240, y: 396, type: 'circle' },
-    { x: 120, y: 516, type: 'blue-home' }, { x: 240, y: 516, type: 'blue-home' }, { x: 360, y: 516, type: 'blue-home' }
+    { x: 144, y: 100.8,  type: 'red-home' }, { x: 288, y: 100.8,  type: 'red-home' }, { x: 432, y: 100.8,  type: 'red-home' },
+    { x: 144, y: 360,   type: 'circle' },   { x: 288, y: 244.8,  type: 'circle' },   { x: 288, y: 360,   type: 'circle' }, 
+    { x: 432, y: 360,   type: 'circle' },   { x: 288, y: 475.2,  type: 'circle' },
+    { x: 144, y: 619.2,  type: 'blue-home' }, { x: 288, y: 619.2,  type: 'blue-home' }, { x: 432, y: 619.2,  type: 'blue-home' }
   ];
 
   let gameState = {
@@ -182,9 +182,9 @@
       const div = document.createElement('div');
       div.className = `node ${gameState.pieces[i]}`;
       div.id = `node-${i}`;
-      // 노드 크기(60px)의 절반인 30px을 빼서 중앙 정렬
-      div.style.left = (node.x - 30) + 'px';
-      div.style.top = (node.y - 30) + 'px';
+      // 노드 크기(72px)의 절반인 36px을 빼서 중앙 정렬
+      div.style.left = (node.x - 36) + 'px';
+      div.style.top = (node.y - 36) + 'px';
       div.onclick = () => handleNodeClick(i);
       container.appendChild(div);
     });
@@ -251,11 +251,11 @@
     turnBadge.className = `status-badge ${gameState.currentTurn === 'red' ? 'red-turn' : 'blue-turn'}`;
 
     if (gameState.currentTurn === 'red') {
-      container.style.border = "6px solid #ff4d4d";
-      container.style.boxShadow = "0 9.6px 24px rgba(255, 77, 77, 0.3)";
+      container.style.border = "7.2px solid #ff4d4d";
+      container.style.boxShadow = "0 11.52px 28.8px rgba(255, 77, 77, 0.3)";
     } else {
-      container.style.border = "6px solid #4d94ff";
-      container.style.boxShadow = "0 9.6px 24px rgba(77, 148, 255, 0.3)";
+      container.style.border = "7.2px solid #4d94ff";
+      container.style.boxShadow = "0 11.52px 28.8px rgba(77, 148, 255, 0.3)";
     }
   }
 
