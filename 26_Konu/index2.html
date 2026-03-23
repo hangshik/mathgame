@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>호박고누 - 1.5배 확대 버전</title>
+  <title>호박고누</title>
   <style>
     body {
       display: flex;
@@ -10,27 +10,27 @@
       align-items: center;
       background-color: #f4f1ea;
       font-family: 'Malgun Gothic', sans-serif;
-      padding: 30px; /* 20px -> 30px */
+      padding: 24px; /* 30px * 0.8 */
       margin: 0;
     }
     #game-container {
       position: relative;
-      width: 600px;  /* 400px * 1.5 */
-      height: 750px; /* 500px * 1.5 */
-      border-radius: 22.5px; /* 15px * 1.5 */
-      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      width: 480px;  /* 600px * 0.8 */
+      height: 600px; /* 750px * 0.8 */
+      border-radius: 18px; /* 22.5px * 0.8 */
+      box-shadow: 0 9.6px 19.2px rgba(0,0,0,0.1);
       background-image: url('pumpkin.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
       transition: border 0.3s ease, box-shadow 0.3s ease;
-      border: 7.5px solid #ff4d4d; /* 5px * 1.5 */
+      border: 6px solid #ff4d4d; /* 7.5px * 0.8 */
       box-sizing: border-box;
     }
     .node {
       position: absolute;
-      width: 75px;  /* 50px * 1.5 */
-      height: 75px; /* 50px * 1.5 */
+      width: 60px;  /* 75px * 0.8 */
+      height: 60px; /* 75px * 0.8 */
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -38,27 +38,27 @@
       cursor: pointer;
       z-index: 2;
       transition: transform 0.2s, box-shadow 0.2s;
-      border: 4.5px solid #ddd; /* 3px * 1.5 */
+      border: 3.6px solid #ddd; /* 4.5px * 0.8 */
       box-sizing: border-box;
     }
     .node.empty { background-color: rgba(255, 255, 255, 0.7); border-color: #eee; }
-    .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 6px 0 #b30000; }
-    .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 6px 0 #0047b3; }
+    .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 4.8px 0 #b30000; }
+    .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 4.8px 0 #0047b3; }
     
-    .node.selected { transform: scale(1.2); outline: 6px solid #ffd700; z-index: 3; }
-    .node.hint { border: 4.5px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
+    .node.selected { transform: scale(1.2); outline: 4.8px solid #ffd700; z-index: 3; }
+    .node.hint { border: 3.6px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
 
     #info-panel {
-      margin-top: 30px;
+      margin-top: 24px;
       text-align: center;
-      max-width: 600px;
+      width: 480px; /* 게임판 너비와 일치 */
     }
     .status-badge {
-      padding: 12px 30px; /* 8/20 -> 12/30 */
-      border-radius: 30px;
+      padding: 9.6px 24px;
+      border-radius: 24px;
       font-weight: bold;
-      font-size: 1.8rem; /* 1.2rem * 1.5 */
-      margin-bottom: 22.5px;
+      font-size: 1.44rem; /* 1.8rem * 0.8 */
+      margin-bottom: 18px;
       display: inline-block;
     }
     .red-turn { background-color: #ffe6e6; color: #b30000; }
@@ -66,12 +66,14 @@
     
     .rules-box {
       background: #fff;
-      padding: 22.5px;
-      border-radius: 15px;
-      font-size: 1.2rem; /* 0.9rem * 1.5 */
+      padding: 18px;
+      border-radius: 12px;
+      font-size: 0.96rem; /* 1.2rem * 0.8 */
       text-align: left;
-      border: 1.5px solid #ddd;
+      border: 1.2px solid #ddd;
       line-height: 1.6;
+      width: 100%; /* 부모(info-panel) 너비에 맞춤 */
+      box-sizing: border-box;
     }
 
     #victory-modal {
@@ -80,7 +82,7 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(9.6px);
       z-index: 100;
       justify-content: center;
       align-items: center;
@@ -88,11 +90,11 @@
 
     .modal-content {
       background: white;
-      padding: 60px; /* 40px * 1.5 */
-      border-radius: 30px;
+      padding: 48px;
+      border-radius: 24px;
       text-align: center;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-      border-top: 15px solid #28a745;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+      border-top: 12px solid #28a745;
       animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
@@ -102,26 +104,26 @@
     }
 
     .modal-title {
-      font-size: 3.75rem; /* 2.5rem * 1.5 */
+      font-size: 3rem; /* 3.75rem * 0.8 */
       font-weight: bold;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       color: #333;
     }
 
     .winner-text {
-      font-size: 2.25rem; /* 1.5rem * 1.5 */
-      margin-bottom: 45px;
+      font-size: 1.8rem; /* 2.25rem * 0.8 */
+      margin-bottom: 36px;
       color: #666;
     }
 
     .restart-btn {
-      padding: 18px 60px;
-      font-size: 1.65rem; /* 1.1rem * 1.5 */
+      padding: 14.4px 48px;
+      font-size: 1.32rem; /* 1.65rem * 0.8 */
       font-weight: bold;
       color: white;
       background-color: #28a745;
       border: none;
-      border-radius: 45px;
+      border-radius: 36px;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -143,7 +145,7 @@
       • <b>금지구역:</b> 상대방의 집(3칸)은 들어갈 수 없음.<br>
       • <b>승리조건:</b> 상대가 더이상 움직이지 못하도록 가두면 승리!
     </div>
-    <button onclick="location.reload()" style="margin-top:22.5px; padding:12px 30px; cursor:pointer; border-radius: 7.5px; border: 1.5px solid #ccc; font-size: 1.2rem;">게임 초기화</button>
+    <button onclick="location.reload()" style="margin-top:18px; padding:9.6px 24px; cursor:pointer; border-radius: 6px; border: 1.2px solid #ccc; font-size: 0.96rem;">게임 초기화</button>
   </div>
 
   <div id="victory-modal">
@@ -160,12 +162,12 @@
   const victoryModal = document.getElementById('victory-modal');
   const winnerDisplay = document.getElementById('winner-display');
 
-  // 좌표값들에 1.5를 곱하여 노드 위치 재설정
+  // 좌표값들에 0.8을 곱하여 노드 위치 재설정 (이전 1.5배 버전 기준 좌표 대비 0.8배)
   const nodes = [
-    { x: 150, y: 105,  type: 'red-home' }, { x: 300, y: 105,  type: 'red-home' }, { x: 450, y: 105,  type: 'red-home' },
-    { x: 150, y: 375, type: 'circle' },   { x: 300, y: 255, type: 'circle' },   { x: 300, y: 375, type: 'circle' }, 
-    { x: 450, y: 375, type: 'circle' },   { x: 300, y: 495, type: 'circle' },
-    { x: 150, y: 645, type: 'blue-home' }, { x: 300, y: 645, type: 'blue-home' }, { x: 450, y: 645, type: 'blue-home' }
+    { x: 120, y: 84,  type: 'red-home' }, { x: 240, y: 84,  type: 'red-home' }, { x: 360, y: 84,  type: 'red-home' },
+    { x: 120, y: 300, type: 'circle' },   { x: 240, y: 204, type: 'circle' },   { x: 240, y: 300, type: 'circle' }, 
+    { x: 360, y: 300, type: 'circle' },   { x: 240, y: 396, type: 'circle' },
+    { x: 120, y: 516, type: 'blue-home' }, { x: 240, y: 516, type: 'blue-home' }, { x: 360, y: 516, type: 'blue-home' }
   ];
 
   let gameState = {
@@ -180,9 +182,9 @@
       const div = document.createElement('div');
       div.className = `node ${gameState.pieces[i]}`;
       div.id = `node-${i}`;
-      // 노드 크기의 절반인 37.5px을 빼서 중앙 정렬
-      div.style.left = (node.x - 37.5) + 'px';
-      div.style.top = (node.y - 37.5) + 'px';
+      // 노드 크기(60px)의 절반인 30px을 빼서 중앙 정렬
+      div.style.left = (node.x - 30) + 'px';
+      div.style.top = (node.y - 30) + 'px';
       div.onclick = () => handleNodeClick(i);
       container.appendChild(div);
     });
@@ -249,11 +251,11 @@
     turnBadge.className = `status-badge ${gameState.currentTurn === 'red' ? 'red-turn' : 'blue-turn'}`;
 
     if (gameState.currentTurn === 'red') {
-      container.style.border = "7.5px solid #ff4d4d";
-      container.style.boxShadow = "0 12px 30px rgba(255, 77, 77, 0.3)";
+      container.style.border = "6px solid #ff4d4d";
+      container.style.boxShadow = "0 9.6px 24px rgba(255, 77, 77, 0.3)";
     } else {
-      container.style.border = "7.5px solid #4d94ff";
-      container.style.boxShadow = "0 12px 30px rgba(77, 148, 255, 0.3)";
+      container.style.border = "6px solid #4d94ff";
+      container.style.boxShadow = "0 9.6px 24px rgba(77, 148, 255, 0.3)";
     }
   }
 
@@ -269,7 +271,7 @@
       const winner = gameState.currentTurn === 'red' ? "파란팀" : "빨간팀";
       const winnerColor = gameState.currentTurn === 'red' ? "#4d94ff" : "#ff4d4d";
       
-      winnerDisplay.innerHTML = `<span style="color: ${winnerColor}">${winner}</span>이(가) 승리했습니다!`;
+      winnerDisplay.innerHTML = `<span style="color: ${winnerColor}">${winner}</span>이 승리했습니다!`;
       victoryModal.style.display = 'flex';
     }
   }
