@@ -11,7 +11,7 @@
       padding: 10px; margin: 0; user-select: none; -webkit-touch-callout: none;
       min-height: 100vh;
     }
-    h1 { font-size: 2.2rem; color: #5d4037; margin: 15px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.8rem; color: #5d4037; margin: 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
 
     /* 설정 및 정보 영역 */
     #selection-area, #score-board, .rules-box, .button-container {
@@ -41,7 +41,7 @@
     .red-score { color: #ff4d4d; }
     .blue-score { color: #4d94ff; }
 
-    /* 게임 보드 영역 - 중앙 정렬을 위한 래퍼 추가 */
+    /* 게임 보드 영역 */
     #board-outer-wrapper {
       display: flex; justify-content: center; width: 100%; margin: 10px 0;
     }
@@ -49,12 +49,12 @@
       position: relative; background: #fff;
       border: 6px solid #ccc; border-radius: 12px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      touch-action: none; overflow: hidden; /* 영역 밖 그리기 방지 */
+      touch-action: none; overflow: hidden;
     }
     #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
     #piece-layer { position: relative; z-index: 2; display: grid; }
 
-    /* 말 스타일 - 고정 크기 대신 비율 사용 */
+    /* 말 스타일 */
     .cell { display: flex; justify-content: center; align-items: center; cursor: pointer; }
     .piece {
       width: 80%; height: 80%; border-radius: 50%;
@@ -63,11 +63,9 @@
     .red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 4px 0 #b30000; }
     .blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 4px 0 #0047b3; }
     
-    /* 선택 및 힌트 */
     .selected { transform: scale(1.1); outline: 4px solid #ffd700; z-index: 10; box-shadow: 0 6px 10px rgba(0,0,0,0.3); }
     .hint { width: 30%; height: 30%; background: rgba(46, 204, 113, 0.6); border-radius: 50%; }
 
-    /* 하단 버튼 및 정보 */
     .button-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
     .bottom-btn {
       padding: 10px 20px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff;
@@ -84,10 +82,9 @@
 
     .rules-box {
       background: #fff; padding: 15px; border-radius: 12px;
-      font-size: 0.9rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
+      font-size: 0.85rem; text-align: left; border: 1px solid #ddd; line-height: 1.5; margin-top: 15px;
     }
 
-    /* 승리 모달 */
     #victory-modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.7); backdrop-filter: blur(3px); z-index: 100; justify-content: center; align-items: center;
@@ -100,7 +97,7 @@
   <h1>줄고누</h1>
 
   <div id="selection-area">
-    <div style="font-weight: bold; font-size: 1.2rem; color: #5d4037;">🎮 게임 설정</div>
+    <div style="font-weight: bold; font-size: 1.1rem; color: #5d4037;">🎮 게임 설정</div>
     <div style="margin: 12px 0;">
       <label for="size-select" style="font-weight: bold; font-size: 1rem;">판 크기: </label>
       <select id="size-select" onchange="initGame()" style="padding: 6px 10px; border-radius: 5px; font-size: 1rem; border: 1px solid #ccc;">
@@ -123,23 +120,23 @@
 
   <div id="score-board">
     <div class="score-item">
-      <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">🔴 빨강 승리</div>
+      <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">🔴 빨강 승리</div>
       <div id="red-wins" class="score-value red-score">0</div>
     </div>
     <div style="border-left: 1px solid #eee;"></div>
     <div class="score-item">
-      <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">🔵 파랑 승리</div>
+      <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">🔵 파랑 승리</div>
       <div id="blue-wins" class="score-value blue-score">0</div>
     </div>
   </div>
 
   <div class="rules-box">
     <strong>⚠️ 게임 규칙</strong><br>
-    • <b>4x4</b>: 인접한 <b>한 칸</b>만 이동 가능합니다.<br>
-    • <b>6x6 이상</b>: 장애물이 없다면 <b>거리 제한 없이</b> 이동 가능합니다.<br>
-    • <b>샌드위치</b>: 상대 말을 1개를 내 말 둘 사이에 가두면 따냅니다.(단, 상대 말 2개 이상은 안 됨.)<br>
-    • <b>포위</b>: 구석에서 상대 말에 막혀 움직일 곳이 없으면 따냅니다.<br>
-    • 상대방 말이 <b>1개</b>만 남으면 승리합니다.
+    • <b>4x4</b>: 인접한 한 칸만 이동 가능.<br>
+    • <b>6x6 이상</b>: 장애물이 없다면 거리 제한 없이 이동.<br>
+    • <b>샌드위치</b>: 상대 말 1개를 내 말 사이에 가두면 획득.<br>
+    • <b>포위</b>: 구석에서 움직임이 막히면 상대 말 획득.<br>
+    • 상대 말이 1개만 남으면 승리!
   </div>
 
   <div class="button-container">
@@ -171,15 +168,14 @@
   let gameStarted = false;
   let cellSize = 0;
   
-  // 설정: 말이 너무 커지지 않도록 최대 셀 크기 지정 (이전 설정 크기 반영)
-  const MAX_CELL_SIZE = 70; 
+  // ⭐ 말의 최대 크기 제한 (4x4에서도 너무 커지지 않게 함)
+  const MAX_CELL_SIZE = 85; 
 
   let scores = {
     red: parseInt(localStorage.getItem('jool_red_wins')) || 0,
     blue: parseInt(localStorage.getItem('jool_blue_wins')) || 0
   };
 
-  // 1. 판 크기 옵션 설정 (4x4 ~ 20x20)
   function setupSizeOptions() {
     for (let i = 4; i <= 20; i += 2) { 
       const opt = document.createElement('option');
@@ -189,20 +185,22 @@
     }
   }
 
-  // 화면 크기 및 MAX_CELL_SIZE를 고려하여 레이아웃 계산
   function calculateLayout() {
-    // 반응형 너비 계산 (화면 너비의 95%, 최대 500px)
-    const availableWidth = Math.min(window.innerWidth * 0.95 - 20, 500);
+    // 1. 화면의 가로와 세로 중 작은 값을 기준으로 95% 계산
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const minSide = Math.min(vw, vh);
     
-    // 기본 셀 크기 계산
-    let calculatedCellSize = Math.floor(availableWidth / size);
+    // 2. 판이 차지할 수 있는 최대 너비 (여백 제외)
+    let availableSize = minSide * 0.95;
     
-    // 2. 말의 최대 크기 제한 적용
+    // 3. 셀 크기 계산 및 MAX_CELL_SIZE 적용
+    let calculatedCellSize = Math.floor(availableSize / size);
     cellSize = Math.min(calculatedCellSize, MAX_CELL_SIZE);
     
+    // 4. 최종 보드 크기 (셀 크기 * 칸 수)
     const total = size * cellSize;
     
-    // 캔버스 및 래퍼 크기 설정
     canvas.width = total;
     canvas.height = total;
     boardWrapper.style.width = total + 'px';
@@ -214,7 +212,6 @@
     size = parseInt(sizeSelect.value);
     calculateLayout();
     board = Array(size * size).fill(null);
-    // 초기 배치
     for (let i = 0; i < size; i++) {
       board[i] = 'red';
       board[size * (size - 1) + i] = 'blue';
@@ -235,18 +232,15 @@
   function drawGrid() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = '#5d4037';
-    // 선 굵기도 셀 크기에 비례하게 조정
     ctx.lineWidth = Math.max(2, cellSize * 0.05); 
     ctx.lineCap = 'round';
 
     for (let i = 0; i < size; i++) {
       const pos = i * cellSize + cellSize/2;
-      // 가로선
       ctx.beginPath();
       ctx.moveTo(cellSize/2, pos);
       ctx.lineTo(canvas.width - cellSize/2, pos);
       ctx.stroke();
-      // 세로선
       ctx.beginPath();
       ctx.moveTo(pos, cellSize/2);
       ctx.lineTo(pos, canvas.height - cellSize/2);
@@ -282,8 +276,7 @@
     const moves = [];
     const r = Math.floor(from / size), c = from % size;
     const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
-    
-    const isLongMove = size >= 6; // 이동 규칙 차별화
+    const isLongMove = size >= 6; 
 
     dirs.forEach(([dr, dc]) => {
       let nr = r + dr, nc = c + dc;
@@ -291,7 +284,7 @@
         const tidx = nr * size + nc;
         if (board[tidx] === null) {
           moves.push(tidx);
-          if (!isLongMove) break; // 4x4는 한 칸만
+          if (!isLongMove) break;
         } else {
           break;
         }
@@ -334,7 +327,6 @@
     const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
 
     dirs.forEach(([dr, dc]) => {
-      // 1. 샌드위치
       const midR = r + dr, midC = c + dc;
       const endR = r + dr * 2, endC = c + dc * 2;
       if (isInside(endR, endC)) {
@@ -342,7 +334,6 @@
         const endIdx = endR * size + endC;
         if (board[midIdx] === enemy && board[endIdx] === me) board[midIdx] = null;
       }
-      // 2. 포위
       const adjR = r + dr, adjC = c + dc;
       if (isInside(adjR, adjC)) {
         const adjIdx = adjR * size + adjC;
@@ -371,7 +362,6 @@
     turnBadge.className = `status-badge ${currentTurn}-turn`;
     const color = (currentTurn === 'red') ? '#ff4d4d' : '#4d94ff';
     boardWrapper.style.borderColor = color;
-    boardWrapper.style.boxShadow = `0 8px 30px ${color}33`;
   }
 
   function checkWinner() {
@@ -397,10 +387,8 @@
     }
   }
 
-  // 화면 크기 변경 시 레이아웃 재계산
   window.onresize = () => { calculateLayout(); drawGrid(); renderPieces(); };
   
-  // 초기화
   setupSizeOptions();
   initGame();
   document.getElementById('red-wins').textContent = scores.red;
