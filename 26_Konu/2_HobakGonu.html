@@ -51,7 +51,14 @@
       box-sizing: border-box;
     }
     
-    .node.empty { background-color: #fffdf9; border-color: #5d4037; }
+    /* 수정 후 */
+.node.empty { 
+  /* 흰색 배경에 80% 투명도를 적용하여 아래 선이 비치게 함 */
+  background-color: rgba(255, 255, 255, 0.8); 
+  border-color: #5d4037; 
+  /* 선 위에 자연스럽게 겹치도록 설정 */
+  z-index: 2; 
+}
     .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 5.76px 0 #b30000; }
     .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 5.76px 0 #0047b3; }
     .node.selected { transform: scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
