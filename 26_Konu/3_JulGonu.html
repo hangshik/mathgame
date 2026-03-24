@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>전통 줄고누</title>
+  <style>
+    body {
+      display: flex; flex-direction: column; align-items: center;
+      background-color: #f4f1ea; font-family: 'Malgun Gothic', sans-serif;
+      padding: 10px; margin: 0; user-select: none; -webkit-touch-callout: none;
+      min-height: 100vh;
+    }
+    h1 { font-size: 2.2rem; color: #5d4037; margin: 15px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+
+    /* 설정 및 정보 영역 */
+    #selection-area, #score-board, .rules-box, .button-container {
+      width: 95%; max-width: 500px; box-sizing: border-box;
+    }
+
+    #selection-area {
+      background: white; padding: 15px; border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
+      text-align: center; border: 2px solid #e0dcd0;
+    }
+    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+    .choice-btn {
+      padding: 12px 15px; font-size: 1rem; font-weight: bold;
+      color: white; border: none; border-radius: 8px; cursor: pointer; flex: 1;
+    }
+    .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
+    .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
+
+    #score-board {
+      display: flex; justify-content: space-around;
+      background: #fff; padding: 10px; border-radius: 12px;
+      margin-bottom: 15px; border: 2px solid #5d4037;
+    }
+    .score-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .score-value { font-size: 1.6rem; font-weight: bold; }
+    .red-score { color: #ff4d4d; }
+    .blue-score { color: #4d94ff; }
+
+    /* 게임 보드 영역 - 중앙 정렬을 위한 래퍼 추가 */
+    #board-outer-wrapper {
+      display: flex; justify-content: center; width: 100%; margin: 10px 0;
+    }
+    #board-wrapper {
+      position: relative; background: #fff;
+      border: 6px solid #ccc; border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      touch-action: none; overflow: hidden; /* 영역 밖 그리기 방지 */
+    }
+    #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+    #piece-layer { position: relative; z-index: 2; display: grid; }
+
+    /* 말 스타일 - 고정 크기 대신 비율 사용 */
+    .cell { display: flex; justify-content: center; align-items: center; cursor: pointer; }
+    .piece {
+      width: 80%; height: 80%; border-radius: 50%;
+      transition: transform 0.2s, box-shadow 0.2s; border: 4px solid rgba(0,0,0,0.15); box-sizing: border-box;
+    }
+    .red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 4px 0 #b30000; }
+    .blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 4px 0 #0047b3; }
+    
+    /* 선택 및 힌트 */
+    .selected { transform: scale(1.1); outline: 4px solid #ffd700; z-index: 10; box-shadow: 0 6px 10px rgba(0,0,0,0.3); }
+    .hint { width: 30%; height: 30%; background: rgba(46, 204, 113, 0.6); border-radius: 50%; }
+
+    /* 하단 버튼 및 정보 */
+    .button-container { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+    .bottom-btn {
+      padding: 10px 20px; cursor: pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff;
+      font-weight: bold; font-size: 0.9rem;
+    }
+    .btn-danger { border-color: #ff4d4d; color: #ff4d4d; }
+
+    .status-badge {
+      padding: 10px 25px; border-radius: 25px; font-weight: bold; font-size: 1.4rem;
+      margin-bottom: 10px; display: none;
+    }
+    .red-turn { background-color: #ffe6e6; color: #b30000; }
+    .blue-turn { background-color: #e6f2ff; color: #0047b3; }
+
+    .rules-box {
+      background: #fff; padding: 15px; border-radius: 12px;
+      font-size: 0.9rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
+    }
+
+    /* 승리 모달 */
+    #victory-modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(3px); z-index: 100; justify-content: center; align-items: center;
+    }
+    .modal-content { background: white; padding: 35px; border-radius: 25px; text-align: center; width: 80%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  </style>
+</head>
+<body oncontextmenu="return false">
+
+  <h1>줄고누</h1>
+
+  <div id="selection-area">
+    <div style="font-weight: bold; font-size: 1.2rem; color: #5d4037;">🎮 게임 설정</div>
+    <div style="margin: 12px 0;">
+      <label for="size-select" style="font-weight: bold; font-size: 1rem;">판 크기: </label>
+      <select id="size-select" onchange="initGame()" style="padding: 6px 10px; border-radius: 5px; font-size: 1rem; border: 1px solid #ccc;">
+      </select>
+    </div>
+    <div class="btn-group">
+      <button class="choice-btn btn-red" onclick="startGame('red')">빨강 선공</button>
+      <button class="choice-btn btn-blue" onclick="startGame('blue')">파랑 선공</button>
+    </div>
+  </div>
+
+  <div id="turn-badge" class="status-badge"></div>
+
+  <div id="board-outer-wrapper">
+    <div id="board-wrapper">
+      <canvas id="grid-canvas"></canvas>
+      <div id="piece-layer"></div>
+    </div>
+  </div>
+
+  <div id="score-board">
+    <div class="score-item">
+      <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">🔴 빨강 승리</div>
+      <div id="red-wins" class="score-value red-score">0</div>
+    </div>
+    <div style="border-left: 1px solid #eee;"></div>
+    <div class="score-item">
+      <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">🔵 파랑 승리</div>
+      <div id="blue-wins" class="score-value blue-score">0</div>
+    </div>
+  </div>
+
+  <div class="rules-box">
+    <strong>⚠️ 게임 규칙</strong><br>
+    • <b>4x4</b>: 인접한 <b>한 칸</b>만 이동 가능합니다.<br>
+    • <b>6x6 이상</b>: 장애물이 없다면 <b>거리 제한 없이</b> 이동 가능합니다.<br>
+    • 상대 말을 가두거나(샌드위치) 포위하면 따냅니다.<br>
+    • 말이 1개만 남으면 패배합니다.
+  </div>
+
+  <div class="button-container">
+    <button class="bottom-btn" onclick="location.reload()">새 게임</button>
+    <button class="bottom-btn btn-danger" onclick="resetScore()">전적 초기화</button>
+  </div>
+
+  <div id="victory-modal">
+    <div class="modal-content">
+      <div style="font-size: 2rem; font-weight: bold; color: #28a745; margin-bottom: 10px;">종료!</div>
+      <div id="winner-display" style="font-size: 1.6rem; font-weight: bold; margin-bottom: 25px;"></div>
+      <button onclick="location.reload()" style="padding: 12px 30px; background: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">확인</button>
+    </div>
+  </div>
+
+<script>
+  const sizeSelect = document.getElementById('size-select');
+  const boardWrapper = document.getElementById('board-wrapper');
+  const pieceLayer = document.getElementById('piece-layer');
+  const canvas = document.getElementById('grid-canvas');
+  const ctx = canvas.getContext('2d');
+  const turnBadge = document.getElementById('turn-badge');
+  const selectionArea = document.getElementById('selection-area');
+
+  let size = 4;
+  let board = [];
+  let currentTurn = null;
+  let selectedIdx = null;
+  let gameStarted = false;
+  let cellSize = 0;
+  
+  // 설정: 말이 너무 커지지 않도록 최대 셀 크기 지정 (이전 설정 크기 반영)
+  const MAX_CELL_SIZE = 70; 
+
+  let scores = {
+    red: parseInt(localStorage.getItem('jool_red_wins')) || 0,
+    blue: parseInt(localStorage.getItem('jool_blue_wins')) || 0
+  };
+
+  // 1. 판 크기 옵션 설정 (4x4 ~ 20x20)
+  function setupSizeOptions() {
+    for (let i = 4; i <= 20; i += 2) { 
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} x ${i}`;
+      sizeSelect.appendChild(opt);
+    }
+  }
+
+  // 화면 크기 및 MAX_CELL_SIZE를 고려하여 레이아웃 계산
+  function calculateLayout() {
+    // 반응형 너비 계산 (화면 너비의 95%, 최대 500px)
+    const availableWidth = Math.min(window.innerWidth * 0.95 - 20, 500);
+    
+    // 기본 셀 크기 계산
+    let calculatedCellSize = Math.floor(availableWidth / size);
+    
+    // 2. 말의 최대 크기 제한 적용
+    cellSize = Math.min(calculatedCellSize, MAX_CELL_SIZE);
+    
+    const total = size * cellSize;
+    
+    // 캔버스 및 래퍼 크기 설정
+    canvas.width = total;
+    canvas.height = total;
+    boardWrapper.style.width = total + 'px';
+    boardWrapper.style.height = total + 'px';
+  }
+
+  function initGame() {
+    if (gameStarted) return;
+    size = parseInt(sizeSelect.value);
+    calculateLayout();
+    board = Array(size * size).fill(null);
+    // 초기 배치
+    for (let i = 0; i < size; i++) {
+      board[i] = 'red';
+      board[size * (size - 1) + i] = 'blue';
+    }
+    drawGrid();
+    renderPieces();
+  }
+
+  function startGame(team) {
+    currentTurn = team;
+    gameStarted = true;
+    selectionArea.style.display = 'none';
+    turnBadge.style.display = 'inline-block';
+    updateTurnUI();
+    renderPieces();
+  }
+
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#5d4037';
+    // 선 굵기도 셀 크기에 비례하게 조정
+    ctx.lineWidth = Math.max(2, cellSize * 0.05); 
+    ctx.lineCap = 'round';
+
+    for (let i = 0; i < size; i++) {
+      const pos = i * cellSize + cellSize/2;
+      // 가로선
+      ctx.beginPath();
+      ctx.moveTo(cellSize/2, pos);
+      ctx.lineTo(canvas.width - cellSize/2, pos);
+      ctx.stroke();
+      // 세로선
+      ctx.beginPath();
+      ctx.moveTo(pos, cellSize/2);
+      ctx.lineTo(pos, canvas.height - cellSize/2);
+      ctx.stroke();
+    }
+  }
+
+  function renderPieces() {
+    pieceLayer.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    pieceLayer.innerHTML = '';
+    
+    board.forEach((p, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      cell.onclick = () => handleCellClick(i);
+
+      if (p) {
+        const div = document.createElement('div');
+        div.className = `piece ${p} ${selectedIdx === i ? 'selected' : ''}`;
+        cell.appendChild(div);
+      } else if (gameStarted && selectedIdx !== null && getValidMoves(selectedIdx).includes(i)) {
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        cell.appendChild(hint);
+      }
+      pieceLayer.appendChild(cell);
+    });
+  }
+
+  function getValidMoves(from) {
+    const moves = [];
+    const r = Math.floor(from / size), c = from % size;
+    const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+    
+    const isLongMove = size >= 6; // 이동 규칙 차별화
+
+    dirs.forEach(([dr, dc]) => {
+      let nr = r + dr, nc = c + dc;
+      while (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+        const tidx = nr * size + nc;
+        if (board[tidx] === null) {
+          moves.push(tidx);
+          if (!isLongMove) break; // 4x4는 한 칸만
+        } else {
+          break;
+        }
+        nr += dr; nc += dc;
+      }
+    });
+    return moves;
+  }
+
+  function handleCellClick(idx) {
+    if (!gameStarted) return;
+    if (board[idx] === currentTurn) {
+      selectedIdx = (selectedIdx === idx) ? null : idx;
+    } else if (selectedIdx !== null && board[idx] === null) {
+      if (getValidMoves(selectedIdx).includes(idx)) {
+        executeMove(selectedIdx, idx);
+        return;
+      }
+    } else {
+      selectedIdx = null;
+    }
+    renderPieces();
+  }
+
+  function executeMove(from, to) {
+    board[to] = board[from];
+    board[from] = null;
+    captureLogic(to);
+    selectedIdx = null;
+    currentTurn = (currentTurn === 'red') ? 'blue' : 'red';
+    renderPieces();
+    updateTurnUI();
+    checkWinner();
+  }
+
+  function captureLogic(movedIdx) {
+    const r = Math.floor(movedIdx / size), c = movedIdx % size;
+    const me = board[movedIdx];
+    const enemy = (me === 'red') ? 'blue' : 'red';
+    const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+
+    dirs.forEach(([dr, dc]) => {
+      // 1. 샌드위치
+      const midR = r + dr, midC = c + dc;
+      const endR = r + dr * 2, endC = c + dc * 2;
+      if (isInside(endR, endC)) {
+        const midIdx = midR * size + midC;
+        const endIdx = endR * size + endC;
+        if (board[midIdx] === enemy && board[endIdx] === me) board[midIdx] = null;
+      }
+      // 2. 포위
+      const adjR = r + dr, adjC = c + dc;
+      if (isInside(adjR, adjC)) {
+        const adjIdx = adjR * size + adjC;
+        if (board[adjIdx] === enemy && isTrapped(adjIdx, me)) board[adjIdx] = null;
+      }
+    });
+  }
+
+  function isTrapped(idx, attacker) {
+    const r = Math.floor(idx / size), c = idx % size;
+    const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+    for (let [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (isInside(nr, nc)) {
+        const target = board[nr * size + nc];
+        if (target === null || target !== attacker) return false;
+      }
+    }
+    return true;
+  }
+
+  function isInside(r, c) { return r >= 0 && r < size && c >= 0 && c < size; }
+
+  function updateTurnUI() {
+    turnBadge.textContent = (currentTurn === 'red' ? "🔴 빨강" : "🔵 파랑") + " 차례";
+    turnBadge.className = `status-badge ${currentTurn}-turn`;
+    const color = (currentTurn === 'red') ? '#ff4d4d' : '#4d94ff';
+    boardWrapper.style.borderColor = color;
+    boardWrapper.style.boxShadow = `0 8px 30px ${color}33`;
+  }
+
+  function checkWinner() {
+    const rCount = board.filter(p => p === 'red').length;
+    const bCount = board.filter(p => p === 'blue').length;
+    if (rCount <= 1 || bCount <= 1) {
+      const winTeam = (rCount > 1) ? 'red' : 'blue';
+      scores[winTeam]++;
+      localStorage.setItem(`jool_${winTeam}_wins`, scores[winTeam]);
+      document.getElementById('winner-display').innerHTML = `${winTeam==='red'?'🔴 빨간팀':'🔵 파란팀'} 승리!`;
+      document.getElementById('victory-modal').style.display = 'flex';
+      gameStarted = false;
+    }
+  }
+
+  function resetScore() {
+    if(confirm("모든 전적을 초기화할까요?")) {
+      scores = { red: 0, blue: 0 };
+      localStorage.setItem('jool_red_wins', 0);
+      localStorage.setItem('jool_blue_wins', 0);
+      document.getElementById('red-wins').textContent = 0;
+      document.getElementById('blue-wins').textContent = 0;
+    }
+  }
+
+  // 화면 크기 변경 시 레이아웃 재계산
+  window.onresize = () => { calculateLayout(); drawGrid(); renderPieces(); };
+  
+  // 초기화
+  setupSizeOptions();
+  initGame();
+  document.getElementById('red-wins').textContent = scores.red;
+  document.getElementById('blue-wins').textContent = scores.blue;
+</script>
+</body>
+</html>
