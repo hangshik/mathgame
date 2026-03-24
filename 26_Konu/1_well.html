@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=576, user-scalable=yes">
+  <title>우물고누</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f4f1ea;
+      font-family: 'Malgun Gothic', sans-serif;
+      padding: 20px;
+      margin: 0;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      color: #5d4037;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #selection-area {
+      background: white;
+      padding: 20px 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+      text-align: center;
+      border: 2px solid #e0dcd0;
+      width: 576px;
+      box-sizing: border-box;
+    }
+
+    .selection-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; color: #333; }
+    .btn-group { display: flex; gap: 15px; justify-content: center; }
+
+    /* 보드 크기를 1:1 정사각형으로 수정 */
+    #game-container {
+      position: relative;
+      width: 576px; height: 576px; 
+      border-radius: 21.6px;
+      box-shadow: 0 11.52px 23.04px rgba(0,0,0,0.1);
+      background-image: url('well.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: all 0.3s ease;
+      border: 7.2px solid #ccc;
+      box-sizing: border-box;
+      touch-action: none; 
+    }
+
+    .node {
+      position: absolute;
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      cursor: pointer; z-index: 2;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 4.32px solid #ddd;
+      box-sizing: border-box;
+    }
+    
+    .node.empty { background-color: rgba(255, 255, 255, 0.7); border-color: #eee; }
+    .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 5.76px 0 #b30000; }
+    .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 5.76px 0 #0047b3; }
+    .node.selected { transform: scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
+    .node.hint { border: 4.32px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
+
+    #info-panel { margin-top: 25px; text-align: center; width: 576px; }
+    .status-badge {
+      padding: 12px 30px; border-radius: 30px;
+      font-weight: bold; font-size: 1.8rem;
+      margin-bottom: 20px; display: none;
+    }
+    .red-turn { background-color: #ffe6e6; color: #b30000; }
+    .blue-turn { background-color: #e6f2ff; color: #0047b3; }
+    
+    .choice-btn {
+      padding: 12px 25px; font-size: 1.1rem; font-weight: bold;
+      color: white; border: none; border-radius: 10px; cursor: pointer;
+    }
+    .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
+    .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
+
+    #score-board {
+      display: flex; justify-content: space-around;
+      background: #fff; padding: 15px; border-radius: 15px;
+      margin-bottom: 20px; border: 2px solid #5d4037;
+    }
+    .score-value { font-size: 2rem; font-weight: bold; }
+
+    .rules-box {
+      background: #fff; padding: 20px; border-radius: 15px;
+      font-size: 1.1rem; text-align: left; border: 1px solid #ddd;
+      line-height: 1.6; width: 100%; box-sizing: border-box;
+    }
+
+    #victory-modal {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+      z-index: 100; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 50px; border-radius: 30px;
+      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false">
+
+  <h1>우물고누</h1>
+
+  <div id="selection-area">
+    <div class="selection-title">먼저 시작할 팀을 선택하세요</div>
+    <div class="btn-group">
+      <button class="choice-btn btn-red" onclick="startGame('red')">빨간팀 선공</button>
+      <button class="choice-btn btn-blue" onclick="startGame('blue')">파란팀 선공</button>
+    </div>
+  </div>
+
+  <div id="turn-badge" class="status-badge"></div>
+
+  <div id="game-container"></div>
+
+  <div id="info-panel">
+    <div id="score-board">
+      <div class="score-item">
+        <div style="font-size: 1rem; color: #666;">🔴 빨간팀 승리</div>
+        <div id="red-wins" class="score-value red-score" style="color:#ff4d4d">0</div>
+      </div>
+      <div style="border-left: 1px solid #ddd;"></div>
+      <div class="score-item">
+        <div style="font-size: 1rem; color: #666;">🔵 파란팀 승리</div>
+        <div id="blue-wins" class="score-value blue-score" style="color:#4d94ff">0</div>
+      </div>
+    </div>
+
+    <div class="rules-box">
+      <strong>⚠️ 게임 규칙</strong><br>
+      • 각 팀 2개의 말로 빈칸을 향해 한 칸씩 이동<br>
+      • 처음에는 '우(오른쪽)'또는 '하(아래쪽)'의 말은 움직일 수 없음.<br>
+      • 상대를 가두어 움직이지 못하게 하면 승리!
+    </div>
+    
+    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+      <button onclick="location.reload()" style="padding:10px 20px; cursor:pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff;">게임 초기화</button>
+      <button onclick="resetScore()" style="padding:10px 20px; cursor:pointer; border-radius: 8px; border: 1px solid #ff4d4d; color: #ff4d4d; background: #fff;">전적 초기화</button>
+    </div>
+  </div>
+
+  <div id="victory-modal">
+    <div class="modal-content" id="modal-content-box">
+      <div style="font-size: 3rem; font-weight: bold; margin-bottom: 10px;">축하합니다!</div>
+      <div id="winner-display" style="font-size: 2rem; margin-bottom: 30px; color: #666;"></div>
+      <button onclick="location.reload()" style="padding: 15px 40px; font-size: 1.3rem; font-weight: bold; color: white; background: #28a745; border: none; border-radius: 30px; cursor: pointer;">새 게임 시작</button>
+    </div>
+  </div>
+
+<script>
+  const container = document.getElementById('game-container');
+  const turnBadge = document.getElementById('turn-badge');
+  const selectionArea = document.getElementById('selection-area');
+  const victoryModal = document.getElementById('victory-modal');
+  const winnerDisplay = document.getElementById('winner-display');
+  const redWinsEl = document.getElementById('red-wins');
+  const blueWinsEl = document.getElementById('blue-wins');
+
+  // 정사각형 보드(576x576)에 맞춘 완전 대칭 좌표 (중심 288, 288)
+  const nodes = [
+    { x: 288, y: 88 },  // 0: 상
+    { x: 288, y: 488 }, // 1: 하
+    { x: 88, y: 288 },  // 2: 좌
+    { x: 488, y: 288 }, // 3: 우
+    { x: 288, y: 288 }  // 4: 중
+  ];
+
+  // 인접 리스트 (하(1)와 우(3)의 연결이 없음)
+  const adj = [
+    [2, 3, 4],    // 상(0) -> 좌, 우, 중
+    [2, 4],       // 하(1) -> 좌, 중 (우X)
+    [0, 1, 4],    // 좌(2) -> 상, 하, 중
+    [0, 4],       // 우(3) -> 상, 중 (하X)
+    [0, 1, 2, 3]  // 중(4) -> 모두
+  ];
+
+  let gameState = {
+    pieces: ['red', 'red', 'blue', 'blue', 'empty'],
+    currentTurn: null,
+    selected: null,
+    gameStarted: false,
+    moveCount: 0
+  };
+
+  let scores = {
+    red: parseInt(localStorage.getItem('well_red_wins')) || 0,
+    blue: parseInt(localStorage.getItem('well_blue_wins')) || 0
+  };
+
+  function updateScoreDisplay() {
+    redWinsEl.textContent = scores.red;
+    blueWinsEl.textContent = scores.blue;
+  }
+
+  function resetScore() {
+    if(confirm("모든 전적을 초기화할까요?")) {
+      scores = { red: 0, blue: 0 };
+      localStorage.setItem('well_red_wins', 0);
+      localStorage.setItem('well_blue_wins', 0);
+      updateScoreDisplay();
+    }
+  }
+
+  function startGame(team) {
+    gameState.currentTurn = team;
+    gameState.gameStarted = true;
+    selectionArea.style.display = 'none';
+    turnBadge.style.display = 'inline-block';
+    updateBoard();
+  }
+
+  function drawBoard() {
+    container.innerHTML = '';
+    nodes.forEach((node, i) => {
+      const div = document.createElement('div');
+      div.className = `node ${gameState.pieces[i]}`;
+      div.id = `node-${i}`;
+      div.style.left = (node.x - 36) + 'px';
+      div.style.top = (node.y - 36) + 'px';
+      div.onclick = () => handleNodeClick(i);
+      container.appendChild(div);
+    });
+  }
+
+  function handleNodeClick(index) {
+    if (!gameState.gameStarted) return;
+    const piece = gameState.pieces[index];
+    
+    if (piece === gameState.currentTurn) {
+      // 첫 수 제한: 우(3)와 하(1)는 첫 수로 움직일 수 없음
+      if (gameState.moveCount === 0 && (index === 1 || index === 3)) {
+        alert("규칙상 첫 수에는 '우'와 '하'에 있는 말을 움직일 수 없습니다.");
+        return;
+      }
+
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('selected', 'hint'));
+      gameState.selected = index;
+      document.getElementById(`node-${index}`).classList.add('selected');
+      getValidMoves(index).forEach(m => document.getElementById(`node-${m}`).classList.add('hint'));
+      return;
+    }
+
+    if (gameState.selected !== null && piece === 'empty') {
+      if (getValidMoves(gameState.selected).includes(index)) {
+        gameState.pieces[index] = gameState.currentTurn;
+        gameState.pieces[gameState.selected] = 'empty';
+        gameState.selected = null;
+        gameState.moveCount++;
+        gameState.currentTurn = (gameState.currentTurn === 'red') ? 'blue' : 'red';
+        updateBoard();
+        checkWinner();
+      }
+    }
+  }
+
+  function getValidMoves(idx) {
+    const possible = [];
+    adj[idx].forEach(target => {
+      if (gameState.pieces[target] === 'empty') {
+        possible.push(target);
+      }
+    });
+    return possible;
+  }
+
+  function updateBoard() {
+    gameState.pieces.forEach((p, i) => {
+      const el = document.getElementById(`node-${i}`);
+      el.className = `node ${p}`;
+      el.classList.remove('selected', 'hint');
+    });
+    if (gameState.currentTurn) {
+      turnBadge.textContent = gameState.currentTurn === 'red' ? "빨간팀 차례" : "파란팀 차례";
+      turnBadge.className = `status-badge ${gameState.currentTurn === 'red' ? 'red-turn' : 'blue-turn'}`;
+      container.style.border = `7.2px solid ${gameState.currentTurn === 'red' ? '#ff4d4d' : '#4d94ff'}`;
+    }
+  }
+
+  function checkWinner() {
+    let canMove = false;
+    gameState.pieces.forEach((p, i) => {
+      if (p === gameState.currentTurn && getValidMoves(i).length > 0) canMove = true;
+    });
+
+    if (!canMove) {
+      const winnerTeam = gameState.currentTurn === 'red' ? "blue" : "red";
+      const winnerName = winnerTeam === "red" ? "빨간팀" : "파란팀";
+      const winnerColor = winnerTeam === "red" ? "#ff4d4d" : "#4d94ff";
+      
+      scores[winnerTeam]++;
+      localStorage.setItem(`well_${winnerTeam}_wins`, scores[winnerTeam]);
+      updateScoreDisplay();
+
+      winnerDisplay.innerHTML = `<span style="color: ${winnerColor}">${winnerName}</span>이 승리했습니다!`;
+      document.getElementById('modal-content-box').style.borderTop = `15px solid ${winnerColor}`;
+      victoryModal.style.display = 'flex';
+    }
+  }
+
+  drawBoard();
+  updateScoreDisplay();
+</script>
+</body>
+</html>
