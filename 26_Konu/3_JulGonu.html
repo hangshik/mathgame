@@ -11,25 +11,36 @@
       padding: 10px; margin: 0; user-select: none; -webkit-touch-callout: none;
       min-height: 100vh;
     }
-    h1 { font-size: 1.8rem; color: #5d4037; margin: 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+    h1 {
+      font-size: 3.5rem;
+      color: #5d4037;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
 
     /* 설정 및 정보 영역 */
-    #selection-area, #score-board, .rules-box, .button-container {
-      width: 95%; max-width: 500px; box-sizing: border-box;
-    }
-
     #selection-area {
-      background: white; padding: 15px; border-radius: 15px;
+      background: white; padding: 20px 40px; border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
       text-align: center; border: 2px solid #e0dcd0;
+      width: 95%; max-width: 500px; box-sizing: border-box;
     }
-    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+    
+    .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+    
+    /* 버튼 사이즈 조정: flex: 1을 제거하고 padding으로 크기 조절 */
     .choice-btn {
-      padding: 12px 15px; font-size: 1rem; font-weight: bold;
-      color: white; border: none; border-radius: 8px; cursor: pointer; flex: 1;
+      padding: 12px 25px; font-size: 1rem; font-weight: bold;
+      color: white; border: none; border-radius: 10px; cursor: pointer;
+      transition: transform 0.2s;
     }
     .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
     .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
+    .choice-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+
+    #score-board, .rules-box, .button-container {
+      width: 95%; max-width: 500px; box-sizing: border-box;
+    }
 
     #score-board {
       display: flex; justify-content: space-around;
@@ -54,7 +65,6 @@
     #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
     #piece-layer { position: relative; z-index: 2; display: grid; }
 
-    /* 말 스타일 */
     .cell { display: flex; justify-content: center; align-items: center; cursor: pointer; }
     .piece {
       width: 80%; height: 80%; border-radius: 50%;
@@ -81,8 +91,9 @@
     .blue-turn { background-color: #e6f2ff; color: #0047b3; }
 
     .rules-box {
-      background: #fff; padding: 15px; border-radius: 12px;
-      font-size: 0.85rem; text-align: left; border: 1px solid #ddd; line-height: 1.5; margin-top: 15px;
+      background: #fff; padding: 20px; border-radius: 15px;
+      font-size: 1.1rem; text-align: left; border: 1px solid #ddd;
+      line-height: 1.6; width: 100%; box-sizing: border-box;
     }
 
     #victory-modal {
@@ -97,15 +108,17 @@
   <h1>줄고누</h1>
 
   <div id="selection-area">
-    <div style="font-weight: bold; font-size: 1.1rem; color: #5d4037;">🎮 게임 설정</div>
-    <div style="margin: 12px 0;">
+    <div style="font-weight: bold; font-size: 1.1rem; color: #5d4037;">
+      판 크기를 선택한 후 먼저 시작할 팀을 선택하세요.
+    </div>
+    <div style="margin: 15px 0;">
       <label for="size-select" style="font-weight: bold; font-size: 1rem;">판 크기: </label>
       <select id="size-select" onchange="initGame()" style="padding: 6px 10px; border-radius: 5px; font-size: 1rem; border: 1px solid #ccc;">
       </select>
     </div>
     <div class="btn-group">
-      <button class="choice-btn btn-red" onclick="startGame('red')">빨강 선공</button>
-      <button class="choice-btn btn-blue" onclick="startGame('blue')">파랑 선공</button>
+      <button class="choice-btn btn-red" onclick="startGame('red')">빨강팀 선공</button>
+      <button class="choice-btn btn-blue" onclick="startGame('blue')">파랑팀 선공</button>
     </div>
   </div>
 
@@ -132,15 +145,14 @@
 
   <div class="rules-box">
     <strong>⚠️ 게임 규칙</strong><br>
-    • <b>4x4</b>: 인접한 한 칸만 이동 가능.<br>
-    • <b>6x6 이상</b>: 장애물이 없다면 거리 제한 없이 이동.<br>
+    • <b>이동</b>: 빈 칸이라면 거리 제한 없이 직선(가로/세로)으로 이동 가능.<br>
     • <b>샌드위치</b>: 상대 말 1개를 내 말 사이에 가두면 획득.<br>
-    • <b>포위</b>: 구석에서 움직임이 막히면 상대 말 획득.<br>
-    • 상대 말이 1개만 남으면 승리!
+    • <b>포위</b>: 구석이나 가장자리에서 움직임이 막히면 상대 말 획득.<br>
+    • 상대 말이 1개만 남으면 최종 승리!
   </div>
 
   <div class="button-container">
-    <button class="bottom-btn" onclick="location.reload()">새 게임</button>
+    <button class="bottom-btn" onclick="location.reload()">게임 초기화</button>
     <button class="bottom-btn btn-danger" onclick="resetScore()">전적 초기화</button>
   </div>
 
@@ -168,7 +180,6 @@
   let gameStarted = false;
   let cellSize = 0;
   
-  // ⭐ 말의 최대 크기 제한 (4x4에서도 너무 커지지 않게 함)
   const MAX_CELL_SIZE = 85; 
 
   let scores = {
@@ -186,19 +197,12 @@
   }
 
   function calculateLayout() {
-    // 1. 화면의 가로와 세로 중 작은 값을 기준으로 95% 계산
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const minSide = Math.min(vw, vh);
-    
-    // 2. 판이 차지할 수 있는 최대 너비 (여백 제외)
     let availableSize = minSide * 0.95;
-    
-    // 3. 셀 크기 계산 및 MAX_CELL_SIZE 적용
     let calculatedCellSize = Math.floor(availableSize / size);
     cellSize = Math.min(calculatedCellSize, MAX_CELL_SIZE);
-    
-    // 4. 최종 보드 크기 (셀 크기 * 칸 수)
     const total = size * cellSize;
     
     canvas.width = total;
@@ -276,7 +280,6 @@
     const moves = [];
     const r = Math.floor(from / size), c = from % size;
     const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
-    const isLongMove = size >= 6; 
 
     dirs.forEach(([dr, dc]) => {
       let nr = r + dr, nc = c + dc;
@@ -284,7 +287,6 @@
         const tidx = nr * size + nc;
         if (board[tidx] === null) {
           moves.push(tidx);
-          if (!isLongMove) break;
         } else {
           break;
         }

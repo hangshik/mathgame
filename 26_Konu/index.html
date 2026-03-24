@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>고누 놀이</title>
+  <style>
+    /* 기본 여백 제거 및 전체 높이 설정 */
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      overflow: hidden; /* 바디 스크롤 방지 */
+    }
+
+    body { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      background-color: #f4f1ea; 
+      font-family: 'Malgun Gothic', sans-serif; 
+    }
+
+    /* 상단 메뉴 영역: 높이를 고정하고 중앙 정렬 */
+    #game-menu { 
+      display: flex; 
+      gap: 10px; 
+      padding: 15px 0; 
+      width: 100%;
+      justify-content: center;
+      background-color: #f4f1ea;
+      border-bottom: 1px solid #ddd;
+      flex-shrink: 0; /* 메뉴가 찌그러지지 않게 고정 */
+    }
+
+    .menu-btn { 
+      padding: 10px 25px; 
+      text-decoration: none; 
+      color: #5d4037; 
+      background: #e0dcd0; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      border: 1px solid #ccc; 
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .menu-btn:hover { background: #d0ccc0; }
+
+    .menu-btn.active { 
+      background: #007bff; 
+      color: white; 
+      border-color: #0056b3; 
+    }
+
+    /* iframe 영역: 남은 공간을 100% 채움 */
+    #content-frame {
+      width: 100%;
+      flex-grow: 1; /* 부모 컨테이너의 남은 높이를 모두 차지 */
+      border: none; /* 테두리 제거로 더 넓게 보이게 함 */
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="game-menu">
+    <a href="1_UmulGonu.html" target="gameView" class="menu-btn active" onclick="setActive(this)">우물고누</a>
+    <a href="2_HobakGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">호박고누</a>
+    <a href="3_JulGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">줄고누</a>
+    <a href="4_ChamGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">참고누</a>
+  </nav>
+
+  <iframe src="1_UmulGonu.html" name="gameView" id="content-frame"></iframe>
+
+  <script>
+    function setActive(element) {
+      const buttons = document.querySelectorAll('.menu-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
