@@ -3,65 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=576, user-scalable=yes">
-  <title>호박고누</title>
+  <title>호박고누 - 선명한 라인 버전</title>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: #f4f1ea;
-      font-family: 'Malgun Gothic', sans-serif;
-      padding: 28.8px;
-      margin: 0;
-      /* 텍스트 선택 방지 */
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      /* 모바일 롱탭 메뉴 방지 */
-      -webkit-touch-callout: none;
+      display: flex; flex-direction: column; align-items: center;
+      background-color: #f4f1ea; font-family: 'Malgun Gothic', sans-serif;
+      padding: 28.8px; margin: 0;
+      -webkit-user-select: none; user-select: none;
     }
 
-    h1 {
-      font-size: 3.5rem;
-      color: #5d4037;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
+    h1 { font-size: 3.5rem; color: #5d4037; margin-bottom: 20px; }
 
-    /* 상단 선택 영역 */
     #selection-area {
-      background: white;
-      padding: 20px 40px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      margin-bottom: 25px;
-      text-align: center;
-      border: 2px solid #e0dcd0;
-      width: 576px;
-      box-sizing: border-box;
+      background: white; padding: 20px 40px; border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
+      text-align: center; border: 2px solid #e0dcd0; width: 576px; box-sizing: border-box;
     }
 
-    .selection-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; color: #333; }
+    .selection-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; }
     .btn-group { display: flex; gap: 15px; justify-content: center; }
 
-    /* 게임 보드: 요청하신 1.2배 확대 사이즈 고정 */
     #game-container {
       position: relative;
       width: 576px; height: 720px;
       border-radius: 21.6px;
+      background-color: #fffdf9;
       box-shadow: 0 11.52px 23.04px rgba(0,0,0,0.1);
-      background-image: url('pumpkin.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      transition: all 0.3s ease;
       border: 7.2px solid #ccc;
       box-sizing: border-box;
-      
-      /* 드래그 및 모바일 스크롤 방지 */
-      touch-action: none; 
-      -webkit-user-drag: none;
+      touch-action: none;
+    }
+
+    #board-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
     }
 
     .node {
@@ -70,65 +46,37 @@
       border-radius: 50%;
       display: flex; justify-content: center; align-items: center;
       cursor: pointer; z-index: 2;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s;
       border: 4.32px solid #ddd;
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
     }
     
-    .node.empty { background-color: rgba(255, 255, 255, 0.7); border-color: #eee; }
+    .node.empty { background-color: #fffdf9; border-color: #5d4037; }
     .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 5.76px 0 #b30000; }
     .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 5.76px 0 #0047b3; }
     .node.selected { transform: scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
     .node.hint { border: 4.32px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
 
     #info-panel { margin-top: 25px; text-align: center; width: 576px; }
-    
-    .status-badge {
-      padding: 12px 30px; border-radius: 30px;
-      font-weight: bold; font-size: 1.8rem;
-      margin-bottom: 20px; display: none;
-    }
+    .status-badge { padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 1.8rem; margin-bottom: 20px; display: none; }
     .red-turn { background-color: #ffe6e6; color: #b30000; }
     .blue-turn { background-color: #e6f2ff; color: #0047b3; }
     
-    .choice-btn {
-      padding: 12px 25px; font-size: 1.1rem; font-weight: bold;
-      color: white; border: none; border-radius: 10px;
-      cursor: pointer; transition: transform 0.2s;
-    }
+    .choice-btn { padding: 12px 25px; font-size: 1.1rem; font-weight: bold; color: white; border: none; border-radius: 10px; cursor: pointer; }
     .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
     .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
 
-    /* 전적 기록판 */
-    #score-board {
-      display: flex; justify-content: space-around;
-      background: #fff; padding: 15px; border-radius: 15px;
-      margin-bottom: 20px; border: 2px solid #5d4037;
-    }
+    #score-board { display: flex; justify-content: space-around; background: #fff; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 2px solid #5d4037; }
     .score-value { font-size: 2rem; font-weight: bold; }
     .red-score { color: #ff4d4d; }
     .blue-score { color: #4d94ff; }
+    .rules-box { background: #fff; padding: 20px; border-radius: 15px; font-size: 1.1rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; }
 
-    .rules-box {
-      background: #fff; padding: 20px; border-radius: 15px;
-      font-size: 1.1rem; text-align: left; border: 1px solid #ddd;
-      line-height: 1.6; width: 100%; box-sizing: border-box;
-    }
-
-    #victory-modal {
-      display: none; position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
-      z-index: 100; justify-content: center; align-items: center;
-    }
-    .modal-content {
-      background: white; padding: 50px; border-radius: 30px;
-      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    }
+    #victory-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 50px; border-radius: 30px; text-align: center; }
   </style>
 </head>
-<body oncontextmenu="return false" ondragstart="return false">
+<body>
 
   <h1>호박고누</h1>
 
@@ -142,7 +90,9 @@
 
   <div id="turn-badge" class="status-badge"></div>
 
-  <div id="game-container" onmousedown="return false"></div>
+  <div id="game-container">
+    <canvas id="board-canvas" width="576" height="720"></canvas>
+  </div>
 
   <div id="info-panel">
     <div id="score-board">
@@ -181,6 +131,8 @@
 
 <script>
   const container = document.getElementById('game-container');
+  const canvas = document.getElementById('board-canvas');
+  const ctx = canvas.getContext('2d');
   const turnBadge = document.getElementById('turn-badge');
   const selectionArea = document.getElementById('selection-area');
   const victoryModal = document.getElementById('victory-modal');
@@ -189,10 +141,10 @@
   const blueWinsEl = document.getElementById('blue-wins');
 
   const nodes = [
-    { x: 144, y: 100.8,  type: 'red-home' }, { x: 288, y: 100.8,  type: 'red-home' }, { x: 432, y: 100.8,  type: 'red-home' },
-    { x: 144, y: 360,    type: 'circle' },   { x: 288, y: 244.8,  type: 'circle' },   { x: 288, y: 360,    type: 'circle' }, 
-    { x: 432, y: 360,    type: 'circle' },   { x: 288, y: 475.2,  type: 'circle' },
-    { x: 144, y: 619.2,  type: 'blue-home' }, { x: 288, y: 619.2,  type: 'blue-home' }, { x: 432, y: 619.2,  type: 'blue-home' }
+    { x: 144, y: 72,  type: 'red-home' }, { x: 288, y: 72,  type: 'red-home' }, { x: 432, y: 72,  type: 'red-home' },
+    { x: 144, y: 360,    type: 'circle' },   { x: 288, y: 216,  type: 'circle' },   { x: 288, y: 360,    type: 'circle' }, 
+    { x: 432, y: 360,    type: 'circle' },   { x: 288, y: 504,  type: 'circle' },
+    { x: 144, y: 648,  type: 'blue-home' }, { x: 288, y: 648,  type: 'blue-home' }, { x: 432, y: 648,  type: 'blue-home' }
   ];
 
   let gameState = {
@@ -207,18 +159,48 @@
     blue: parseInt(localStorage.getItem('gonu_blue_wins')) || 0
   };
 
-  function updateScoreDisplay() {
-    redWinsEl.textContent = scores.red;
-    blueWinsEl.textContent = scores.blue;
-  }
+  // 선 그리기 함수 (두께 10px 및 사각형 제거)
+  function drawBoardLines() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const mainColor = '#5d4037';
+    const boldWidth = 10;
 
-  function resetScore() {
-    if(confirm("모든 전적을 초기화할까요?")) {
-      scores = { red: 0, blue: 0 };
-      localStorage.setItem('gonu_red_wins', 0);
-      localStorage.setItem('gonu_blue_wins', 0);
-      updateScoreDisplay();
-    }
+    ctx.strokeStyle = mainColor;
+    ctx.lineWidth = boldWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // 1. 빨간 집 직선 (0-1-2)
+    ctx.beginPath();
+    ctx.moveTo(nodes[0].x, nodes[0].y);
+    ctx.lineTo(nodes[1].x, nodes[1].y);
+    ctx.lineTo(nodes[2].x, nodes[2].y);
+    ctx.stroke();
+
+    // 2. 파란 집 직선 (8-9-10)
+    ctx.beginPath();
+    ctx.moveTo(nodes[8].x, nodes[8].y);
+    ctx.lineTo(nodes[9].x, nodes[9].y);
+    ctx.lineTo(nodes[10].x, nodes[10].y);
+    ctx.stroke();
+
+    // 3. 중앙 십자 연결선 (가로 3-5-6, 세로 4-5-7)
+    ctx.beginPath();
+    ctx.moveTo(nodes[3].x, nodes[3].y); ctx.lineTo(nodes[6].x, nodes[6].y);
+    ctx.moveTo(nodes[4].x, nodes[4].y); ctx.lineTo(nodes[7].x, nodes[7].y);
+    ctx.stroke();
+
+    // 4. 집 입구 연결 (상 1-4, 하 9-7)
+    ctx.beginPath();
+    ctx.moveTo(nodes[1].x, nodes[1].y); ctx.lineTo(nodes[4].x, nodes[4].y);
+    ctx.moveTo(nodes[9].x, nodes[9].y); ctx.lineTo(nodes[7].x, nodes[7].y);
+    ctx.stroke();
+
+    // 5. 호박 원 (5번 중심, 4/6/7/3번 통과)
+    const radius = Math.abs(nodes[5].y - nodes[4].y);
+    ctx.beginPath();
+    ctx.arc(nodes[5].x, nodes[5].y, radius, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   function startGame(team) {
@@ -229,19 +211,14 @@
     updateBoard();
   }
 
-  function drawBoard() {
-    container.innerHTML = '';
+  function drawNodes() {
     nodes.forEach((node, i) => {
       const div = document.createElement('div');
       div.className = `node ${gameState.pieces[i]}`;
       div.id = `node-${i}`;
       div.style.left = (node.x - 36) + 'px';
       div.style.top = (node.y - 36) + 'px';
-      // 클릭 시 기본 동작(선택 등) 방지
-      div.onclick = (e) => {
-        e.preventDefault();
-        handleNodeClick(i);
-      };
+      div.onclick = (e) => { e.preventDefault(); handleNodeClick(i); };
       container.appendChild(div);
     });
   }
@@ -274,9 +251,9 @@
     const team = gameState.pieces[idx];
     const possible = [];
     const baseAdj = [
-      [1], [0, 2, 4], [1],
+      [1], [4], [1],
       [4, 5, 7], [1, 3, 5, 6], [3, 4, 6, 7], [4, 5, 7], [3, 5, 6, 9],
-      [9], [7, 8, 10], [9]
+      [9], [7], [9]
     ];
     baseAdj[idx].forEach(target => {
       if (gameState.pieces[target] !== 'empty') return;
@@ -284,8 +261,6 @@
       if (team === 'blue' && nodes[target].type === 'red-home') return;
       if (team === 'red' && nodes[idx].type === 'circle' && nodes[target].type === 'red-home') return;
       if (team === 'blue' && nodes[idx].type === 'circle' && nodes[target].type === 'blue-home') return;
-      if (team === 'red' && idx === 1 && (target === 0 || target === 2)) return;
-      if (team === 'blue' && idx === 9 && (target === 8 || target === 10)) return;
       possible.push(target);
     });
     return possible;
@@ -293,13 +268,13 @@
 
   function updateBoard() {
     gameState.pieces.forEach((p, i) => {
-      document.getElementById(`node-${i}`).className = `node ${p}`;
+      const el = document.getElementById(`node-${i}`);
+      if (el) el.className = `node ${p}`;
     });
     if (gameState.currentTurn) {
       turnBadge.textContent = gameState.currentTurn === 'red' ? "빨간팀 차례" : "파란팀 차례";
       turnBadge.className = `status-badge ${gameState.currentTurn === 'red' ? 'red-turn' : 'blue-turn'}`;
       container.style.border = `7.2px solid ${gameState.currentTurn === 'red' ? '#ff4d4d' : '#4d94ff'}`;
-      container.style.boxShadow = `0 11.52px 28.8px ${gameState.currentTurn === 'red' ? 'rgba(255,77,77,0.3)' : 'rgba(77,148,255,0.3)'}`;
     }
   }
 
@@ -310,20 +285,30 @@
     });
     if (!canMove) {
       const winnerTeam = gameState.currentTurn === 'red' ? "blue" : "red";
-      const winnerName = winnerTeam === "red" ? "빨간팀" : "파란팀";
-      const winnerColor = winnerTeam === "red" ? "#ff4d4d" : "#4d94ff";
-      
       scores[winnerTeam]++;
       localStorage.setItem(`gonu_${winnerTeam}_wins`, scores[winnerTeam]);
-      updateScoreDisplay();
-
-      winnerDisplay.innerHTML = `<span style="color: ${winnerColor}">${winnerName}</span>이 승리했습니다!`;
-      document.getElementById('modal-content-box').style.borderTop = `15px solid ${winnerColor}`;
+      winnerDisplay.innerHTML = `<span style="color: ${winnerTeam==='red'?'#ff4d4d':'#4d94ff'}">${winnerTeam==='red'?'빨간팀':'파란팀'}</span>이 승리했습니다!`;
       victoryModal.style.display = 'flex';
+      updateScoreDisplay();
     }
   }
 
-  drawBoard();
+  function updateScoreDisplay() {
+    redWinsEl.textContent = scores.red;
+    blueWinsEl.textContent = scores.blue;
+  }
+
+  function resetScore() {
+    if(confirm("모든 전적을 초기화할까요?")) {
+      scores = { red: 0, blue: 0 };
+      localStorage.clear();
+      updateScoreDisplay();
+    }
+  }
+
+  // 초기화 실행
+  drawBoardLines();
+  drawNodes();
   updateScoreDisplay();
 </script>
 </body>

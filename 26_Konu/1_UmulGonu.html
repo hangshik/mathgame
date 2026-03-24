@@ -39,20 +39,23 @@
     .selection-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; color: #333; }
     .btn-group { display: flex; gap: 15px; justify-content: center; }
 
-    /* 보드 크기를 1:1 정사각형으로 수정 */
     #game-container {
       position: relative;
       width: 576px; height: 576px; 
       border-radius: 21.6px;
       box-shadow: 0 11.52px 23.04px rgba(0,0,0,0.1);
-      background-image: url('well.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      background-color: #fcfaf5;
       transition: all 0.3s ease;
       border: 7.2px solid #ccc;
       box-sizing: border-box;
       touch-action: none; 
+    }
+
+    #board-lines {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
     }
 
     .node {
@@ -64,12 +67,15 @@
       transition: transform 0.2s, box-shadow 0.2s;
       border: 4.32px solid #ddd;
       box-sizing: border-box;
+      /* 말의 정중앙이 해당 좌표에 오도록 설정 */
+      transform: translate(-50%, -50%);
     }
     
-    .node.empty { background-color: rgba(255, 255, 255, 0.7); border-color: #eee; }
+    .node.empty { background-color: rgba(255, 255, 255, 0.85); border-color: #eee; }
     .node.red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 5.76px 0 #b30000; }
     .node.blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 5.76px 0 #0047b3; }
-    .node.selected { transform: scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
+    /* 선택된 경우 scale 효과를 translate와 함께 적용 */
+    .node.selected { transform: translate(-50%, -50%) scale(1.2); outline: 5.76px solid #ffd700; z-index: 3; }
     .node.hint { border: 4.32px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
 
     #info-panel { margin-top: 25px; text-align: center; width: 576px; }
@@ -127,7 +133,13 @@
 
   <div id="turn-badge" class="status-badge"></div>
 
-  <div id="game-container"></div>
+  <div id="game-container">
+    <svg id="board-lines" viewBox="0 0 576 576">
+      <path d="M 488 288 A 200 200 0 1 0 288 488" stroke="#5d4037" stroke-width="10" fill="none"/>
+      <line x1="88" y1="288" x2="488" y2="288" stroke="#5d4037" stroke-width="10" />
+      <line x1="288" y1="88" x2="288" y2="488" stroke="#5d4037" stroke-width="10" />
+    </svg>
+  </div>
 
   <div id="info-panel">
     <div id="score-board">
@@ -153,7 +165,7 @@
       <button onclick="location.reload()" style="padding:10px 20px; cursor:pointer; border-radius: 8px; border: 1px solid #ccc; background: #fff;">게임 초기화</button>
       <button onclick="resetScore()" style="padding:10px 20px; cursor:pointer; border-radius: 8px; border: 1px solid #ff4d4d; color: #ff4d4d; background: #fff;">전적 초기화</button>
     </div>
-  </div>
+    </div>
 
   <div id="victory-modal">
     <div class="modal-content" id="modal-content-box">
@@ -172,16 +184,14 @@
   const redWinsEl = document.getElementById('red-wins');
   const blueWinsEl = document.getElementById('blue-wins');
 
-  // 정사각형 보드(576x576)에 맞춘 완전 대칭 좌표 (중심 288, 288)
   const nodes = [
-    { x: 288, y: 88 },  // 0: 상
-    { x: 288, y: 488 }, // 1: 하
-    { x: 88, y: 288 },  // 2: 좌
-    { x: 488, y: 288 }, // 3: 우
-    { x: 288, y: 288 }  // 4: 중
+    { x: 280, y: 80 },  // 0: 상
+    { x: 280, y: 480 }, // 1: 하
+    { x: 80, y: 280 },  // 2: 좌
+    { x: 480, y: 280 }, // 3: 우
+    { x: 280, y: 280 }  // 4: 중
   ];
 
-  // 인접 리스트 (하(1)와 우(3)의 연결이 없음)
   const adj = [
     [2, 3, 4],    // 상(0) -> 좌, 우, 중
     [2, 4],       // 하(1) -> 좌, 중 (우X)
@@ -225,14 +235,18 @@
     updateBoard();
   }
 
-  function drawBoard() {
-    container.innerHTML = '';
+  function drawNodes() {
+    const existingNodes = container.querySelectorAll('.node');
+    existingNodes.forEach(node => node.remove());
+
     nodes.forEach((node, i) => {
       const div = document.createElement('div');
       div.className = `node ${gameState.pieces[i]}`;
       div.id = `node-${i}`;
-      div.style.left = (node.x - 36) + 'px';
-      div.style.top = (node.y - 36) + 'px';
+      // CSS에서 transform: translate(-50%, -50%)를 사용하므로
+      // 여기서는 교점 좌표를 그대로 left, top에 대입합니다.
+      div.style.left = node.x + 'px';
+      div.style.top = node.y + 'px';
       div.onclick = () => handleNodeClick(i);
       container.appendChild(div);
     });
@@ -243,7 +257,6 @@
     const piece = gameState.pieces[index];
     
     if (piece === gameState.currentTurn) {
-      // 첫 수 제한: 우(3)와 하(1)는 첫 수로 움직일 수 없음
       if (gameState.moveCount === 0 && (index === 1 || index === 3)) {
         alert("규칙상 첫 수에는 '우'와 '하'에 있는 말을 움직일 수 없습니다.");
         return;
@@ -282,8 +295,10 @@
   function updateBoard() {
     gameState.pieces.forEach((p, i) => {
       const el = document.getElementById(`node-${i}`);
-      el.className = `node ${p}`;
-      el.classList.remove('selected', 'hint');
+      if (el) {
+        el.className = `node ${p}`;
+        el.classList.remove('selected', 'hint');
+      }
     });
     if (gameState.currentTurn) {
       turnBadge.textContent = gameState.currentTurn === 'red' ? "빨간팀 차례" : "파란팀 차례";
@@ -313,7 +328,7 @@
     }
   }
 
-  drawBoard();
+  drawNodes();
   updateScoreDisplay();
 </script>
 </body>
