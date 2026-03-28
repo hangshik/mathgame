@@ -2,100 +2,100 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>참고누</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>참고누 - 반응형</title>
   <style>
     body {
       display: flex; flex-direction: column; align-items: center;
       background-color: #f4f1ea; font-family: 'Malgun Gothic', sans-serif;
-      padding: 20px; margin: 0; user-select: none; -webkit-touch-callout: none;
+      padding: 10px; margin: 0; user-select: none; -webkit-touch-callout: none;
+      min-height: 100vh; box-sizing: border-box;
     }
     h1 {
-      font-size: 3.5rem;
+      font-size: clamp(2rem, 8vw, 3.5rem);
       color: #5d4037;
-      margin-bottom: 20px;
+      margin: 15px 0;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
+    /* 설정 및 정보 영역 */
+    #selection-area, #score-board, .rules-box, .status-badge {
+      width: 100%; max-width: 550px; box-sizing: border-box;
+    }
 
     #selection-area {
       background: white; padding: 20px; border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
-      text-align: center; border: 2px solid #e0dcd0; width: 550px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+      text-align: center; border: 2px solid #e0dcd0;
     }
-    .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
     .choice-btn {
-      padding: 12px 25px; font-size: 1.1rem; font-weight: bold;
+      flex: 1; padding: 12px 10px; font-size: 1rem; font-weight: bold;
       color: white; border: none; border-radius: 10px; cursor: pointer; transition: transform 0.2s;
     }
     .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
     .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
 
+    /* 게임 보드 영역 */
     #board-wrapper {
       position: relative; background: #fff;
-      border: 8px solid #ccc; border-radius: 20px;
+      border: 6px solid #ccc; border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 520px; height: 520px;
+      width: 92vw; height: 92vw; /* 모바일 비율 */
+      max-width: 520px; max-height: 520px; /* PC 최대 크기 */
+      margin: 10px 0;
     }
-    #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+    #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
     #piece-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
 
     .node {
-      position: absolute; width: 48px; height: 48px; border-radius: 50%;
+      position: absolute; width: 10%; height: 10%; border-radius: 50%;
       transform: translate(-50%, -50%); cursor: pointer;
       display: flex; justify-content: center; align-items: center;
       transition: all 0.2s; z-index: 5;
     }
-    /* 2. 놓기 단계 하얀 원 80% 크기 축소 */
     .node.empty::after {
-      content: ''; width: 32px; height: 32px; /* 40px의 80% 수준 */
+      content: ''; width: 60%; height: 60%;
       background-color: rgba(255, 255, 255, 0.9); border: 2px solid #ddd; border-radius: 50%;
     }
-    .piece { width: 85%; height: 85%; border-radius: 50%; border: 3px solid rgba(0,0,0,0.15); box-sizing: border-box; }
-    .red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 4px 0 #b30000; }
-    .blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 4px 0 #0047b3; }
+    .piece { width: 90%; height: 90%; border-radius: 50%; border: 3px solid rgba(0,0,0,0.15); box-sizing: border-box; }
+    .red { background-color: #ff4d4d; border-color: #b30000; box-shadow: 0 3px 0 #b30000; }
+    .blue { background-color: #4d94ff; border-color: #0047b3; box-shadow: 0 3px 0 #0047b3; }
     
     .blocked { 
-      position: relative; width: 44px; height: 44px; 
+      position: relative; width: 80%; height: 80%; 
       display: flex; justify-content: center; align-items: center;
     }
     .blocked::before, .blocked::after {
-      content: ''; position: absolute; width: 100%; height: 8px; 
-      background-color: #333; border-radius: 3px;
+      content: ''; position: absolute; width: 100%; height: 4px; 
+      background-color: #333; border-radius: 2px;
     }
     .blocked::before { transform: rotate(45deg); }
     .blocked::after { transform: rotate(-45deg); }
 
-    .node.selected { transform: translate(-50%, -50%) scale(1.25); outline: 5px solid #ffd700; z-index: 10; }
-    .node.hint { border: 4px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.15); }
+    .node.selected { transform: translate(-50%, -50%) scale(1.2); outline: 4px solid #ffd700; z-index: 10; }
+    .node.hint { border: 3px dashed #2ecc71; background-color: rgba(46, 204, 113, 0.15); border-radius: 50%; }
 
     .status-badge {
-      padding: 12px 30px; border-radius: 35px; font-weight: bold; font-size: 1.5rem;
-      margin-bottom: 20px; display: none; text-align: center; min-width: 400px;
+      padding: 10px 20px; border-radius: 35px; font-weight: bold; font-size: 1.2rem;
+      margin-bottom: 15px; display: none; text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .red-turn { background-color: #ffe6e6; color: #b30000; border: 3px solid #ff4d4d; }
-    .blue-turn { background-color: #e6f2ff; color: #0047b3; border: 3px solid #4d94ff; }
+    .red-turn { background-color: #ffe6e6; color: #b30000; border: 2px solid #ff4d4d; }
+    .blue-turn { background-color: #e6f2ff; color: #0047b3; border: 2px solid #4d94ff; }
 
     #score-board {
-      display: flex; justify-content: space-around; width: 550px;
-      background: #fff; padding: 15px; border-radius: 15px;
-      margin-top: 20px; border: 2px solid #5d4037;
+      display: flex; justify-content: space-around;
+      background: #fff; padding: 12px; border-radius: 15px;
+      margin-top: 15px; border: 2px solid #5d4037;
     }
-    .score-value { font-size: 1.8rem; font-weight: bold; }
+    .score-value { font-size: 1.5rem; font-weight: bold; }
     .score-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
 
     .rules-box {
-      background: #fff; padding: 18px; border-radius: 15px; width: 550px;
-      font-size: 1.1rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
-      box-sizing: border-box;
+      background: #fff; padding: 15px; border-radius: 15px;
+      font-size: 0.95rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
     }
-
-/* .rules-box {
-      background: #fff; padding: 20px; border-radius: 15px;
-      font-size: 1.1rem; text-align: left; border: 1px solid #ddd;
-      line-height: 1.6; width: 100%; box-sizing: border-box;
-    } */
 
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -103,10 +103,10 @@
       justify-content: center; align-items: center;
     }
     .modal-content {
-      background: white; padding: 35px; border-radius: 25px; text-align: center;
-      max-width: 420px; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+      background: white; padding: 25px; border-radius: 25px; text-align: center;
+      width: 85%; max-width: 350px; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
     }
-    .modal-btn { padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem; margin-top: 20px; }
+    .modal-btn { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 15px; }
   </style>
 </head>
 <body oncontextmenu="return false">
@@ -114,10 +114,10 @@
   <h1>참고누</h1>
 
   <div id="selection-area">
-    <div style="font-weight: bold; font-size: 1.2rem;">먼저 시작할 팀을 선택하세요.</div>
+    <div style="font-weight: bold;">먼저 시작할 팀을 선택하세요.</div>
     <div class="btn-group">
-      <button class="choice-btn btn-red" onclick="initGame('red')">빨간팀 선공</button>
-      <button class="choice-btn btn-blue" onclick="initGame('blue')">파란팀 선공</button>
+      <button class="choice-btn btn-red" onclick="initGame('red')">빨강 선공</button>
+      <button class="choice-btn btn-blue" onclick="initGame('blue')">파랑 선공</button>
     </div>
   </div>
 
@@ -130,12 +130,12 @@
 
   <div id="score-board">
     <div class="score-item">
-      <div style="font-size: 0.9rem; color: #666;">🔴 빨간팀 승리</div>
+      <div style="font-size: 0.8rem; color: #666;">🔴 빨강 승리</div>
       <div id="red-wins" class="score-value" style="color:#ff4d4d">0</div>
     </div>
-    <div style="border-left: 1px solid #ddd; height: 40px;"></div>
+    <div style="border-left: 1px solid #ddd; height: 35px;"></div>
     <div class="score-item">
-      <div style="font-size: 0.9rem; color: #666;">🔵 파란팀 승리</div>
+      <div style="font-size: 0.8rem; color: #666;">🔵 파랑 승리</div>
       <div id="blue-wins" class="score-value" style="color:#4d94ff">0</div>
     </div>
   </div>
@@ -147,23 +147,23 @@
     • <b>승리</b>: 상대방의 말을 <b>2개</b>만 남게 만들면 최종 승리합니다!
   </div>
 
-  <div style="margin: 20px 0;">
-    <button onclick="location.reload()" style="padding:10px 20px; cursor:pointer; border-radius:8px; border:1px solid #ccc; background:#fff; font-weight:bold;">게임 초기화</button>
-    <button onclick="resetScore()" style="padding:10px 20px; cursor:pointer; border-radius:8px; border:1px solid #ff4d4d; color:#ff4d4d; background:#fff; font-weight:bold; margin-left:10px;">전적 초기화</button>
+  <div style="margin: 20px 0; display: flex; gap: 10px;">
+    <button onclick="location.reload()" style="flex:1; padding:10px; cursor:pointer; border-radius:8px; border:1px solid #ccc; background:#fff; font-weight:bold;">게임 초기화</button>
+    <button onclick="resetScore()" style="flex:1; padding:10px; cursor:pointer; border-radius:8px; border:1px solid #ff4d4d; color:#ff4d4d; background:#fff; font-weight:bold;">전적 초기화</button>
   </div>
 
   <div id="gon-modal" class="modal">
-    <div class="modal-content" style="border-top: 10px solid #ffd700;">
-      <h2 style="font-size: 2.5rem; color: #d4af37; margin: 0;">" 곤! "</h2>
-      <p id="gon-msg" style="font-size: 1.15rem; margin: 20px 0; line-height: 1.5;"></p>
+    <div class="modal-content" style="border-top: 8px solid #ffd700;">
+      <h2 style="font-size: 2rem; color: #d4af37; margin: 0;">" 곤! "</h2>
+      <p id="gon-msg" style="font-size: 1rem; margin: 15px 0; line-height: 1.5;"></p>
       <button class="modal-btn" style="background:#333; color:white;" onclick="closeModal('gon-modal')">상대 말 따내기</button>
     </div>
   </div>
 
   <div id="phase-modal" class="modal">
-    <div class="modal-content" style="border-top: 10px solid #2ecc71;">
-      <h2 style="font-size: 2rem; color: #2ecc71; margin: 0;">🏃 이동 단계 시작</h2>
-      <p style="font-size: 1.1rem; margin: 20px 0;">모든 말을 놓았습니다.<br>이제 말을 움직여 승부를 내세요!</p>
+    <div class="modal-content" style="border-top: 8px solid #2ecc71;">
+      <h2 style="font-size: 1.8rem; color: #2ecc71; margin: 0;">🏃 이동 단계 시작</h2>
+      <p style="font-size: 1rem; margin: 15px 0;">모든 말을 놓았습니다.<br>이제 말을 움직여 승부를 내세요!</p>
       <button class="modal-btn" style="background:#2ecc71; color:white;" onclick="closeModal('phase-modal')">확인</button>
     </div>
   </div>
@@ -203,6 +203,14 @@
     blue: parseInt(localStorage.getItem('cham_blue_wins')) || 0
   };
 
+  function calculateLayout() {
+    const w = boardWrapper.clientWidth;
+    canvas.width = w;
+    canvas.height = w;
+    drawGrid();
+    renderNodes();
+  }
+
   function updateScoreUI() {
     document.getElementById('red-wins').textContent = scores.red;
     document.getElementById('blue-wins').textContent = scores.blue;
@@ -218,9 +226,10 @@
   }
 
   function drawGrid() {
-    const w = canvas.width = 520, h = canvas.height = 520;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#5d4037';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = w / 100; // 화면 크기에 비례한 선 두께
     const getPos = (n) => ({x: nodeDef[n].x * w / 100, y: nodeDef[n].y * h / 100});
 
     for(let i=0; i<3; i++) {
@@ -267,7 +276,6 @@
     });
   }
 
-  // 1. 제거 단계 1클릭 처리 강화
   function handleInteraction(idx) {
     if(!state.gameActive) return;
 
@@ -278,7 +286,7 @@
         state.isRemoving = false;
         endTurn();
         updateTurnUI();
-        renderNodes(); // 즉시 갱신
+        renderNodes();
       }
       return; 
     }
@@ -309,7 +317,7 @@
     document.getElementById('gon-msg').innerHTML = `<b>${name}</b>이 '곤'을 만들었습니다!<br>상대방의 말을 선택해 하나 따내세요.`;
     document.getElementById('gon-modal').style.display = 'flex';
     state.isRemoving = true;
-    state.selectedIdx = null; // 선택 해제
+    state.selectedIdx = null;
     updateTurnUI();
   }
 
@@ -362,7 +370,8 @@
     return lines.some(line => line.includes(lastIdx) && line.every(i => state.board[i] === me));
   }
 
-  drawGrid();
+  window.addEventListener('resize', calculateLayout);
+  calculateLayout();
   updateScoreUI();
 </script>
 </body>

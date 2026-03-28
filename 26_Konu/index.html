@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>고누 놀이</title>
   <style>
     /* 기본 여백 제거 및 전체 높이 설정 */
@@ -10,7 +10,7 @@
       margin: 0; 
       padding: 0; 
       height: 100%; 
-      overflow: hidden; /* 바디 스크롤 방지 */
+      overflow: hidden; 
     }
 
     body { 
@@ -21,20 +21,41 @@
       font-family: 'Malgun Gothic', sans-serif; 
     }
 
-    /* 상단 메뉴 영역: 높이를 고정하고 중앙 정렬 */
+    /* 상단 메뉴 영역: 가로 스크롤 지원 */
     #game-menu { 
       display: flex; 
       gap: 10px; 
-      padding: 15px 0; 
+      padding: 15px 10px; 
       width: 100%;
-      justify-content: center;
+      justify-content: flex-start; /* 모바일 대응을 위해 시작점 정렬 */
       background-color: #f4f1ea;
       border-bottom: 1px solid #ddd;
-      flex-shrink: 0; /* 메뉴가 찌그러지지 않게 고정 */
+      flex-shrink: 0;
+      overflow-x: auto; /* 가로 스크롤 허용 */
+      white-space: nowrap; /* 버튼 줄바꿈 방지 */
+      -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+      box-sizing: border-box;
+    }
+
+    /* PC/태블릿 큰 화면에서는 중앙 정렬 유지 */
+    @media (min-width: 600px) {
+      #game-menu {
+        justify-content: center;
+      }
+    }
+
+    /* 스크롤바 숨기기 (선택 사항) */
+    #game-menu::-webkit-scrollbar {
+      display: none;
+    }
+    #game-menu {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     .menu-btn { 
-      padding: 10px 25px; 
+      display: inline-block;
+      padding: 10px 20px; 
       text-decoration: none; 
       color: #5d4037; 
       background: #e0dcd0; 
@@ -43,6 +64,9 @@
       border: 1px solid #ccc; 
       cursor: pointer;
       transition: all 0.2s;
+      font-size: 0.95rem;
+      min-width: 80px; /* 모바일 터치 영역 확보 */
+      text-align: center;
     }
 
     .menu-btn:hover { background: #d0ccc0; }
@@ -56,8 +80,8 @@
     /* iframe 영역: 남은 공간을 100% 채움 */
     #content-frame {
       width: 100%;
-      flex-grow: 1; /* 부모 컨테이너의 남은 높이를 모두 차지 */
-      border: none; /* 테두리 제거로 더 넓게 보이게 함 */
+      flex-grow: 1; 
+      border: none; 
       background: white;
     }
   </style>
@@ -78,6 +102,9 @@
       const buttons = document.querySelectorAll('.menu-btn');
       buttons.forEach(btn => btn.classList.remove('active'));
       element.classList.add('active');
+      
+      // 클릭 시 해당 버튼이 스크롤 중앙으로 오게 함 (모바일 편의성)
+      element.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   </script>
 
