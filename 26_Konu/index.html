@@ -21,36 +21,18 @@
       font-family: 'Malgun Gothic', sans-serif; 
     }
 
-    /* 상단 메뉴 영역: 가로 스크롤 지원 */
+    /* 상단 메뉴 영역: 화면이 좁으면 다음 줄로 넘어가도록 설정 */
     #game-menu { 
       display: flex; 
-      gap: 10px; 
-      padding: 15px 10px; 
+      flex-wrap: wrap; /* 너비가 부족하면 다음 줄로 넘김 */
+      gap: 10px;      /* 버튼 사이의 가로/세로 간격 */
+      padding: 15px; 
       width: 100%;
-      justify-content: flex-start; /* 모바일 대응을 위해 시작점 정렬 */
+      justify-content: center; /* 버튼들을 항상 중앙에 배치 */
       background-color: #f4f1ea;
       border-bottom: 1px solid #ddd;
       flex-shrink: 0;
-      overflow-x: auto; /* 가로 스크롤 허용 */
-      white-space: nowrap; /* 버튼 줄바꿈 방지 */
-      -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
       box-sizing: border-box;
-    }
-
-    /* PC/태블릿 큰 화면에서는 중앙 정렬 유지 */
-    @media (min-width: 600px) {
-      #game-menu {
-        justify-content: center;
-      }
-    }
-
-    /* 스크롤바 숨기기 (선택 사항) */
-    #game-menu::-webkit-scrollbar {
-      display: none;
-    }
-    #game-menu {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
     }
 
     .menu-btn { 
@@ -65,8 +47,19 @@
       cursor: pointer;
       transition: all 0.2s;
       font-size: 0.95rem;
-      min-width: 80px; /* 모바일 터치 영역 확보 */
       text-align: center;
+      /* 모바일에서 너무 작아지지 않도록 최소 너비 설정 */
+      min-width: calc(50% - 20px); 
+      max-width: 150px;
+      box-sizing: border-box;
+    }
+
+    /* PC/태블릿 등 화면이 조금 더 넓어지면 버튼 크기 최적화 */
+    @media (min-width: 480px) {
+      .menu-btn {
+        min-width: auto;
+        flex: 0 1 auto;
+      }
     }
 
     .menu-btn:hover { background: #d0ccc0; }
@@ -102,9 +95,6 @@
       const buttons = document.querySelectorAll('.menu-btn');
       buttons.forEach(btn => btn.classList.remove('active'));
       element.classList.add('active');
-      
-      // 클릭 시 해당 버튼이 스크롤 중앙으로 오게 함 (모바일 편의성)
-      element.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   </script>
 
