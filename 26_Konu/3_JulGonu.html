@@ -20,13 +20,14 @@
 
     /* 설정 및 정보 영역 */
     #selection-area {
-      background: white; padding: 20px 40px; border-radius: 15px;
+      background: white; padding: 20px 40px; border-radius: 20px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
       text-align: center; border: 2px solid #e0dcd0;
-      width: 95%; max-width: 500px; box-sizing: border-box;
+      width: 100%; max-width: 576px; box-sizing: border-box;
     }
     
     .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 15px; }
+    
     
     /* 버튼 사이즈 조정: flex: 1을 제거하고 padding으로 크기 조절 */
     .choice-btn {
@@ -39,7 +40,7 @@
     .choice-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
 
     #score-board, .rules-box, .button-container {
-      width: 95%; max-width: 500px; box-sizing: border-box;
+      width: 100%; max-width: 576px; box-sizing: border-box;
     }
 
     #score-board {
@@ -92,7 +93,7 @@
 
     .rules-box {
       background: #fff; padding: 20px; border-radius: 15px;
-      font-size: 1.1rem; text-align: left; border: 1px solid #ddd;
+      font-size: 1rem; text-align: left; border: 1px solid #ddd;
       line-height: 1.6; width: 100%; box-sizing: border-box;
     }
 
@@ -360,7 +361,7 @@
   function isInside(r, c) { return r >= 0 && r < size && c >= 0 && c < size; }
 
   function updateTurnUI() {
-    turnBadge.textContent = (currentTurn === 'red' ? "🔴 빨강" : "🔵 파랑") + " 차례";
+    turnBadge.textContent = (currentTurn === 'red' ? "빨강팀" : "파랑팀") + " 차례";
     turnBadge.className = `status-badge ${currentTurn}-turn`;
     const color = (currentTurn === 'red') ? '#ff4d4d' : '#4d94ff';
     boardWrapper.style.borderColor = color;

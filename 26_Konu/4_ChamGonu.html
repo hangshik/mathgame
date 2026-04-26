@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>참고누 - 반응형</title>
+  <title>참고누 - 전략판</title>
   <style>
     body {
       display: flex; flex-direction: column; align-items: center;
@@ -18,9 +18,8 @@
       text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
     }
 
-    /* 설정 및 정보 영역 */
     #selection-area, #score-board, .rules-box, .status-badge {
-      width: 100%; max-width: 550px; box-sizing: border-box;
+      width: 100%; max-width: 576px; box-sizing: border-box;
     }
 
     #selection-area {
@@ -28,7 +27,9 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
       text-align: center; border: 2px solid #e0dcd0;
     }
+    .selection-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #333; }
     .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+    
     .choice-btn {
       flex: 1; padding: 12px 10px; font-size: 1rem; font-weight: bold;
       color: white; border: none; border-radius: 10px; cursor: pointer; transition: transform 0.2s;
@@ -36,13 +37,12 @@
     .btn-red { background-color: #ff4d4d; border-bottom: 4px solid #b30000; }
     .btn-blue { background-color: #4d94ff; border-bottom: 4px solid #0047b3; }
 
-    /* 게임 보드 영역 */
     #board-wrapper {
       position: relative; background: #fff;
       border: 6px solid #ccc; border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 92vw; height: 92vw; /* 모바일 비율 */
-      max-width: 520px; max-height: 520px; /* PC 최대 크기 */
+      width: 92vw; height: 92vw;
+      max-width: 576px; max-height: 520px;
       margin: 10px 0;
     }
     #grid-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
@@ -94,7 +94,7 @@
 
     .rules-box {
       background: #fff; padding: 15px; border-radius: 15px;
-      font-size: 0.95rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
+      font-size: 1rem; text-align: left; border: 1px solid #ddd; line-height: 1.6; margin-top: 15px;
     }
 
     .modal {
@@ -114,7 +114,7 @@
   <h1>참고누</h1>
 
   <div id="selection-area">
-    <div style="font-weight: bold;">먼저 시작할 팀을 선택하세요.</div>
+    <div class="selection-title">먼저 시작할 팀을 선택하세요.</div>
     <div class="btn-group">
       <button class="choice-btn btn-red" onclick="initGame('red')">빨강팀 선공</button>
       <button class="choice-btn btn-blue" onclick="initGame('blue')">파랑팀 선공</button>
@@ -142,9 +142,10 @@
 
   <div class="rules-box">
     <strong>⚠️ 게임 규칙</strong><br>
-    • <b>놓기</b>: 빈 자리(하얀 원)에 말을 둡니다. 3개가 나란히 되면(곤) 상대 말을 따고 <b>X</b>를 표시합니다.<br>
-    • <b>이동</b>: 모든 말을 다 놓으면 시작됩니다. 선을 따라 한 칸씩 이동하며 곤을 만듭니다.<br>
-    • <b>승리</b>: 상대방의 말을 <b>2개</b>만 남게 만들면 최종 승리합니다!
+    • <b>놓기</b>: 빈 자리에 말을 둡니다. 3개가 나란히 되면(곤) 상대 말을 따고 <b>X</b>를 표시합니다.<br>
+    • <b>교착 해결</b>: 판이 가득 차면 <b>빨강, 파랑팀이 각 1개씩</b> 상대 말을 골라 지웁니다.<br>
+    • <b>이동</b>: 모든 말을 다 놓으면 시작됩니다. 선을 따라 한 칸씩 이동하며 곤을 만듭니다. 이동 불가 시 팝업 안내 후 턴이 넘어갑니다.<br>
+    • <b>승리</b>: 상대방의 말을 2개만 남게 만들면 최종 승리합니다!
   </div>
 
   <div style="margin: 20px 0; display: flex; gap: 10px;">
@@ -152,11 +153,11 @@
     <button onclick="resetScore()" style="flex:1; padding:10px; cursor:pointer; border-radius:8px; border:1px solid #ff4d4d; color:#ff4d4d; background:#fff; font-weight:bold;">전적 초기화</button>
   </div>
 
-  <div id="gon-modal" class="modal">
-    <div class="modal-content" style="border-top: 8px solid #ffd700;">
-      <h2 style="font-size: 2rem; color: #d4af37; margin: 0;">" 곤! "</h2>
-      <p id="gon-msg" style="font-size: 1rem; margin: 15px 0; line-height: 1.5;"></p>
-      <button class="modal-btn" style="background:#333; color:white;" onclick="closeModal('gon-modal')">상대 말 따내기</button>
+  <div id="info-modal" class="modal">
+    <div class="modal-content" id="modal-border">
+      <h2 id="modal-title" style="font-size: 2rem; margin: 0;">알림</h2>
+      <p id="modal-msg" style="font-size: 1rem; margin: 15px 0; line-height: 1.5;"></p>
+      <button class="modal-btn" style="background:#333; color:white;" onclick="closeModal('info-modal')">확인</button>
     </div>
   </div>
 
@@ -195,7 +196,8 @@
   let state = {
     phase: 'placing', board: Array(24).fill(null),
     currentTurn: 'red', selectedIdx: null,
-    isRemoving: false, gameActive: false
+    isRemoving: false, gameActive: false,
+    fullBoardRemovalStep: 0 // 0: 일반, 1: 첫번째 지우기 완료 대기, 2: 두번째 지우기 완료 대기
   };
 
   let scores = {
@@ -205,10 +207,8 @@
 
   function calculateLayout() {
     const w = boardWrapper.clientWidth;
-    canvas.width = w;
-    canvas.height = w;
-    drawGrid();
-    renderNodes();
+    canvas.width = w; canvas.height = w;
+    drawGrid(); renderNodes();
   }
 
   function updateScoreUI() {
@@ -229,7 +229,7 @@
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = '#5d4037';
-    ctx.lineWidth = w / 100; // 화면 크기에 비례한 선 두께
+    ctx.lineWidth = w / 100;
     const getPos = (n) => ({x: nodeDef[n].x * w / 100, y: nodeDef[n].y * h / 100});
 
     for(let i=0; i<3; i++) {
@@ -238,7 +238,6 @@
       for(let j=1; j<8; j++) { ctx.lineTo(getPos(i*8+j).x, getPos(i*8+j).y); }
       ctx.closePath(); ctx.stroke();
     }
-    // 대각선 실선 연결
     [[1,17], [3,19], [5,21], [7,23], [0,16], [2,18], [4,20], [6,22]].forEach(p => {
       ctx.beginPath(); ctx.moveTo(getPos(p[0]).x, getPos(p[0]).y); ctx.lineTo(getPos(p[1]).x, getPos(p[1]).y); ctx.stroke();
     });
@@ -249,8 +248,7 @@
     state.gameActive = true;
     document.getElementById('selection-area').style.display = 'none';
     turnBadge.style.display = 'block';
-    updateTurnUI();
-    renderNodes();
+    updateTurnUI(); renderNodes();
   }
 
   function renderNodes() {
@@ -270,7 +268,6 @@
         if (state.phase === 'placing' && !state.isRemoving) el.classList.add('empty');
         if (state.phase === 'moving' && state.selectedIdx !== null && adj[state.selectedIdx].includes(i)) el.classList.add('hint');
       }
-
       el.onclick = () => handleInteraction(i);
       pieceLayer.appendChild(el);
     });
@@ -284,9 +281,24 @@
       if(state.board[idx] === enemy) {
         state.board[idx] = (state.phase === 'placing') ? 'blocked' : null;
         state.isRemoving = false;
-        endTurn();
-        updateTurnUI();
-        renderNodes();
+        
+        if(state.fullBoardRemovalStep === 1) {
+            // 첫 번째 사람 지우기 완료
+            state.fullBoardRemovalStep = 2; 
+            endTurn(); // 턴을 넘김
+            // 넘긴 후 다음 사람에게 안내 팝업
+            const nextName = state.currentTurn === 'red' ? '빨간팀' : '파란팀';
+            showAlert("교착 해결", `이어서 <b>${nextName}</b> 차례입니다.<br>상대방의 말을 하나 골라 제거하세요!`, "#3498db");
+            state.isRemoving = true;
+        } else if(state.fullBoardRemovalStep === 2) {
+            // 두 번째 사람 지우기 완료
+            state.fullBoardRemovalStep = 0;
+            endTurn();
+        } else {
+            // 일반 곤 상황
+            endTurn();
+        }
+        updateTurnUI(); renderNodes();
       }
       return; 
     }
@@ -294,8 +306,18 @@
     if(state.phase === 'placing') {
       if(!state.board[idx]) {
         state.board[idx] = state.currentTurn;
-        if(checkGon(idx)) triggerGonPopup();
-        else endTurn();
+        if(checkGon(idx)) {
+          showAlert("곤!", `<b>${state.currentTurn === 'red' ? '빨간팀' : '파란팀'}</b>이 '곤'을 만들었습니다!<br>상대방의 말을 선택해 하나 따내세요.`, "#ffd700");
+          state.isRemoving = true;
+        } else {
+          if (state.board.every(v => v !== null)) {
+            state.fullBoardRemovalStep = 1;
+            showAlert("판이 가득 찼습니다!", `말판이 가득 찼습니다. <b>${state.currentTurn === 'red' ? '빨간팀' : '파란팀'}</b>부터 하나를 제거하세요.`, "#e67e22");
+            state.isRemoving = true;
+          } else {
+            endTurn();
+          }
+        }
       }
     } else {
       if(state.board[idx] === state.currentTurn) {
@@ -304,21 +326,21 @@
         state.board[idx] = state.currentTurn;
         state.board[state.selectedIdx] = null;
         state.selectedIdx = null;
-        if(checkGon(idx)) triggerGonPopup();
-        else endTurn();
+        if(checkGon(idx)) {
+            showAlert("곤!", `<b>${state.currentTurn === 'red' ? '빨간팀' : '파란팀'}</b>이 '곤'을 만들었습니다!<br>상대방의 말을 선택해 하나 따내세요.`, "#ffd700");
+            state.isRemoving = true;
+        } else endTurn();
       }
     }
-    updateTurnUI();
-    renderNodes();
+    updateTurnUI(); renderNodes();
   }
 
-  function triggerGonPopup() {
-    const name = state.currentTurn === 'red' ? '빨간팀' : '파란팀';
-    document.getElementById('gon-msg').innerHTML = `<b>${name}</b>이 '곤'을 만들었습니다!<br>상대방의 말을 선택해 하나 따내세요.`;
-    document.getElementById('gon-modal').style.display = 'flex';
-    state.isRemoving = true;
-    state.selectedIdx = null;
-    updateTurnUI();
+  function showAlert(title, msg, color) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-title').style.color = color;
+    document.getElementById('modal-border').style.borderTop = `8px solid ${color}`;
+    document.getElementById('modal-msg').innerHTML = msg;
+    document.getElementById('info-modal').style.display = 'flex';
   }
 
   function closeModal(id) { 
@@ -327,13 +349,37 @@
   }
 
   function endTurn() {
-    if(state.phase === 'placing' && state.board.filter(v => v === null).length === 0) {
+    const emptyCount = state.board.filter(v => v === null).length;
+    // 모든 단계가 끝나고 빈칸이 생겼을 때 이동단계 전환
+    if(state.phase === 'placing' && emptyCount === 0 && state.fullBoardRemovalStep === 0) {
       state.phase = 'moving';
       state.board = state.board.map(v => v === 'blocked' ? null : v);
       document.getElementById('phase-modal').style.display = 'flex';
     }
+
     state.currentTurn = state.currentTurn === 'red' ? 'blue' : 'red';
+    
+    // 이동 불가 체크
+    if (state.phase === 'moving' && !checkMovable(state.currentTurn)) {
+        showAlert("이동 불가", `<b>${state.currentTurn === 'red' ? '빨간팀' : '파란팀'}</b>이 움직일 수 있는 곳이 없습니다. 턴이 자동으로 넘어갑니다.`, "#95a5a6");
+        state.currentTurn = state.currentTurn === 'red' ? 'blue' : 'red';
+        
+        if (!checkMovable(state.currentTurn)) {
+            showAlert("게임 종료", "양측 모두 이동 불가 상황입니다. 무승부 처리됩니다.", "#333");
+            setTimeout(() => location.reload(), 2000);
+        }
+    }
+
     checkVictory();
+    updateTurnUI();
+  }
+
+  function checkMovable(player) {
+    if (state.phase !== 'moving') return true;
+    return state.board.some((val, idx) => {
+        if (val !== player) return false;
+        return adj[idx].some(neighborIdx => state.board[neighborIdx] === null);
+    });
   }
 
   function updateTurnUI() {
@@ -360,8 +406,8 @@
       scores[win]++;
       localStorage.setItem('cham_red_wins', scores.red);
       localStorage.setItem('cham_blue_wins', scores.blue);
-      alert(`${win === 'red'?'빨간팀':'파란팀'} 승리!`);
-      location.reload();
+      showAlert("최종 승리", `${win === 'red'?'빨간팀':'파란팀'}이 승리했습니다!`, "#2ecc71");
+      setTimeout(() => location.reload(), 2500);
     }
   }
 
