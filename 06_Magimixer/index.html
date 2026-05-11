@@ -264,20 +264,31 @@
     </a>
 
     <script>
-        const easyBtn = document.getElementById('level-easy');
+const easyBtn = document.getElementById('level-easy');
         const mediumBtn = document.getElementById('level-medium');
         const hardBtn = document.getElementById('level-hard');
         
         let currentLevel = null; 
-
         let score = {
             easy: { solved: 0, failed: 0, new: 0 },
             medium: { solved: 0, failed: 0, new: 0 },
             hard: { solved: 0, failed: 0, new: 0 }
         };
 
-        let lastHighlightedCells = [];
+        // 현재 게임의 상태를 유지하기 위한 변수들
+        let levelStates = {
+            easy: { numbers: [], targetSum: 0 },
+            medium: { numbers: [], targetSum: 0 },
+            hard: { numbers: [], targetSum: 0 }
+        };
+        let currentNumbers = []; 
+        let currentTargetSum = 0;
+        let solvedExpressions = [];
+        let isSolved = false;
+        let usedGreenNumbers = [];
+        let currentInput = '';
 
+        let lastHighlightedCells = [];
         let currentKeydownHandler = null;
         let currentKeyupHandler = null;
 
@@ -301,29 +312,20 @@
         }
 
         function highlightScoreCell(cellId) {
-            if (Array.isArray(lastHighlightedCells)) {
-                lastHighlightedCells.forEach(c => {
-                    if (c && typeof c === 'object') {
-                        c.style.color = '#333';
-                    }
-                });
-            } else if (lastHighlightedCells) {
-                lastHighlightedCells.style.color = '#333';
+            if (lastHighlightedCells.length > 0) {
+                lastHighlightedCells.forEach(c => c.style.color = '#333');
             }
-            const cell = typeof cellId === "string" ? document.getElementById(cellId) : cellId;
+            const cell = document.getElementById(cellId);
             if (cell) {
                 cell.style.color = 'red';
                 lastHighlightedCells = [cell];
-            } else {
-                lastHighlightedCells = [];
             }
         }
 
         function updateScoreTable(level, category) {
             const id = `score-${level}-${category}`;
             const cell = document.getElementById(id);
-            const newValue = score[level][category];
-            cell.textContent = newValue;
+            cell.textContent = score[level][category];
             highlightScoreCell(id);
         }
         
@@ -341,49 +343,51 @@
             let result = [];
             for (let i = 0; i < tokens.length; i++) {
                 result.push(tokens[i]);
-                if (
-                    i < tokens.length - 1 &&
-                    (
-                        (!isNaN(tokens[i]) && tokens[i] !== '') || tokens[i] === ')'
-                    ) &&
-                    tokens[i + 1] === '('
-                ) {
+                if (i < tokens.length - 1 && ((!isNaN(tokens[i]) && tokens[i] !== '') || tokens[i] === ')') && tokens[i + 1] === '(') {
                     result.push('*');
                 }
-                if (
-                    i < tokens.length - 1 &&
-                    tokens[i] === ')' &&
-                    !isNaN(tokens[i + 1]) && tokens[i + 1] !== ''
-                ) {
+                if (i < tokens.length - 1 && tokens[i] === ')' && !isNaN(tokens[i + 1]) && tokens[i + 1] !== '') {
                     result.push('*');
                 }
             }
             return result.join(' ');
         }
 
-        // --- 게임 시작 함수 ---
-        function startGame(level) {
+        // --- UI 업데이트 함수 (레벨 변경 시 호출) ---
+        function updateUIByLevel(level) {
+            currentLevel = level;
+            updateActiveButton(level);
             
-            // 🚨🚨 이전 리스너 명시적 제거 🚨🚨
-            if (currentKeydownHandler) {
-                document.removeEventListener('keydown', currentKeydownHandler);
-            }
-            if (currentKeyupHandler) {
-                document.removeEventListener('keyup', currentKeyupHandler);
-            }
+            const gameTitle = document.getElementById('game-title');
+            const instructionText = document.getElementById('instruction-text');
             
+            if (level === 'easy') {
+                gameTitle.textContent = '매지믹서(초급)';
+                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개 숫자 중 일부만 이용해도 됩니다.)';
+            } else if (level === 'medium') {
+                gameTitle.textContent = '매지믹서(중급)';
+                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
+            } else {
+                gameTitle.textContent = '매지믹서(고급)';
+                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
+            }
+            document.title = gameTitle.textContent;
+        }
+
+        // --- 새로운 문제 생성 및 게임판 그리기 ---
+        function startGame(level, isNewProblem = true) {
+            if (currentKeydownHandler) document.removeEventListener('keydown', currentKeydownHandler);
+            if (currentKeyupHandler) document.removeEventListener('keyup', currentKeyupHandler);
+
+            updateUIByLevel(level);
+
             const buttonContainer = document.getElementById('button-container');
             const operatorContainer = document.getElementById('operator-container');
             const inputDisplay = document.getElementById('input-display');
             const resultDisplay = document.getElementById('result-display');
-            const gameTitle = document.getElementById('game-title');
-            const instructionText = document.getElementById('instruction-text');
             const display = document.getElementById('display');
 
-            currentLevel = level;
-            updateActiveButton(level);
-
-            // 화면 리셋
+            // 초기화
             buttonContainer.innerHTML = '';
             operatorContainer.innerHTML = '';
             inputDisplay.textContent = '입력: ';
@@ -391,74 +395,39 @@
             resultDisplay.classList.remove('error-message', 'correct-message');
             const oldAnswers = display.querySelectorAll('.answer');
             oldAnswers.forEach(div => div.remove());
+            
+            currentInput = '';
+            usedGreenNumbers = [];
+            isSolved = false;
+            solvedExpressions = [];
+            let isProcessing = false;
 
-            let firstButtonOptions, otherButtonMax, title, instructions, useAllNumbers;
-            let isSolved = false;
-            let solvedExpressions = [];
-            let isProcessing = false; // 중복 실행 방지 플래그
-
-            if (level === 'easy') {
-                firstButtonOptions = [10, 20, 30, 40, 50, 60];
-                otherButtonMax = 6;
-                title = '매지믹서(초급)';
-                instructions = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개 숫자 중 일부만 이용해도 됩니다.)';
-                useAllNumbers = false;
-            } else if (level === 'medium') {
-                firstButtonOptions = [10, 20, 30, 40, 50, 60];
-                otherButtonMax = 6;
-                title = '매지믹서(중급)';
-                instructions = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
-                useAllNumbers = true;
-            } else { // hard
-                firstButtonOptions = [10, 20, 30, 40, 50, 60, 70, 80, 90];
-                otherButtonMax = 9;
-                title = '매지믹서(고급)';
-                instructions = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
-                useAllNumbers = true;
+            // 새로운 문제일 경우에만 숫자 재생성 및 저장
+            if (isNewProblem) {
+                let firstOptions = (level === 'hard') ? [10, 20, 30, 40, 50, 60, 70, 80, 90] : [10, 20, 30, 40, 50, 60];
+                let otherMax = (level === 'hard') ? 9 : 6;
+                
+                const p1 = firstOptions[Math.floor(Math.random() * firstOptions.length)];
+                const p2 = Math.floor(Math.random() * otherMax) + 1;
+                const secondaries = Array.from({ length: 5 }, () => Math.floor(Math.random() * otherMax) + 1);
+                
+                // 해당 레벨의 전용 저장소에 저장
+                levelStates[level].numbers = [p1, p2, ...secondaries];
+                levelStates[level].targetSum = p1 + p2;
             }
 
-            gameTitle.textContent = title;
-            document.title = title;
-            instructionText.innerHTML = instructions;
-
-            document.addEventListener('contextmenu', e => e.preventDefault());
-
-            const primary1 = firstButtonOptions[Math.floor(Math.random() * firstButtonOptions.length)];
-            const primary2 = Math.floor(Math.random() * otherButtonMax) + 1;
-            const secondaryButtons = Array.from({ length: 5 }, () => Math.floor(Math.random() * otherButtonMax) + 1);
+            // 화면에 그릴 숫자를 현재 레벨 저장소에서 불러오기
+            currentNumbers = levelStates[level].numbers;
+            currentTargetSum = levelStates[level].targetSum;
 
             const buttons = [];
-            const numberButtonsArray = [primary1, primary2, ...secondaryButtons];
-
-            let currentInput = '';
-            let usedGreenNumbers = [];
-
-            const enterNumberMode = () => {
-                buttons.forEach(btn => {
-                    if (btn.classList.contains('temp-disabled')) {
-                        btn.disabled = false;
-                        btn.classList.remove('temp-disabled');
-                    }
-                });
-            };
-
-            const enterOperatorMode = () => {
-                buttons.forEach((btn, idx) => {
-                    if (idx >= 2 && !btn.classList.contains('disabled')) {
-                        btn.disabled = true;
-                        btn.classList.add('temp-disabled');
-                    }
-                });
-            };
-
-            numberButtonsArray.forEach((num, index) => {
+            currentNumbers.forEach((num, index) => {
                 const button = document.createElement('button');
                 button.textContent = num;
-
-                if (index < 2) { 
+                if (index < 2) {
                     button.classList.add('primary');
                     button.disabled = true;
-                } else { 
+                } else {
                     button.classList.add('secondary');
                     button.addEventListener('click', () => {
                         if (isSolved) {
@@ -481,6 +450,24 @@
                 buttons.push(button);
             });
 
+            const enterNumberMode = () => {
+                buttons.forEach(btn => {
+                    if (btn.classList.contains('temp-disabled')) {
+                        btn.disabled = false;
+                        btn.classList.remove('temp-disabled');
+                    }
+                });
+            };
+
+            const enterOperatorMode = () => {
+                buttons.forEach((btn, idx) => {
+                    if (idx >= 2 && !btn.classList.contains('disabled')) {
+                        btn.disabled = true;
+                        btn.classList.add('temp-disabled');
+                    }
+                });
+            };
+
             const operators = ['+', '-', '*', '/', '(', ')', '^'];
             const operatorRow1 = document.createElement('div');
             operatorRow1.className = 'operator-row';
@@ -498,7 +485,6 @@
                 operatorRow1.appendChild(button);
             });
 
-            // C 버튼
             const resetButton = document.createElement('button');
             resetButton.textContent = 'C';
             resetButton.addEventListener('click', () => {
@@ -518,25 +504,21 @@
             });
             operatorRow2.appendChild(resetButton);
 
-            // ← 버튼
             const backspaceButton = document.createElement('button');
             backspaceButton.textContent = '←';
             backspaceButton.addEventListener('click', () => {
                 const tokens = currentInput.trim().split(' ');
                 if (tokens.length === 0 || (tokens.length === 1 && tokens[0] === '')) return;
-
                 const lastToken = tokens.pop();
                 currentInput = tokens.join(' ') + (tokens.length > 0 ? ' ' : '');
-                
                 if (!isNaN(lastToken)) {
                     const lastNumber = Number(lastToken);
                     let foundButton = false;
                     for (let i = buttons.length - 1; i >= 2; i--) {
-                        const btn = buttons[i];
-                        if (Number(btn.textContent) === lastNumber && btn.classList.contains('disabled') && !foundButton) {
-                            btn.disabled = false;
-                            btn.classList.remove('disabled');
-                            btn.classList.add('secondary');
+                        if (Number(buttons[i].textContent) === lastNumber && buttons[i].classList.contains('disabled') && !foundButton) {
+                            buttons[i].disabled = false;
+                            buttons[i].classList.remove('disabled');
+                            buttons[i].classList.add('secondary');
                             foundButton = true;
                             break;
                         }
@@ -553,268 +535,149 @@
             });
             operatorRow2.appendChild(backspaceButton);
 
-            // --- 게임 결과 처리 및 실패 카운트 통합 함수 ---
-            const handleGameResult = (isSuccess, message, expression = null, resultValue = null) => {
-                
-                if (message.includes('계산 불가') || message.includes('입력 없음') || message.includes('동일한 결과') || message.includes('모든 초록색')) {
-                    resultDisplay.classList.remove('correct-message');
-                    resultDisplay.classList.add('error-message');
-                    resultDisplay.textContent = `결과: ${message}`;
-                    if(message.includes('동일한 결과')) isSolved = true;
-                    return;
-                }
-
-                if (isSuccess) {
-                    score[currentLevel].solved++;
-                    updateScoreTable(currentLevel, 'solved');
-
-                    if (expression) solvedExpressions.push(expression);
-
-                    resultDisplay.classList.remove('error-message');
-                    resultDisplay.classList.add('correct-message');
-                    const answerDiv = document.createElement('div');
-                    answerDiv.classList.add('answer');
-                    answerDiv.style.color = '#007BFF';
-                    answerDiv.textContent = `정답: ${expression} = ${resultValue}`;
-                    display.appendChild(answerDiv);
-                    resultDisplay.textContent = `결과: ${resultValue} (정답입니다!)`;
-                    isSolved = true;
-
-                    currentInput = '';
-                    buttons.forEach((btn, index) => {
-                        if (index >= 2) {
-                            btn.disabled = false;
-                            btn.classList.remove('disabled', 'temp-disabled');
-                            btn.classList.add('secondary');
-                        }
-                    });
-                    usedGreenNumbers = [];
-                } 
-                
-                else {
-                    // ❌ 실패 횟수 증가 (오직 여기서만 1회 증가)
-                    score[currentLevel].failed++;
-                    updateScoreTable(currentLevel, 'failed');
-                    
-                    resultDisplay.classList.remove('correct-message');
-                    resultDisplay.classList.add('error-message');
-                    resultDisplay.textContent = `결과: ${message}`;
-                }
-            };
-            
-            // 🚨🚨 단일 계산 로직 함수 🚨🚨
             const calcLogic = () => {
-                if (isSolved) {
-                    return;
-                }
-
-                if (isProcessing) {
-                    return;
-                }
+                if (isSolved || isProcessing) return;
                 isProcessing = true;
-                
                 resetCellColors();
-
                 const normalizedInput = currentInput.trim();
-                const primarySum = Number(buttons[0].textContent) + Number(buttons[1].textContent);
+                const useAllNumbers = (currentLevel !== 'easy');
                 
-                try { 
-
-                    // 1. 빈 입력 확인
+                try {
                     if (normalizedInput === '') {
                         handleGameResult(false, '잘못된 수식입니다. (입력 없음)');
                         return;
                     }
-                    
-                    // 2. 수식 계산 시도 (조건 1: 계산 가능 여부)
                     let result;
                     try {
                         let fixedInput = insertImplicitMultiplication(normalizedInput.replace(/\^/g, '**'));
                         result = eval(fixedInput);
-                        
-                        if (typeof result !== 'number' || !isFinite(result)) {
-                            throw new Error("Invalid calculation result");
-                        }
+                        if (typeof result !== 'number' || !isFinite(result)) throw new Error();
                     } catch (e) {
-                        // ❌ 수식이 잘못된 경우 (3+, 5**, 등)
                         handleGameResult(false, '잘못된 수식입니다. (계산 불가)');
                         return; 
                     }
                     
-                    // 3. 초록색 숫자 모두 사용 여부 확인 (중급/고급) - 수식 계산 성공 후 검사
                     if (useAllNumbers) {
-                        const greenButtons = buttons.slice(2);
-                        const greenNumbers = greenButtons.map(btn => Number(btn.textContent));
-                        
-                        const greenButtonCounts = {};
-                        greenNumbers.forEach(n => {
-                            greenButtonCounts[n] = (greenButtonCounts[n] || 0) + 1;
-                        });
-                        
-                        const usedCount = {};
-                        usedGreenNumbers.forEach(n => {
-                            usedCount[n] = (usedCount[n] || 0) + 1;
-                        });
-                        
-                        let allUsed = true;
-                        for (const n in greenButtonCounts) {
-                            if ((usedCount[n] || 0) < greenButtonCounts[n]) {
-                                allUsed = false;
-                                break;
-                            }
-                        }
-                        
-                        if (!allUsed) {
-                            // ❌ 수식은 계산되었지만 숫자 조건 미달
+                        if (usedGreenNumbers.length < 5) {
                             handleGameResult(false, '모든 초록색 숫자를 사용해야 합니다.');
                             return; 
                         }
                     }
                     
-                    // 4. 결과값 확인
-                    if (result === primarySum) {
+                    if (result === currentTargetSum) {
                         if (solvedExpressions.includes(normalizedInput)) {
                             handleGameResult(false, '동일한 결과가 있습니다.');
                             return;
                         }
-
                         handleGameResult(true, '정답입니다!', normalizedInput, result);
-
                     } else {
-                        handleGameResult(false, `${result} (틀렸습니다. 목표값: ${primarySum})`);
+                        handleGameResult(false, `${result} (틀렸습니다. 목표값: ${currentTargetSum})`);
                     }
-
                 } finally {
                     isProcessing = false;
                 }
-            }
+            };
 
+            const handleGameResult = (isSuccess, message, expression = null, resultValue = null) => {
+                if (message.includes('계산 불가') || message.includes('입력 없음') || message.includes('동일한 결과') || message.includes('모든 초록색')) {
+                    resultDisplay.className = 'error-message';
+                    resultDisplay.textContent = `결과: ${message}`;
+                    if(message.includes('동일한 결과')) isSolved = true;
+                    return;
+                }
+                if (isSuccess) {
+                    score[currentLevel].solved++;
+                    updateScoreTable(currentLevel, 'solved');
+                    solvedExpressions.push(expression);
+                    resultDisplay.className = 'correct-message';
+                    const answerDiv = document.createElement('div');
+                    answerDiv.className = 'answer';
+                    answerDiv.style.color = '#007BFF';
+                    answerDiv.textContent = `정답: ${expression} = ${resultValue}`;
+                    display.appendChild(answerDiv);
+                    resultDisplay.textContent = `결과: ${resultValue} (정답입니다!)`;
+                    isSolved = true;
+                    currentInput = '';
+                    buttons.forEach((btn, idx) => { if(idx >= 2) { btn.disabled = false; btn.className = 'secondary'; }});
+                    usedGreenNumbers = [];
+                } else {
+                    score[currentLevel].failed++;
+                    updateScoreTable(currentLevel, 'failed');
+                    resultDisplay.className = 'error-message';
+                    resultDisplay.textContent = `결과: ${message}`;
+                }
+            };
 
-            // = 버튼
             const calcButton = document.createElement('button');
             calcButton.textContent = '=';
-            calcButton.classList.add('button_e');
+            calcButton.className = 'button_e';
             calcButton.addEventListener('click', calcLogic); 
             operatorRow2.appendChild(calcButton);
 
-            // 새로운 문제 버튼
             const newProblemButton = document.createElement('button');
             newProblemButton.textContent = '새로운 문제';
-            newProblemButton.classList.add('button_new');
+            newProblemButton.className = 'button_new';
             newProblemButton.addEventListener('click', () => {
                 resetCellColors();
-
-                // 🚨🚨 새로운 문제 버튼 클릭 시, 현재 레벨의 카운트를 증가시킵니다. 🚨🚨
-                if (currentLevel) {
-                    score[currentLevel].new++;
-                    updateScoreTable(currentLevel, 'new');
-                }
-                startGame(currentLevel);
+                score[currentLevel].new++;
+                updateScoreTable(currentLevel, 'new');
+                startGame(currentLevel, true); // 진짜 새로운 문제 생성
             });
             operatorRow2.appendChild(newProblemButton);
 
             operatorContainer.appendChild(operatorRow1);
             operatorContainer.appendChild(operatorRow2);
-            
-            // 🚨🚨 게임 시작 시 calcButton에 포커스 강제 설정 🚨🚨
             calcButton.focus();
 
-            // 🚨🚨 Keydown 핸들러 함수 정의 및 등록 🚨🚨
             currentKeydownHandler = (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); return; }
                 let handled = false;
-
-                // Enter 키는 keydown에서 무조건 막습니다. (브라우저 기본 동작 차단 강화)
-                if (e.key === 'Enter' || e.code === 'NumpadEnter') {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    return; 
-                }
-
                 if (e.key >= '0' && e.key <= '9') {
-                    const targetButton = buttons.find(btn =>
-                        btn.textContent === e.key && !btn.disabled && btn.classList.contains('secondary')
-                    );
-                    if (targetButton) {
-                        targetButton.click();
-                        handled = true;
-                    }
-                }
-                else if (['+', '-', '*', '/', '(', ')', '^'].includes(e.key)) {
-                    const opButtons = Array.from(operatorRow1.children);
-                    const opTarget = opButtons.find(btn => btn.textContent === e.key);
-                    if (opTarget) {
-                        opTarget.click();
-                        handled = true;
-                    }
-                }
-                else {
-                    switch (e.key) {
-                        case 'c':
-                        case 'C':
-                        case 'Escape':
-                            resetButton.click();
-                            handled = true;
-                            break;
-                        case 'Backspace':
-                            backspaceButton.click();
-                            handled = true;
-                            break;
-                    }
-                }
-
-                if (handled) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
+                    const target = buttons.find(btn => btn.textContent === e.key && !btn.disabled && btn.classList.contains('secondary'));
+                    if (target) { target.click(); handled = true; }
+                } else if (['+', '-', '*', '/', '(', ')', '^'].includes(e.key)) {
+                    const opTarget = Array.from(operatorRow1.children).find(btn => btn.textContent === e.key);
+                    if (opTarget) { opTarget.click(); handled = true; }
+                } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') { resetButton.click(); handled = true; }
+                else if (e.key === 'Backspace') { backspaceButton.click(); handled = true; }
+                if (handled) { e.preventDefault(); }
             };
 
-            // 🚨🚨 Keyup 핸들러 함수 정의 및 등록 (Enter, Space, R 처리) 🚨🚨
             currentKeyupHandler = (e) => {
-                
-                // 1. Enter/Space 처리 
-                if (e.key === 'Enter' || e.key === ' ' || e.code === 'NumpadEnter') {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    
-                    calcLogic();
-                    return;
-                }
-
-                // 2. R 키 처리
-                if (e.key === 'r' || e.key === 'R') {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    
-                    newProblemButton.click();
-                    return;
-                }
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); calcLogic(); }
+                else if (e.key.toLowerCase() === 'r') { newProblemButton.click(); }
             };
 
             document.addEventListener('keydown', currentKeydownHandler);
             document.addEventListener('keyup', currentKeyupHandler);
         }
 
-        // 레벨 버튼 클릭 시 로직
-        function handleLevelChange(newLevel) {
-            resetCellColors();
+        
+// [수정 후] 지능적 레벨 변경 방식
 
-            // 🚨🚨🚨 레벨 변경 시, 새로 시작하는 레벨의 '문제를 바꾼 횟수'를 증가시킵니다. 🚨🚨🚨
-            // 최초 startGame('easy') 시에는 currentLevel이 null이므로 증가하지 않습니다.
-            if (currentLevel !== null) { 
-                score[newLevel].new++; 
-                updateScoreTable(newLevel, 'new');
-            }
+// 1. 각 레벨 방문 여부 저장 (초급은 시작하자마자 방문한 상태)
+let visitedLevels = { easy: true, medium: false, hard: false };
 
-            startGame(newLevel);
-        }
+function handleLevelChange(newLevel) {
+    resetCellColors();
+    
+    if (!visitedLevels[newLevel]) {
+        visitedLevels[newLevel] = true; 
+        // 첫 방문이므로 해당 레벨의 문제를 처음으로 생성함
+        startGame(newLevel, true); 
+    } else {
+        // 이미 생성된 적이 있으므로, 해당 레벨 저장소에 있던 숫자를 그대로 보여줌
+        startGame(newLevel, false); 
+    }
+}
 
         easyBtn.addEventListener('click', () => handleLevelChange('easy'));
         mediumBtn.addEventListener('click', () => handleLevelChange('medium'));
         hardBtn.addEventListener('click', () => handleLevelChange('hard'));
 
-        // 첫 시작
-        startGame('easy'); 
+        // 초기 실행
         initializeScoreTable();
+        startGame('easy', true);
     </script>
 </body>
 </html>
