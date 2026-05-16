@@ -1,158 +1,496 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>슬라이딩 퍼즐</title>
+    <!-- Pretendard 서체 로드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --table-border: #e9ecef;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .container-fixed {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
+            gap: 20px;
         }
-        .input-container {
-            margin: 20px;
+
+        /* 영역 1-A: 퍼즐 제목 영역 */
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 800;
+            margin: 10px 0 0 0;
+            color: var(--text-main);
         }
-        .puzzle-container {
-            display: grid;
-            gap: 5px;
-            
-        }
-        .puzzle-square {
-            width: 60px;
-            height: 60px;
+
+        /* 영역 1-B: 설정 및 제어 영역 */
+        .config-card {
+            background: var(--card-bg);
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #1c78da;;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-card label {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .config-card input[type="number"] {
+            font-size: 16px;
+            font-weight: 600;
+            width: 55px;
+            height: 38px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            color: var(--text-main);
+            background-color: #f8f9fa;
+        }
+
+        .config-card input[type="number"]:focus {
+            outline: none;
+            border-color: var(--active);
+            background-color: #fff;
+        }
+
+        .btn-start {
+            height: 38px;
+            padding: 0 24px;
+            font-size: 15px;
+            font-weight: 700;
+            background: var(--active);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        }
+
+        .btn-start:hover {
+            background: #0069d9;
+        }
+
+        /* [요구사항] 버튼 오른쪽에 위치하는 실시간 타이머 스타일 */
+        .timer-wrapper {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--danger);
+            background: #fff5f5;
+            padding: 0 14px;
+            height: 38px;
+            border-radius: 8px;
+            border: 1px solid #ffe3e3;
+            display: none; /* 시작 전에는 공간 차지 없이 완전히 숨김 */
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 영역 2: 퍼즐 문제 영역 */
+        .puzzle-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 사각형 크기 고정 그리드(62px) */
+        .puzzle-container {
+            display: grid;
+            gap: 6px;
+            background: #e9ecef;
+            padding: 6px;
+            border-radius: 12px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .puzzle-square {
+            width: 62px;
+            height: 62px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--active);
             color: white;
             font-size: 20px;
+            font-weight: 700;
             cursor: pointer;
             user-select: none;
-            border-radius: 5px;
-            gap: 50px;
-            
+            border-radius: 6px;
+            transition: background-color 0.15s ease;
         }
-        .empty {
-            background-color: #ccc;
+
+        .puzzle-square:hover {
+            background-color: #0069d9;
         }
-        .success-message {
-            margin-top: 20px;
-            font-size: 24px;
-            color: #4CAF50;
-            display: none;
+
+        .puzzle-square.empty {
+            background-color: #dee2e6;
+            cursor: default;
         }
-        .timer {
-            margin-top: 10px;
-            font-size: 18px;
-            color: #333;
-        }
-        .instructions {
-            margin-top: 30px;
+
+        /* 가이드 공간 공통 스타일 */
+        .guide-box {
+            background: var(--card-bg);
+            padding: 18px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
             font-size: 16px;
-            color: #555;
+            line-height: 1.6;
+            color: var(--text-sub);
+            width: 100%;
+            word-break: keep-all;
+            text-align: left;
+        }
+
+        .guide-box b {
+            font-size: 17px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* 영역 4: 퍼즐 규칙 */
+        .guide-rules {
+            border-left: 6px solid var(--active);
+        }
+        .guide-rules b { color: var(--active); }
+
+        /* 영역 6: 누적 기록 표 공간 */
+        .guide-status {
+            border-left: 6px solid var(--success);
+        }
+        .guide-status b { color: var(--success); }
+
+        /* 기록 집계 테이블 스타일 */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 15px;
             text-align: center;
-            max-width: 500px;
+        }
+
+        .history-table th {
+            background-color: #f8f9fa;
+            color: var(--text-main);
+            font-weight: 700;
+            padding: 10px;
+            border-bottom: 2px solid var(--table-border);
+        }
+
+        .history-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--text-main);
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: #e6f7ff;
+            color: #0050b3;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* 결과 알림 팝업창 (모달) 시스템 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 350px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border-top: 6px solid var(--success);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--success);
+        }
+
+        .modal-body {
+            font-size: 16px;
+            color: var(--text-sub);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .modal-btn {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--success);
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .modal-btn:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
-    <div class="input-container">
-        <label for="rows">가로:</label>
-        <input type="number" id="cols" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
-        <label for="cols">세로:</label>        
-        <input type="number" id="rows" min="2" max="10" value="4" style="font-size:16px;width:35px;text-align:center">
-        <button onclick="initializePuzzle()">시작</button>
+
+    <div class="container-fixed">
+        <!-- 영역 1-A: 퍼즐 제목 영역 -->
+        <h1>슬라이딩 퍼즐</h1>
+
+        <!-- 영역 1-B: 설정 영역 -->
+        <div class="config-card">
+            <div class="config-group">
+                <label for="cols">가로</label>
+                <input type="number" id="cols" min="2" max="10" value="4">
+            </div>
+            <div class="config-group">
+                <label for="rows">세로</label>
+                <input type="number" id="rows" min="2" max="10" value="4">
+            </div>
+
+            <button class="btn-start" onclick="initializePuzzle()">퍼즐 생성</button>
+            
+            <!-- [요구사항] 퍼즐 생성 버튼 오른쪽에 위치하도록 마크업 순서 조정 -->
+            <div class="timer-wrapper" id="timerWrapper">
+                <span id="timer">⏱ 0.00초</span>
+            </div>
+        </div>
+
+        <!-- 영역 2: 퍼즐 문제 영역 -->
+        <div class="puzzle-card">
+            <div class="puzzle-container" id="puzzle-container"></div>
+        </div>
+
+        <!-- 영역 4: 퍼즐 규칙 설명 -->
+        <div class="guide-box guide-rules">
+            <b>◈ 게임 방법</b>
+            • 퍼즐 조각을 클릭하면 인접한 빈 칸과 위치가 교환됩니다.<br>
+            • 1부터 순서대로 숫자를 정렬하여 퍼즐을 올바르게 완성해보세요.
+        </div>
+
+        <!-- 영역 6: 누적 기록 표 공간 -->
+        <div class="guide-box guide-status">
+            <b>◈ 크기별 누적 스코어 기록실</b>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">퍼즐 크기</th>
+                        <th style="width: 20%;">성공 횟수</th>
+                        <th style="width: 55%;">기록 집계 (완료 시간)</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="3" id="emptyRow" style="color: var(--text-sub); font-style: italic; padding: 15px 0;">아직 달성한 클리어 기록이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="puzzle-container" id="puzzle-container">
-        <!-- Puzzle squares will be generated here -->
-    </div>
-    <div class="success-message" id="success-message"></div>
-    <div class="timer" id="timer">시간: 0.00초</div>
-    <div class="instructions" id="instructions">
-        <h3>게임 방법</h3>
-        <p>
-            1. 퍼즐을 클릭하여 빈 칸과 숫자를 교환합니다.<br>
-            2. 숫자를 순서대로 정렬하여 퍼즐을 완성하세요.<br>
-            3. "시작" 버튼을 눌러 새로운 퍼즐을 시작할 수 있습니다.
-        </p>
+
+    <!-- 결과 알림 팝업창 (모달 디스플레이) -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-title">🎉 퍼즐 완성!</div>
+            <div class="modal-body" id="modalBody">0.00초 만에 퍼즐을 완성했습니다!</div>
+            <button class="modal-btn" id="modalBtn">확인</button>
+        </div>
     </div>
 
     <script>
-        // 마우스 오른쪽 버튼 클릭 금지
-        document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        });
+        // 모바일 확대 제스처 차단
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+        document.addEventListener('contextmenu', e => e.preventDefault());
 
         const puzzleContainer = document.getElementById('puzzle-container');
-        const successMessage = document.getElementById('success-message');
+        const timerWrapper = document.getElementById('timerWrapper');
         const timerElement = document.getElementById('timer');
+        const historyTableBody = document.getElementById('historyTableBody');
+        const emptyRow = document.getElementById('emptyRow');
+        
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalBody = document.getElementById('modalBody');
+        const modalBtn = document.getElementById('modalBtn');
+
         let puzzleState = [];
-        let emptyIndex = 0;
         let rows = 4, cols = 4;
         let startTime = null;
         let timerInterval = null;
+        let isModalOpen = false;
 
-        // Initialize the puzzle with dynamic rows and columns
+        const stageHistory = {};
+        const recordDatabase = {}; 
+
         function initializePuzzle() {
-            rows = parseInt(document.getElementById('rows').value);
-            cols = parseInt(document.getElementById('cols').value);
-            puzzleContainer.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
-            puzzleContainer.style.gridTemplateRows = `repeat(${rows}, 60px)`;
+            rows = parseInt(document.getElementById('rows').value) || 4;
+            cols = parseInt(document.getElementById('cols').value) || 4;
+            
+            rows = Math.max(2, Math.min(10, rows));
+            cols = Math.max(2, Math.min(10, cols));
+            document.getElementById('rows').value = rows;
+            document.getElementById('cols').value = cols;
 
-            const totalSquares = rows * cols;
-            puzzleState = Array.from({ length: totalSquares - 1 }, (_, i) => i + 1);
-            puzzleState.push(null); // Empty space
+            puzzleContainer.style.gridTemplateColumns = `repeat(${cols}, 62px)`;
+            puzzleContainer.style.gridTemplateRows = `repeat(${rows}, 62px)`;
 
-            // Start with a solved puzzle and shuffle it in a solvable way
-            shufflePuzzle();
+            const historyKey = `${rows}x${cols}`;
+
+            timerWrapper.style.display = 'none';
+
+            if (stageHistory[historyKey]) {
+                puzzleState = [...stageHistory[historyKey].state];
+                startTime = stageHistory[historyKey].startTime;
+                if (startTime && !stageHistory[historyKey].isSolved) {
+                    timerWrapper.style.display = 'flex';
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(updateTimer, 10);
+                } else {
+                    timerElement.textContent = '⏱ 0.00초';
+                }
+            } else {
+                resetPuzzleData();
+            }
 
             renderPuzzle();
-            successMessage.style.display = 'none'; // Hide success message on new puzzle
-            timerElement.textContent = '시간: 0.00초'; // Reset timer
-            timerElement.style.display = 'block'; // Show timer
-            startTime = null; // Reset start time
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+            closeModal();
         }
 
-        // Shuffle the puzzle in a solvable way
-        function shufflePuzzle() {
-            // Start with a solved puzzle
-            puzzleState = Array.from({ length: rows * cols - 1 }, (_, i) => i + 1);
+        function resetPuzzleData() {
+            const totalSquares = rows * cols;
+            puzzleState = Array.from({ length: totalSquares - 1 }, (_, i) => i + 1);
             puzzleState.push(null);
 
-            // Perform random valid moves to shuffle the puzzle
-            const totalMoves = 1000; // Number of random moves to shuffle
+            // [요구사항] 생성 단계에서 셔플된 모양이 정답 상태와 같은지 체크하여 루프 방어
+            shufflePuzzle();
+            while (isAlreadySolved()) {
+                shufflePuzzle();
+            }
+
+            stopTimer();
+            saveCurrentHistory();
+        }
+
+        // 정답 상태인지 판별하는 순수 검증 헬퍼 함수
+        function isAlreadySolved() {
+            const isSolved = puzzleState.slice(0, rows * cols - 1).every((value, index) => value === index + 1);
+            return isSolved && puzzleState[rows * cols - 1] === null;
+        }
+
+        function shufflePuzzle() {
+            const totalMoves = 1000; 
             let emptyIndex = puzzleState.indexOf(null);
 
             for (let i = 0; i < totalMoves; i++) {
-                const directions = [-cols, cols, -1, 1]; // Up, Down, Left, Right
+                const directions = [-cols, cols, -1, 1];
                 const validMoves = directions.filter(dir => {
                     const targetIndex = emptyIndex + dir;
                     return (
                         targetIndex >= 0 &&
                         targetIndex < rows * cols &&
-                        !(dir === -1 && emptyIndex % cols === 0) && // Prevent left wrap
-                        !(dir === 1 && emptyIndex % cols === cols - 1) // Prevent right wrap
+                        !(dir === -1 && emptyIndex % cols === 0) && 
+                        !(dir === 1 && emptyIndex % cols === cols - 1) 
                     );
                 });
 
                 const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
                 const targetIndex = emptyIndex + randomMove;
 
-                // Swap the empty square with the target square
                 [puzzleState[emptyIndex], puzzleState[targetIndex]] = [puzzleState[targetIndex], puzzleState[emptyIndex]];
                 emptyIndex = targetIndex;
             }
         }
 
-        // Render the puzzle squares
         function renderPuzzle() {
             puzzleContainer.innerHTML = '';
             puzzleState.forEach((value, index) => {
@@ -169,56 +507,131 @@
             });
         }
 
-        // Handle click on a puzzle square
         function handleClick(clickedIndex) {
             if (startTime === null) {
-                startTime = new Date(); // Start the timer on first click
-                timerInterval = setInterval(updateTimer, 10); // Update every 10ms
+                startTime = new Date();
+                timerWrapper.style.display = 'flex';
+                timerInterval = setInterval(updateTimer, 10);
             }
 
-            const directions = [-cols, cols, -1, 1]; // Up, Down, Left, Right
+            const directions = [-cols, cols, -1, 1];
             for (const dir of directions) {
                 const targetIndex = clickedIndex + dir;
                 if (targetIndex >= 0 && targetIndex < rows * cols && puzzleState[targetIndex] === null) {
                     if ((dir === -1 && clickedIndex % cols === 0) || (dir === 1 && clickedIndex % cols === cols - 1)) {
-                        continue; // Prevent wrapping around the grid
+                        continue; 
                     }
                     swapSquares(clickedIndex, targetIndex);
                     break;
                 }
             }
+            saveCurrentHistory();
             checkForWin();
         }
 
-        // Swap two squares in the puzzle state
         function swapSquares(index1, index2) {
             [puzzleState[index1], puzzleState[index2]] = [puzzleState[index2], puzzleState[index1]];
             renderPuzzle();
         }
 
-        // Check if the puzzle is solved
+        function saveCurrentHistory() {
+            const historyKey = `${rows}x${cols}`;
+            stageHistory[historyKey] = {
+                state: [...puzzleState],
+                startTime: startTime,
+                isSolved: false
+            };
+        }
+
         function checkForWin() {
-            const isSolved = puzzleState.slice(0, rows * cols - 1).every((value, index) => value === index + 1);
-            if (isSolved && puzzleState[rows * cols - 1] === null) {
-                const elapsedTime = ((new Date() - startTime) / 1000).toFixed(2); // Calculate elapsed time
-                successMessage.textContent = `${elapsedTime}초 만에 성공했습니다.`; // Show success message with time
-                successMessage.style.display = 'block';
-                timerElement.style.display = 'none'; // Hide timer on success
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
+            if (isAlreadySolved()) {
+                const elapsedTime = ((new Date() - startTime) / 1000).toFixed(2);
+                
+                const historyKey = `${rows}x${cols}`;
+                if (stageHistory[historyKey]) stageHistory[historyKey].isSolved = true;
+
+                if (!recordDatabase[historyKey]) {
+                    recordDatabase[historyKey] = [];
                 }
+                recordDatabase[historyKey].push(elapsedTime);
+                
+                updateHistoryTable();
+                showModal(elapsedTime);
+                stopTimer();
             }
         }
 
-        // Update the timer display
-        function updateTimer() {
-            const currentTime = new Date();
-            const elapsedTime = ((currentTime - startTime) / 1000).toFixed(2); // Calculate elapsed time in seconds with 2 decimal places
-            timerElement.textContent = `시간: ${elapsedTime}초`;
+        function updateHistoryTable() {
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+            historyTableBody.innerHTML = '';
+
+            const sortedKeys = Object.keys(recordDatabase).sort();
+
+            sortedKeys.forEach(key => {
+                const tr = document.createElement('tr');
+                const timeList = recordDatabase[key];
+                const sizeDisplay = key.replace('x', ' × ');
+                
+                let badgesHtml = '';
+                timeList.forEach(t => {
+                    badgesHtml += `<span class="time-badge">${t}초</span>`;
+                });
+
+                tr.innerHTML = `
+                    <td style="font-weight: 700;">${sizeDisplay}</td>
+                    <td><b style="color: var(--active);">${timeList.length}회</b></td>
+                    <td style="text-align: left; padding-left: 15px;">${badgesHtml}</td>
+                `;
+                historyTableBody.appendChild(tr);
+            });
         }
 
-        // Initialize the puzzle when the page loads
+        function updateTimer() {
+            if (!startTime) return;
+            const currentTime = new Date();
+            const elapsedTime = ((currentTime - startTime) / 1000).toFixed(2);
+            timerElement.textContent = `⏱ ${elapsedTime}초`;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            startTime = null;
+        }
+
+        function showModal(time) {
+            modalBody.textContent = `${time}초 만에 퍼즐을 완성했습니다!`;
+            modalOverlay.classList.add('active');
+            isModalOpen = true;
+            modalBtn.focus();
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            isModalOpen = false;
+        }
+
+        modalBtn.addEventListener('click', () => {
+            closeModal();
+            resetPuzzleData();
+            renderPuzzle();
+            timerElement.textContent = '⏱ 0.00초';
+            timerWrapper.style.display = 'none';
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (isModalOpen) {
+                if (e.key === 'Enter' || e.code === 'Space') {
+                    e.preventDefault();
+                    modalBtn.click();
+                }
+            }
+        });
+
         initializePuzzle();
     </script>
 </body>
