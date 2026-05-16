@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>사각형 퍼즐 (Shikaku)</title>
+<title>사각형 퍼즐</title>
 <style>
   /* 1. 디자인 시스템 변수 정의 */
   :root {
@@ -31,9 +31,10 @@
     align-items: center;
     color: var(--text-main);
     overflow-x: hidden;
+    touch-action: manipulation;
   }
 
-  /* 2. 레이아웃 및 전체 가로 길이 */
+  /* 2. 카드 형태의 강조 영역 스타일 */
   .container-fixed {
     width: 100%;
     max-width: 800px;
@@ -41,39 +42,48 @@
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  /* [영역 1: 타이틀 및 단계 선택 영역] */
+  /* [영역 1-A: 제목 영역] - 배경 없음 */
+  .title-area {
+    width: 100%;
+    max-width: 800px;
+    margin: 10px 0 20px 0;
+    display: flex;
+    justify-content: center;
+  }
+
   h1 { 
-    margin: 0 0 20px; 
-    font-size: clamp(24px, 5vw, 32px);
+    margin: 0; 
+    font-size: 36px;
     text-align: center; 
     font-weight: 800; 
   }
 
+  /* [영역 1-B: 단계 선택 영역] */
   #stageButtons {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
     width: 100%;
-    margin-bottom: 5px;
   }
 
   .stage-btn {
     width: 100%;
-    padding: 10px 2px;
-    border-radius: 10px;
+    padding: 12px 2px;
+    border-radius: 12px;
     border: 1px solid #e9ecef;
     background: #f8f9fa;
-    font-size: clamp(11px, 2.8vw, 15px);
+    font-size: clamp(12px, 3vw, 15px);
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    transition: all 0.2s;
     text-align: center;
+    color: var(--text-sub);
   }
 
   @media (hover: hover) {
@@ -85,6 +95,7 @@
     background: var(--active) !important;
     color: #fff !important;
     border-color: var(--active) !important;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
   }
 
   .stage-btn.completed {
@@ -93,12 +104,11 @@
     border-color: var(--success) !important;
   }
 
-  /* [영역 2: 퍼즐 문제 영역 (그리드)] */
+  /* [영역 2: 퍼즐 문제 영역] */
   #board-wrapper {
     width: 100%;
     display: flex;
     justify-content: center;
-    margin: 15px 0;
   }
 
   #board {
@@ -107,12 +117,13 @@
     position: relative;
     touch-action: none;
     user-select: none;
-    background: #999;
-    border: 2px solid #999;
-    border-radius: 8px;
+    background: #ccc;
+    border: 3px solid #ccc;
+    border-radius: 12px;
     overflow: hidden;
     width: 100%;
     max-width: 400px;
+    aspect-ratio: 1 / 1;
   }
 
   .cell {
@@ -130,62 +141,70 @@
     color: var(--text-main);
   }
 
-.start-cell { background-color: #e2f0d9; !important; }
-    .selected-cell { background-color: #e2f0d9; }
+  .start-cell { background-color: #e2f0d9 !important; }
+  .selected-cell { background-color: #e2f0d9; }
 
   .rectangle-border {
     position: absolute;
     border: 3px solid var(--success);
     pointer-events: auto;
-    border-radius: 6px;
-    background: transparent;
+    border-radius: 8px;
+    background: rgba(40, 167, 69, 0.05);
     box-sizing: border-box;
     cursor: pointer;
   }
 
-  /* [영역 3: 하단 조작 버튼 영역] */
-  #toolbar {
+  /* [영역 3: 하단 조작 버튼 영역] - 배경 없음 */
+  .toolbar-area {
     width: 100%;
+    max-width: 800px;
+    margin: 10px 0 15px 0;
     display: flex;
     justify-content: center;
-    margin-top: 5px;
   }
 
-  #resetBtn {
+  .tool-btn {
     width: 100%;
-    max-width: 200px;
-    padding: 12px 20px;
+    max-width: 240px;
+    height: 54px;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    border: 1px solid #dee2e6;
+    border: 1px solid #cbd5e1;
     background: #fff;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
   }
-  #resetBtn:active {
-    background: #f1f3f5;
+  
+  .tool-btn:active {
+    background: #e2e8f0;
   }
 
-  /* [영역 4: 문제 설명 공간] */
-  .quiz-rule {
-    background: #f8f9fa;
-    padding: 15px 20px; 
+  /* [영역 4: 하단 가이드 영역] - 수정 조건: 배경을 흰색으로 지정 및 왼쪽 파란색 바 부활 */
+  .quiz-rule-area {
+    width: 100%;
+    max-width: 800px;
+    background: var(--card-bg); /* 공간을 흰색 배경으로 채움 */
+    padding: 20px;
     border-radius: 12px;
-    font-size: clamp(15px, 3.5vw, 17px);
-    border-left: 4px solid var(--active);
+    border-left: 6px solid var(--active); /* 왼쪽 파란색 바 유지 */
+    font-size: 17px;
     line-height: 1.6;
     color: var(--text-sub);
-    width: 100%;
     word-break: keep-all;
     text-align: left;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02); /* 자연스러운 입체감 부여 */
   }
 
   .rule-title {
     font-weight: 800;
     color: var(--text-main);
-    margin-bottom: 8px;
-    font-size: 18px;
+    margin-bottom: 10px;
+    font-size: 19px;
     display: block;
   }
 
@@ -197,7 +216,7 @@
     margin-bottom: 0;
   }
 
-  /* [모달 디스플레이 시스템 스타일] */
+  /* 모달 시스템 스타일 */
   .success-overlay {
     position: fixed;
     inset: 0;
@@ -220,6 +239,7 @@
     max-width: 350px;
     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     animation: modalPop 0.3s ease-out;
+    border-top: 6px solid transparent;
   }
 
   @keyframes modalPop {
@@ -255,27 +275,28 @@
     opacity: 0.86;
   }
 
-  /* 조건별 모달 커스텀 사양 */
+  .modal-success-border { border-top-color: var(--success); }
   .modal-success-title { color: var(--success); }
   .modal-success-btn { background: var(--success); }
 
-  .modal-danger-border { border-top: 5px solid var(--danger); }
+  .modal-danger-border { border-top-color: var(--danger); }
   .modal-danger-title { color: var(--danger); }
   .modal-danger-btn { background: var(--danger); }
 
   @media (min-width: 800px) {
     .container-fixed { padding: 30px; }
-    #stageButtons { gap: 8px; }
   }
 </style>
 </head>
 <body>
 
-<!-- 상단 영역 종합 카드 -->
-<div class="container-fixed">
-  
-  <!-- [영역 1: 타이틀 및 단계 선택 영역] -->
+<!-- [영역 1-A]: 제목 (배경 없음) -->
+<div class="title-area">
   <h1>사각형 퍼즐</h1>
+</div>
+
+<!-- [영역 1-B]: 단계 선택 카드 -->
+<div class="container-fixed">
   <div id="stageButtons">
     <button class="stage-btn" data-stage="1">1단계</button>
     <button class="stage-btn" data-stage="2">2단계</button>
@@ -293,31 +314,30 @@
     <button class="stage-btn" data-stage="14">14단계</button>
     <button class="stage-btn" data-stage="15">15단계</button>
   </div>
+</div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
+<!-- [영역 2]: 퍼즐 문제 판 카드 -->
+<div class="container-fixed">
   <div id="board-wrapper">
     <div id="board"></div>
   </div>
-
-  <!-- [영역 3: 하단 조작 버튼 영역] -->
-  <div id="toolbar">
-    <button id="resetBtn">초기화</button>
-  </div>
-
 </div>
 
-<!-- [영역 4: 문제 설명 공간] -->
-<div class="container-fixed">
-  <div class="quiz-rule">
-    <span class="rule-title">[사각형 퍼즐(Shikaku) 규칙]</span>
-    <span class="rule-item">1. 그림의 칸이 하나도 남지 않도록 <b>정사각형 또는 직사각형으로만</b> 나눕니다.</span>
-    <span class="rule-item">2. 하나의 정사각형 또는 직사각형 안에는 반드시 <b>한 개의 수</b>가 들어갑니다.</span>
-    <span class="rule-item">3. 칸 안의 수는 사각형이 차지해야 하는 총 칸수를 나타냅니다.</span>
-    <span class="rule-item">4. 하나의 칸을 두 개 이상의 사각형이 동시에 겹쳐서 사용할 수 없습니다.</span>
-    <hr style="border: 0; border-top: 1px solid #e9ecef; margin: 12px 0;">
-    <span class="rule-item">※ 사각형 모양대로 <b>드래그하거나 양 끝을 클릭</b>합니다.</span>
-    <span class="rule-item">※ 이미 그려진 <b>사각형을 클릭</b>하면 삭제됩니다.</span>
-  </div>
+<!-- [영역 3]: 하단 조작 버튼 (배경 없음) -->
+<div class="toolbar-area">
+  <button class="tool-btn" id="resetBtn">처음으로</button>
+</div>
+
+<!-- [영역 4]: 가이드 공간 (흰색 배경 및 파란색 바 복구 적용) -->
+<div class="quiz-rule-area">
+  <span class="rule-title">[사각형 퍼즐(Shikaku) 규칙]</span>
+  <span class="rule-item">1. 그림의 칸이 하나도 남지 않도록 <b>정사각형 또는 직사각형으로만</b> 나눕니다.</span>
+  <span class="rule-item">2. 하나의 정사각형 또는 직사각형 안에는 반드시 <b>한 개의 수</b>가 들어갑니다.</span>
+  <span class="rule-item">3. 칸 안의 수는 사각형이 차지해야 하는 총 칸수를 나타냅니다.</span>
+  <span class="rule-item">4. 하나의 칸을 두 개 이상의 사각형이 동시에 겹쳐서 사용할 수 없습니다.</span>
+  <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
+  <span class="rule-item">※ 사각형 모양대로 <b>드래그하거나 양 끝을 클릭</b>합니다.</span>
+  <span class="rule-item">※ 이미 그려진 <b>사각형을 클릭</b>하면 삭제됩니다.</span>
 </div>
 
 <script>
@@ -326,16 +346,14 @@
   const stageButtons = document.querySelectorAll(".stage-btn");
   const resetBtn = document.getElementById("resetBtn");
 
-  const stages = {
-    // 연습문제
-    // 1: { width: 7, height: 7, puzzle: [["","","","","","","6"], ["","","","","","",""], ["3","","10","","6","",""], ["","","","","","","8"], ["","","","4","","",""], ["","8","","","","",""], ["4","","","","","",""]] },
+  const dataSets = {
     1: { width: 5, height: 5, puzzle: [["4", "", "", "", ""], ["", "", "9", "", ""], ["", "", "", "", ""], ["6", "", "", "6", ""], ["", "", "", "", ""]] },
     2: { width: 6, height: 6, puzzle: [["6", "", "", "", "", ""], ["", "", "", "5", "", ""], ["", "", "10", "", "", "3"], ["", "", "", "", "", ""], ["4", "", "8", "", "", ""], ["", "", "", "", "", ""]] },
     3: { width: 6, height: 6, puzzle: [["4", "", "", "", "", ""], ["", "", "8", "", "", "4"], ["4", "", "", "", "", ""], ["", "", "", "", "", "8"], ["", "", "", "", "", ""], ["4", "", "", "4", "", ""]] },
     4: { width: 7, height: 7, puzzle: [["","","2","","","","3"], ["2","","","5","","",""], ["3","","4","","2","2",""], ["","","","","","",""], ["","","4","","4","","5"], ["","","3","","3","",""], ["","2","","5","","",""]] },
     5: { width: 7, height: 7, puzzle: [["4","","","","3","",""], ["4","","","","","",""], ["4","","","","","4",""], ["","","2","5","4","","6"], ["","2","","","","4",""], ["","4","","","","",""], ["","","3","","","",""]] },
     6: { width: 8, height: 8, puzzle: [["", "", "", "", "6", "", "", ""], ["", "8", "", "", "", "", "", "6"], ["", "", "", "8", "", "", ""], ["", "", "", "", "", "6", "", ""], ["", "", "", "", "4", "", "", ""], ["", "", "6", "", "", "6", "", ""], ["", "", "", "", "", "", "8", ""], ["", "", "", "6", "", "", "", ""]] },
-    7: { width: 8, height: 8, puzzle: [["6", "", "", "", "", "", "4", ""], ["", "4", "", "", "6", "", "", "6"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "6", "", "4", ""], ["", "", "8", "", "", "", "", ""], ["", "", "", "", "4", "", "", ""], ["", "", "6", "", "", "6", "", "4"], ["", "", "", "", "", "", "", ""]] },
+    7: { width: 8, height: 8, puzzle: [["6", "", "", "", "", "", "4", ""], ["", "4", "", "", "6", "", "", "6"], ["", "", "", "", "", "", "", ""], ["", "", "6", "", "4", ""], ["", "", "8", "", "", "", "", ""], ["", "", "", "", "4", "", "", ""], ["", "", "6", "", "", "6", "", "4"], ["", "", "", "", "", "", "", ""]] },
     8: { width: 9, height: 9, puzzle: [["","","","","","","","8",""], ["","3","","","4","3","","3",""], ["","5","","2","","","","",""], ["4","","4","","","","2","",""], ["","","","2","","","2","",""], ["2","","","","","","","8",""], ["","","","","","12","4","","6"], ["3","","","","","","","",""], ["","2","2","","","","","",""]] },
     9: { width: 9, height: 9, puzzle: [["","","","","","","","",""], ["","","10","","","","","",""], ["","2","","","","4","3","6",""], ["","","","6","","","2","",""], ["4","","","6","","","","",""], ["4","4","6","","","","","4","3"], ["","","","","2","","","3",""], ["","","","","","","","","4"], ["","","","2","2","","","4",""]] },
     10: { width: 10, height: 10, puzzle: [["","","","","","8","","","",""], ["","8","","","","","","","",""], ["","","","","","","","","",""], ["","","","","","","","","",""], ["","","6","","","","","15","",""], ["","","","","","","16","","","4"], ["","","","","6","","","","",""], ["","12","","","","","4","","6",""], ["","","","","10","","","","",""], ["","","","","","","","5","",""]] },
@@ -346,36 +364,42 @@
     15: { width: 12, height: 12, puzzle: [["","","","","8","","","","","","",""], ["","9","","","","","","","6","","",""], ["","","","","","","8","","","","",""], ["","","","","","","","","6","","","4"], ["","","","","","6","","","","","",""], ["","","","","","","","","","","8",""], ["6","","","9","","8","","","","","",""], ["","","","","","","","6","","10","","6"], ["","8","","","4","","","","","","",""], ["","","","","","","6","","","","",""], ["4","","","8","","","","","","8","",""], ["","","","","","6","","","","","",""]] },
   };
 
-  // 기존 내장 데이터 파싱 오류 수정 가공
-  stages[6].puzzle[2][6] = "";
-  stages[12].puzzle[3][0] = "";
-  stages[12].puzzle[7][0] = "";
+  dataSets[6].puzzle[2][6] = "";
+  dataSets[12].puzzle[3][0] = "";
+  dataSets[12].puzzle[7][0] = "";
 
-  let stageStates = {};
+  let stageHistory = {};
   let currentStage = 1;
   let startCell = null;
   let endCell = null;
   let isDragging = false;
   let interactionLocked = false;
   let mouseDownPos = null;
+  let activeModalBtn = null;
 
   function init() {
-    for (let s in stages) {
-      stageStates[s] = { ...stages[s], rectangles: [], completed: false };
+    for (let s in dataSets) {
+      stageHistory[s] = { 
+        width: dataSets[s].width,
+        height: dataSets[s].height,
+        puzzle: JSON.parse(JSON.stringify(dataSets[s].puzzle)),
+        rectangles: [], 
+        completed: false 
+      };
     }
     renderStage(currentStage);
+    setupGlobalEvents();
   }
 
-  /* 커스텀 모달 출력 전용 함수 */
   function showModal(type, title, text, btnText, callback) {
     const overlay = document.createElement("div");
     overlay.className = "success-overlay";
 
     const modal = document.createElement("div");
-    modal.className = `success-modal ${type === 'danger' ? 'modal-danger-border' : ''}`;
+    modal.className = `success-modal modal-${type}-border`;
 
     const h2 = document.createElement("h2");
-    h2.className = `modal-title ${type === 'danger' ? 'modal-danger-title' : 'modal-success-title'}`;
+    h2.className = `modal-title modal-${type}-title`;
     h2.textContent = title;
 
     const p = document.createElement("p");
@@ -383,11 +407,12 @@
     p.innerHTML = text;
 
     const btn = document.createElement("button");
-    btn.className = `modal-btn ${type === 'danger' ? 'modal-danger-btn' : 'modal-success-btn'}`;
+    btn.className = `modal-btn modal-${type}-btn`;
     btn.textContent = btnText;
 
     btn.addEventListener("click", () => {
       overlay.remove();
+      activeModalBtn = null;
       if (callback) callback();
     });
 
@@ -396,25 +421,37 @@
     modal.appendChild(btn);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+
+    activeModalBtn = btn;
+    btn.focus();
   }
 
-  // [수정 후 자바스크립트 renderStage 함수 내부]
+  function setupGlobalEvents() {
+    window.addEventListener("keydown", (e) => {
+      if (activeModalBtn && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        activeModalBtn.click();
+      }
+    });
+
+    let lastTouchTime = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = window.performance.now();
+      if (now - lastTouchTime <= 300) e.preventDefault();
+      lastTouchTime = now;
+    }, { passive: false });
+  }
+
   function renderStage(stage) {
-    const { width, height, puzzle, rectangles } = stageStates[stage];
+    const { width, height, puzzle, rectangles } = stageHistory[stage];
     board.innerHTML = "";
     board.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
     board.style.pointerEvents = "auto";
 
-    // 격자 가로 개수(width)에 따라 전체 크기(max-width) 동적 조절
-    if (width <= 6) {
-      board.style.maxWidth = "400px";  // 1~3단계 (가로 5~6개): 기존 크기 유지
-    } else if (width <= 8) {
-      board.style.maxWidth = "480px";  // 4~7단계 (가로 7~8개): 조금 늘림
-    } else if (width <= 10) {
-      board.style.maxWidth = "560px";  // 8~13단계 (가로 9~10개): 더 늘림
-    } else {
-      board.style.maxWidth = "650px";  // 14~15단계 (가로 12개): 최대 크기로 확장
-    }
+    if (width <= 6) board.style.maxWidth = "400px";
+    else if (width <= 8) board.style.maxWidth = "460px";
+    else if (width <= 10) board.style.maxWidth = "540px";
+    else board.style.maxWidth = "620px";
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -431,16 +468,12 @@
     }
 
     rectangles.forEach(r => {
-      if (!r.element) {
-        r.element = drawBorder(r);
-      } else if (!board.contains(r.element)) {
-        board.appendChild(r.element);
-      }
+      r.element = drawBorder(r);
     });
 
     updateStageButtons();
 
-    if (stageStates[stage].completed) lockInteraction();
+    if (stageHistory[stage].completed) lockInteraction();
     else unlockInteraction();
 
     startCell = null;
@@ -455,6 +488,8 @@
     const c1 = getCell(x1, y1);
     const c2 = getCell(x2, y2);
 
+    if (!c1 || !c2) return null;
+
     const left = Math.min(c1.offsetLeft, c2.offsetLeft);
     const top = Math.min(c1.offsetTop, c2.offsetTop);
     const right = Math.max(c1.offsetLeft + c1.offsetWidth, c2.offsetLeft + c2.offsetWidth);
@@ -468,9 +503,8 @@
     rect.addEventListener("click", e => {
       if (!interactionLocked) {
         rect.remove();
-        stageStates[currentStage].rectangles = stageStates[currentStage].rectangles.filter(r =>
+        stageHistory[currentStage].rectangles = stageHistory[currentStage].rectangles.filter(r =>
           !(r.x1 === x1 && r.y1 === y1 && r.x2 === x2 && r.y2 === y2));
-        checkComplete();
       }
     });
 
@@ -512,7 +546,7 @@
     const y2 = Math.max(+startCell.dataset.y, +endCell.dataset.y);
     const area = (x2 - x1 + 1) * (y2 - y1 + 1);
 
-    const puzzle = stageStates[currentStage].puzzle;
+    const puzzle = stageHistory[currentStage].puzzle;
     let number = null, count = 0;
     for (let y = y1; y <= y2; y++) {
       for (let x = x1; x <= x2; x++) {
@@ -524,7 +558,6 @@
       }
     }
 
-    /* 오답 카운트를 올리지 않는 대신, 규칙 위반 시 [경고 모달] 노출 */
     if (count === 0) {
       showModal("danger", "❌ 틀렸습니다!", "사각형 내부에 숫자가 존재하지 않습니다.", "다시 시도");
       resetSelection();
@@ -541,7 +574,7 @@
       return;
     }
 
-    for (const r of stageStates[currentStage].rectangles) {
+    for (const r of stageHistory[currentStage].rectangles) {
       if (!(x2 < r.x1 || x1 > r.x2 || y2 < r.y1 || y1 > r.y2)) {
         showModal("danger", "❌ 틀렸습니다!", "이미 확정된 다른 사각형 영역과 중복되거나 겹칩니다.", "다시 시도");
         resetSelection();
@@ -550,11 +583,11 @@
     }
 
     const rect = { x1, y1, x2, y2 };
-    stageStates[currentStage].rectangles.push(rect);
     rect.element = drawBorder(rect);
+    stageHistory[currentStage].rectangles.push(rect);
 
     resetSelection();
-    checkComplete();
+    checkAutoComplete();
   }
 
   function resetSelection() {
@@ -563,7 +596,6 @@
     updateCellStyles();
   }
 
-  /* 마우스 입력 제어 */
   board.addEventListener("mousedown", e => {
     if (interactionLocked) return;
     if (!e.target.classList.contains("cell")) return;
@@ -572,10 +604,7 @@
   });
 
   board.addEventListener("mousemove", e => {
-    if (interactionLocked) return;
-    if (!mouseDownPos) return;
-    if (!e.target.classList.contains("cell")) return;
-
+    if (interactionLocked || !mouseDownPos || !e.target.classList.contains("cell")) return;
     const dx = e.clientX - mouseDownPos.x;
     const dy = e.clientY - mouseDownPos.y;
     const dist = Math.sqrt(dx*dx + dy*dy);
@@ -585,20 +614,16 @@
         isDragging = true;
         startCell = e.target;
         endCell = null;
-        updateCellStyles();
       } else {
         endCell = e.target;
         if (startCell) startCell.classList.remove("start-cell");
-        updateCellStyles();
       }
+      updateCellStyles();
     }
   });
 
   board.addEventListener("mouseup", e => {
-    if (interactionLocked) return;
-    if (!e.target.classList.contains("cell")) return;
-    if (!mouseDownPos) return;
-
+    if (interactionLocked || !mouseDownPos || !e.target.classList.contains("cell")) return;
     const dx = e.clientX - mouseDownPos.x;
     const dy = e.clientY - mouseDownPos.y;
     const dist = Math.sqrt(dx*dx + dy*dy);
@@ -615,7 +640,6 @@
     isDragging = false;
   });
 
-  /* 모바일 터치 제어 */
   function getCellFromTouch(touch) {
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     if (el && el.classList && el.classList.contains("cell")) return el;
@@ -623,25 +647,20 @@
   }
 
   board.addEventListener("touchstart", function(e) {
-    if (interactionLocked) return;
-    if (e.touches.length > 1) return;
+    if (interactionLocked || e.touches.length > 1) return;
     const touch = e.touches[0];
     const cell = getCellFromTouch(touch);
     if (!cell) return;
-
     mouseDownPos = { x: touch.clientX, y: touch.clientY };
     isDragging = false;
     e.preventDefault();
   }, { passive: false });
 
   board.addEventListener("touchmove", function(e) {
-    if (interactionLocked) return;
-    if (!mouseDownPos) return;
-    if (e.touches.length > 1) return;
+    if (interactionLocked || !mouseDownPos || e.touches.length > 1) return;
     const touch = e.touches[0];
     const cell = getCellFromTouch(touch);
     if (!cell) return;
-
     const dx = touch.clientX - mouseDownPos.x;
     const dy = touch.clientY - mouseDownPos.y;
     const dist = Math.sqrt(dx*dx + dy*dy);
@@ -651,12 +670,11 @@
         isDragging = true;
         startCell = cell;
         endCell = null;
-        updateCellStyles();
       } else {
         endCell = cell;
         if (startCell) startCell.classList.remove("start-cell");
-        updateCellStyles();
       }
+      updateCellStyles();
     }
     e.preventDefault();
   }, { passive: false });
@@ -670,7 +688,6 @@
       return;
     }
     const cell = getCellFromTouch(touch);
-
     let dx = touch.clientX - mouseDownPos.x;
     let dy = touch.clientY - mouseDownPos.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
@@ -691,9 +708,7 @@
   }, { passive: false });
 
   function handleCellClick(cell) {
-    if (interactionLocked) return;
-    if (!cell.classList.contains("cell")) return;
-
+    if (interactionLocked || !cell.classList.contains("cell")) return;
     if (startCell === null) {
       startCell = cell;
       endCell = null;
@@ -705,24 +720,13 @@
       endCell = null;
     }
     updateCellStyles();
-
     if (startCell && endCell) {
       tryConfirmRectangle();
     }
   }
 
-  resetBtn.addEventListener("click", () => {
-    const s = stageStates[currentStage];
-    s.rectangles.forEach(r => r.element?.remove());
-    s.rectangles = [];
-    s.completed = false;
-    resetSelection();
-    renderStage(currentStage);
-  });
-
-  /* 퍼즐 완료 여부 검사 */
-  function checkComplete() {
-    const { width, height, rectangles } = stageStates[currentStage];
+  function checkAutoComplete() {
+    const { width, height, rectangles } = stageHistory[currentStage];
     const covered = Array.from({ length: height }, () => Array(width).fill(false));
 
     for (const r of rectangles) {
@@ -734,26 +738,31 @@
     }
 
     const allCovered = covered.every(row => row.every(cell => cell));
-    if (allCovered) {
-      stageStates[currentStage].completed = true;
+    if (allCovered && rectangles.length > 0) {
+      stageHistory[currentStage].completed = true;
       lockInteraction();
       updateStageButtons();
 
-      /* 성공 시 모달 시스템 연동 (다음 단계 이동 기능 추가) */
-      const isLastStage = currentStage === Object.keys(stages).length;
+      const isLastStage = currentStage === Object.keys(dataSets).length;
       const descText = isLastStage ? "축하합니다! 모든 퍼즐 단계를 정복하셨습니다." : "참 잘하셨습니다! 다음 단계의 퍼즐이 기다리고 있습니다.";
       const btnText = isLastStage ? "처음으로 가기" : "다음 단계로";
 
       showModal("success", "🎉 성공!", descText, btnText, () => {
-        if (isLastStage) {
-          currentStage = 1;
-        } else {
-          currentStage += 1;
-        }
+        if (isLastStage) currentStage = 1;
+        else currentStage += 1;
         renderStage(currentStage);
       });
     }
   }
+
+  resetBtn.addEventListener("click", () => {
+    const s = stageHistory[currentStage];
+    s.rectangles.forEach(r => r.element?.remove());
+    s.rectangles = [];
+    s.completed = false;
+    resetSelection();
+    renderStage(currentStage);
+  });
 
   function lockInteraction() {
     interactionLocked = true;
@@ -770,7 +779,7 @@
       const stage = +btn.dataset.stage;
       btn.classList.remove("selected", "completed");
       if (stage === currentStage) btn.classList.add("selected");
-      if (stageStates[stage]?.completed) btn.classList.add("completed");
+      if (stageHistory[stage]?.completed) btn.classList.add("completed");
     });
   }
 
