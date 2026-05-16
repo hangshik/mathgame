@@ -1,302 +1,658 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>숫자 야구 게임</title>
+  <!-- Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border: #e9ecef;
+      --btn-gray: #f8f9fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', sans-serif;
+      -webkit-touch-callout: none;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: manipulation;
+    }
+
+    .section-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
+    }
+
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      width: 100%;
+    }
+
+    h1.game-title {
+      font-size: 36px;
+      font-weight: 800;
       text-align: center;
-      padding: 20px;
-      background-color: #f4f4f9;
-      color: #333;
-      font-size: 24px;
+      margin: 15px 0 25px 0;
+      color: var(--text-main);
     }
-    .hidden {
-      display: none;
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
     }
-    input {
-      margin: 5px;
-      padding: 10px;
-      font-size: 24px;
-      width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+
+    .stage-btn {
+      background-color: var(--btn-gray);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 12px 0;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 24px;
-      background-color: #007BFF;
+
+    .stage-btn:hover {
+      background-color: var(--border);
+    }
+
+    .stage-btn.current {
+      background-color: var(--active);
+      color: #fff;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .play-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .game-input {
+      flex: 1;
+      padding: 14px;
+      font-size: 20px;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .game-input:focus {
+      border-color: var(--active);
+    }
+
+    .submit-btn {
+      padding: 0 24px;
+      font-size: 18px;
+      font-weight: 700;
+      background-color: var(--active);
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 12px;
       cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .result {
-      margin-top: 20px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      background-color: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .result p {
-      margin: 5px 0;
-      font-size: 24px;
+      white-space: nowrap; 
     }
 
-    /* 기록 박스 스타일 */
-    .record-box {
-      background: white;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 20px;
-      display: none;
-    }
-
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      font-size: 24px;
+    .log-container {
       width: 100%;
-    }
-    table, th, td {
-      border: 1px solid #333;
-      padding: 10px;
-      text-align: center;
+      max-width: 500px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafafa;
     }
 
-    .reset-btn {   /* 🔧 수정됨: 박스 내부에 들어가는 초기화 버튼 스타일 */
-      background-color: #dc3545;
-      margin-top: 15px;
-      width: 100%;
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 18px;
+      word-break: keep-all;
     }
-    .reset-btn:hover {
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .log-item .out { color: var(--text-sub); }
+    .log-item .hit { color: var(--danger); font-weight: 700; }
+    .log-item .success-hit { color: var(--success); font-weight: 700; }
+
+    .control-zone {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .action-btn {
+      height: 54px;
+      width: 100%;
+      max-width: 240px;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+
+    /* 🔧 현재 단계 초기화 버튼: 흰색 바탕에 검은색 글자, 회색 테두리 추가 */
+    .btn-reset {
+      background-color: #ffffff;
+      color: #222222;
+      border: 2px solid #cccccc;
+    }
+    .btn-reset:hover {
+      background-color: #f8f9fa;
+      border-color: #999999;
+    }
+
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      font-size: 17px;
+      line-height: 1.6;
+      word-break: keep-all;
+      color: var(--text-sub);
+    }
+    .guide-box h3 {
+      font-size: 18px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .stats-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .stats-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .clear-history-btn {
+      background-color: var(--danger);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .clear-history-btn:hover {
       background-color: #b02a37;
     }
 
-    #digit-count {
-      font-size: 25px;
+    .guide-blue { border-left: 6px solid var(--active); }
+    .guide-green { border-left: 6px solid var(--success); }
+    .guide-red { border-left: 6px solid var(--danger); }
+
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 15px;
     }
+    .record-table th, .record-table td {
+      border: 1px solid var(--border);
+      padding: 6px;
+      text-align: center;
+    }
+    .record-table th { background-color: var(--btn-gray); }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      width: 90%;
+      max-width: 350px;
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-card.success-mode { border-top: 6px solid var(--success); }
+    .modal-card.danger-mode { border-top: 6px solid var(--danger); }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 15px;
+    }
+    .modal-card.success-mode .modal-title { color: var(--success); }
+    .modal-card.danger-mode .modal-title { color: var(--danger); }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: white;
+    }
+    .modal-card.success-mode .modal-btn { background-color: var(--success); }
+    .modal-card.danger-mode .modal-btn { background-color: var(--danger); }
   </style>
 </head>
 <body>
 
-  <h1>숫자 야구 게임</h1>
-
-  <label for="digit-count">숫자의 개수를 선택하세요:</label>
-  <select id="digit-count">
-    <option value="3">3개</option>
-    <option value="4">4개</option>
-  </select>
-  <button id="start-game">게임 시작</button>
-
-  <div id="game-area" class="hidden">
-    <p>숫자를 입력하세요:</p>
-    <input id="user-input" type="number" maxlength="4" placeholder="예: 1234" style="width: 150px">
-    <button id="submit-guess">제출</button>
-    <div class="result" id="result"></div>
+  <!-- [영역 1-A: 퍼즐 제목 영역] -->
+  <div class="section-wrapper">
+    <h1 class="game-title">숫자 야구 게임</h1>
   </div>
 
-  <!-- 3개 기록 박스 -->
-  <div id="record-box-3" class="record-box">
-    <h2>3개 숫자 누적 기록</h2>
-    <div id="record-table-3"></div>
-
-    <!-- 🔧 수정됨: 기록이 있을 때만 표시되는 초기화 버튼 -->
-    <button id="reset-record-3" class="reset-btn hidden">3개 기록 초기화</button>
+  <!-- [영역 1-B: 단계 선택 영역] -->
+  <div class="section-wrapper container-fixed">
+    <div class="stage-grid" id="stage-grid"></div>
   </div>
 
-  <!-- 4개 기록 박스 -->
-  <div id="record-box-4" class="record-box">
-    <h2>4개 숫자 누적 기록</h2>
-    <div id="record-table-4"></div>
+  <!-- [영역 2: 퍼즐 문제 영역] -->
+  <div class="section-wrapper container-fixed">
+    <div class="play-zone">
+      <div style="text-align: center;">
+        <span id="digit-indicator" style="font-size: 18px; font-weight: 700; color: var(--active);"></span>
+        <p style="font-size: 15px; color: var(--text-sub); margin-top: 4px;">중복되지 않는 숫자를 조합하세요.</p>
+         <!-- (맨 앞 0 불가) -->
+      </div>
 
-    <!-- 🔧 수정됨: 기록이 있을 때만 표시되는 초기화 버튼 -->
-    <button id="reset-record-4" class="reset-btn hidden">4개 기록 초기화</button>
+      <div class="input-wrapper">
+        <input type="text" id="game-input" class="game-input" inputmode="numeric" autocomplete="off">
+        <button id="submit-btn" class="submit-btn">제출</button>
+      </div>
+
+      <div class="log-container" id="log-container"></div>
+    </div>
+  </div>
+
+  <!-- [영역 3: 하단 조작 버튼 영역] -->
+  <div class="section-wrapper control-zone">
+    <button id="reset-btn" class="action-btn btn-reset">현재 단계 초기화</button>
+  </div>
+
+  <!-- [영역 4: 퍼즐 규칙 가이드] -->
+  <div class="section-wrapper guide-box guide-blue">
+    <h3>⚾ 게임 규칙</h3>
+    <p>숫자와 자릿수가 모두 맞으면 <b>Strike(S)</b>, 숫자는 맞지만 자릿수가 다르면 <b>Ball(B)</b>이 됩니다. 맞는 숫자가 하나도 없으면 <b>OUT</b> 처리됩니다. <b>0은 맨 앞에 올 수 없습니다.</b></p>
+  </div>
+
+  <!-- [영역 5: 키보드 조작 가이드] -->
+  <div class="section-wrapper guide-box guide-green">
+    <h3>⌨️ 단축키 안내</h3>
+    <p><b>[Enter]</b> : 숫자 제출 및 결과 팝업 확인 / <b>[ESC]</b> : 현재 게임 초기화 및 입력란 포커스</p>
+  </div>
+
+  <!-- [영역 6: 누적 성공 기록] -->
+  <div class="section-wrapper guide-box guide-red">
+    <div class="stats-header-container">
+      <span class="stats-title">📊 누적 성공 통계</span>
+      <button class="clear-history-btn" id="clear-history">누적 기록 초기화</button>
+    </div>
+    <div id="statistics-area"></div>
+  </div>
+
+  <!-- 결과 알림 팝업창 -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card" id="modal-card">
+      <div class="modal-title" id="modal-title">🎉 성공!</div>
+      <div class="modal-body" id="modal-body">정답을 맞췄습니다.</div>
+      <button class="modal-btn" id="modal-close-btn">확인</button>
+    </div>
   </div>
 
   <script>
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    const startGameButton = document.getElementById('start-game');
-    const digitCountSelect = document.getElementById('digit-count');
-    const gameArea = document.getElementById('game-area');
-    const userInput = document.getElementById('user-input');
-    const submitGuessButton = document.getElementById('submit-guess');
-    const resultDiv = document.getElementById('result');
+    const dataSets = [
+      { stage: 1, digits: 3, label: "3자리 숫자 야구" },
+      { stage: 2, digits: 4, label: "4자리 숫자 야구" }
+    ];
 
-    const recordBox3 = document.getElementById('record-box-3');
-    const recordBox4 = document.getElementById('record-box-4');
-    const recordTable3 = document.getElementById('record-table-3');
-    const recordTable4 = document.getElementById('record-table-4');
+    let stageHistory = {}; 
+    let globalStats = JSON.parse(localStorage.getItem('baseball_stats')) || { 3: {}, 4: {} };
 
-    const resetBtn3 = document.getElementById('reset-record-3');  // 🔧
-    const resetBtn4 = document.getElementById('reset-record-4');  // 🔧
+    let currentStageIdx = 0;
+    let currentDigits = 3;
 
-    let answer = '';
-    let attemptCount = 0;
-    let gameFinished = false;
-    let digitCount = 3;
+    const stageGrid = document.getElementById('stage-grid');
+    const gameInput = document.getElementById('game-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const logContainer = document.getElementById('log-container');
+    const digitIndicator = document.getElementById('digit-indicator');
+    const resetBtn = document.getElementById('reset-btn');
+    const clearHistoryBtn = document.getElementById('clear-history');
+    const statisticsArea = document.getElementById('statistics-area');
 
-    const successRecords3 = {};
-    const successRecords4 = {};
+    const modalOverlay = document.getElementById('modal-overlay');
+    const mCard = document.getElementById('modal-card');
+    const mTitle = document.getElementById('modal-title');
+    const mBody = document.getElementById('modal-body');
+    const mCloseBtn = document.getElementById('modal-close-btn');
 
-    function updateRecordTables() {
-      renderRecordTable(successRecords3, recordTable3, recordBox3, resetBtn3);
-      renderRecordTable(successRecords4, recordTable4, recordBox4, resetBtn4);
-    }
-
-    /* 테이블 렌더링 공통 함수 */
-    function renderRecordTable(records, tableDiv, boxDiv, resetButton) {
-      const keys = Object.keys(records).map(Number).sort((a, b) => a - b);
-
-      // 기록 없음 → 박스 숨김 + 초기화 버튼 숨김
-      if (keys.length === 0) {
-        boxDiv.style.display = "none";
-        tableDiv.innerHTML = "";
-        resetButton.classList.add("hidden");
-        return;
-      }
-
-      // 기록 있음 → 박스 표시 + 초기화 버튼 표시
-      boxDiv.style.display = "block";
-      resetButton.classList.remove("hidden");
-
-      let headerRow = "<tr><th>시도횟수</th>";
-      let dataRow = "<tr><th>성공횟수</th>";
-      let total = 0;
-
-      keys.forEach(k => {
-        headerRow += `<td>${k}</td>`;
-        dataRow += `<td>${records[k]}</td>`;
-        total += records[k];
+    function initGame() {
+      stageGrid.innerHTML = '';
+      dataSets.forEach((data, index) => {
+        const btn = document.createElement('button');
+        btn.classList.add('stage-btn');
+        btn.innerText = data.label;
+        btn.setAttribute('data-index', index);
+        btn.addEventListener('click', () => switchStage(index));
+        stageGrid.appendChild(btn);
+        
+        if (!stageHistory[index]) {
+          stageHistory[index] = generateNewState(data.digits);
+        }
       });
 
-      headerRow += "<td>합계</td></tr>";
-      dataRow += `<td>${total}</td></tr>`;
-
-      tableDiv.innerHTML = `
-        <table>
-          ${headerRow}
-          ${dataRow}
-        </table>
-      `;
+      switchStage(0);
+      renderStatistics();
     }
 
+    function generateNewState(digits) {
+      return {
+        digits: digits,
+        answer: generateUniqueRandom(digits),
+        logs: [],
+        attempts: 0,
+        isCleared: false,
+        shouldResetOnNextSubmit: false
+      };
+    }
 
-    function generateRandomNumber(digits) {
-      const numbers = [];
-      numbers.push(Math.floor(Math.random() * 9) + 1);
-
-      while (numbers.length < digits) {
-        const rd = Math.floor(Math.random() * 10);
-        if (!numbers.includes(rd)) numbers.push(rd);
+    function generateUniqueRandom(digits) {
+      const pool = ['1','2','3','4','5','6','7','8','9','0'];
+      const firstIdx = Math.floor(Math.random() * 9);
+      const answer = [pool.splice(firstIdx, 1)[0]];
+      
+      while(answer.length < digits) {
+        const rIdx = Math.floor(Math.random() * pool.length);
+        answer.push(pool.splice(rIdx, 1)[0]);
       }
-      return numbers.join('');
+      return answer.join('');
     }
 
-    function startGame() {
-      digitCount = parseInt(digitCountSelect.value);
+    function switchStage(index) {
+      currentStageIdx = index;
+      currentDigits = dataSets[index].digits;
 
-      answer = generateRandomNumber(digitCount);
-      attemptCount = 0;
-      gameFinished = false;
+      const buttons = stageGrid.querySelectorAll('.stage-btn');
+      buttons.forEach((btn, idx) => {
+        btn.classList.remove('current');
+        if (idx === index) {
+          btn.classList.add('current');
+        }
+      });
 
-      gameArea.classList.remove('hidden');
-      resultDiv.innerHTML = '';
-      userInput.value = '';
-      userInput.maxLength = digitCount;
-      userInput.placeholder = digitCount === 3 ? "예: 123" : "예: 1234";
+      gameInput.maxLength = currentDigits;
+      gameInput.placeholder = `예: ${stageHistory[index].answer.substring(0, currentDigits)}`;
+      digitIndicator.innerText = `${currentDigits}자리 숫자 야구`;
 
-      submitGuessButton.disabled = false;
-      userInput.disabled = false;
-
-      updateRecordTables();
-      setTimeout(() => userInput.focus(), 50);
+      restoreStageData(index);
     }
 
-    startGameButton.addEventListener('click', startGame);
+    function restoreStageData(index) {
+      const state = stageHistory[index];
+      logContainer.innerHTML = '';
+      
+      if (state.logs.length === 0) {
+        logContainer.style.display = 'none';
+      } else {
+        logContainer.style.display = 'block';
+        state.logs.forEach(log => {
+          const row = document.createElement('div');
+          row.classList.add('log-item');
+          
+          let resultClass = 'hit';
+          if (log.out) resultClass = 'out';
+          if (log.result.includes('정답')) resultClass = 'success-hit';
 
-    function checkGuess(guess) {
-      let strikes = 0, balls = 0;
-      for (let i = 0; i < guess.length; i++) {
-        if (guess[i] === answer[i]) strikes++;
-        else if (answer.includes(guess[i])) balls++;
+          row.innerHTML = `<span>[${log.count}회] ${log.guess}</span> <span class="${resultClass}">${log.result}</span>`;
+          logContainer.appendChild(row);
+        });
+      }
+
+      gameInput.disabled = false;
+      submitBtn.disabled = false;
+      gameInput.value = '';
+      setTimeout(() => gameInput.focus(), 50);
+    }
+
+    function evaluateGuess(guess, answer) {
+      let strikes = 0;
+      let balls = 0;
+      
+      for(let i=0; i<guess.length; i++) {
+        if(guess[i] === answer[i]) {
+          strikes++;
+        } else if(answer.includes(guess[i])) {
+          balls++;
+        }
       }
       return { strikes, balls };
     }
 
-    function handleSubmit() {
-      if (gameFinished) return;
+    function processSubmit() {
+      let state = stageHistory[currentStageIdx];
 
-      const guess = userInput.value;
+      if (state.shouldResetOnNextSubmit) {
+        stageHistory[currentStageIdx] = generateNewState(currentDigits);
+        state = stageHistory[currentStageIdx];
+      }
 
-      if (guess.length !== answer.length || new Set(guess).size !== guess.length) {
-        alert(`중복되지 않는 ${answer.length}자리 숫자를 입력하세요.`);
+      const guess = gameInput.value.trim();
+
+      if (guess.startsWith('0')) {
+        showModal(false, `입력 오류`, `맨 앞자리에는 숫자 0이 올 수 없습니다.`);
         return;
       }
 
-      attemptCount++;
-      const { strikes, balls } = checkGuess(guess);
-
-      const resultText = document.createElement('p');
-
-      if (strikes === answer.length) {
-        resultText.textContent = `정답입니다! 정답은 ${answer}였습니다.`;
-        resultText.style.color = 'green';
-        resultText.style.fontWeight = 'bold';
-        resultDiv.appendChild(resultText);
-
-        gameFinished = true;
-        submitGuessButton.disabled = true;
-        userInput.disabled = true;
-
-        if (digitCount === 3) {
-          successRecords3[attemptCount] = (successRecords3[attemptCount] || 0) + 1;
-        } else {
-          successRecords4[attemptCount] = (successRecords4[attemptCount] || 0) + 1;
-        }
-
-        updateRecordTables();
-      } else {
-        resultText.textContent = `${guess}: ${strikes}S ${balls}B`;
-        resultDiv.appendChild(resultText);
+      if (guess.length !== currentDigits || isNaN(guess)) {
+        showModal(false, `경고`, `올바른 ${currentDigits}자리 숫자를 입력하세요.`);
+        return;
+      }
+      if (new Set(guess).size !== guess.length) {
+        showModal(false, `중복 차단`, `중복된 숫자는 입력할 수 없습니다.`);
+        return;
       }
 
-      userInput.value = '';
-      userInput.focus();
+      state.attempts++;
+      const { strikes, balls } = evaluateGuess(guess, state.answer);
+      
+      let resultText = '';
+      let isOut = false;
+
+      if (strikes === currentDigits) {
+        resultText = '정답 🎉';
+        state.isCleared = true;
+        state.shouldResetOnNextSubmit = true;
+        
+        globalStats[currentDigits][state.attempts] = (globalStats[currentDigits][state.attempts] || 0) + 1;
+        localStorage.setItem('baseball_stats', JSON.stringify(globalStats));
+        renderStatistics();
+      } else if (strikes === 0 && balls === 0) {
+        resultText = 'OUT';
+        isOut = true;
+      } else {
+        resultText = `${strikes}S ${balls}B`;
+      }
+
+      state.logs.push({ count: state.attempts, guess, result: resultText, out: isOut });
+      
+      restoreStageData(currentStageIdx);
+
+      if (state.isCleared) {
+        showModal(true, `🎉 성공!`, `${state.attempts}번째 시도 끝에 정답 [${state.answer}]을(를) 맞추셨습니다.`);
+      }
     }
 
-    submitGuessButton.addEventListener('click', handleSubmit);
-    userInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') handleSubmit();
+    function showModal(isSuccess, title, msg) {
+      mCard.className = 'modal-card ' + (isSuccess ? 'success-mode' : 'danger-mode');
+      mTitle.innerText = title;
+      mBody.innerText = msg;
+      
+      if (isSuccess) {
+        mCloseBtn.innerText = "계속 하기";
+      } else {
+        mCloseBtn.innerText = "다시 시도";
+      }
+      
+      modalOverlay.classList.add('active');
+      mCloseBtn.focus();
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      setTimeout(() => gameInput.focus(), 50);
+    }
+
+    function resetCurrentStage() {
+      stageHistory[currentStageIdx] = generateNewState(currentDigits);
+      switchStage(currentStageIdx);
+    }
+
+    function renderStatistics() {
+      let html = '';
+      const activeDigits = dataSets.map(d => d.digits);
+
+      activeDigits.forEach(dig => {
+        const records = globalStats[dig] || {};
+        const keys = Object.keys(records).map(Number).sort((a,b)=>a-b);
+        
+        if (keys.length > 0) {
+          html += `<div style="margin-top:12px;"><strong style="color:var(--active);">${dig}자리 숫자 야구 통계</strong>`;
+          let header = '<tr><th>시도 횟수</th>';
+          let data = '<tr><td>성공 카운트</td>';
+          let sum = 0;
+
+          keys.forEach(k => {
+            header += `<td>${k}회</td>`;
+            data += `<td>${records[k]}번</td>`;
+            sum += records[k];
+          });
+          header += '<th>종합</th></tr>';
+          data += `<td><b>${sum}회 완수</b></td></tr>`;
+
+          html += `<table class="record-table">${header}${data}</table></div>`;
+        }
+      });
+
+      statisticsArea.innerHTML = html || '<p style="font-size:14px; color:#999; margin-top:8px;">아직 기록된 클리어 이력이 없습니다.</p>';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (modalOverlay.classList.contains('active')) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          closeModal();
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        processSubmit();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        resetCurrentStage();
+      }
     });
 
-    /* 🔧 3개 기록 초기화 버튼 */
-    resetBtn3.addEventListener('click', () => {
-      for (let k in successRecords3) delete successRecords3[k];
-      updateRecordTables();
-      alert("3개 숫자 기록이 초기화되었습니다.");
+    submitBtn.addEventListener('click', processSubmit);
+    resetBtn.addEventListener('click', resetCurrentStage);
+    mCloseBtn.addEventListener('click', closeModal);
+    
+    clearHistoryBtn.addEventListener('click', () => {
+      if(confirm('모든 누적 통계 데이터를 삭제하시겠습니까?')) {
+        globalStats = { 3: {}, 4: {} };
+        localStorage.removeItem('baseball_stats');
+        renderStatistics();
+        dataSets.forEach((_, i) => stageHistory[i] = generateNewState(dataSets[i].digits));
+        switchStage(currentStageIdx);
+      }
     });
 
-    /* 🔧 4개 기록 초기화 버튼 */
-    resetBtn4.addEventListener('click', () => {
-      for (let k in successRecords4) delete successRecords4[k];
-      updateRecordTables();
-      alert("4개 숫자 기록이 초기화되었습니다.");
-    });
-
+    window.onload = initGame;
   </script>
 </body>
 </html>
