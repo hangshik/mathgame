@@ -95,18 +95,22 @@
       flex-direction: column;
       align-items: center;
       gap: 20px;
+      width: 100%;
     }
 
     .input-wrapper {
       display: flex;
-      gap: 10px;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 8px;
       width: 100%;
       max-width: 400px;
     }
 
     .game-input {
       flex: 1;
-      padding: 14px;
+      min-width: 0;
+      padding: 14px 10px;
       font-size: 20px;
       font-weight: 700;
       border: 2px solid var(--border);
@@ -122,8 +126,8 @@
     }
 
     .submit-btn {
-      padding: 0 24px;
-      font-size: 18px;
+      padding: 0 20px;
+      font-size: 17px;
       font-weight: 700;
       background-color: var(--active);
       color: white;
@@ -131,6 +135,7 @@
       border-radius: 12px;
       cursor: pointer;
       white-space: nowrap; 
+      flex-shrink: 0;
     }
 
     .log-container {
@@ -177,7 +182,6 @@
       transition: all 0.2s ease;
     }
 
-    /* 🔧 현재 단계 초기화 버튼: 흰색 바탕에 검은색 글자, 회색 테두리 추가 */
     .btn-reset {
       background-color: #ffffff;
       color: #222222;
@@ -200,9 +204,13 @@
     }
     .guide-box h3 {
       font-size: 18px;
-      color: var(--text-main);
       margin-bottom: 6px;
     }
+
+    /* 🔧 각 성격별 타이틀 컬러 명시적 지정 */
+    .guide-blue h3 { color: var(--active); }   /* 파란색 */
+    .guide-green h3 { color: var(--success); } /* 녹색 */
+    .guide-red .stats-title { color: var(--danger); }  /* 빨간색 */
 
     .stats-header-container {
       display: flex;
@@ -214,7 +222,6 @@
     .stats-title {
       font-size: 18px;
       font-weight: 700;
-      color: var(--text-main);
     }
 
     .clear-history-btn {
@@ -335,7 +342,7 @@
       <div style="text-align: center;">
         <span id="digit-indicator" style="font-size: 18px; font-weight: 700; color: var(--active);"></span>
         <p style="font-size: 15px; color: var(--text-sub); margin-top: 4px;">중복되지 않는 숫자를 조합하세요.</p>
-         <!-- (맨 앞 0 불가) -->
+        <!-- (맨 앞 0 불가) -->
       </div>
 
       <div class="input-wrapper">
@@ -355,7 +362,8 @@
   <!-- [영역 4: 퍼즐 규칙 가이드] -->
   <div class="section-wrapper guide-box guide-blue">
     <h3>⚾ 게임 규칙</h3>
-    <p>숫자와 자릿수가 모두 맞으면 <b>Strike(S)</b>, 숫자는 맞지만 자릿수가 다르면 <b>Ball(B)</b>이 됩니다. 맞는 숫자가 하나도 없으면 <b>OUT</b> 처리됩니다. <b>0은 맨 앞에 올 수 없습니다.</b></p>
+    <p>• 숫자와 자릿수가 모두 맞으면 <b>Strike(S)</b>, 숫자는 맞지만 자릿수가 다르면 <b>Ball(B)</b>이 됩니다. 맞는 숫자가 하나도 없으면 <b>OUT</b> 처리됩니다. <br>
+      • 0은 맨 앞에 올 수 없습니다.</p>
   </div>
 
   <!-- [영역 5: 키보드 조작 가이드] -->
@@ -563,7 +571,7 @@
       restoreStageData(currentStageIdx);
 
       if (state.isCleared) {
-        showModal(true, `🎉 성공!`, `${state.attempts}번째 시도 끝에 정답 [${state.answer}]을(를) 맞추셨습니다.`);
+        showModal(true, `🎉 성공!`, `${state.attempts}번째 시도 끝에 정답을 맞추셨습니다.`);
       }
     }
 
