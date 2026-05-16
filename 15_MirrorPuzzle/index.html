@@ -233,7 +233,7 @@
       outline: none;
     }
 
-    /* 영역 5: 하단 가이드 공간 - 흰색 배경 및 왼쪽 녹색 포인트 바 적용 */
+    /* 영역 5: 하단 가이드 공간 */
     .keyboard-info {
       background: var(--card-bg);
       padding: 15px 20px; 
@@ -248,7 +248,13 @@
       text-align: left;
     }
 
-    /* 영역 5: 결과 알림 팝업창 */
+    .keyboard-info h3 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      color: var(--success); /* 녹색 타이틀 지정 */
+    }
+
+    /* 결과 알림 팝업창 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -347,11 +353,10 @@
       </div>
     </div>
 
-    <!-- 영역 5: 하단 가이드 공간 -->
+    <!-- 영역 5: 하단 가이드 공간 (수정 완료) -->
     <div class="keyboard-info">
-      <b style="color: var(--text-main); font-size: 18px; display: block; margin-bottom: 6px;">◈ 키보드 조작 가이드</b>
-      • 처음으로: <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">R</kbd> 키<br>
-      • 정답확인: <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">Space</kbd> 바 또는 <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">Enter</kbd> 키
+      <h3>⌨️ 단축키 안내</h3>
+      <p><b>[Space]</b> 또는 <b>[Enter]</b> : 정답 확인 및 결과 팝업 확인 / <b>[R]</b> : 현재 단계 초기화</p>
     </div>
   </div>
 
@@ -571,17 +576,17 @@
       cardClass = 'modal-card';
       btnClass = 'modal-btn';
       
-      modalCard.className = 'modal-card';
+      cardCard = document.getElementById('modalCard');
       modalBtn.className = 'modal-btn';
       
       if(type === 'success') {
         modalTitle.className = 'modal-title success';
-        modalCard.classList.add('success-border');
+        modalCard.className = 'modal-card success-border';
         modalBtn.classList.add('success');
         modalBtn.textContent = '다음 단계로';
       } else {
         modalTitle.className = 'modal-title danger';
-        modalCard.classList.add('danger-border');
+        modalCard.className = 'modal-card danger-border';
         modalBtn.classList.add('danger');
         modalBtn.textContent = '다시 시도';
       }
