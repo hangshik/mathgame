@@ -2,80 +2,140 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <!-- 1. 뷰포트 설정: user-scalable=no 로 확대 방지 시도 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>거울퍼즐</title>
+  <!-- Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #f0f0f0;
+      background: var(--bg);
+      color: var(--text-main);
       min-height: 100vh;
       margin: 0;
-      padding: 10px;
-      font-family: sans-serif;
-      
-      /* 2. CSS 설정: 더블 탭 확대 방지 및 터치 반응 속도 향상 */
+      padding: 15px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
       touch-action: manipulation;
-      /* 스크롤 끝에서 튕기는 효과(바운스) 방지 */
       overscroll-behavior: none;
-      -webkit-user-select: none; /* 텍스트 선택 방지 */
+      -webkit-user-select: none;
       user-select: none;
     }
-    .stage-buttons {
-      margin-bottom: 20px;
+
+    .container-fixed {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 4px;
-      max-width: 600px;
+      flex-direction: column;
+      gap: 24px;
     }
+
+    h1 {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 800;
+      margin: 10px 0 0 0;
+      color: var(--text-main);
+    }
+
+    /* 단계 선택 영역 (CSS Grid - 한 줄에 7개 고정) */
+    .stage-buttons {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      background: var(--card-bg);
+      padding: 12px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    }
+
     .stage-buttons button {
-      width: 50px;
-      padding: 8px 0;
-      font-size: 14px;
+      width: 100%;
+      padding: 10px 0;
+      font-size: clamp(11px, 2.3vw, 14px);
+      font-weight: 600;
       cursor: pointer;
-      border: 1px solid #888;
-      background: white;
-      border-radius: 4px;
-      transition: all 0.2s;
+      border: 1px solid #e9ecef;
+      background: #f8f9fa;
+      color: var(--text-sub);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
     }
+
     .stage-buttons button:hover {
-      background: #ddd;
+      background: #e9ecef;
     }
+
     .stage-buttons button.selected {
-      background: #007BFF;
+      background: var(--active);
       color: white;
-      border: 1px solid #007BFF;
+      border-color: var(--active);
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
     }
+
     .stage-buttons button.completed {
-      background: #28a745;
+      background: var(--success);
       color: white;
-      border: 1px solid #28a745;
+      border-color: var(--success);
     }
+
+    /* 영역 2: 퍼즐 문제 영역 */
+    .grid-container {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
     .grid {
       display: grid;
       gap: 0;
-      margin-bottom: 20px;
       width: 100%;
-      max-width: 420px;
       aspect-ratio: 1 / 1;
-      margin: 0 auto 20px;
+      margin: 0 auto;
     }
+
     .cell {
       display: flex;
       justify-content: center;
       align-items: center;
       background: white;
-      font-size: clamp(14px, 4vw, 20px);
+      font-size: clamp(16px, 5.5vw, 26px);
+      font-weight: 700;
       width: 100%;
       height: 100%;
+      color: var(--text-main);
     }
+
     .bordered {
-      border: 1px solid #ccc;
+      border: 1px solid #e2e8f0;
       box-sizing: border-box;
     }
+
     .button-cell {
       border: none;
       background: none;
@@ -85,150 +145,252 @@
       position: relative;
       padding: 0;
     }
+
     .shape {
       width: 100%;
       height: 100%;
       position: relative;
     }
+
     .circle {
-      border: 3px solid green;
+      border: 3px solid var(--success);
       border-radius: 50%;
       background: transparent;
-      width: 60%;
-      height: 60%;
+      width: 55%;
+      height: 55%;
       margin: auto;
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
     }
+
     .slash::before, .backslash::before {
       content: "";
       position: absolute;
       width: 3px;
       height: 141%;
-      background: red;
+      background: var(--danger);
       top: 50%;
       left: 50%;
       transform-origin: center;
     }
+
     .slash::before {
       transform: translate(-50%, -50%) rotate(-45deg);
     }
+
     .backslash::before {
       transform: translate(-50%, -50%) rotate(45deg);
     }
-    .result {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 10px;
-      text-align: center;
-      min-height: 30px; /* 결과 텍스트 영역 확보 */
+
+    /* 영역 3: 하단 조작 버튼 영역 */
+    .buttons-wrapper {
+      width: 100%;
     }
+
     .buttons {
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 10px;
-      margin-top: 10px;
       width: 100%;
-      max-width: 420px;
     }
-    .buttons button {
+
+    .buttons button, .btn-desc {
       flex: 1;
-      height: 50px;
+      height: 54px;
       padding: 0;
-      font-size: 16px;
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-weight: 700;
       cursor: pointer;
-      border: 1px solid #888;
-      background: white;
-      border-radius: 4px;
-      transition: all 0.2s;
+      border: 1px solid #ced4da;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
     }
-    .buttons button:hover {
-      background: #ddd;
+
+    .buttons button:hover, .btn-desc:hover {
+      background: #e9ecef;
+      border-color: #adb5bd;
     }
-    button:focus {
-     outline: none;
-    }
-    #nextBtn:disabled {
-      background: #ccc;
-      color: #666;
-      border: 1px solid #aaa;
-      cursor: not-allowed;
-    }
-    #nextBtn.enabled {
-      background: #007BFF;
+
+    #checkBtn {
+      background: var(--active);
       color: white;
-      border: 1px solid #007BFF;
+      border-color: var(--active);
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    #checkBtn:hover {
+      background: #0069d9;
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    /* 영역 5: 하단 가이드 공간 - 흰색 배경 및 왼쪽 녹색 포인트 바 적용 */
+    .keyboard-info {
+      background: var(--card-bg);
+      padding: 15px 20px; 
+      border-radius: 12px;
+      border-left: 6px solid var(--success);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--text-sub);
+      width: 100%;
+      word-break: keep-all;
+      text-align: left;
+    }
+
+    /* 영역 5: 결과 알림 팝업창 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 350px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .modal-title.success { color: var(--success); }
+    .modal-title.danger { color: var(--danger); }
+
+    .modal-card.danger-border { border-top: 6px solid var(--danger); }
+    .modal-card.success-border { border-top: 6px solid var(--success); }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
+      transition: background 0.2s;
     }
-    font {
-        display: block;
-        text-align: center;
-        margin-top: 10px;
-        line-height: 1.5;
-    }
+
+    .modal-btn.success { background: var(--success); color: white; }
+    .modal-btn.success:hover { background: #218838; }
+
+    .modal-btn.danger { background: var(--danger); color: white; }
+    .modal-btn.danger:hover { background: #c82333; }
   </style>
 </head>
 <body>
-  <div class="stage-buttons" id="stageButtons"></div>
-  <div class="grid" id="grid"></div>
-  <div class="buttons">
-    <button id="resetBtn">처음으로</button>
-    <button id="checkBtn">정답확인</button>
-    <button id="nextBtn" disabled>다음단계</button>
+
+  <div class="container-fixed">
+    <h1>거울퍼즐</h1>
+
+    <!-- 영역 1: 단계 선택 (7개 고정 구조) -->
+    <div class="stage-buttons" id="stageButtons"></div>
+
+    <!-- 영역 2: 퍼즐 문제 영역 -->
+    <div class="grid-container">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <!-- 영역 3: 하단 조작 버튼 -->
+    <div class="buttons-wrapper">
+      <div class="buttons">
+        <a href="example.html" class="btn-desc">문제 설명</a>
+        <button id="resetBtn">처음으로</button>
+        <button id="checkBtn">정답확인</button>        
+      </div>
+    </div>
+
+    <!-- 영역 5: 하단 가이드 공간 -->
+    <div class="keyboard-info">
+      <b style="color: var(--text-main); font-size: 18px; display: block; margin-bottom: 6px;">◈ 키보드 조작 가이드</b>
+      • 처음으로: <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">R</kbd> 키<br>
+      • 정답확인: <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">Space</kbd> 바 또는 <kbd style="background: #eee; padding: 2px 5px; border-radius: 4px; border: 1px solid #ccc;">Enter</kbd> 키
+    </div>
   </div>
 
-  <div id="result" class="result"></div>
-  <font>
-    ◈ 키보드<br>
-    처음으로: R<br>
-    정답확인: Space<br>
-    다음문제: Enter
-  </font>
-  <a href="example.html" style="
-    display: block;
-    width: 250px;
-    padding: 20px;
-    border: 1px solid #333;
-    border-radius: 12px;
-    background-color: #ffffff;
-    text-align: center;
-    font-family: sans-serif;
-    font-size: 20px;
-    margin: 30px auto;
-    text-decoration: none;
-    color: #000;
-  ">
-    문제 설명
-  </a>
-  
+  <!-- 결과 알림 팝업창 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공!</div>
+      <div class="modal-body" id="modalBody">정답입니다!</div>
+      <button class="modal-btn" id="modalBtn">다음 단계로</button>
+    </div>
+  </div>
+
   <script>
-    // 3. JS 설정: iOS Safari 핀치 줌 방지 (손가락 두 개로 확대 차단)
-    document.addEventListener('gesturestart', function(e) {
-      e.preventDefault();
-    });
-
-    // 더블 탭 확대 방지 (일부 구형 브라우저 대응)
-    document.addEventListener('dblclick', function(event) {
-      event.preventDefault();
-    }, { passive: false });
-
+    // 모바일 환경 최적화 방어 스크립트
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+    document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
     document.addEventListener('contextmenu', e => e.preventDefault());
 
     const stageButtons = document.getElementById('stageButtons');
     const grid = document.getElementById('grid');
-    const result = document.getElementById('result');
     const resetBtn = document.getElementById('resetBtn');
     const checkBtn = document.getElementById('checkBtn');
-    const nextBtn = document.getElementById('nextBtn');
+    
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCard = document.getElementById('modalCard');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalBtn = document.getElementById('modalBtn');
 
     let buttons = [];
     let currentData = [];
     let gridSize = 5;
     let innerSize = 3;
     let currentStage = 1;
+    let isModalOpen = false;
+    let modalType = '';
     const completedStages = new Set();
-    const stageHistory = {};
+    const stageHistory = {}; // 스테이지별 이전 변경 이력 저장 객체
+    const stageFailCounts = {}; // [추가] 스테이지별 오답 횟수 저장 객체
 
     const dataSets = [
       [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
@@ -258,6 +420,8 @@
       [[,,,,2,,],[,2,1,0,0,1,],[3,2,1,0,1,0,],[0,2,1,1,2,1,3],[6,0,2,1,2,1,0],[,1,0,0,0,0,6],[,,,,,,]],
       [[,1,,22,,1,],[,0,2,0,1,0,],[,2,0,0,0,1,],[,0,0,0,0,2,],[,1,0,0,0,1,],[,0,1,2,1,2,],[,1,,,,,]]
     ];
+
+    // 빌드 동적 버튼 생성 (총 26단계)
     for (let i = 1; i <= 26; i++) {
       const btn = document.createElement('button');
       btn.textContent = `${i}단계`;
@@ -272,15 +436,9 @@
       innerSize = stage <= 12 ? 3 : stage <= 22 ? 4 : 5;
       currentData = dataSets[stage - 1];
       
+      closeModal();
       renderGrid();
       updateStageButtons();
-      result.textContent = '';
-      
-      if(completedStages.has(currentStage)) {
-          enableNextBtn();
-      } else {
-          disableNextBtn();
-      }
     }
 
     function renderGrid() {
@@ -288,6 +446,14 @@
       buttons = [];
       grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
       grid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+      if (gridSize === 5) {
+        grid.style.maxWidth = "380px";
+      } else if (gridSize === 6) {
+        grid.style.maxWidth = "450px";
+      } else {
+        grid.style.maxWidth = "520px";
+      }
 
       for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
@@ -301,6 +467,7 @@
             const btn = document.createElement('button');
             btn.className = 'button-cell';
             
+            // 기존 풀이 이력이 있다면 복원, 없다면 0(기본 원)으로 설정
             const historyKey = `${row},${col}`;
             let savedState = 0;
             if (stageHistory[currentStage] && stageHistory[currentStage][historyKey] !== undefined) {
@@ -315,13 +482,14 @@
 
             btn.addEventListener('click', () => {
               let current = parseInt(btn.dataset.state);
-              if (current === 0) current = 2;
-              else if (current === 2) current = 1;
-              else current = 0;
+              if (current === 0) current = 2;       // 원 -> 백슬래시(\)
+              else if (current === 2) current = 1;  // 백슬래시(\) -> 슬래시(/)
+              else current = 0;                     // 슬래시(/) -> 원
               
               btn.dataset.state = current;
               shape.className = `shape ${getShapeClass(current)}`;
               
+              // 유저 조작 세션 이력 보존 기록
               if (!stageHistory[currentStage]) {
                   stageHistory[currentStage] = {};
               }
@@ -331,7 +499,7 @@
             cell.appendChild(btn);
             buttons.push({ row, col, btn, shape });
           } else {
-            cell.textContent = value;
+            cell.textContent = value !== undefined ? value : '';
           }
 
           grid.appendChild(cell);
@@ -343,22 +511,18 @@
       return state === 0 ? 'circle' : state === 1 ? 'slash' : 'backslash';
     }
 
+    // 처음으로 버튼 클릭 이벤트
     resetBtn.addEventListener('click', () => {
       if (stageHistory[currentStage]) {
           stageHistory[currentStage] = {};
       }
-      
-      buttons.forEach(({ row, col, btn, shape }) => {
+      buttons.forEach(({ btn, shape }) => {
         btn.dataset.state = 0;
         shape.className = 'shape circle';
       });
-      result.textContent = '';
-      
-      if (!completedStages.has(currentStage)) {
-          disableNextBtn();
-      }
     });
 
+    // 정답 확인 버튼 클릭 이벤트
     checkBtn.addEventListener('click', () => {
       let correct = 0;
       buttons.forEach(({ row, col, btn }) => {
@@ -367,70 +531,116 @@
         if (answer === state) correct++;
       });
       const total = buttons.length;
+      
       if (correct === total) {
-        result.textContent = '정답입니다!';
-        result.style.color = 'green';
         completedStages.add(currentStage);
-        enableNextBtn();
+        showModal('success', '🎉 성공!', '축하합니다! 정답입니다. 다음 단계로 나아갈 준비가 되었습니다.');
       } else {
-        result.textContent = `틀렸습니다! 현재 ${correct}/${total} 개 맞았습니다.`;
-        result.style.color = 'red';
-        
-        if (!completedStages.has(currentStage)) {
-            disableNextBtn();
-        }
+        // [수정 반영] 오답 발생 시 오답 카운트 증가
+        stageFailCounts[currentStage] = (stageFailCounts[currentStage] || 0) + 1;
+        showModal('danger', '❌ 틀렸습니다!', `현재 ${correct} / ${total} 개 맞았습니다. 다시 한번 고민해보세요!`);
       }
       updateStageButtons();
     });
 
+    // [수정 반영] 오답 횟수를 포함하여 단계 버튼 이름 일괄 업데이트
     function updateStageButtons() {
       document.querySelectorAll('.stage-buttons button').forEach(btn => {
         btn.classList.remove('selected', 'completed');
-        if (parseInt(btn.dataset.stage) === currentStage) {
-          btn.classList.add('selected');
+        const s = parseInt(btn.dataset.stage);
+        
+        // 오답 횟수가 존재하면 텍스트 뒤에 붙여서 표시
+        const failCount = stageFailCounts[s] || 0;
+        if (failCount > 0) {
+          btn.textContent = `${s}단계(${failCount})`;
+        } else {
+          btn.textContent = `${s}단계`;
         }
-        if (completedStages.has(parseInt(btn.dataset.stage))) {
-          btn.classList.add('completed');
-        }
+
+        if (s === currentStage) btn.classList.add('selected');
+        if (completedStages.has(s)) btn.classList.add('completed');
       });
     }
 
-    function enableNextBtn() {
-      nextBtn.disabled = false;
-      nextBtn.classList.add('enabled');
-    }
-    function disableNextBtn() {
-      nextBtn.disabled = true;
-      nextBtn.classList.remove('enabled');
-    }
-
-    nextBtn.addEventListener('click', () => {
-      if (nextBtn.disabled) return;
-
-      let nextStage = currentStage + 1;
-      while (completedStages.has(nextStage) && nextStage <= dataSets.length) {
-        nextStage++;
-      }
-
-      if (nextStage <= dataSets.length) {
-        loadStage(nextStage);
+    // 모달 다이어로그 시스템 관리 함수
+    function showModal(type, title, message) {
+      modalType = type;
+      modalTitle.textContent = title;
+      modalBody.textContent = message;
+      
+      cardClass = 'modal-card';
+      btnClass = 'modal-btn';
+      
+      modalCard.className = 'modal-card';
+      modalBtn.className = 'modal-btn';
+      
+      if(type === 'success') {
+        modalTitle.className = 'modal-title success';
+        modalCard.classList.add('success-border');
+        modalBtn.classList.add('success');
+        modalBtn.textContent = '다음 단계로';
       } else {
-        result.textContent = '모든 단계를 완료했습니다!';
-        result.style.color = 'blue';
+        modalTitle.className = 'modal-title danger';
+        modalCard.classList.add('danger-border');
+        modalBtn.classList.add('danger');
+        modalBtn.textContent = '다시 시도';
+      }
+      
+      modalOverlay.classList.add('active');
+      isModalOpen = true;
+      modalBtn.focus();
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      isModalOpen = false;
+    }
+
+    function handleModalAction() {
+      if (!isModalOpen) return;
+      if (modalType === 'success') {
+        let nextStage = currentStage + 1;
+        while (completedStages.has(nextStage) && nextStage <= dataSets.length) {
+          nextStage++;
+        }
+        if (nextStage <= dataSets.length) {
+          loadStage(nextStage);
+        } else {
+          showModal('success', '🏆 모든 단계 완료!', '거울퍼즐의 모든 스테이지를 클리어하셨습니다!');
+          modalType = 'end';
+          modalBtn.textContent = '확인';
+        }
+      } else {
+        closeModal();
+      }
+    }
+
+    modalBtn.addEventListener('click', handleModalAction);
+    modalOverlay.addEventListener('click', (e) => {
+      if(e.target === modalOverlay && modalType !== 'end') {
+        closeModal();
       }
     });
 
+    // 전역 단축키 키보드 바인딩 이벤트 처리
     document.addEventListener('keydown', function(e) {
-      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32) {
+      if (isModalOpen) {
+        if (e.key === 'Enter' || e.code === 'Space') {
+          e.preventDefault();
+          handleModalAction();
+        }
+        return;
+      }
+
+      if (e.code === 'Space' || e.key === ' ' || e.keyCode === 32 || e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13) {
         e.preventDefault();
         checkBtn.click();
       } else if (e.key === 'r' || e.key === 'R') {
         resetBtn.click();
-      } else if (e.key === 'Enter') {
-        if (!nextBtn.disabled) nextBtn.click();
       }
     });
 
+    // 앱 첫 로드 시 1단계 실행
     loadStage(1);
   </script>
 </body>

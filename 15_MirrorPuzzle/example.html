@@ -4,47 +4,139 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
   <title>거울퍼즐 설명</title>
+  <!-- Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --text-main: #222222;
+      --text-sub: #555555;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+
     body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      margin: 0;
+      padding: 15px 10px;
       display: flex;
       flex-direction: column;
+      justify-content: flex-start;
       align-items: center;
-      background: #f0f0f0;
-      font-family: sans-serif;
+    }
+
+    /* 퍼즐 화면과 동일한 너비 및 테마 설정 */
+    .container-fixed {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 10px 0 0 0;
+      color: var(--text-main);
+    }
+
+    /* 설명 카드 본문 영역 */
+    .desc-card {
+      width: 100%;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      font-size: 20px;
+      line-height: 1.7;
+      color: var(--text-main);
+    }
+
+    /* 이미지 스타일 최적화 */
+    .desc-img {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto 20px auto;
+      border-radius: 8px;
+    }
+
+    .desc-img.small {
+      max-width: 380px;
+    }
+
+    /* 설명 리스트 스타일링 */
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-sub);
+    }
+
+    li {
+      margin-bottom: 12px;
+      word-break: keep-all;
+    }
+
+    li strong {
+      color: var(--text-main);
+    }
+
+    /* 하단 닫기 버튼 (이전 메인 화면 버튼 규격과 통일) */
+    .btn-close {
+      width: 100%;
+      height: 54px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid var(--active);
+      background: var(--active);
+      color: white;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .btn-close:hover {
+      background: #0069d9;
+      border-color: #0069d9;
     }
   </style>
 </head>
 <body>
-  <div style="
-    width: 85%;
-    max-width: 400px;
-    padding: 30px;
-    border: 1px solid #333;
-    border-radius: 12px;
-    background-color: #f9f9f9;
-    font-size: 18px;"
-    >
 
-    <img src="e1.png" width="100%"><br>
-  <li>녹색 원을 클릭하면 빨간색 거울(대각선)이 순서대로 나타납니다. 더 클릭하면 다시 녹색 원이 됩니다.</li>
-  <li>숫자는 해당 위치에서 수평 또는 수직으로 볼 때 보이는 녹색원의 수를 나타냅니다.(단, 빨간색 거울을 통해 반사되는 것도 포함됩니다.)</li>
-  <li>숫자 1과 숫자 4에 대한 것은 아래 그림을 참고하세요. 숫자 4를 따라가보면 녹색 원이 두 번 셀 수도 있습니다.</li>
-  <br><img src="e2.png" width="80%">
+  <div class="container-fixed">
+    <!-- 설명 내용 카드 영역 -->
+    <div class="desc-card">
+      <img src="e1.png" class="desc-img" alt="거울퍼즐 예시 1">
+      
+      <ul>
+        <li>녹색 원을 클릭하면 <strong>빨간색 거울(대각선)</strong>이 순서대로 나타납니다. 더 클릭하면 다시 녹색 원이 됩니다.</li>
+        <li>외곽의 숫자는 해당 위치에서 수평 또는 수직으로 레이저를 쏘아 바라볼 때 <strong>시야에 걸리는 녹색 원의 총 개수</strong>를 나타냅니다. (빨간색 거울에 반사되어 꺾이는 경로에 있는 것도 모두 포함됩니다.)</li>
+        <li>숫자 1과 숫자 4에 대한 것은 아래 그림을 참고하세요. 경로를 따라가다 보면 동일한 녹색 원을 두 번 이상 지나치며 중복으로 셀 수도 있습니다.</li>
+      </ul>
+      
+      <img src="e2.png" class="desc-img small" style="margin-top: 20px;" alt="거울퍼즐 예시 2">
+    </div>
+
+    <!-- 하단 조작 버튼 영역 (이전 화면의 버튼 테마 적용) -->
+    <a href="index.html" class="btn-close">
+      설명 닫기
+    </a>
   </div>
 
-  <a href="index.html" style="
-  width: 250px;
-  padding: 20px;
-  border: 1px solid #333;
-  border-radius: 12px;
-  background-color: #ffffff;
-  text-align: center;
-  font-size: 20px;
-  margin: 50px auto;
-  text-decoration: none;
-  color: #000;
-">
-  닫기
-</a>
 </body>
 </html>
