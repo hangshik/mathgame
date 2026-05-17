@@ -2,219 +2,522 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
   <title>저울 퍼즐</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root {
-      --bg: #f6f8fa; --muted: #6b7280; --accent: #3b82f6;
-      --ok: #16a34a; --danger: #ef4444; --gray: #9ca3af;
-      --beam-color: #374151; --pivot-color: #111827;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-light: #e9ecef;
+      --beam-color: #495057;
+      --pivot-color: #212529;
     }
-    html, body {
-      height: 100%; margin: 0;
-      font-family: Inter, Segoe UI, system-ui, 'Noto Sans KR', sans-serif;
-      background: var(--bg); color: #0f172a;
-    }
-    body, .wrap {
-      display: flex; flex-direction: column; align-items: center;
-      min-height: 100vh; width: 100vw; box-sizing: border-box;
-    }
-    .wrap {
-      max-width: 980px; margin: 20px auto; padding: 18px; width: 100%;
-      display: flex; flex-direction: column; align-items: center;
-    }
-    h1 { margin: 0 0 8px 0; font-size: 20px; text-align: center; }
-    .controls {
-      display: flex; flex-wrap: wrap; gap: 8px;
-      align-items: center; margin: 12px 0; justify-content: center;
-    }
-    select, button {
-      padding: 8px 12px; border-radius: 8px;
-      border: 1px solid rgba(2, 6, 23, 0.06);
-      background: var(--gray); color: white;
-      font-weight: 600; cursor: pointer; transition: background-color 0.2s;
-    }
-    select:hover, button:hover { background-color: #7c8593; }
-    #checkBtn { background: var(--accent); }
-    #checkBtn:hover { background: #60a5fa; }
-    .btn-ready { background: var(--ok); }
-    .btn-ready:hover { background: #4ade80; }
 
-    #blocks {
-      display: flex; gap: 10px; justify-content: center;
-      flex-wrap: wrap; margin: 12px 0; min-height: 56px;
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      touch-action: manipulation;
+    }
+
+    .section-fluid {
+      width: 100%;
+      max-width: 800px;
+      padding: 0 15px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container-fixed {
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .title-area {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .title-area h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1px;
+    }
+
+    .controls-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+    }
+    .control-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    select {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      background-color: #ffffff;
+      color: var(--text-main);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    select:hover {
+      background-color: #e9ecef;
+    }
+
+    .puzzle-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .pool-title {
+      align-self: flex-start;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    #blocks-pool {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      min-height: 64px;
+      width: 100%;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px dashed #ced4da;
     }
     .block-wrapper {
-      width: 56px; height: 56px; display: flex;
-      align-items: center; justify-content: center;
-      /* 블록이 항상 위에 보이도록 z-index 추가 */
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
-      z-index: 10;
     }
     .block {
-      width: 52px; height: 52px; border-radius: 8px; display: flex;
-      align-items: center; justify-content: center; font-weight: 700;
-      cursor: grab; background: linear-gradient(180deg, #e0f2fe, #bae6fd);
-      box-shadow: 0 4px 10px rgba(2, 6, 23, 0.06);
-      user-select: none; transition: box-shadow 0.2s;
-      touch-action: none; /* Prevent scrolling while dragging on mobile */
-      /* 블록이 항상 위에 보이도록 z-index 추가 */
-      position: relative;
-      z-index: 100;
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      cursor: grab;
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      color: #0369a1;
+      border: 1px solid #7dd3fc;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      touch-action: none;
+      transition: transform 0.15s, box-shadow 0.15s;
     }
     .block.selected {
-      box-shadow: 0 0 0 3px var(--accent);
+      transform: scale(1.05);
+      box-shadow: 0 0 0 3px var(--active);
     }
-    
-    /* NEW LAYOUT STYLES */
+
+    .scale-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
+    }
     #answerArea {
       display: flex;
       justify-content: center;
-      align-items: center;
-      gap: 10px;
+      align-items: flex-end;
+      gap: 8px;
       width: 100%;
-      max-width: 800px;
-      margin: 20px 0 10px 0;
-      padding: 10px;
+      padding-bottom: 2px;
     }
     .slot {
-      width: 64px; height: 90px; /* 높이 조정 */
-      border-radius: 10px; background: #fff;
-      border: 1px solid rgba(2, 6, 23, 0.06); display: flex;
-      flex-direction: column; align-items: center; justify-content: center;
+      width: 58px;
+      height: 85px;
+      border-radius: 12px;
+      background: #f8f9fa;
+      border: 2px dashed #dee2e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
       cursor: pointer;
-      /* 블록이 항상 위에 보이도록 z-index 낮게 설정 */
-      position: relative;
-      z-index: 1;
+      transition: background-color 0.2s;
+    }
+    .slot:hover {
+      background-color: #e9ecef;
     }
     .slot-inner {
-      width: 100%; flex-grow: 1; display: flex;
-      align-items: center; justify-content: center;
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .slot-label { font-size: 15px; color: var(--muted); padding-bottom: 5px; }
-
+    .slot-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #adb5bd;
+      background: #ffffff;
+      padding: 1px 6px;
+      border-radius: 20px;
+      border: 1px solid #e9ecef;
+    }
     .separator {
-      width: 30px; /* 좌우 슬롯 사이의 간격 */
+      width: 32px;
     }
-
     .fulcrum-line {
-      /* width는 자바스크립트에서 동적으로 조절됨 */
       height: 8px;
       background: linear-gradient(90deg, var(--pivot-color), var(--beam-color), var(--pivot-color));
-      border-radius: 6px;
+      border-radius: 4px;
       margin: 0 auto;
       transition: width 0.2s;
-      /* max-width: 820px;  제거 */
-      display: block;
     }
     .fulcrum-pivot {
-      width: 0; height: 0;
-      border-left: 28px solid transparent;
-      border-right: 28px solid transparent;
-      border-bottom: 36px solid var(--pivot-color);
-      margin-top: -2px; /* 라인과 살짝 겹치도록 */
+      width: 0;
+      height: 0;
+      border-left: 24px solid transparent;
+      border-right: 24px solid transparent;
+      border-bottom: 32px solid var(--pivot-color);
+      margin-top: -1px;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 10px;
+      font-weight: 700;
+      text-align: center;
+      font-size: 18px;
+    }
+    .message.ok { color: var(--success); }
+    .message.err { color: var(--danger); }
+
+    .control-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+    .action-btn {
+      height: 54px;
+      background-color: #ffffff;
+      color: var(--text-main);
+      border: 1px solid #ced4da;
+      border-radius: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .action-btn:hover:not(:disabled) {
+      background-color: #f8f9fa;
+      border-color: #adb5bd;
     }
     
-    .message {
-      min-height: 22px; margin-top: 16px; font-weight: 700; text-align: center; font-size: 20px;
+    #newBtn.btn-ready {
+      background-color: var(--success) !important;
+      color: #ffffff !important;
+      border: none !important;
+      animation: pulse 1.5s infinite;
     }
-    .message.ok { color: var(--ok); }
-    .message.err { color: var(--danger); }
-    .meta {
-      display: flex; justify-content: center; align-items: center;
-      margin-top: 10px; color: var(--muted); font-size: 22px; width: 100%;
+    
+    .action-btn:disabled {
+      background-color: #e9ecef !important;
+      color: #adb5bd !important;
+      cursor: not-allowed;
+      box-shadow: none;
+      border: 1px solid #dee2e6 !important;
+    }
+
+    #checkBtn:not(:disabled) {
+      background-color: var(--active) !important;
+      color: #ffffff !important;
+      border: none !important;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+    }
+    #checkBtn:not(:disabled):hover {
+      background-color: #0069d9 !important;
+    }
+
+    .stats-table td.attempts-blue {
+      color: var(--active) !important;
+      font-weight: 700;
+    }
+    .stats-table td.attempts-red {
+      color: var(--danger) !important;
+      font-weight: 700;
+    }
+    .stats-table td.hints-blue {
+      color: var(--active) !important;
+      font-weight: 700;
+    }
+    .stats-table td.hints-red {
+      color: var(--danger) !important;
+      font-weight: 700;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); }
+      100% { transform: scale(1); }
+    }
+
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      width: 100%;
+      font-size: 17px;
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+    
+    .guide-box.danger-point { border-left: 6px solid var(--danger); }
+    .guide-box.danger-point h3 { color: var(--danger); }
+    .guide-box.info-point { border-left: 6px solid var(--active); }
+    .guide-box.info-point h3 { color: var(--active); }
+
+    .guide-box h3 {
+      margin: 0 0 12px 0;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .table-container {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
       text-align: center;
+      background-color: #f8f9fa;
+    }
+    .stats-table th {
+      background-color: #e9ecef;
+      color: var(--text-main);
+      font-weight: 700;
+      padding: 10px;
+      font-size: 14px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .stats-table td {
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      border-bottom: 1px solid #edf2f7;
+    }
+    
+    .stats-table tr.latest-record td {
+      background-color: #fff5f5 !important;
+    }
+    
+    .stats-table .empty-row {
+      color: #868e96;
+      font-weight: normal;
+      padding: 20px;
     }
 
     @media (max-width: 720px) {
-      #answerArea { gap: 6px; }
-      .slot { width: 50px; height: 60px; }
-      .block-wrapper { width: 48px; height: 48px; }
-      .block { width: 44px; height: 44px; font-size: 14px; }
-      .separator { width: 15px; }
-      .fulcrum-pivot { border-left-width: 20px; border-right-width: 20px; border-bottom-width: 28px; }
+      .title-area h1 { font-size: 28px; }
+      .control-actions { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      #answerArea { gap: 4px; }
+      .slot { width: 44px; height: 70px; }
+      .block-wrapper { width: 42px; height: 42px; }
+      .block { width: 38px; height: 38px; font-size: 14px; border-radius: 8px; }
+      .separator { width: 14px; }
+      .fulcrum-pivot { border-left-width: 16px; border-right-width: 16px; border-bottom-width: 24px; }
+      .action-btn { height: 48px; font-size: 15px; }
+      .stats-table th, .stats-table td { padding: 8px; font-size: 13px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+
+  <div class="section-fluid title-area">
     <h1>⚖️ 저울 퍼즐</h1>
+  </div>
 
-    <div class="controls">
-      <label>좌/우 슬롯 수: <select id="slotCount"><option selected>3</option><option>4</option><option>5</option></select></label>
-      <label>블록 수: <select id="blockCount"></select></label>
-      <button id="newBtn">새 퍼즐</button>
-      <button id="resetBtn">초기화</button>
-      <button id="hintBtn">힌트</button>
-      <button id="checkBtn">정답 확인</button>
+  <div class="section-fluid">
+    <div class="container-fixed controls-wrapper">
+      <label class="control-label">
+        좌/우 슬롯 수
+        <select id="slotCount">
+          <option value="3" selected>3개</option>
+          <option value="4">4개</option>
+          <option value="5">5개</option>
+        </select>
+      </label>
+      <label class="control-label">
+        무게 블록 수
+        <select id="blockCount"></select>
+      </label>
     </div>
+  </div>
 
-    <div id="blocks" aria-label="블록 목록"></div>
-    
-    <div id="answerArea"></div>
-    <div class="fulcrum-line"></div>
-    <div class="fulcrum-pivot"></div>
+  <div class="section-fluid">
+    <div class="container-fixed puzzle-board">
+      <div style="width:100%">
+        <p class="pool-title">사용 가능한 무게 블록</p>
+        <div id="blocks-pool" aria-label="블록 목록"></div>
+      </div>
+      
+      <div class="scale-container">
+        <div id="answerArea"></div>
+        <div class="fulcrum-line"></div>
+        <div class="fulcrum-pivot"></div>
+      </div>
 
-    <div id="message" class="message"></div>
+      <div id="message" class="message"></div>
+    </div>
+  </div>
 
-    <div class="meta">
-      <div>정답 맞춘 횟수: <strong id="score">0</strong></div>
+  <div class="section-fluid control-actions">
+    <button id="newBtn" class="action-btn">새 퍼즐</button>
+    <button id="resetBtn" class="action-btn">초기화</button>
+    <button id="hintBtn" class="action-btn">힌트</button>
+    <button id="checkBtn" class="action-btn" disabled>정답 확인</button>
+  </div>
+
+  <div class="section-fluid">
+    <div class="guide-box danger-point">
+      <h3>📊 누적 기록</h3>
+      <div class="table-container">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>좌/우 슬롯 수</th>
+              <th>무게 블록 수</th>
+              <th>정답 시도 횟수</th>
+              <th>힌트 사용 횟수</th>
+            </tr>
+          </thead>
+          <tbody id="statsHistoryBody">
+            <tr>
+              <td colspan="4" class="empty-row">아직 성공한 기록이 없습니다. 퍼즐을 맞춰보세요!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-fluid">
+    <div class="guide-box info-point">
+      <h3>💡 게임 규칙</h3>
+      • 모든 블록을 양팔저울의 슬롯에 알맞게 배치하여 좌우 균형을 맞추세요.<br>
+      • 각 슬롯의 <strong>(거리 × 무게)</strong>의 총합(토크)이 양쪽 모두 일치해야 정답 처리가 됩니다. 블록을 터치/클릭 후 배치할 슬롯을 누르거나 드래그앤드롭 하세요. 보관소의 모든 블록이 올려지면 정답 확인 버튼이 활성화됩니다.
     </div>
   </div>
 
 <script>
-    let score = 0;
     let currentWeights = [];
     let solution = [];
     let hintIndex = 0;
+    let hintUsedCount = 0; 
+    let checkAttemptsCount = 0; // 요구사항: 정답 확인 시도 횟수 측정 변수
     let selectedBlock = null;
-    let dragBlock = null; // For touch drag
-    let isCorrect = false; // 정답 상태 플래그
+    let dragBlock = null;
+    let isCorrect = false;
+    let totalBlocksCount = 3; 
+    
+    // 요구사항: 기존에 출제되었던 방식을 기억하기 위한 기출 아카이브 맵 캐싱 데이터 구조
+    // Key 구조 예시: "slot3_block4" -> { currentWeights: [...], solution: [...] }
+    const puzzleHistoryMap = {};
 
     const U = {
         slotCount: document.getElementById('slotCount'),
         blockCount: document.getElementById('blockCount'),
-        blocks: document.getElementById('blocks'),
+        blocks: document.getElementById('blocks-pool'),
         answerArea: document.getElementById('answerArea'),
         newBtn: document.getElementById('newBtn'),
         resetBtn: document.getElementById('resetBtn'),
         hintBtn: document.getElementById('hintBtn'),
         checkBtn: document.getElementById('checkBtn'),
         message: document.getElementById('message'),
-        score: document.getElementById('score'),
+        statsHistoryBody: document.getElementById('statsHistoryBody'),
         fulcrumLine: document.querySelector('.fulcrum-line'),
     };
 
-    function updateBlockOptions() {
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+    document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+
+    function updateBlockOptions(isInitial = false) {
         const s = parseInt(U.slotCount.value, 10);
+        let currentSelectedBlockCount = 3;
+        if (!isInitial) {
+            currentSelectedBlockCount = parseInt(U.blockCount.value, 10) || 3;
+        }
+        
         U.blockCount.innerHTML = '';
         for (let i = 3; i <= s * 2; i++) {
             const o = document.createElement('option');
             o.value = i;
-            o.textContent = i;
+            o.textContent = i + '개';
             U.blockCount.appendChild(o);
         }
-        U.blockCount.value = Math.min(s * 2, 3);
+        U.blockCount.value = Math.min(s * 2, Math.max(3, currentSelectedBlockCount));
+        totalBlocksCount = parseInt(U.blockCount.value, 10);
     }
 
-    // fulcrum-line의 길이를 슬롯 수에 맞게 조절
     function updateFulcrumLineWidth() {
-        // 슬롯 개수(좌+우)와 separator의 개수에 따라 계산
         const slotCount = parseInt(U.slotCount.value, 10);
-        // slot의 width, gap, separator width를 CSS에서 가져옴
-        // slot: 64px, gap: 10px, separator: 30px (PC 기준)
-        // 모바일은 50, 6, 15
-        let slotW = 64, gap = 10, sepW = 30;
+        let slotW = 58, gap = 8, sepW = 32;
         if (window.innerWidth <= 720) {
-            slotW = 50; gap = 6; sepW = 15;
+            slotW = 44; gap = 4; sepW = 14;
         }
-        // 전체 슬롯 개수: 좌+우
         const totalSlots = slotCount * 2;
-        // gap 개수: 슬롯 사이 (좌측 n-1, separator 앞뒤 1, 우측 n-1) = (n-1) + 1 + (n-1) = 2n-1
-        // 실제 answerArea의 gap은 flex로 자동이지만, separator가 있으니 slotCount*2-1개 gap
         const totalGap = (totalSlots - 1) * gap;
-        // 전체 길이 = 슬롯*개수 + gap*개수 + separator
-        const totalWidth = (slotW * totalSlots) + totalGap + sepW + 30;
+        const totalWidth = (slotW * totalSlots) + totalGap + sepW + 10;
         U.fulcrumLine.style.width = totalWidth + "px";
     }
 
@@ -222,26 +525,20 @@
         const s = parseInt(U.slotCount.value, 10);
         U.answerArea.innerHTML = ''; 
 
-        // 왼쪽 슬롯 생성
         for (let i = 0; i < s; i++) {
             const dist = s - i;
-            const slot = createSingleSlot(dist, 'left', i);
-            U.answerArea.appendChild(slot);
+            U.answerArea.appendChild(createSingleSlot(dist, 'left', i));
         }
 
-        // 구분자
         const separator = document.createElement('div');
         separator.className = 'separator';
         U.answerArea.appendChild(separator);
 
-        // 오른쪽 슬롯 생성
         for (let i = 0; i < s; i++) {
             const dist = i + 1;
-            const slot = createSingleSlot(dist, 'right', i);
-            U.answerArea.appendChild(slot);
+            U.answerArea.appendChild(createSingleSlot(dist, 'right', i));
         }
 
-        // 슬롯 생성 후 fulcrum-line 길이 조정
         updateFulcrumLineWidth();
     }
 
@@ -257,6 +554,7 @@
         const labelEl = document.createElement('div');
         labelEl.className = 'slot-label';
         labelEl.textContent = dist;
+        
         slot.appendChild(inner);
         slot.appendChild(labelEl);
         attachSlotEvents(slot);
@@ -275,18 +573,17 @@
                 deselectAllBlocks();
                 selectBlock(existingBlock);
             }
-        } else {
-            // if (selectedBlock === blockToPlace) deselectAllBlocks();
         }
         targetSlot.querySelector('.slot-inner').appendChild(blockToPlace);
         setMessage('');
+        updateInteractiveState();
     }
 
     function attachSlotEvents(slot) {
-        // Drag & Drop (desktop)
         slot.addEventListener('dragover', e => e.preventDefault());
         slot.addEventListener('drop', e => {
             e.preventDefault();
+            if(isCorrect) return;
             const blockId = e.dataTransfer.getData('text');
             const blockEl = document.getElementById(blockId);
             if (!blockEl) return;
@@ -294,54 +591,34 @@
             handleBlockPlacement(slot, blockEl);
         });
 
-        // Click: place selected block, or select block in slot
         slot.addEventListener('click', (e) => {
-            // If block is in slot and user clicks it, select it
+            if(isCorrect) return;
             const block = slot.querySelector('.block');
             if (block && e.target.closest('.block')) {
-                // Select the block in the slot
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
+                if (block.classList.contains('selected')) { deselectAllBlocks(); } 
+                else { selectBlock(block); }
                 return;
             }
-            // Otherwise, try to place selected block
-            if (selectedBlock) {
-                handleBlockPlacement(slot, selectedBlock);
-            }
+            if (selectedBlock) { handleBlockPlacement(slot, selectedBlock); }
         });
 
-        // Touch support for mobile drag & drop
         slot.addEventListener('touchstart', function(e) {
-            // If block is in slot and user touches it, select it
+            if(isCorrect) return;
             const block = slot.querySelector('.block');
             if (block && e.target.closest('.block')) {
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
-                // For drag: allow dragging block from slot
+                if (block.classList.contains('selected')) { deselectAllBlocks(); } 
+                else { selectBlock(block); }
                 dragBlock = block;
-                // Prevent scroll
                 e.preventDefault();
                 return;
             }
-            // If a block is selected, place it here
             if (selectedBlock) {
                 handleBlockPlacement(slot, selectedBlock);
                 e.preventDefault();
             }
         }, {passive: false});
 
-        // Touch drop target for mobile drag
-        slot.addEventListener('touchmove', function(e) {
-            // Prevent scroll while dragging over slot
-            if (dragBlock) e.preventDefault();
-        }, {passive: false});
-
+        slot.addEventListener('touchmove', function(e) { if (dragBlock) e.preventDefault(); }, {passive: false});
         slot.addEventListener('touchend', function(e) {
             if (dragBlock) {
                 handleBlockPlacement(slot, dragBlock);
@@ -353,6 +630,7 @@
     }
 
     function selectBlock(block) {
+        if(isCorrect) return;
         deselectAllBlocks();
         block.classList.add('selected');
         selectedBlock = block;
@@ -363,273 +641,117 @@
         selectedBlock = null;
     }
 
-    function createBlocks(n) {
+    // 요구사항 조율: 기존 로드 및 초기 생성 동시 호환을 위한 생성부 로직 분리 및 고도화
+    function renderBlocksFromArray(weightsArray) {
         U.blocks.innerHTML = '';
-        currentWeights = [];
-        for (let i = 0; i < n; i++) {
+        currentWeights = [...weightsArray];
+        
+        currentWeights.forEach((weight, i) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'block-wrapper';
+            addBlockWrapperDropEvents(wrapper);
+
             const block = document.createElement('div');
             block.className = 'block';
             block.id = 'block' + i;
-            const weight = Math.floor(Math.random() * 9) + 1;
             block.textContent = weight;
             block.dataset.weight = weight;
             block.draggable = true;
 
-            // Desktop drag
             block.addEventListener('dragstart', e => {
+                if(isCorrect) { e.preventDefault(); return; }
                 deselectAllBlocks();
                 e.dataTransfer.setData('text', block.id);
             });
 
-            // Click: select/deselect
             block.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
+                selectBlock(block);
             });
 
-            // Touch support for mobile drag
-            let touchMoved = false;
-            let touchStartX = 0, touchStartY = 0;
             block.addEventListener('touchstart', function(e) {
-                // 👉 단순 터치만으로 선택/해제
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
-
-                // 필요할 때만 드래그 시작
+                selectBlock(block);
                 dragBlock = block;
-
-                // 터치 스크롤 방지
-                e.preventDefault();
-           }, {passive: false});
-
-
-            block.addEventListener('touchmove', function(e) {
-                if (!dragBlock) return;
-                touchMoved = true;
-                // Optionally, show visual feedback
                 e.preventDefault();
             }, {passive: false});
 
+            block.addEventListener('touchmove', function(e) { if (dragBlock) e.preventDefault(); }, {passive: false});
             block.addEventListener('touchend', function(e) {
                 if (!dragBlock) return;
-                // Find the element under the touch point
                 let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-                if (!touch) {
-                    dragBlock = null;
-                    return;
-                }
+                if (!touch) { dragBlock = null; return; }
+                
                 const x = touch.clientX, y = touch.clientY;
                 dragBlock.classList.remove('selected');
                 selectedBlock = null;
-                // Find slot under touch
+                
                 const el = document.elementFromPoint(x, y);
                 const slot = el && el.closest && el.closest('.slot');
                 if (slot) {
                     handleBlockPlacement(slot, block);
                 } else {
-                    // Find block-wrapper under touch
                     const wrapper = el && el.closest && el.closest('.block-wrapper');
-                    if (wrapper) {
-                        wrapper.appendChild(block);
-                    } else {
-                        // If not on a wrapper, find any empty wrapper
+                    if (wrapper) { 
+                        wrapper.appendChild(block); 
+                        setMessage('');
+                    } 
+                    else {
                         const emptyWrapper = findEmptyWrapper();
-                        if (emptyWrapper) emptyWrapper.appendChild(block);
+                        if (emptyWrapper) {
+                            emptyWrapper.appendChild(block);
+                            setMessage('');
+                        }
                     }
                 }
                 dragBlock = null;
-                setMessage('');
+                updateInteractiveState();
                 e.preventDefault();
             }, {passive: false});
 
             wrapper.appendChild(block);
             U.blocks.appendChild(wrapper);
-            currentWeights.push(weight);
+        });
+    }
+
+    function createBlocks(n) {
+        const generatedWeights = [];
+        for (let i = 0; i < n; i++) {
+            generatedWeights.push(Math.floor(Math.random() * 8) + 2);
         }
+        renderBlocksFromArray(generatedWeights);
     }
     
     function findEmptyWrapper() {
         return Array.from(U.blocks.querySelectorAll('.block-wrapper')).find(w => !w.querySelector('.block'));
     }
 
-    // Desktop drag & drop for block area
-    U.blocks.addEventListener('dragover', e => e.preventDefault());
-    U.blocks.addEventListener('drop', e => {
-        e.preventDefault();
-        const blockId = e.dataTransfer.getData('text');
-        const blockEl = document.getElementById(blockId);
-        if (!blockEl) return;
-        const emptyWrapper = findEmptyWrapper();
-        if (emptyWrapper) {
-            emptyWrapper.appendChild(blockEl);
-        }
-        setMessage('');
-    });
-
-    // Touch drop for block area (mobile)
-    U.blocks.addEventListener('touchmove', function(e) {
-        if (dragBlock) e.preventDefault();
-    }, {passive: false});
-    U.blocks.addEventListener('touchend', function(e) {
-        if (!dragBlock) return;
-        let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-        if (!touch) {
-            dragBlock = null;
-            return;
-        }
-        const x = touch.clientX, y = touch.clientY;
-        dragBlock.classList.remove('selected');
-        selectedBlock = null;
-        // Find block-wrapper under touch
-        const el = document.elementFromPoint(x, y);
-        const wrapper = el && el.closest && el.closest('.block-wrapper');
-        if (wrapper) {
-            wrapper.appendChild(dragBlock);
-        } else {
-            // If not on a wrapper, find any empty wrapper
-            const emptyWrapper = findEmptyWrapper();
-            if (emptyWrapper) emptyWrapper.appendChild(dragBlock);
-        }
-        dragBlock = null;
-        setMessage('');
-        e.preventDefault();
-    }, {passive: false});
-    
-    document.body.addEventListener('click', (e) => {
-        if (!e.target.closest('.block, .slot')) {
-            deselectAllBlocks();
-        }
-    });
-
-    // --- 슬롯에 있는 블록도 선택 및 이동 가능하게 ---
-    // (1) .block에 대해 항상 select/deselect 및 drag 가능하게 이미 구현됨
-    // (2) .block이 slot 안에 있든 block-wrapper 안에 있든 동일하게 동작
-
-    // (3) block-wrapper에도 drop 이벤트를 항상 등록 (동적으로 생성되는 경우도 포함)
     function addBlockWrapperDropEvents(wrapper) {
         wrapper.addEventListener('dragover', e => e.preventDefault());
         wrapper.addEventListener('drop', e => {
             e.preventDefault();
+            if(isCorrect) return;
             const blockId = e.dataTransfer.getData('text');
             const blockEl = document.getElementById(blockId);
             if (!blockEl) return;
             wrapper.appendChild(blockEl);
             setMessage('');
+            updateInteractiveState();
         });
     }
 
-    // 기존 block-wrapper에 drop 이벤트 등록
-    function addDropEventsToAllWrappers() {
-        U.blocks.querySelectorAll('.block-wrapper').forEach(addBlockWrapperDropEvents);
-    }
+    function updateInteractiveState() {
+        const poolBlocksCount = U.blocks.querySelectorAll('.block').length;
+        
+        if (poolBlocksCount === 0 && !isCorrect) {
+            U.checkBtn.disabled = false;
+        } else {
+            U.checkBtn.disabled = true;
+        }
 
-    // 최초에 한 번만 호출
-    addDropEventsToAllWrappers();
-
-    // createBlocks에서 새로 생성되는 wrapper에도 drop 이벤트 등록
-    const _origCreateBlocks = createBlocks;
-    createBlocks = function(n) {
-        U.blocks.innerHTML = '';
-        currentWeights = [];
-        for (let i = 0; i < n; i++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'block-wrapper';
-            addBlockWrapperDropEvents(wrapper);
-            const block = document.createElement('div');
-            block.className = 'block';
-            block.id = 'block' + i;
-            const weight = Math.floor(Math.random() * 9) + 1;
-            block.textContent = weight;
-            block.dataset.weight = weight;
-            block.draggable = true;
-
-            // Desktop drag
-            block.addEventListener('dragstart', e => {
-                deselectAllBlocks();
-                e.dataTransfer.setData('text', block.id);
-            });
-
-            // Click: select/deselect
-            block.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
-            });
-
-            // Touch support for mobile drag
-            let touchMoved = false;
-            let touchStartX = 0, touchStartY = 0;
-            block.addEventListener('touchstart', function(e) {
-                if (block.classList.contains('selected')) {
-                    deselectAllBlocks();
-                } else {
-                    selectBlock(block);
-                }
-                // For drag
-                dragBlock = block;
-                touchMoved = false;
-                if (e.touches && e.touches.length > 0) {
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                }
-                // Prevent scroll
-                e.preventDefault();
-            }, {passive: false});
-
-            block.addEventListener('touchmove', function(e) {
-                if (!dragBlock) return;
-                touchMoved = true;
-                // Optionally, show visual feedback
-                e.preventDefault();
-            }, {passive: false});
-
-            block.addEventListener('touchend', function(e) {
-                if (!dragBlock) return;
-                // Find the element under the touch point
-                let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-                if (!touch) {
-                    dragBlock = null;
-                    return;
-                }
-                const x = touch.clientX, y = touch.clientY;
-                dragBlock.classList.remove('selected');
-                selectedBlock = null;
-                // Find slot under touch
-                const el = document.elementFromPoint(x, y);
-                const slot = el && el.closest && el.closest('.slot');
-                if (slot) {
-                    handleBlockPlacement(slot, block);
-                } else {
-                    // Find block-wrapper under touch
-                    const wrapper = el && el.closest && el.closest('.block-wrapper');
-                    if (wrapper) {
-                        wrapper.appendChild(block);
-                    } else {
-                        // If not on a wrapper, find any empty wrapper
-                        const emptyWrapper = findEmptyWrapper();
-                        if (emptyWrapper) emptyWrapper.appendChild(block);
-                    }
-                }
-                dragBlock = null;
-                setMessage('');
-                e.preventDefault();
-            }, {passive: false});
-
-            wrapper.appendChild(block);
-            U.blocks.appendChild(wrapper);
-            currentWeights.push(weight);
+        if ((totalBlocksCount - hintIndex <= 1) && !isCorrect) {
+            U.hintBtn.disabled = true;
+        } else if (!isCorrect) {
+            U.hintBtn.disabled = false;
         }
     }
 
@@ -640,11 +762,8 @@
             if (block) {
                 const dist = Number(slot.dataset.dist);
                 const side = slot.dataset.side;
-                if (side === 'left') {
-                    leftTorque += Number(block.dataset.weight) * dist;
-                } else if (side === 'right') {
-                    rightTorque += Number(block.dataset.weight) * dist;
-                }
+                if (side === 'left') { leftTorque += Number(block.dataset.weight) * dist; } 
+                else if (side === 'right') { rightTorque += Number(block.dataset.weight) * dist; }
             }
         });
         return { L: leftTorque, R: rightTorque };
@@ -677,10 +796,8 @@
                 }
                 return;
             }
-            
             for (let pIdx = 0; pIdx < positions.length; pIdx++) {
                 if (used[pIdx]) continue;
-                
                 used[pIdx] = true;
                 const pos = positions[pIdx];
                 const weight = values[blockIdx];
@@ -692,7 +809,6 @@
                     currentSolution.push({ blockIndex: blockIdx, side: 'right', slotIndex: pos.dist - 1 });
                     dfs(blockIdx + 1, leftTorque, rightTorque + weight * pos.dist, currentSolution);
                 }
-                
                 if (found) return;
                 currentSolution.pop();
                 used[pIdx] = false;
@@ -702,14 +818,57 @@
         return solutionResult;
     }
 
-    function generateSolvablePuzzle(slotCount, blockCount) {
-        setMessage('새 퍼즐 생성 중...');
-        U.newBtn.disabled = true;
-        U.checkBtn.disabled = false;
+    // 요구사항 반영: 과거 출제 내역에 따라 분기 처리하는 핵심 비즈니스 로직
+    function handlePuzzleLoadingOrGeneration(forceNew = false) {
+        const slotCount = parseInt(U.slotCount.value, 10);
+        const blockCount = parseInt(U.blockCount.value, 10);
+        totalBlocksCount = blockCount;
+        
+        const historyKey = `slot${slotCount}_block${blockCount}`;
+
+        // 강제 생성이 아니며, 이미 해당 옵션 조합으로 출제된 기록(history)이 Map에 있는 경우 그대로 계승하여 로딩
+        if (!forceNew && puzzleHistoryMap[historyKey]) {
+            createSlots();
+            const cache = puzzleHistoryMap[historyKey];
+            solution = cache.solution;
+            hintIndex = 0;
+            hintUsedCount = cache.hintUsedCount; // 기존 힌트 카운트 유지
+            checkAttemptsCount = cache.checkAttemptsCount; // 기존 정답 확인 카운트 유지
+            isCorrect = cache.isCorrect;
+            
+            renderBlocksFromArray(cache.weights);
+            
+            if (isCorrect) {
+                setMessage('🎉 이미 해결을 완료했던 퍼즐입니다!', 'ok');
+                U.newBtn.classList.add('btn-ready');
+                U.checkBtn.disabled = true;
+                U.hintBtn.disabled = true;
+                // 정답 슬롯들 강제 재배치 복원
+                solution.forEach(step => {
+                    const targetSlot = U.answerArea.querySelector(`.slot[data-side='${step.side}'][data-index='${step.slotIndex}']`);
+                    const blockEl = document.getElementById('block' + step.blockIndex);
+                    if (targetSlot && blockEl) targetSlot.querySelector('.slot-inner').appendChild(blockEl);
+                });
+            } else {
+                setMessage('');
+                U.newBtn.classList.remove('btn-ready');
+                updateInteractiveState();
+            }
+            return;
+        }
+
+        // 새롭게 문제를 짜야 하는 전형적인 경우 동작
+        setMessage('수학적 균형 퍼즐 생성 중...');
         isCorrect = false;
+        hintUsedCount = 0; 
+        checkAttemptsCount = 0; 
+        U.newBtn.disabled = true;
+        U.newBtn.classList.remove('btn-ready');
+        U.hintBtn.disabled = false;
+        
         setTimeout(() => {
-            let attempts = 0;
-            while (attempts < 200) {
+            let attemptsCount = 0;
+            while (attemptsCount < 300) {
                 createSlots();
                 createBlocks(blockCount);
                 const values = Array.from(U.blocks.querySelectorAll('.block')).map(b => Number(b.dataset.weight));
@@ -718,26 +877,38 @@
                     solution = sol;
                     hintIndex = 0;
                     setMessage('');
-                    U.newBtn.classList.remove('btn-ready');
                     U.newBtn.disabled = false;
-                    U.checkBtn.disabled = false;
-                    isCorrect = false;
+                    
+                    // 메모리에 현재 상태 박제하여 저장
+                    puzzleHistoryMap[historyKey] = {
+                        weights: values,
+                        solution: sol,
+                        isCorrect: false,
+                        hintUsedCount: 0,
+                        checkAttemptsCount: 0
+                    };
+                    
+                    updateInteractiveState();
                     return;
                 }
-                attempts++;
+                attemptsCount++;
             }
-            setMessage('퍼즐 생성 실패. 설정을 변경해주세요.', 'err');
+            setMessage('해당 설정으로 수식 균형을 만들지 못했습니다. 설정을 바꾼 후 다시 시도해 보세요.', 'err');
             U.newBtn.disabled = false;
-        }, 10);
-    }
-    
-    function newPuzzle() {
-        generateSolvablePuzzle(Number(U.slotCount.value), Number(U.blockCount.value));
+        }, 20);
     }
 
     function showHint() {
+        if (isCorrect) return;
+        
+        if (totalBlocksCount - hintIndex <= 1) {
+            setMessage('무게 블록이 1개 이하로 남은 상태에서는 힌트를 제공할 수 없습니다.', 'err');
+            U.hintBtn.disabled = true;
+            return;
+        }
+
         if (hintIndex >= solution.length) {
-            setMessage('더 이상 힌트가 없습니다.', 'err');
+            setMessage(`더 이상 제공할 힌트가 없습니다. (누적 힌트 사용: ${hintUsedCount}회)`, 'err');
             return;
         }
         const step = solution[hintIndex];
@@ -752,30 +923,88 @@
 
         handleBlockPlacement(targetSlot, blockEl);
         hintIndex++;
-        setMessage('힌트: 블록 하나를 정답 위치에 배치했습니다.');
+        hintUsedCount++; 
+        
+        // 메모리 동기화
+        const historyKey = `slot${U.slotCount.value}_block${U.blockCount.value}`;
+        if (puzzleHistoryMap[historyKey]) puzzleHistoryMap[historyKey].hintUsedCount = hintUsedCount;
 
-        if (allBlocksUsed() && hintIndex >= solution.length) {
-            checkAnswer();
+        setMessage(`💡 블록이 배치되었습니다. (힌트 사용: ${hintUsedCount}회)`);
+        updateInteractiveState();
+    }
+
+    function manualCheckAnswer() {
+        if (isCorrect) return;
+        if (!allBlocksUsed()) {
+            setMessage('보관소에 남은 블록이 없도록 모두 사용해야 합니다.', 'err');
+            return;
+        }
+
+        checkAttemptsCount++; // 요구사항: 시도 횟수 누적 카운팅
+        const historyKey = `slot${U.slotCount.value}_block${U.blockCount.value}`;
+        if (puzzleHistoryMap[historyKey]) puzzleHistoryMap[historyKey].checkAttemptsCount = checkAttemptsCount;
+
+        const t = computeTorque();
+        if (t.L > 0 && t.R > 0 && t.L === t.R) {
+            isCorrect = true;
+            if (puzzleHistoryMap[historyKey]) puzzleHistoryMap[historyKey].isCorrect = true;
+
+            setMessage('🎉 완벽한 균형입니다! 정답입니다.', 'ok');
+            U.newBtn.classList.add('btn-ready');
+            U.checkBtn.disabled = true;
+            U.hintBtn.disabled = true;
+            
+            // 요구사항 반영된 테이블 아웃풋 삽입
+            addRecordToTable(U.slotCount.value, U.blockCount.value, checkAttemptsCount, hintUsedCount);
+        } else {
+            setMessage(`❌ 균형이 맞지 않습니다. 틀렸습니다! (현재 시도 횟수: ${checkAttemptsCount}회 | 좌측: ${t.L} / 우측: ${t.R})`, 'err');
         }
     }
 
-    function checkAnswer() {
-        if (isCorrect) return; // 이미 정답이면 동작하지 않음
-        if (!allBlocksUsed()) {
-            setMessage('모든 블록을 사용하세요.', 'err');
-            return;
+    // 요구사항 반영: 간소화된 데이터 구조 인터페이스 렌더링
+    function addRecordToTable(slots, blocks, attempts, hints) {
+        const emptyRow = U.statsHistoryBody.querySelector('.empty-row');
+        if (emptyRow) {
+            U.statsHistoryBody.innerHTML = '';
         }
-        const t = computeTorque();
-        if (t.L > 0 && t.R > 0 && t.L === t.R) {
-            score++;
-            U.score.textContent = score;
-            setMessage('정답! 균형이 맞았습니다 🎉', 'ok');
-            U.newBtn.classList.add('btn-ready');
-            U.checkBtn.disabled = true; // 정답이면 버튼 비활성화
-            isCorrect = true;
+
+        Array.from(U.statsHistoryBody.querySelectorAll('tr')).forEach(row => {
+            row.classList.remove('latest-record');
+        });
+
+        const tr = document.createElement('tr');
+        tr.className = 'latest-record'; 
+        
+        const tdSlots = document.createElement('td');
+        tdSlots.textContent = `${slots}개`; // 요구사항: "좌우 각 3개" 대신 깔끔하게 "3개"로 바꿈
+        
+        const tdBlocks = document.createElement('td');
+        tdBlocks.textContent = `${blocks}개`;
+        
+        // 정답 시도 회수
+        const tdAttempts = document.createElement('td');
+        tdAttempts.textContent = `${attempts}회`;
+        if (attempts === 1) {
+            tdAttempts.classList.add('attempts-blue');
         } else {
-            setMessage(`틀렸습니다. 좌: ${t.L} / 우: ${t.R} 입니다.`, 'err');
+            tdAttempts.classList.add('attempts-red');
         }
+
+        // 힌트 사용 횟수
+        const tdHints = document.createElement('td');
+        tdHints.textContent = `${hints}회`;
+        if (hints === 0) {
+            tdHints.classList.add('hints-blue');
+        } else {
+            tdHints.classList.add('hints-red');
+        }
+
+        tr.appendChild(tdSlots);
+        tr.appendChild(tdBlocks);
+        tr.appendChild(tdAttempts);
+        tr.appendChild(tdHints);
+
+        U.statsHistoryBody.insertBefore(tr, U.statsHistoryBody.firstChild);
     }
 
     function resetBoard() {
@@ -783,52 +1012,55 @@
         const blocks = Array.from(document.querySelectorAll('.block'));
         
         wrappers.forEach(w => { if (w.firstChild) w.removeChild(w.firstChild); });
-
         blocks.forEach(block => {
             const originalIndex = parseInt(block.id.replace('block', ''), 10);
-            if (wrappers[originalIndex]) {
-                wrappers[originalIndex].appendChild(block);
-            }
+            if (wrappers[originalIndex]) wrappers[originalIndex].appendChild(block);
         });
-        
         document.querySelectorAll('.slot-inner').forEach(inner => {
             if (inner.firstChild) inner.removeChild(inner.firstChild);
         });
 
-        const allBlocksOnBoard = document.querySelectorAll('.block');
-        allBlocksOnBoard.forEach(b => {
-             const originalIndex = parseInt(b.id.replace('block', ''), 10);
-             if (wrappers[originalIndex] && !wrappers[originalIndex].firstChild) {
-                wrappers[originalIndex].appendChild(b);
-            }
-        });
-
         hintIndex = 0;
+        hintUsedCount = 0; 
+        checkAttemptsCount = 0;
+        
+        const historyKey = `slot${U.slotCount.value}_block${U.blockCount.value}`;
+        if (puzzleHistoryMap[historyKey]) {
+            puzzleHistoryMap[historyKey].hintUsedCount = 0;
+            puzzleHistoryMap[historyKey].checkAttemptsCount = 0;
+            puzzleHistoryMap[historyKey].isCorrect = false;
+        }
+
         setMessage('');
         deselectAllBlocks();
         U.newBtn.classList.remove('btn-ready');
-        U.checkBtn.disabled = false; // 리셋 시 버튼 활성화
         isCorrect = false;
+        updateInteractiveState();
     }
 
-    // 슬롯 수 변경 시 fulcrum-line 길이도 조정
+    // 조건부 탐색 바인딩 트리거
     U.slotCount.addEventListener('change', () => {
-        updateBlockOptions();
-
+        updateBlockOptions(false);
+        handlePuzzleLoadingOrGeneration(false);
     });
 
-    // 윈도우 리사이즈 시 fulcrum-line 길이도 조정
-    window.addEventListener('resize', updateFulcrumLineWidth);
+    U.blockCount.addEventListener('change', () => {
+        totalBlocksCount = parseInt(U.blockCount.value, 10);
+        handlePuzzleLoadingOrGeneration(false);
+    });
 
-    U.newBtn.addEventListener('click', newPuzzle);
+    window.addEventListener('resize', updateFulcrumLineWidth);
+    
+    // '새 퍼즐' 버튼을 명시적으로 누른 경우에는 무조건 완전한 신규 인스턴스 문제를 출제하도록 제어
+    U.newBtn.addEventListener('click', () => {
+        handlePuzzleLoadingOrGeneration(true);
+    });
     U.resetBtn.addEventListener('click', resetBoard);
     U.hintBtn.addEventListener('click', showHint);
-    U.checkBtn.addEventListener('click', checkAnswer);
+    U.checkBtn.addEventListener('click', manualCheckAnswer);
 
-    updateBlockOptions();
-    createSlots();
-    updateFulcrumLineWidth();
-    newPuzzle();
+    updateBlockOptions(true);
+    handlePuzzleLoadingOrGeneration(false);
 </script>
 </body>
 </html>
