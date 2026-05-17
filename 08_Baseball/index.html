@@ -224,19 +224,22 @@
       font-weight: 700;
     }
 
+    /* 🛠️ [수정됨] 누적 기록 초기화 버튼: 흰색 바탕 + 빨간 테두리/글자 */
     .clear-history-btn {
-      background-color: var(--danger);
-      color: white;
-      border: none;
-      padding: 6px 14px;
+      background-color: #ffffff;
+      color: var(--danger);
+      border: 2px solid var(--danger);
+      padding: 4px 12px;
       font-size: 14px;
       font-weight: 700;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
     }
     .clear-history-btn:hover {
-      background-color: #b02a37;
+      background-color: #fff5f5;
+      color: #b02a37;
+      border-color: #b02a37;
     }
 
     .guide-blue { border-left: 6px solid var(--active); }
@@ -342,7 +345,6 @@
       <div style="text-align: center;">
         <span id="digit-indicator" style="font-size: 18px; font-weight: 700; color: var(--active);"></span>
         <p style="font-size: 15px; color: var(--text-sub); margin-top: 4px;">중복되지 않는 숫자를 조합하세요.</p>
-        <!-- (맨 앞 0 불가) -->
       </div>
 
       <div class="input-wrapper">
@@ -359,6 +361,16 @@
     <button id="reset-btn" class="action-btn btn-reset">현재 단계 초기화</button>
   </div>
 
+  <!-- [영역 6: 누적 성공 기록] -->
+  <div class="section-wrapper guide-box guide-red">
+    <div class="stats-header-container">
+      <span class="stats-title">📊 누적 기록</span>
+      <button class="clear-history-btn" id="clear-history">누적 기록 초기화</button>
+    </div>
+    <div id="statistics-area"></div>
+  </div>
+
+
   <!-- [영역 4: 퍼즐 규칙 가이드] -->
   <div class="section-wrapper guide-box guide-blue">
     <h3>⚾ 게임 규칙</h3>
@@ -368,18 +380,10 @@
 
   <!-- [영역 5: 키보드 조작 가이드] -->
   <div class="section-wrapper guide-box guide-green">
-    <h3>⌨️ 단축키 안내</h3>
+    <h3>⌨️ 키보드 단축키</h3>
     <p><b>[Enter]</b> : 숫자 제출 및 결과 팝업 확인 / <b>[ESC]</b> : 현재 게임 초기화 및 입력란 포커스</p>
   </div>
 
-  <!-- [영역 6: 누적 성공 기록] -->
-  <div class="section-wrapper guide-box guide-red">
-    <div class="stats-header-container">
-      <span class="stats-title">📊 누적 성공 통계</span>
-      <button class="clear-history-btn" id="clear-history">누적 기록 초기화</button>
-    </div>
-    <div id="statistics-area"></div>
-  </div>
 
   <!-- 결과 알림 팝업창 -->
   <div class="modal-overlay" id="modal-overlay">
