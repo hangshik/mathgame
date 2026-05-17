@@ -4,279 +4,449 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>얼음미로</title>
-<style>
-    :root {
-        --ice-bg: #e3f2fd;
-        --wall-color: #fff;
-        --hole-color: #3e2723;
-        --lava-color: #ff3d00;
-        --btn-blue: #2196f3;
-        --btn-hover: #1976d2;
-        --success-green: #28a745;
-        --fail-red: #f44336;
-        --shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --ice-bg: #e3f2fd;
+            --ice-line: #bbdefb;
+            --wall-color: #263238;
+            --hole-color: #964b00;
+        }
 
-    body {
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-        background: #f0f2f5;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-y: auto;
-        min-height: 100vh;
-        padding-bottom: 50px;
-    }
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-    h1 { 
-        margin: 25px 0 10px; 
-        color: #1a237e; 
-        font-size: 2rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-    }
-
-    .stats { 
-        font-size: 1.1rem; 
-        font-weight: 700; 
-        color: #555; 
-        margin-bottom: 20px;
-        background: white;
-        padding: 8px 20px;
-        border-radius: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .level-selector { 
-        display: flex; 
-        gap: 10px; 
-        margin-bottom: 25px; 
-        flex-wrap: wrap; 
-        justify-content: center;
-        max-width: 400px;
-    }
-
-.lvl-btn {
-    width: 80px;
-    height: 44px;
-    position: relative;
-            padding: 5px 0;
-            background-color: #fff;
-            color: #555;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.2s;
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px 10px 60px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-y: auto;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+
+        .full-width {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        .container-fixed {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
+            margin: 10px 0 25px;
+            color: var(--text-main);
+            letter-spacing: -1px;
+        }
+
+        .stage-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .stats-display {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-sub);
+            background: #f1f5f9;
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 8px;
+        }
+        @media (max-width: 500px) {
+            .stage-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        .stage-btn {
+            height: 46px;
+            border: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+            color: var(--text-sub);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stage-btn:hover:not(.active) {
+            background-color: #e9ecef;
+        }
+        .stage-btn.active {
+            background-color: var(--active);
+            color: #ffffff;
+            border-color: var(--active);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+            transform: scale(1.03);
+        }
+        .stage-btn.completed {
+            background-color: var(--success);
+            color: #ffffff;
+            border-color: var(--success);
+        }
+
+        .puzzle-wrapper {
+            display: flex;
             justify-content: center;
-}
+            align-items: center;
+            width: 100%;
+        }
+        
+        .canvas-container {
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1 / 1;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-/* 미완료 단계 hover */
-.lvl-btn:hover:not(.active) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: pixelated;
+        }
 
-/* 완료한 단계 */
-.lvl-btn.completed {
-    background-color: #28a745; border-color: #218838; color: white; }
+        /* 변경된 통합 조작 그리드 시스템 (액션 버튼을 화살표 왼쪽으로 통합) */
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
 
-/* 현재 단계 */
-.lvl-btn.active {
-    background: #228be6;
-    color: white;
-    transform: scale(1.08);
-    box-shadow: 0 4px 12px rgba(34,139,230,0.4);
-    z-index: 2;
-}
+        .combined-grid {
+            display: grid;
+            /* 3번째 열(24px)은 기능 버튼과 화살표 사이의 넓어진 간격을 의미합니다. */
+            grid-template-columns: 80px 80px 44px 64px 64px 64px;
+            grid-template-rows: repeat(3, 64px);
+            /* 세로 방향에 row-gap(16px)을 주어 되돌리기와 초기화 사이 간격을 늘렸습니다. */
+            row-gap: 12px;
+            column-gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 모바일 반응형 처리 (화면이 좁아지면 버튼 크기 축소) */
+        @media (max-width: 420px) {
+            .combined-grid {
+                grid-template-columns: 65px 65px 4px 54px 54px 54px;
+                grid-template-rows: repeat(3, 54px);
+                gap: 6px;
+            }
+            .d-btn { font-size: 18px !important; border-radius: 12px !important; }
+            .side-btn { font-size: 13px !important; border-radius: 12px !important; }
+        }
 
+        /* 공통 버튼 베이스 스타일 */
+        .d-btn {
+            background-color: var(--card-bg);
+            border: none;
+            border-radius: 16px;
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--text-main);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, background-color 0.1s;
+            height: 100%;
+            width: 100%;
+        }
+        .d-btn:active {
+            transform: scale(0.95);
+            background-color: #e9ecef;
+        }
 
-    #canvas-container {
-        position: relative; 
-        background: white; 
-        padding: 5px; 
-        border-radius: 5px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
-        border: 4px solid var(--wall-color);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 5px;
-        min-width: 180px;
-        min-height: 180px;
-    }
+        /* 화살표 및 교체 패드 배치 */
+        .btn-up { grid-column: 5; grid-row: 1; }
+        .btn-left { grid-column: 4; grid-row: 2; }
+        .btn-center { 
+            grid-column: 5; grid-row: 2; 
+            font-size: 13px; 
+            background-color: var(--active); 
+            color: #ffffff;
+        }
+        .btn-center:active { background-color: #0056b3; }
+        .btn-right { grid-column: 6; grid-row: 2; }
+        .btn-down { grid-column: 5; grid-row: 3; }
 
-    canvas { 
-        display: block; 
-        border-radius: 4px;
-        image-rendering: pixelated; 
-    }
+        /* 왼쪽 기능 버튼 배치 (2칸 너비 차지) */
+        .side-btn {
+            grid-column: 1 / span 2;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .btn-undo {
+            grid-row: 1;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+        }
+        .btn-reset {
+            grid-row: 2;
+            background-color: #e2e8f0;
+            color: #334155;
+        }
 
-    .control-section {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-        margin: 20px 0;
-    }
+        /* 가이드 및 기록 보드 스타일 */
+        .guide-box {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            font-size: 16px;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+        .guide-box h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .guide-box ul {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+            color: var(--text-sub);
+        }
+        .guide-box li { margin-bottom: 6px; }
 
-    .side-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+        /* 누적 기록 스타일 */
+        .box-records { border-left: 6px solid var(--danger); }
+        .box-records h3 { color: var(--danger); }
+        .clear-record-btn {
+            background: #ffffff;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clear-record-btn:hover { background-color: #fff5f5; }
 
-    .side-btn {
-        width: 85px; 
-        height: 50px; 
-        border: none; 
-        border-radius: 12px;
-        background: var(--btn-blue); 
-        color: white; 
-        font-weight: bold;
-        cursor: pointer; 
-        box-shadow: var(--shadow);
-        transition: all 0.2s;
-    }
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .record-table th, .record-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .record-table th {
+            background-color: #f8f9fa;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+        
+        /* 2. 이동 횟수 조절 스타일 */
+        .count-good { color: var(--active) !important; font-weight: 700; }
+        .count-bad { color: var(--danger) !important; font-weight: 700; }
 
-.d-pad { 
-    display: grid; 
-    grid-template-columns: repeat(3, 70px); 
-    grid-template-rows: repeat(3, 70px); 
-    gap: 5px; 
-}
+        /* 3. 마지막에 기록된 행 하이라이트 효과 스타일 */
+        .latest-row {
+            background-color: #fff5f5 !important;
+        }
 
-/* 각 버튼 위치 고정 */
-.btn-up {
-    grid-column: 2;
-    grid-row: 1;
-}
+        .no-data {
+            padding: 20px !important;
+            color: #94a3b8 !important;
+            font-style: italic;
+        }
 
-.btn-left {
-    grid-column: 1;
-    grid-row: 2;
-}
+        .box-rules { border-left: 6px solid var(--active); }
+        .box-rules h3 { color: var(--active); }
 
-.btn-center {
-    grid-column: 2;
-    grid-row: 2;
-}
+        .box-shortcuts { border-left: 6px solid var(--success); }
+        .box-shortcuts h3 { color: var(--success); }
+        .key-badge {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
 
-.btn-right {
-    grid-column: 3;
-    grid-row: 2;
-}
+        /* 결과 알림 팝업창 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            width: 90%;
+            max-width: 350px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px 24px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-card.success { border-top: 6px solid var(--success); }
+        .modal-card.fail { border-top: 6px solid var(--danger); }
 
-.btn-down {
-    grid-column: 2;
-    grid-row: 3;
-}
-
-
-    .d-btn {
-        background: white; 
-        border: none; 
-        border-radius: 20px;
-        box-shadow: 0 5px 10px rgba(0,0,0,0.1); 
-        font-size: 1.6rem;
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer;
-        transition: background 0.1s, transform 0.1s;
-    }
-
-    .btn-center { 
-        background: var(--btn-blue); 
-        color: white; 
-        font-size: 1rem; 
-        font-weight: bold; 
-    }
-
-    .rules-container {
-        max-width: 360px; 
-        background: white; 
-        padding: 20px; 
-        border-radius: 18px;
-        margin: 10px 0 40px; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        border-left: 6px solid var(--btn-blue);
-    }
-
-    #game-modal {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center;
-        backdrop-filter: blur(4px);
-    }
-
-    .modal-content { 
-        padding: 40px; border-radius: 30px; text-align: center; width: 300px; color: white;
-    }
-    .modal-content.success { background: var(--success-green); }
-    .modal-content.fail { background: var(--fail-red); }
-    
-    .modal-btn { 
-        background: white; color: #333; border: none; padding: 14px 40px; 
-        border-radius: 50px; font-weight: 800; cursor: pointer; margin-top: 25px;
-    }
-</style>
+        .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+        .modal-card.success .modal-title { color: var(--success); }
+        .modal-card.fail .modal-title { color: var(--danger); }
+        .modal-msg { color: var(--text-sub); font-size: 15px; margin-bottom: 24px; }
+        .modal-btn {
+            width: 100%; height: 48px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer; color: #ffffff;
+        }
+        .modal-card.success .modal-btn { background-color: var(--success); }
+        .modal-card.fail .modal-btn { background-color: var(--danger); }
+    </style>
 </head>
 <body>
 
-    <h1>얼음미로</h1>
-    <div class="stats">이동: <span id="move-count">0</span> / 목표: <span id="target-count">0</span></div>
-
-    <div class="level-selector" id="lvl-selector"></div>
-
-    <div id="canvas-container">
-        <canvas id="gameCanvas"></canvas>
+    <div class="full-width">
+        <h1>얼음미로</h1>
     </div>
 
-    <div class="control-section">
-        <div class="side-actions">
-            <button class="side-btn" onclick="undo()">되돌리기(Z)</button>
-            <button class="side-btn" onclick="resetCurrentLevel()">초기화(R)</button>
+    <div class="container-fixed">
+        <div class="stage-grid" id="stage-selector"></div>
+        <div class="stage-footer">
+            <div class="stats-display">이동: <span id="move-count">0</span> / 목표: <span id="target-count">0</span></div>
         </div>
+    </div>
 
-        <div class="d-pad">
+    <div class="container-fixed">
+        <div class="puzzle-wrapper">
+            <div class="canvas-container">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. 리셋 및 되돌리기 버튼이 화살표 왼쪽 위/아래로 통합 배치된 그리드 조작 패널 -->
+    <div class="full-width control-panel">
+        <div class="combined-grid">
+            <button class="d-btn side-btn btn-undo" onclick="undo()">되돌리기</button>
+            <button class="d-btn side-btn btn-reset" onclick="resetCurrentLevel()">초기화</button>
+            
+            <!-- 공백용 더미 그리드 구분 패널 -->
+            <div></div> 
+
             <button class="d-btn btn-up" onclick="handleMove(0, -1)">↑</button>
             <button class="d-btn btn-left" onclick="handleMove(-1, 0)">←</button>
-            <button class="d-btn btn-center" onclick="switchPlayer()">교체(Space)</button>
+            <button class="d-btn btn-center" onclick="switchPlayer()">교체</button>
             <button class="d-btn btn-right" onclick="handleMove(1, 0)">→</button>
             <button class="d-btn btn-down" onclick="handleMove(0, 1)">↓</button>
         </div>
     </div>
 
-    <div class="rules-container">
-        <h3>📝 게임 규칙</h3>
+    <div class="full-width guide-box box-records">
+        <h3>📊 누적 기록 <button class="clear-record-btn" onclick="clearStats()">누적 기록 초기화</button></h3>
+        <table class="record-table">
+            <thead>
+                <tr>
+                    <th>단계</th>
+                    <th>이동 횟수</th>
+                    <th>목표 횟수</th>
+                    <th>걸린 시간</th>
+                </tr>
+            </thead>
+            <tbody id="record-table-body">
+                <tr>
+                    <td colspan="4" class="no-data">성공한 단계가 아직 없습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="full-width guide-box box-rules">
+        <h3>◈ 게임 규칙</h3>
         <ul>
-            <li><b>목표:</b> 색깔 원(빨간원, 파란원, 녹색원)을 서로 다른 갈색 원에 넣습니다.</li>
-            <li>색깔 원은 벽에 부딪힐 때까지 미끄러집니다.</li>
-            <li>모든 색깔 원을 서로 갈색 원에 넣으면 성공!</li>
-            <li>이미 들어간 구멍에 가거나 빨간 사각형에 닿으면 실패합니다.</li>
-            <li>색깔 원이 다른 색깔 원과 부딪히면 벽에 부딪힌 것처럼 멈춥니다. 이는 다른 색깔 원에게는 아무런 영향을 미치지 않습니다.</li>
-            <br><li style="color: red;">나도 모든 정답을 알고 있지는 않습니다.</li>
+            <li>• 색깔 원(빨강, 파랑, 초록)을 동일한 개수의 갈색 구멍 원에 하나씩 모두 넣으면 성공합니다.</li>
+            <li>• 얼음판 위에서 색깔 원은 벽이나 다른 원에 부딪힐 때까지 미끄러집니다.</li>
+            <li>• 이미 원이 들어간 구멍에 다시 빠지거나 빨간 사각형(용암)에 닿으면 즉시 실패합니다.</li>
+            <li>• 원끼리 부딪히면 멈춰 서며, 서로 밀어내지 않고 단단한 벽의 역할을 해줍니다.</li>
         </ul>
     </div>
 
-    <div id="game-modal">
-        <div id="modal-box" class="modal-content">
-            <h2 id="modal-title" style="margin:0">🎉 성공!</h2>
-            <p id="modal-msg">완벽합니다!</p>
-            <button class="modal-btn" onclick="closeModal()">확인</button>
+    <div class="full-width guide-box box-shortcuts">
+        <h3>⌨ 키보드 단축키</h3>
+        <ul>
+            <li>• <span class="key-badge">↑</span> <span class="key-badge">↓</span> <span class="key-badge">←</span> <span class="key-badge">→</span> : 원 이동 조작</li>
+            <li>• <span class="key-badge">Space</span> : 조작할 활성 원 전환 (테두리 표시됨)</li>
+            <li>• <span class="key-badge">Z</span> : 되돌리기</li>
+            <li>• <span class="key-badge">R</span> 또는 <span class="key-badge">Esc</span> : 현재 스테이지 처음부터 재시작</li>
+        </ul>
+    </div>
+
+    <div class="modal-overlay" id="game-modal">
+        <div class="modal-card" id="modal-card">
+            <div class="modal-title" id="modal-title">🎉 성공!</div>
+            <div class="modal-msg" id="modal-msg">완벽합니다!</div>
+            <button class="modal-btn" id="modal-action-btn" onclick="closeModal()">확인</button>
         </div>
     </div>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-// 게임판 사각형 한개의 크기
-const TILE_SIZE = 36;
+const TILE_SIZE = 40;
 
 let currentLevel = 0;
 let moves = 0;
@@ -284,62 +454,44 @@ let players = [];
 let history = [];
 let occupiedHoles = [];
 let completedStages = new Set();
-const levelSavedStates = {};
-let isLastResultSuccess = false; // 성공 여부 체크용 플래그
+let isLastResultSuccess = false;
+
+let stageStartTime = 0;
+const clearedRecords = {};
+const stageHistory = {};
+
+// 마지막에 성공적으로 기록이 업데이트된 스테이지 번호 보관 변수
+let latestClearedLevel = null;
 
 const levels = [
-    { target: 6, map: [[1,1,1,1,1,1], [1,0,0,0,3,1], [1,0,2,0,0,1], [1,0,0,1,0,1], [1,3,0,1,2,1], [1,1,1,1,1,1]], 
-      players: [{x:3, y:2, color:'#03a9f4'}, {x:1, y:1, color:'#f44336'}] },
-
-    { target: 12, map: [[1,1,1,1,1,1], [1,0,1,0,2,1], [1,0,0,0,1,1], [1,0,3,2,0,1], [1,0,0,0,0,1], [1,1,1,1,1,1]], 
-      players: [{x:2, y:4, color:'#03a9f4'}, {x:4, y:3, color:'#f44336'}] },
-
-    { target: 13, map: [[1,1,1,1,1,1], [1,0,0,0,3,1], [1,0,0,0,2,1], [1,0,0,0,2,1], [1,3,0,0,1,1], [1,1,1,1,1,1]], 
-      players: [{x:2, y:1, color:'#03a9f4'}, {x:1, y:1, color:'#f44336'}] },
-
-    { target: 13, map: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,1,1,0,0,0,1,0,0,0,0,0,1,1,1], [1,1,1,0,1,0,1,0,1,0,1,0,1,1,1], [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1], [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1], [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1], [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1], [1,0,1,0,0,0,0,0,0,0,0,0,0,0,1], [1,0,1,0,1,0,1,1,1,0,1,1,1,0,1], [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1], [1,1,1,0,1,0,1,0,1,0,1,0,1,1,1], [1,1,1,0,0,0,0,0,1,0,0,0,1,1,1], [1,1,1,0,1,1,1,1,1,1,1,0,1,1,1], [1,1,1,0,1,1,1,1,1,1,1,2,1,1,1], [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:3, y:13, color:'#03a9f4'}] },
-
-    { target: 15, map: [[1,1,1,1,1,1,1,1,1,1], [1,1,0,3,0,3,0,0,0,1], [1,1,2,0,0,0,0,0,0,1], [1,0,0,0,0,1,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,1,2,1,0,0,0,0,1], [1,0,3,3,3,0,1,3,0,1], [1,0,0,0,1,3,3,1,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:7, y:4, color:'#03a9f4'}, {x:8, y:1, color:'#f44336'}] },
-
-    { target: 30, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,0,0,3,1,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,3,0,2,3,0,0,1], [1,0,0,2,0,0,0,0,0,1], [1,0,1,0,0,3,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,1,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:8, y:5, color:'#03a9f4'}, {x:8, y:4, color:'#f44336'}] },
-
-    { target: 40, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,0,0,1,2,0,3,1], [1,0,3,1,0,0,0,0,0,1], [1,0,0,0,0,0,0,1,0,1], [1,0,0,0,0,0,0,0,0,1], [1,1,0,1,0,0,0,0,0,1], [1,2,0,0,0,0,1,0,3,1], [1,0,0,1,0,0,0,0,0,1], [1,0,0,1,1,1,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:6, y:7, color:'#03a9f4'}, {x:7, y:2, color:'#f44336'}] },
-
-    { target: 100, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,1,0,0,0,1], [1,0,0,3,0,0,1,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,3,1,2,0,1,1], [1,0,0,0,0,1,2,0,3,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,1,0,1,0,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:4, y:8, color:'#03a9f4'}, {x:7, y:2, color:'#f44336'}] },
-
-    { target: 32, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,3,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,3,0,1], [1,1,0,0,0,1,0,0,0,1], [1,0,1,0,0,1,0,0,0,1], [1,0,0,0,0,2,0,2,0,1], [1,0,0,0,1,0,0,0,0,1], [1,0,1,0,0,2,0,0,0,1], [1,0,0,1,0,0,0,1,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:5, y:8, color:'#03a9f4'}, {x:6, y:6, color:'#f44336'}, {x:2, y:8, color:'#4caf50'}] },
-
-    { target: 47, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,1,2,1], [1,0,0,2,1,0,0,3,0,1], [1,1,0,0,0,1,0,0,0,1], [1,1,0,0,0,0,0,0,1,1], [1,0,0,1,0,0,1,0,0,1], [1,1,0,0,0,0,0,0,2,1], [1,0,0,1,1,0,0,0,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:8, y:8, color:'#03a9f4'}, {x:1, y:5, color:'#f44336'}, {x:6, y:7, color:'#4caf50'}] },
-
-    { target: 54, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,3,0,0,0,0,0,0,1], [1,0,0,0,0,0,1,0,0,1], [1,2,0,0,0,1,0,1,0,1], [1,2,0,1,0,0,1,0,0,1], [1,0,1,0,0,0,0,0,0,1], [1,2,0,0,3,1,0,0,0,1], [1,0,0,0,0,1,1,0,0,1], [1,0,0,1,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:4, y:8, color:'#03a9f4'}, {x:1, y:2, color:'#f44336'}, {x:8, y:3, color:'#4caf50'}] },
-
-    { target: 69, map: [[1,1,1,1,1,1,1,1,1,1], [1,3,0,3,0,2,2,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,1,0,1,0,0,0,1], [1,0,0,0,0,0,1,0,0,1], [1,0,1,0,0,0,2,1,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], 
-      players: [{x:5, y:8, color:'#03a9f4'}, {x:1, y:5, color:'#f44336'}, {x:4, y:5, color:'#4caf50'}] }
-
-
+    { target: 6, map: [[1,1,1,1,1,1], [1,0,0,0,3,1], [1,0,2,0,0,1], [1,0,0,1,0,1], [1,3,0,1,2,1], [1,1,1,1,1,1]], players: [{x:3, y:2, color:'#007bff'}, {x:1, y:1, color:'#dc3545'}] },
+    { target: 12, map: [[1,1,1,1,1,1], [1,0,1,0,2,1], [1,0,0,0,1,1], [1,0,3,2,0,1], [1,0,0,0,0,1], [1,1,1,1,1,1]], players: [{x:2, y:4, color:'#007bff'}, {x:4, y:3, color:'#dc3545'}] },
+    { target: 13, map: [[1,1,1,1,1,1], [1,0,0,0,3,1], [1,0,0,0,2,1], [1,0,0,0,2,1], [1,3,0,0,1,1], [1,1,1,1,1,1]], players: [{x:2, y:1, color:'#007bff'}, {x:1, y:1, color:'#dc3545'}] },
+    { target: 13, map: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,1,1,0,0,0,1,0,0,0,0,0,1,1,1], [1,1,1,0,1,0,1,0,1,0,1,0,1,1,1], [1,0,0,0,0,0,0,0,0,0,1,0,0,0,1], [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1], [1,0,0,0,0,0,0,0,0,0,0,0,1,0,1], [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1], [1,0,1,0,0,0,0,0,0,0,0,0,0,0,1], [1,0,1,0,1,0,1,1,1,0,1,1,1,0,1], [1,0,0,0,1,0,0,0,0,0,0,0,0,0,1], [1,1,1,0,1,0,1,0,1,0,1,0,1,1,1], [1,1,1,0,0,0,0,0,1,0,0,0,1,1,1], [1,1,1,0,1,1,1,1,1,1,1,0,1,1,1], [1,1,1,0,1,1,1,1,1,1,1,2,1,1,1], [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]], players: [{x:3, y:13, color:'#007bff'}] },
+    { target: 15, map: [[1,1,1,1,1,1,1,1,1,1], [1,1,0,3,0,3,0,0,0,1], [1,1,2,0,0,0,0,0,0,1], [1,0,0,0,0,1,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,1,2,1,0,0,0,0,1], [1,0,3,3,3,0,1,3,0,1], [1,0,0,0,1,3,3,1,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:7, y:4, color:'#007bff'}, {x:8, y:1, color:'#dc3545'}] },
+    { target: 30, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,0,0,3,1,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,3,0,2,3,0,0,1], [1,0,0,2,0,0,0,0,0,1], [1,0,1,0,0,3,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,1,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:8, y:5, color:'#007bff'}, {x:8, y:4, color:'#dc3545'}] },
+    { target: 40, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,0,0,1,2,0,3,1], [1,0,3,1,0,0,0,0,0,1], [1,0,0,0,0,0,0,1,0,1], [1,0,0,0,0,0,0,0,0,1], [1,1,0,1,0,0,0,0,0,1], [1,2,0,0,0,0,1,0,3,1], [1,0,0,1,0,0,0,0,0,1], [1,0,0,1,1,1,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:6, y:7, color:'#007bff'}, {x:7, y:2, color:'#dc3545'}] },
+    { target: 100, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,1,0,1,0,0,0,1], [1,0,0,3,0,0,1,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,3,1,2,0,1,1], [1,0,0,0,0,1,2,0,3,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,1,0,1,0,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:4, y:8, color:'#007bff'}, {x:7, y:2, color:'#dc3545'}] },
+    { target: 32, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,3,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,3,0,1], [1,1,0,0,0,1,0,0,0,1], [1,0,1,0,0,1,0,0,0,1], [1,0,0,0,0,2,0,2,0,1], [1,0,0,0,1,0,0,0,0,1], [1,0,1,0,0,2,0,0,0,1], [1,0,0,1,0,0,0,1,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:5, y:8, color:'#007bff'}, {x:6, y:6, color:'#dc3545'}, {x:2, y:8, color:'#28a745'}] },
+    { target: 47, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,0,0,1,0,0,1,2,1], [1,0,2,1,0,0,3,0,1], [1,1,0,0,0,1,0,0,0,1], [1,1,0,0,0,0,0,0,1,1], [1,0,0,1,0,0,1,0,0,1], [1,1,0,0,0,0,0,0,2,1], [1,0,0,1,1,0,0,0,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:8, y:8, color:'#007bff'}, {x:1, y:5, color:'#dc3545'}, {x:6, y:7, color:'#28a745'}] },
+    { target: 54, map: [[1,1,1,1,1,1,1,1,1,1], [1,0,3,0,0,0,0,0,0,1], [1,0,0,0,0,0,1,0,0,1], [1,2,0,0,0,1,0,1,0,1], [1,2,0,1,0,0,1,0,0,1], [1,0,1,0,0,0,0,0,0,1], [1,2,0,0,3,1,0,0,0,1], [1,0,0,0,0,1,1,0,0,1], [1,0,0,1,0,0,0,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:4, y:8, color:'#007bff'}, {x:1, y:2, color:'#dc3545'}, {x:8, y:3, color:'#28a745'}] },
+    { target: 69, map: [[1,1,1,1,1,1,1,1,1,1], [1,3,0,3,0,2,2,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,1,0,1,0,0,0,1], [1,0,0,0,0,0,1,0,0,1], [1,0,1,0,0,0,2,1,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:5, y:8, color:'#007bff'}, {x:1, y:5, color:'#dc3545'}, {x:4, y:5, color:'#28a745'}] }
 ];
 
-function saveCurrentLevelState() {
+function saveStageState() {
     if (players.length > 0) {
-        levelSavedStates[currentLevel] = {
+        stageHistory[currentLevel] = {
             moves,
-            players: players.map(p => ({...p})),
+            players: players.map(p => ({ ...p })),
             occupiedHoles: [...occupiedHoles],
-            history: [...history]
+            history: [...history],
+            startTime: stageStartTime
         };
     }
 }
 
 function initGame(idx, isReset = false) {
-    if (!isReset && players.length > 0) saveCurrentLevelState();
+    if (!isReset && players.length > 0) saveStageState();
 
     currentLevel = idx;
     const lvl = levels[idx];
@@ -347,38 +499,84 @@ function initGame(idx, isReset = false) {
     canvas.height = lvl.map.length * TILE_SIZE;
     document.getElementById('target-count').innerText = lvl.target;
 
-    if (levelSavedStates[idx] && !isReset) {
-        const state = levelSavedStates[idx];
+    if (stageHistory[idx] && !isReset) {
+        const state = stageHistory[idx];
         moves = state.moves;
-        players = state.players.map(p => ({...p}));
+        players = state.players.map(p => ({ ...p }));
         occupiedHoles = [...state.occupiedHoles];
         history = [...state.history];
+        stageStartTime = state.startTime;
     } else {
         moves = 0;
         players = lvl.players.map((p, i) => ({ ...p, active: i === 0, done: false }));
         occupiedHoles = [];
         history = [];
+        stageStartTime = Date.now();
     }
-    
+
     document.getElementById('move-count').innerText = moves;
     updateUI();
 }
 
 function resetCurrentLevel() {
-    delete levelSavedStates[currentLevel];
+    delete stageHistory[currentLevel];
     initGame(currentLevel, true);
 }
 
 function updateUI() {
-    const container = document.getElementById('lvl-selector');
+    const container = document.getElementById('stage-selector');
     container.innerHTML = '';
     levels.forEach((_, i) => {
         const btn = document.createElement('button');
-        btn.className = `lvl-btn ${completedStages.has(i) ? 'completed' : ''} ${i === currentLevel ? 'active' : ''}`;
-        btn.innerText = `${i+1}단계`;
+        btn.className = `stage-btn ${completedStages.has(i) ? 'completed' : ''} ${i === currentLevel ? 'active' : ''}`;
+        btn.innerText = `${i + 1}단계`;
         btn.onclick = () => initGame(i);
         container.appendChild(btn);
     });
+
+    renderRecordTable();
+}
+
+// 2, 3번 조건이 포함된 테이블 가시화 처리 로직
+function renderRecordTable() {
+    const tbody = document.getElementById('record-table-body');
+    tbody.innerHTML = '';
+
+    const clearedIndexes = Object.keys(clearedRecords).map(Number).sort((a, b) => a - b);
+
+    if (clearedIndexes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="no-data">성공한 단계가 아직 없습니다.</td></tr>`;
+        return;
+    }
+
+    clearedIndexes.forEach(idx => {
+        const data = clearedRecords[idx];
+        const tr = document.createElement('tr');
+        
+        // 3. 마지막에 달성한 단계의 행(Row)에만 특정 클래스 부여
+        if (idx === latestClearedLevel) {
+            tr.className = 'latest-row';
+        }
+
+        // 2. 이동 횟수가 목표 횟수보다 작거나 같으면 파란색(count-good), 크면 빨간색(count-bad) 적용
+        const moveClass = (data.moves <= data.target) ? 'count-good' : 'count-bad';
+
+        tr.innerHTML = `
+            <td><b>${idx + 1}단계</b></td>
+            <td class="${moveClass}">${data.moves}회</td>
+            <td>${data.target}회</td>
+            <td>${data.timeSpent}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function clearStats() {
+    completedStages.clear();
+    latestClearedLevel = null;
+    for (let key in clearedRecords) delete clearedRecords[key];
+    for (let key in stageHistory) delete stageHistory[key];
+    resetCurrentLevel();
 }
 
 function draw() {
@@ -388,37 +586,53 @@ function draw() {
     map.forEach((row, y) => {
         row.forEach((type, x) => {
             const px = x * TILE_SIZE, py = y * TILE_SIZE;
-            ctx.fillStyle = (type === 1) ? '#263238' : '#e3f2fd';
+            
+            ctx.fillStyle = (type === 1) ? varColor('--wall-color') : varColor('--ice-bg');
             ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-            if(type !== 1) { ctx.strokeStyle = '#bbdefb'; ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE); }
+            if (type !== 1) {
+                ctx.strokeStyle = varColor('--ice-line');
+                ctx.lineWidth = 1;
+                ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+            }
 
             if (type === 2) {
                 const isOccupied = occupiedHoles.some(h => h.x === x && h.y === y);
-                ctx.fillStyle = isOccupied ? '#ff3d00' : '#964b00';
-                ctx.beginPath(); ctx.arc(px+TILE_SIZE/2, py+TILE_SIZE/2, TILE_SIZE*0.35, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = isOccupied ? varColor('--danger') : varColor('--hole-color');
+                ctx.beginPath();
+                ctx.arc(px + TILE_SIZE / 2, py + TILE_SIZE / 2, TILE_SIZE * 0.35, 0, Math.PI * 2);
+                ctx.fill();
             }
             if (type === 3) {
-                ctx.fillStyle = '#ff3d00'; ctx.fillRect(px+2, py+2, TILE_SIZE-4, TILE_SIZE-4);
+                ctx.fillStyle = varColor('--danger');
+                ctx.fillRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
             }
         });
     });
 
     players.forEach(p => {
         if (p.done) return;
-        const cx = p.x * TILE_SIZE + TILE_SIZE/2, cy = p.y * TILE_SIZE + TILE_SIZE/2;
-        
+        const cx = p.x * TILE_SIZE + TILE_SIZE / 2, cy = p.y * TILE_SIZE + TILE_SIZE / 2;
+
         if (p.active) {
             ctx.save();
-            ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.2)';
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 7;
-            ctx.beginPath(); ctx.arc(cx, cy, TILE_SIZE*0.35, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = '#222222';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(cx, cy, TILE_SIZE * 0.36, 0, Math.PI * 2);
+            ctx.stroke();
             ctx.restore();
         }
-        ctx.beginPath(); ctx.arc(cx, cy, TILE_SIZE*0.35, 0, Math.PI*2);
-        ctx.fillStyle = p.color; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, cy, TILE_SIZE * 0.30, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
     });
+
     requestAnimationFrame(draw);
+}
+
+function varColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 function handleMove(dx, dy) {
@@ -426,7 +640,7 @@ function handleMove(dx, dy) {
     const p = players.find(p => p.active);
     if (!p || p.done) return;
 
-    const prevState = JSON.stringify({moves, players: players.map(pl => ({...pl})), occupiedHoles: [...occupiedHoles]});
+    const prevState = JSON.stringify({ moves, players: players.map(pl => ({ ...pl })), occupiedHoles: [...occupiedHoles] });
     let nx = p.x, ny = p.y, moved = false;
     const map = levels[currentLevel].map;
 
@@ -436,26 +650,50 @@ function handleMove(dx, dy) {
         if (players.find(o => !o.done && o !== p && o.x === tx && o.y === ty)) break;
 
         nx = tx; ny = ty; moved = true;
-        if (map[ny][nx] === 2) { 
-            if (occupiedHoles.some(h => h.x === nx && h.y === ny)) { showPopup(false); return; }
-            p.done = true; 
-            occupiedHoles.push({x: nx, y: ny});
-            break; 
+        
+        if (map[ny][nx] === 2) {
+            if (occupiedHoles.some(h => h.x === nx && h.y === ny)) {
+                showPopup(false);
+                return;
+            }
+            p.done = true;
+            occupiedHoles.push({ x: nx, y: ny });
+            break;
         }
-        if (map[ny][nx] === 3) { showPopup(false); return; }
+        if (map[ny][nx] === 3) {
+            showPopup(false);
+            return;
+        }
     }
 
     if (moved) {
         history.push(prevState);
         p.x = nx; p.y = ny;
-        document.getElementById('move-count').innerText = ++moves;
+        moves++;
+        document.getElementById('move-count').innerText = moves;
+
         if (p.done) switchPlayer();
+        
         if (players.every(p => p.done)) {
+            const timeCalculated = Math.round((Date.now() - stageStartTime) / 1000);
+            const timeString = timeCalculated + "초";
+
+            // 최신 클리어 스테이지 갱신 
+            latestClearedLevel = currentLevel;
+
+            if (!clearedRecords[currentLevel] || clearedRecords[currentLevel].moves > moves) {
+                clearedRecords[currentLevel] = {
+                    moves: moves,
+                    target: levels[currentLevel].target,
+                    timeSpent: timeString
+                };
+            }
+
             completedStages.add(currentLevel);
             updateUI();
             showPopup(true);
         }
-        saveCurrentLevelState();
+        saveStageState();
     }
 }
 
@@ -466,7 +704,7 @@ function undo() {
     moves = last.moves;
     occupiedHoles = last.occupiedHoles;
     document.getElementById('move-count').innerText = moves;
-    saveCurrentLevelState();
+    saveStageState();
 }
 
 function switchPlayer() {
@@ -474,45 +712,60 @@ function switchPlayer() {
     players.forEach(p => p.active = false);
     let next = (activeIdx + 1) % players.length;
     let count = 0;
-    while(players[next].done && count < players.length) {
+    while (players[next].done && count < players.length) {
         next = (next + 1) % players.length;
         count++;
     }
     if (!players[next].done) players[next].active = true;
-    saveCurrentLevelState();
+    saveStageState();
 }
 
 function showPopup(isSuccess) {
-    isLastResultSuccess = isSuccess; // 성공 여부 기록
+    isLastResultSuccess = isSuccess;
     const modal = document.getElementById('game-modal');
+    const card = document.getElementById('modal-card');
+    const title = document.getElementById('modal-title');
+    const msg = document.getElementById('modal-msg');
+    const btn = document.getElementById('modal-action-btn');
+
     modal.style.display = 'flex';
-    const box = document.getElementById('modal-box');
-    if(isSuccess) {
-        box.className = 'modal-content success';
-        document.getElementById('modal-title').innerText = '🎉 성공!';
-        document.getElementById('modal-msg').innerText = `${moves}번 만에 성공했습니다!`;
+    
+    if (isSuccess) {
+        card.className = 'modal-card success';
+        title.innerText = '🎉 성공!';
+        msg.innerText = `${moves}번 만에 미로 탈출에 성공했습니다!`;
+        btn.innerText = '다음 단계로';
     } else {
-        box.className = 'modal-content fail';
-        document.getElementById('modal-title').innerText = '💀 실패...';
-        document.getElementById('modal-msg').innerText = '함정에 빠졌습니다.';
+        card.className = 'modal-card fail';
+        title.innerText = '❌ 틀렸습니다!';
+        msg.innerText = '함정에 빠지거나 잘못된 길로 진입했습니다.';
+        btn.innerText = '다시 시도';
     }
+    btn.focus();
 }
 
 function closeModal() {
     document.getElementById('game-modal').style.display = 'none';
     if (isLastResultSuccess) {
-        // 성공했다면 다음 단계로 이동
         let nextLvl = (currentLevel + 1) % levels.length;
         initGame(nextLvl);
     } else {
-        // 실패했다면 현재 단계 초기화
-        resetCurrentLevel(); 
+        resetCurrentLevel();
     }
 }
 
+document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+
 window.addEventListener('keydown', (e) => {
     const modal = document.getElementById('game-modal');
-    if (modal.style.display === 'flex' && e.key === 'Enter') { closeModal(); return; }
+    if (modal.style.display === 'flex') {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            closeModal();
+            return;
+        }
+    }
+    
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
     if (e.key === 'ArrowUp') handleMove(0, -1);
     if (e.key === 'ArrowDown') handleMove(0, 1);
@@ -520,15 +773,8 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') handleMove(1, 0);
     if (e.key === ' ') switchPlayer();
 
-    /* 되돌리기: Z 또는 Ctrl+Z */
-    if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) {
-        undo();
-    }
-
-    /* 초기화: R 또는 Esc */
-    if (e.key === 'r' || e.key === 'R' || e.key === 'Escape') {
-        resetCurrentLevel();
-    }
+    if (e.key === 'z' || e.key === 'Z' || (e.ctrlKey && e.key === 'z')) undo();
+    if (e.key === 'r' || e.key === 'R' || e.key === 'Escape') resetCurrentLevel();
 });
 
 initGame(0);
