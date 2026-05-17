@@ -286,6 +286,11 @@
       color: var(--text-main);
     }
 
+    /* 마지막 행 연한 빨간색 하이라이트 스타일 */
+    .record-table tr.latest-record {
+      background-color: #fff0f0;
+    }
+
     /* 결과 알림 팝업 모달 시스템 */
     .modal-overlay {
       position: fixed;
@@ -464,7 +469,9 @@ let moveStack = [];
 let cellDirs = [];
 let clearedStages = new Set();
 let stageStates = {}; 
-let allRecordsList = []; 
+
+// 새로고침 시 기록 유지를 위해 localStorage에서 기존 기록 불러오기
+let allRecordsList = JSON.parse(localStorage.getItem('mazeRecords')) || []; 
 
 let timer = null;
 let timeSec = 0;
@@ -633,6 +640,9 @@ function moveForward() {
       time: timeSec
     });
 
+    // 새로고침 시 기록 유지를 위해 localStorage에 저장
+    localStorage.setItem('mazeRecords', JSON.stringify(allRecordsList));
+
     showResultPopup(true);
   }
   updateUI();
@@ -682,6 +692,7 @@ function showResultPopup(isSuccess) {
     modalBtn.textContent = "다시 시도";
     nextActionType = "RETRY";
   }
+  cardClass = isSuccess ? "modal-card success-popup" : "modal-card danger-popup";
   modalCard.className = cardClass;
   modalBtn.focus();
 }
@@ -716,8 +727,12 @@ function renderRecords() {
                 </thead>
                 <tbody>`;
                 
-  allRecordsList.forEach(item => {
-    html += `<tr>
+  allRecordsList.forEach((item, index) => {
+    // 마지막에 작성된 행(배열의 마지막 아이템) 판별 후 클래스 부여
+    const isLatest = (index === allRecordsList.length - 1);
+    const rowClass = isLatest ? 'class="latest-record"' : '';
+
+    html += `<tr ${rowClass}>
               <td><b>${item.stage}단계</b></td>
               <td style="color:var(--success); font-weight:700;">${item.time.toFixed(2)}초</td>
              </tr>`;
@@ -731,6 +746,7 @@ function resetGlobalRecords() {
   allRecordsList = [];
   clearedStages.clear();
   stageStates = {};
+  localStorage.removeItem('mazeRecords'); // localStorage 기록 삭제
   restartStage();
 }
 
