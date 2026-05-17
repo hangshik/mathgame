@@ -2,208 +2,459 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>러시아워</title>
+  <!-- Pretendard 폰트 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-light: #e9ecef;
+      --btn-bg: #f8f9fa;
+      --block-brown: #8B5A2B; /* 일반 차량용 갈색 */
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
     body {
-      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 15px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      background-color: #f8f9fa;
-      margin: 0;
-      padding: 24px;
-      color: #333;
+      min-height: 100vh;
+      touch-action: manipulation;
     }
 
-    .controls {
-      margin-bottom: 12px;
+    /* 전체 폭 제한 및 기본 배치 */
+    .wrapper {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .move-counter {
-      margin: 12px 0;
-      font-weight: 600;
-      font-size: 18px;
-      color: #495057;
+    /* 배경 없는 독립 영역 */
+    .section-fluid {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* 카드 형태 고정 컨테이너 */
+    .container-fixed {
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      margin: 10px 0;
+      color: var(--text-main);
+      letter-spacing: -1px;
+    }
+
+    /* 단계 및 이동 횟수를 포함하는 상단 컨트롤 패널 */
+    .stage-panel {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 단계 선택 그리드 (가로 꽉 차게 변경) */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      width: 100%;
+    }
+
+    /* 단계 버튼 크기 확대 */
+    .btn-stage {
+      background-color: var(--btn-bg);
+      border: 1px solid var(--border-light);
+      color: var(--text-sub);
+      padding: 16px 0; /* 세로 크기 확대 */
+      font-size: 15px; /* 글자 크기 약간 확대 */
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .btn-stage:hover {
+      background-color: var(--border-light);
+    }
+
+    .btn-stage.active {
+      background-color: var(--active);
+      color: #ffffff;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-stage.stage-clear {
+      background-color: var(--success) !important;
+      color: #ffffff !important;
+      border-color: var(--success) !important;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    /* 이동 횟수 표시기 (우측 정렬 배치) */
+    .info-bar {
+      width: 100%;
+      text-align: right;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-sub);
+      padding-right: 4px;
+    }
+    .info-bar span {
+      color: var(--active);
+    }
+
+    /* 퍼즐 보드 가로세로 정형 비율 유지 */
+    .puzzle-wrapper {
+      width: 100%;
+      max-width: 340px;
+      aspect-ratio: 1 / 1;
+      position: relative;
     }
 
     .puzzle-container {
-      display: grid;
-      grid-template-columns: repeat(6, 48px);
-      grid-template-rows: repeat(6, 48px);
-      position: relative;
-      border: 10px solid #8b8b8b;
-      border-radius: 6px;
-    }
-    .puzzle-container::after {
-      content: "";
-      position: absolute;
-      right: -10px;
-      top: 96px;
-      width: 10px;
-      height: 48px;
-      background-color: #ffffff;
-      z-index: 1;
-    }
-    
-    .puzzle-container::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      background-color: #ffffff;
-      pointer-events: none;
-      z-index: 0;
+      position: relative;
+      border: 8px solid #6c757d;
+      border-radius: 14px;
+      background-color: #f8f9fa;
       background-image: 
-        linear-gradient(to right, #000000 1px, transparent 2px),
-        linear-gradient(to bottom, #000000 1px, transparent 2px);
-      background-size: 48px 48px;
+        linear-gradient(to right, #dee2e6 1px, transparent 1px),
+        linear-gradient(to bottom, #dee2e6 1px, transparent 1px);
+      background-size: calc(100% / 6) calc(100% / 6);
+      overflow: visible;
     }
+
+    /* 탈출구 표시 */
+    .puzzle-container::after {
+      content: "EXIT";
+      position: absolute;
+      right: -14px;
+      top: calc((100% / 6) * 2);
+      width: 14px;
+      height: calc(100% / 6);
+      background-color: var(--success);
+      color: white;
+      font-size: 9px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-lr;
+      border-radius: 0 4px 4px 0;
+      z-index: 2;
+    }
+
+    /* 블록 디자인 */
     .block {
       position: absolute;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 2px solid #ffffff;
-      z-index: 1;
       box-sizing: border-box;
-      transition: all 0.2s ease;
-      border-radius: 5px;
-      background-color: #a8683a;
+      border: 2px solid #ffffff;
+      border-radius: 10px;
+      background-color: var(--block-brown); /* 기본 자동차 색상을 갈색으로 통일 */
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 10;
+      touch-action: none;
+    }
+    .block:active {
+      cursor: grabbing;
     }
 
-    .two-one {
-      background-color: #ff4f4f;
+    /* 주인공 자동차 (빨간색 독립 유지) */
+    .block.hero-car {
+      background-color: var(--danger);
     }
 
-    .hole {
-      width: 48px;
-      height: 48px;
-      background-color: transparent;
-      position: absolute;
-      z-index: 0;
-      border: none;
+    /* 트럭 역시 갈색으로 통일 */
+    .block.truck {
+      background-color: var(--block-brown);
     }
 
-    #success {
-      margin-top: 16px;
-      font-size: 26px;
-      color: #40c057;
-      font-weight: 600;
-      display: none;
+    /* 하단 조작 버튼 영역 (흰색 바탕, 검은색 글씨) */
+    .control-actions {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
     }
 
-    .stage-button {
-      font-size: 14px;
-      margin: 3px;
-      padding: 6px 13px;
-      border: none;
-      border-radius: 6px;
+    .btn-action {
+      flex: 1;
+      height: 54px;
+      border: 1px solid #ced4da;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
-      background-color: #e9ecef;
-      color: #495057;
-      font-weight: 500;
+      background-color: #ffffff;
+      color: #222222;
       transition: all 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
-    .active {
-      background-color: #339af0;
+    .btn-action:hover {
+      background-color: #f1f3f5;
+      border-color: #adb5bd;
+    }
+
+    /* 하단 가이드 공간 (포인트 바 가미) */
+    .guide-box {
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      word-break: keep-all;
+    }
+
+    .guide-box h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .guide-box p, .guide-box ul {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+    .guide-box ul {
+      padding-left: 20px;
+    }
+
+    .guide-rule { border-left: 6px solid var(--active); }
+    .guide-key { border-left: 6px solid var(--success); }
+
+    .guide-rule h3 { color: var(--active); }
+    .guide-key h3 { color: var(--success); }
+
+    /* 모달 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 90%;
+      max-width: 350px;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transform: scale(0.9);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-success { border-top: 6px solid var(--success); }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .modal-success .modal-title { color: var(--success); }
+
+    .modal-body {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .btn-modal {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background-color: var(--success);
       color: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stage-clear {
-      background-color: #4caf50 !important;
-      color: white !important;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <h2>러시아워</h2>
 
-  <div>
-    <button id="btn1" class="stage-button" onclick="setStage(1)">1단계</button>
-    <button id="btn2" class="stage-button" onclick="setStage(2)">2단계</button>
-    <button id="btn3" class="stage-button" onclick="setStage(3)">3단계</button>
-    <button id="btn4" class="stage-button" onclick="setStage(4)">4단계</button><br>
-    <button id="btn5" class="stage-button" onclick="setStage(5)">5단계</button>
-    <button id="btn6" class="stage-button" onclick="setStage(6)">6단계</button>
-    <button id="btn7" class="stage-button" onclick="setStage(7)">7단계</button>
+  <div class="wrapper">
+    <!-- [영역 1-A: 퍼즐 제목 영역] -->
+    <div class="section-fluid">
+      <h1>러시아워</h1>
+    </div>
+
+    <!-- [영역 1-B: 단계 선택 및 이동 횟수 복합 영역] -->
+    <div class="container-fixed">
+      <div class="stage-panel">
+        <div class="stage-grid" id="stageGrid"></div>
+        <div class="info-bar">이동 횟수: <span id="moveCount">0</span> 회</div>
+      </div>
+    </div>
+
+    <!-- [영역 2: 퍼즐 문제 영역] -->
+    <div class="container-fixed">
+      <div class="puzzle-wrapper">
+        <div class="puzzle-container" id="puzzleContainer"></div>
+      </div>
+    </div>
+
+    <!-- [영역 3: 하단 조작 버튼 영역] -->
+    <div class="section-fluid">
+      <div class="control-actions">
+        <button class="btn-action" onclick="resetPuzzle()">처음으로</button>
+        <button class="btn-action" onclick="undoMove()">되돌리기</button>
+      </div>
+    </div>
+
+    <!-- [영역 4: 퍼즐 규칙] -->
+    <div class="guide-box guide-rule">
+      <h3>🚙 퍼즐 규칙</h3>
+      <p><span style="color:var(--danger); font-weight:bold;">붉은색 주인공 차량</span>을 우측 탈출구(<span style="color:var(--success); font-weight:bold;">EXIT</span>)로 안전하게 이동시키는 슬라이딩 퍼즐입니다. 갈색 차량들을 앞뒤로 밀어 길을 확보하세요!</p>
+    </div>
+
+    <!-- [영역 5: 키보드 단축키] -->
+    <div class="guide-box guide-key">
+      <h3>⌨ 키보드 단축키</h3>
+      <ul>
+        <li><strong>[R]</strong> : 현재 스테이지 처음부터 다시 시작</li>
+        <li><strong>[Z]</strong> : 직전 이동 상태로 되돌리기</li>
+      </ul>
+    </div>
   </div>
 
-  <br>
-  <div class="move-counter">이동 횟수: <span id="moveCount">0</span></div>
-  <div class="puzzle-container" id="puzzle"></div>
-  <div id="success">성공!</div>
-
-  <br>
-  <div class="controls">
-    <button class="stage-button" onclick="undoMove()">되돌리기</button>
-    <button class="stage-button" onclick="resetPuzzle()">처음으로</button>
+  <!-- 결과 알림 팝업 모달 시스템 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card modal-success" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공!</div>
+      <div class="modal-body" id="modalBody">스테이지를 완벽하게 클리어했습니다!</div>
+      <button class="btn-modal" id="modalBtn" onclick="closeModal()">다음 단계로</button>
+    </div>
   </div>
 
   <script>
-    const puzzle = document.getElementById("puzzle");
-    const moveCountEl = document.getElementById("moveCount");
-    const gridCols = 6;
-    const gridRows = 6;
-    const cellSize = 48;
+    // --- 시스템 방지 설정 (모바일 환경 최적화) ---
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    let lastTouchTime = 0;
+    document.addEventListener('touchend', function (e) {
+      const now = (new Date()).getTime();
+      if (now - lastTouchTime <= 300) {
+        e.preventDefault();
+      }
+      lastTouchTime = now;
+    }, { passive: false });
 
-    // --- 상태 관리 변수 ---
-    let blocks = [];
-    let moveCount = 0;
-    let history = [];
-    let currentStage = null; 
-    let stageStates = {}; // 각 스테이지의 데이터 보관소
-    const clearedStages = new Set();
-
+    // --- 데이터셋 정의 (1단계 ~ 7단계) ---
     const stageData = {
       1: [
-        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "hero", type: "hero-car", x: 1, y: 2, w: 2, h: 1 },
         { id: "b2", x: 0, y: 0, w: 2, h: 1 },
-        { id: "b3", x: 5, y: 0, w: 1, h: 3 },
-        { id: "b4", x: 0, y: 1, w: 1, h: 3 },
-        { id: "b5", x: 3, y: 1, w: 1, h: 3 },
+        { id: "b3", type: "truck", x: 5, y: 0, w: 1, h: 3 },
+        { id: "b4", type: "truck", x: 0, y: 1, w: 1, h: 3 },
+        { id: "b5", type: "truck", x: 3, y: 1, w: 1, h: 3 },
         { id: "b6", x: 0, y: 4, w: 1, h: 2 },
         { id: "b7", x: 4, y: 4, w: 2, h: 1 },
-        { id: "b8", x: 2, y: 5, w: 3, h: 1 }
+        { id: "b8", type: "truck", x: 2, y: 5, w: 3, h: 1 }
       ],
       2: [
-        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
-        { id: "b2", x: 3, y: 2, w: 1, h: 3 },
+        { id: "hero", type: "hero-car", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", type: "truck", x: 3, y: 2, w: 1, h: 3 },
         { id: "b3", x: 1, y: 3, w: 2, h: 1 },
-        { id: "b4", x: 5, y: 3, w: 1, h: 3 },
+        { id: "b4", type: "truck", x: 5, y: 3, w: 1, h: 3 },
         { id: "b5", x: 1, y: 4, w: 1, h: 2 },
         { id: "b6", x: 2, y: 5, w: 2, h: 1 }
       ],
       3: [
-        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
+        { id: "hero", type: "hero-car", x: 1, y: 2, w: 2, h: 1 },
         { id: "b2", x: 0, y: 0, w: 2, h: 1 },
         { id: "b3", x: 2, y: 0, w: 1, h: 2 },
         { id: "b4", x: 4, y: 0, w: 2, h: 1 },
         { id: "b5", x: 0, y: 1, w: 2, h: 1 },
-        { id: "b6", x: 0, y: 2, w: 1, h: 3 },
-        { id: "b7", x: 5, y: 2, w: 1, h: 3 },
-        { id: "b8", x: 1, y: 3, w: 3, h: 1 },
+        { id: "b6", type: "truck", x: 0, y: 2, w: 1, h: 3 },
+        { id: "b7", type: "truck", x: 5, y: 2, w: 1, h: 3 },
+        { id: "b8", type: "truck", x: 1, y: 3, w: 3, h: 1 },
         { id: "b9", x: 3, y: 4, w: 1, h: 2 },
         { id: "b10", x: 0, y: 5, w: 2, h: 1 },
         { id: "b11", x: 4, y: 5, w: 2, h: 1 }
       ],
       4: [
-        { id: "b1", type: "two-one", x: 1, y: 2, w: 2, h: 1 },
-        { id: "b2", x: 0, y: 0, w: 1, h: 3 },
+        { id: "hero", type: "hero-car", x: 1, y: 2, w: 2, h: 1 },
+        { id: "b2", type: "truck", x: 0, y: 0, w: 1, h: 3 },
         { id: "b3", x: 1, y: 0, w: 2, h: 1 },
-        { id: "b4", x: 3, y: 0, w: 1, h: 3 },
+        { id: "b4", type: "truck", x: 3, y: 0, w: 1, h: 3 },
         { id: "b5", x: 2, y: 3, w: 1, h: 2 },
-        { id: "b6", x: 3, y: 3, w: 3, h: 1 },
+        { id: "b6", type: "truck", x: 3, y: 3, w: 3, h: 1 },
         { id: "b7", x: 5, y: 4, w: 1, h: 2 },
-        { id: "b8", x: 2, y: 5, w: 3, h: 1 }
+        { id: "b8", type: "truck", x: 2, y: 5, w: 3, h: 1 }
       ],
       5: [
-        { id: "b1", type: "two-one", x: 2, y: 2, w: 2, h: 1 },
+        { id: "hero", type: "hero-car", x: 2, y: 2, w: 2, h: 1 },
         { id: "b2", x: 0, y: 0, w: 2, h: 1 },
         { id: "b3", x: 2, y: 0, w: 1, h: 2 },
         { id: "b4", x: 4, y: 1, w: 2, h: 1 },
@@ -217,26 +468,26 @@
         { id: "b12", x: 0, y: 5, w: 2, h: 1 }
       ],
       6: [
-        { id: "b1", type: "two-one", x: 0, y: 2, w: 2, h: 1 },
+        { id: "hero", type: "hero-car", x: 0, y: 2, w: 2, h: 1 },
         { id: "b2", x: 0, y: 0, w: 1, h: 2 },
         { id: "b3", x: 1, y: 0, w: 2, h: 1 },
-        { id: "b4", x: 3, y: 0, w: 1, h: 3 },
+        { id: "b4", type: "truck", x: 3, y: 0, w: 1, h: 3 },
         { id: "b5", x: 1, y: 1, w: 2, h: 1 },
         { id: "b6", x: 2, y: 2, w: 1, h: 2 },
-        { id: "b7", x: 5, y: 2, w: 1, h: 3 },
+        { id: "b7", type: "truck", x: 5, y: 2, w: 1, h: 3 },
         { id: "b8", x: 3, y: 3, w: 2, h: 1 },
         { id: "b9", x: 2, y: 4, w: 1, h: 2 },
-        { id: "b10", x: 3, y: 5, w: 3, h: 1 }
+        { id: "b10", type: "truck", x: 3, y: 5, w: 3, h: 1 }
       ],
       7: [
-        { id: "b1", type: "two-one", x: 3, y: 2, w: 2, h: 1 },
-        { id: "b2", x: 0, y: 0, w: 1, h: 3 },
+        { id: "hero", type: "hero-car", x: 3, y: 2, w: 2, h: 1 },
+        { id: "b2", type: "truck", x: 0, y: 0, w: 1, h: 3 },
         { id: "b3", x: 1, y: 0, w: 2, h: 1 },
         { id: "b4", x: 4, y: 0, w: 1, h: 2 },
         { id: "b5", x: 1, y: 1, w: 1, h: 2 },
         { id: "b6", x: 2, y: 1, w: 1, h: 2 },
-        { id: "b7", x: 5, y: 1, w: 1, h: 3 },
-        { id: "b8", x: 0, y: 3, w: 3, h: 1 },
+        { id: "b7", type: "truck", x: 5, y: 1, w: 1, h: 3 },
+        { id: "b8", type: "truck", x: 0, y: 3, w: 3, h: 1 },
         { id: "b9", x: 3, y: 3, w: 1, h: 2 },
         { id: "b10", x: 2, y: 4, w: 1, h: 2 },
         { id: "b11", x: 4, y: 4, w: 2, h: 1 },
@@ -245,164 +496,208 @@
       ]
     };
 
-    function setStage(stage) {
-      // 1. 현재 스테이지가 있었다면 상태 저장
-      if (currentStage !== null) {
-        stageStates[currentStage] = {
-          blocks: JSON.parse(JSON.stringify(blocks)),
-          moveCount: moveCount,
-          history: JSON.parse(JSON.stringify(history))
-        };
+    // --- 상태 관리 변수 ---
+    let currentStage = 1;
+    let blocks = [];
+    let moveCount = 0;
+    
+    let stageHistory = {};
+    let clearedStages = new Set();
+
+    const container = document.getElementById("puzzleContainer");
+    const moveCountEl = document.getElementById("moveCount");
+
+    if (localStorage.getItem("rushHourCleared")) {
+      const savedCleared = JSON.parse(localStorage.getItem("rushHourCleared"));
+      clearedStages = new Set(savedCleared);
+    }
+
+    function initApp() {
+      createStageButtons();
+      loadStage(1);
+    }
+
+    function createStageButtons() {
+      const grid = document.getElementById("stageGrid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= 7; i++) {
+        const btn = document.createElement("button");
+        btn.id = `stageBtn-${i}`;
+        btn.className = "btn-stage";
+        btn.innerText = `${i}단계`;
+        btn.onclick = () => switchStage(i);
+        grid.appendChild(btn);
       }
+      updateStageButtonsStyle();
+    }
 
-      // 2. 버튼 스타일 처리
-      document.querySelectorAll('.stage-button').forEach((btn) => {
-        const btnNum = parseInt(btn.id.replace('btn', ''));
-        btn.classList.remove("active");
-        if (!clearedStages.has(btnNum)) {
-          btn.classList.remove("stage-clear");
+    function updateStageButtonsStyle() {
+      for (let i = 1; i <= 7; i++) {
+        const btn = document.getElementById(`stageBtn-${i}`);
+        if (!btn) continue;
+        btn.classList.remove("active", "stage-clear");
+        if (clearedStages.has(i)) {
+          btn.classList.add("stage-clear");
         }
-      });
-
-      const currentBtn = document.getElementById("btn" + stage);
-      if (currentBtn) {
-        if (clearedStages.has(stage)) {
-          currentBtn.classList.add("stage-clear");
-        } else {
-          currentBtn.classList.add("active");
+        if (i === currentStage) {
+          btn.classList.add("active");
         }
       }
+    }
 
-      currentStage = stage;
+    function switchStage(stageNum) {
+      if (stageNum === currentStage) return;
 
-      // 3. 데이터 불러오기 또는 초기화
-      if (stageStates[stage]) {
-        const state = stageStates[stage];
-        blocks = JSON.parse(JSON.stringify(state.blocks));
-        moveCount = state.moveCount;
-        history = JSON.parse(JSON.stringify(state.history));
-        
-        updateMoveCount();
-        document.getElementById("success").style.display = "none";
-        renderBlocks();
-        checkWin(); 
+      stageHistory[currentStage] = {
+        blocks: JSON.parse(JSON.stringify(blocks)),
+        moveCount: moveCount,
+        historyStack: [...(stageHistory[currentStage]?.historyStack || [])]
+      };
+
+      currentStage = stageNum;
+      
+      if (stageHistory[stageNum]) {
+        const saved = stageHistory[stageNum];
+        blocks = JSON.parse(JSON.stringify(saved.blocks));
+        moveCount = saved.moveCount;
       } else {
-        // 처음 방문 시 해당 스테이지 데이터로 초기화
-        resetPuzzle();
+        blocks = JSON.parse(JSON.stringify(stageData[stageNum]));
+        moveCount = 0;
+        stageHistory[stageNum] = { blocks: [], moveCount: 0, historyStack: [] };
       }
+
+      moveCountEl.textContent = moveCount;
+      updateStageButtonsStyle();
+      renderBlocks();
+    }
+
+    function loadStage(stageNum) {
+      currentStage = stageNum;
+      blocks = JSON.parse(JSON.stringify(stageData[stageNum]));
+      moveCount = 0;
+      stageHistory[stageNum] = { blocks: [], moveCount: 0, historyStack: [] };
+      moveCountEl.textContent = moveCount;
+      updateStageButtonsStyle();
+      renderBlocks();
     }
 
     function renderBlocks() {
-      puzzle.innerHTML = "";
+      const existingBlocks = container.querySelectorAll('.block');
+      existingBlocks.forEach(el => el.remove());
 
-      for (const block of blocks) {
+      const cellPercent = 100 / 6;
+
+      blocks.forEach(block => {
         const div = document.createElement("div");
         div.className = `block ${block.type || ""}`;
-        div.style.left = `${block.x * cellSize + 2}px`;
-        div.style.top = `${block.y * cellSize + 2}px`;
-        div.style.width = `${block.w * cellSize - 2}px`;
-        div.style.height = `${block.h * cellSize - 2}px`;
-        div.setAttribute("id", block.id);
-        div.style.transition = 'all 0.2s ease-out';
-        puzzle.appendChild(div);
+        div.id = `block-${block.id}`;
+        
+        div.style.left = `${block.x * cellPercent}%`;
+        div.style.top = `${block.y * cellPercent}%`;
+        div.style.width = `${block.w * cellPercent}%`;
+        div.style.height = `${block.h * cellPercent}%`;
+        div.style.transition = 'all 0.15s ease-out';
 
-        // 드래그 로직
-        let originX, originY;
-        let isDragging = false;
-        let lastValidX = block.x;
-        let lastValidY = block.y;
-        let lastMoveTime = 0;
-        let ghostDiv = null;
-        const moveThreshold = 20; 
-        const timeThreshold = 30;
+        bindInteraction(div, block);
+        container.appendChild(div);
+      });
+    }
 
-        function handleStart(e) {
-          e.preventDefault();
-          isDragging = true;
-          const clientX = e.clientX || e.touches[0].clientX;
-          const clientY = e.clientY || e.touches[0].clientY;
+    // --- 즉각 이동 인터랙션 로직 ---
+    function bindInteraction(element, block) {
+      let originX = 0, originY = 0;
+      let isDragging = false;
+      let lastValidX = block.x;
+      let lastValidY = block.y;
+      
+      const moveThreshold = 20;
+
+      function onStart(e) {
+        e.preventDefault();
+        isDragging = true;
+        
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        originX = clientX;
+        originY = clientY;
+        
+        lastValidX = block.x;
+        lastValidY = block.y;
+
+        element.style.transition = 'none';
+        element.style.zIndex = '1000';
+      }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        if (!clientX || !clientY) return;
+
+        const movedX = clientX - originX;
+        const movedY = clientY - originY;
+
+        if (Math.abs(movedX) < moveThreshold && Math.abs(movedY) < moveThreshold) return;
+
+        let tempX = lastValidX;
+        let tempY = lastValidY;
+
+        if (block.w > block.h) {
+          tempX = lastValidX + (movedX > 0 ? 1 : -1);
+        } else {
+          tempY = lastValidY + (movedY > 0 ? 1 : -1);
+        }
+
+        if (canMove(block, tempX, tempY)) {
+          if (lastValidX === block.x && lastValidY === block.y) {
+            if (!stageHistory[currentStage].historyStack) {
+              stageHistory[currentStage].historyStack = [];
+            }
+            stageHistory[currentStage].historyStack.push(JSON.parse(JSON.stringify(blocks)));
+          }
+
+          lastValidX = tempX;
+          lastValidY = tempY;
+          block.x = tempX;
+          block.y = tempY;
+
+          const cellPercent = 100 / 6;
+          element.style.left = `${tempX * cellPercent}%`;
+          element.style.top = `${tempY * cellPercent}%`;
+
           originX = clientX;
           originY = clientY;
-          lastValidX = block.x;
-          lastValidY = block.y;
-          lastMoveTime = Date.now();
-          div.style.transition = 'none';
-          div.style.zIndex = '1000';
-
-          ghostDiv = document.createElement("div");
-          ghostDiv.className = `block ${block.type || ""} ghost`;
-          ghostDiv.style.width = `${block.w * cellSize - 2}px`;
-          ghostDiv.style.height = `${block.h * cellSize - 2}px`;
-          ghostDiv.style.opacity = '0.4';
-          ghostDiv.style.position = 'absolute';
-          ghostDiv.style.backgroundColor = '#ccc';
-          ghostDiv.style.left = `${block.x * cellSize + 2}px`;
-          ghostDiv.style.top = `${block.y * cellSize + 2}px`;
-          puzzle.appendChild(ghostDiv);
         }
-
-        function handleMove(e) {
-          if (!isDragging) return;
-          const currentTime = Date.now();
-          if (currentTime - lastMoveTime < timeThreshold) return;
-          const clientX = e.clientX || e.touches[0].clientX;
-          const clientY = e.clientY || e.touches[0].clientY;
-          const movedX = clientX - originX;
-          const movedY = clientY - originY;
-
-          if (Math.abs(movedX) < moveThreshold && Math.abs(movedY) < moveThreshold) return;
-
-          let tempX = lastValidX;
-          let tempY = lastValidY;
-
-          if (block.w > block.h) { // 가로 블록
-            tempX = lastValidX + (movedX > 0 ? 1 : -1);
-          } else { // 세로 블록
-            tempY = lastValidY + (movedY > 0 ? 1 : -1);
-          }
-
-          if (canMove(block, tempX, tempY)) {
-            lastValidX = tempX;
-            lastValidY = tempY;
-            div.style.left = `${tempX * cellSize + 2}px`;
-            div.style.top = `${tempY * cellSize + 2}px`;
-            ghostDiv.style.left = `${tempX * cellSize + 2}px`;
-            ghostDiv.style.top = `${tempY * cellSize + 2}px`;
-            originX = clientX;
-            originY = clientY;
-            lastMoveTime = currentTime;
-          }
-        }
-
-        function handleEnd() {
-          if (!isDragging) return;
-          isDragging = false;
-          if (ghostDiv) ghostDiv.remove();
-          
-          if (lastValidX !== block.x || lastValidY !== block.y) {
-            saveHistory();
-            block.x = lastValidX;
-            block.y = lastValidY;
-            moveCount++;
-            updateMoveCount();
-            checkWin();
-          }
-          div.style.zIndex = '';
-          div.style.transition = 'all 0.2s ease-out';
-          renderBlocks();
-        }
-
-        div.addEventListener("mousedown", handleStart);
-        div.addEventListener("touchstart", handleStart, {passive: false});
-        document.addEventListener("mousemove", handleMove);
-        document.addEventListener("touchmove", handleMove, {passive: false});
-        document.addEventListener("mouseup", handleEnd);
-        document.addEventListener("touchend", handleEnd);
       }
+
+      function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        element.style.zIndex = '10';
+        element.style.transition = 'all 0.15s ease-out';
+
+        const savedState = stageHistory[currentStage]?.historyStack;
+        const lastSaved = savedState && savedState[savedState.length - 1];
+        
+        if (lastSaved && (lastSaved.find(b => b.id === block.id).x !== block.x || lastSaved.find(b => b.id === block.id).y !== block.y)) {
+          moveCount++;
+          moveCountEl.textContent = moveCount;
+          checkWinCondition();
+        }
+        renderBlocks();
+      }
+
+      element.addEventListener("mousedown", onStart);
+      element.addEventListener("touchstart", onStart, { passive: false });
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("touchmove", onMove, { passive: false });
+      window.addEventListener("mouseup", onEnd);
+      window.addEventListener("touchend", onEnd);
     }
 
     function canMove(block, newX, newY) {
-      if (newX < 0 || newY < 0 || newX + block.w > gridCols || newY + block.h > gridRows) return false;
+      if (newX < 0 || newY < 0 || newX + block.w > 6 || newY + block.h > 6) return false;
       for (const other of blocks) {
         if (other.id === block.id) continue;
         if (newX < other.x + other.w && newX + block.w > other.x &&
@@ -413,45 +708,73 @@
       return true;
     }
 
-    function checkWin() {
-      const target = blocks.find(b => b.type === "two-one");
-      if (target && target.x === 4 && target.y === 2) {
-        document.getElementById("success").style.display = "block";
+    function checkWinCondition() {
+      const hero = blocks.find(b => b.type === "hero-car");
+      if (hero && hero.x + hero.w === 6 && hero.y === 2) {
         clearedStages.add(currentStage);
-        const btn = document.getElementById("btn" + currentStage);
-        if (btn) btn.classList.add("stage-clear");
+        localStorage.setItem("rushHourCleared", JSON.stringify([...clearedStages]));
+        updateStageButtonsStyle();
+        
+        setTimeout(() => {
+          openModal();
+        }, 150);
       }
     }
 
-    function updateMoveCount() {
+    function resetPuzzle() {
+      blocks = JSON.parse(JSON.stringify(stageData[currentStage]));
+      moveCount = 0;
+      if (stageHistory[currentStage]) {
+        stageHistory[currentStage].historyStack = [];
+      }
       moveCountEl.textContent = moveCount;
-    }
-
-    function saveHistory() {
-      history.push(JSON.parse(JSON.stringify(blocks)));
+      renderBlocks();
     }
 
     function undoMove() {
-      if (history.length === 0) return;
-      blocks = history.pop();
-      moveCount = Math.max(0, moveCount - 1);
-      updateMoveCount();
-      document.getElementById("success").style.display = "none";
+      const stack = stageHistory[currentStage]?.historyStack;
+      if (!stack || stack.length === 0) return;
+      
+      blocks = stack.pop();
+      if (moveCount > 0) moveCount--;
+      moveCountEl.textContent = moveCount;
       renderBlocks();
     }
 
-    function resetPuzzle() {
-      // 해당 스테이지의 원본 데이터를 새로 복사해옴
-      blocks = JSON.parse(JSON.stringify(stageData[currentStage]));
-      history = [];
-      moveCount = 0;
-      updateMoveCount();
-      document.getElementById("success").style.display = "none";
-      renderBlocks();
+    // --- 결과 모달 디스플레이 제어 ---
+    const overlay = document.getElementById("modalOverlay");
+    
+    function openModal() {
+      overlay.classList.add("show");
+      document.getElementById("modalBtn").focus();
     }
 
-    // 시작 시 1단계 자동 설정
-    setStage(1);
+    function closeModal() {
+      overlay.classList.remove("show");
+      if (currentStage < 7) {
+        switchStage(currentStage + 1);
+      }
+    }
+
+    // --- 단축키 바인딩 시스템 ---
+    window.addEventListener("keydown", function(e) {
+      if (overlay.classList.contains("show")) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+      }
+
+      const key = e.key.toLowerCase();
+      if (key === "r") {
+        resetPuzzle();
+      } else if (key === "z") {
+        undoMove();
+      }
+    });
+
+    initApp();
   </script>
 </body>
 </html>
