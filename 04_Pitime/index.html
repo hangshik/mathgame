@@ -1,203 +1,733 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>파이 맞추기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>3.14초 맞추기</title>
+  <!-- Pretendard 고딕 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      text-align: center;
-      margin-top: 50px;
-      background-color: #f8f9fa;
-      color: #343a40;
-    }
-    .timer {
-      font-size: 3rem;
-      font-weight: bold;
-      margin-bottom: 20px;
-      color: #6c757d;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 10px 30px;
-      margin: 10px;
-      cursor: pointer;
-      border: none;
-      transition: background-color 0.3s;
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --gray-light: #f8f9fa;
+      --gray-border: #e9ecef;
     }
 
-    .result {
-      margin-top: 30px;
-      font-size: 3rem;
-      font-weight: bold;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-touch-callout: none;
     }
-    .result.success {
-      color: #28a745;
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: manipulation;
     }
-    .result.failure {
-      color: #dc3545;
+
+    .row-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
     }
+
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    h1.game-title {
+      font-size: 36px;
+      font-weight: 800;
+      text-align: center;
+      margin: 20px 0 10px 0;
+      color: var(--text-main);
+    }
+
+    /* [영역 1-B: 단계 선택 영역] */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
     .level-btn {
-      background-color: #e2e6ea;
-      color: #343a40;
-      border-radius: 5px;
-      padding: 10px 25px;
-      margin: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 12px;
+      border: 1px solid var(--gray-border);
+      background-color: var(--gray-light);
+      color: var(--text-sub);
+      border-radius: 12px; /* 단계 버튼 라운드: 12px */
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
     }
+
+    .level-btn:hover {
+      background-color: var(--gray-border);
+    }
+
     .level-btn.selected {
-      background-color: #60a5fa;
-      color: white;
+      background-color: var(--active);
+      color: #ffffff;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
     }
-    #start, #stop {
-      border-radius: 50px;  /* 타원 */
-      padding: 10px 30px;
-      background-color: #ffc107;
-      color: #343a40;
+
+    /* [영역 2: 퍼즐 문제 영역] */
+    .puzzle-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1.2 / 1;
+      max-width: 300px;
+      margin: 0 auto;
     }
-    #start:hover, #stop:hover {
-      background-color: #e0a800;
+
+    .timer-display {
+      font-size: 4.5rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 5px;
     }
-    #reButton {
-      border-radius: 50px;  /* 타원 */
-      padding: 10px 30px;
-      background-color: #9ec4fd;
-      color: #343a40;
+
+    .target-desc {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--active);
+      text-align: center;
+      margin-bottom: 15px;
     }
+
+    /* 인게임 결과 메시지 스타일 */
+    .game-result-msg {
+      font-size: 2rem;
+      font-weight: 800;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .game-result-msg.failure {
+      color: var(--danger);
+    }
+    .game-result-msg.success {
+      color: var(--success);
+    }
+
+    /* [영역 3: 하단 조작 버튼 영역] */
+    .control-box {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .action-btn {
+      flex: 1;
+      max-width: 240px;
+      height: 54px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-radius: 12px; /* 단계 버튼과 동일하게 12px로 수정 */
+    }
+
+    /* 기본 비활성화 상태: 흰색 바탕에 검은색 글자 */
+    .action-btn:disabled, .action-btn.inactive {
+      background-color: #ffffff;
+      color: #222222;
+      border: 1px solid #cccccc;
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.6;
+    }
+
+    /* 클릭 가능한 활성화 상태: 파란색 바탕에 흰색 글자 */
+    .action-btn.playable {
+      background-color: var(--active);
+      color: #ffffff;
+      border: 1px solid var(--active);
+      opacity: 1;
+      cursor: pointer;
+    }
+    .action-btn.playable:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+    /* 다시 시작 버튼 고유 스타일 */
+    #resetBtn {
+      background-color: var(--active);
+      color: #ffffff;
+      border: 1px solid var(--active);
+    }
+    #resetBtn:hover {
+      background-color: #0056b3;
+    }
+
+    /* [하단 가이드 공간 공통] */
+    .guide-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      word-break: keep-all;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+    
+    .guide-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 영역 4: 누적 기록 (표 레이아웃) */
+    .guide-record {
+      border-left: 6px solid var(--danger);
+    }
+    .guide-record h3 {
+      color: var(--danger);
+    }
+    
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+    .record-table th, .record-table td {
+      border: 1px solid var(--gray-border);
+      padding: 10px;
+      text-align: center;
+    }
+    .record-table th {
+      background-color: var(--gray-light);
+      color: var(--text-main);
+      font-weight: 700;
+    }
+    .record-table td {
+      color: var(--text-sub);
+    }
+
+    .no-record-msg {
+      text-align: center;
+      padding: 15px;
+      color: var(--text-sub);
+      font-size: 15px;
+      border: 1px solid var(--gray-border);
+    }
+
+    .clear-history-btn {
+      background-color: #ffffff;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .clear-history-btn:hover {
+      background-color: #fff5f5;
+    }
+
+    /* 최신 기록 및 과거 기록용 색상 클래스 */
+    .text-latest-success {
+      color: var(--success) !important;
+      font-weight: 800;
+    }
+    .text-past-success {
+      color: var(--text-main) !important;
+      font-weight: 500;
+    }
+
+    /* 영역 5: 퍼즐 규칙 */
+    .guide-rules {
+      border-left: 6px solid var(--active);
+      color: var(--text-sub);
+    }
+    .guide-rules h3 {
+      color: var(--active);
+    }
+    .guide-rules ul {
+      list-style: none;
+    }
+
+    /* 영역 6: 키보드 단축키 */
+    .guide-keys {
+      border-left: 6px solid var(--success);
+      color: var(--text-sub);
+    }
+    .guide-keys h3 {
+      color: var(--success);
+    }
+
+    /* 결과 알림 팝업창 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background-color: var(--card-bg);
+      width: 90%;
+      max-width: 350px;
+      border-radius: 20px;
+      padding: 30px 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+      border-top: 6px solid var(--success);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--success);
+    }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: #ffffff;
+      transition: opacity 0.2s;
+      background-color: var(--success);
+    }
+    .modal-btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
-  <div>
-    <button class="level-btn" id="easy">초급</button>
-    <button class="level-btn selected" id="medium">중급</button>
-    <button class="level-btn" id="hard">고급</button>
-  </div><br><br>
 
-  <div class="timer">0.00</div>
-  <button id="start">시작</button>
-  <button id="stop" disabled>멈춤</button>
-  <button id="reButton" onclick="restart()" style="display: none;">다시 시작</button>
-  
-  <div style="font-size: 2em">3.14초에 멈추세요.</div>
-  <div class="result"></div><br>
-  <font style="font-size: 25px;">
-    ◈ 키보드<br>
-    시작, 멈춤: Space<br>
-    다시 시작: Esc
-  </font>
-  
+  <!-- [영역 1-A: 퍼즐 제목 영역] -->
+  <div class="row-wrapper">
+    <h1 class="game-title">🥧 3.14초 맞추기</h1>
+  </div>
+
+  <!-- [영역 1-B: 단계 선택 영역] -->
+  <div class="row-wrapper container-fixed">
+    <div class="level-grid" id="levelGrid">
+      <button class="level-btn" data-level="easy" id="btn-easy">초급</button>
+      <button class="level-btn selected" data-level="medium" id="btn-medium">중급</button>
+      <button class="level-btn" data-level="hard" id="btn-hard">고급</button>
+    </div>
+  </div>
+
+  <!-- [영역 2: 퍼즐 문제 영역] -->
+  <div class="row-wrapper container-fixed">
+    <div class="puzzle-box">
+      <div class="timer-display" id="timerDisplay">0.00</div>
+      <div class="target-desc">3.14초에 멈추세요!</div>
+      <div class="game-result-msg" id="gameResultMsg"></div>
+    </div>
+  </div>
+
+  <!-- [영역 3: 하단 조작 버튼 영역] -->
+  <div class="row-wrapper control-box">
+    <button class="action-btn" id="startBtn">시작</button>
+    <button class="action-btn" id="stopBtn" disabled>멈춤</button>
+    <button class="action-btn playable" id="resetBtn" style="display: none;">다시 시작</button>
+  </div>
+
+  <!-- [영역 4: 누적 기록 영역] -->
+  <div class="row-wrapper guide-card guide-record">
+    <h3>
+      <span>📊 누적 기록</span>
+      <button class="clear-history-btn" id="clearHistoryBtn">누적 기록 초기화</button>
+    </h3>
+    <div id="recordTableContainer">
+      <!-- 스크립트가 동적으로 테이블 렌더링 -->
+    </div>
+  </div>
+
+  <!-- [영역 5: 퍼즐 규칙 영역] -->
+  <div class="row-wrapper guide-card guide-rules">
+    <h3>◈ 게임 방법</h3>
+    <ul>
+      <li>• 시작 버튼 혹은 Space 바를 누르면 타이머가 0.01초 단위로 올라갑니다.</li>
+      <li>• 원주율의 앞자리인 <b>3.14초</b>가 되는 순간에 정확히 멈추어야 합니다.</li>
+    </ul>
+  </div>
+
+  <!-- [영역 6: 키보드 단축키 영역] -->
+  <div class="row-wrapper guide-card guide-keys">
+    <h3>⌨ 키보드 단축키</h3>
+    <div>
+      <b>Space</b> : 시작, 멈춤 / <b>Esc</b> : 다시 시작
+    </div>
+  </div>
+
+  <!-- 결과 알림 팝업창 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card">
+      <div class="modal-title">🎉 성공!</div>
+      <div class="modal-body" id="modalBody"></div>
+      <button class="modal-btn" id="modalConfirmBtn">확인</button>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    let timer = 0;
-    let interval = null; 
+    const dataSets = {
+      easy: { name: '초급', range: [3.08, 3.20] },
+      medium: { name: '중급', range: [3.11, 3.17] },
+      hard: { name: '고급', range: [3.13, 3.15] }
+    };
+
+    let currentLevel = 'medium';
+    let currentFailureCounts = { easy: 1, medium: 1, hard: hard = 1 };
+    let successHistoryList = [];
+
+    // 난이도별 마지막 텍스트 상태 및 게임 상태 백업용 객체 생성 (다녀와도 유지하기 위함)
+    let levelVisualState = {
+      easy: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+      medium: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+      hard: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false }
+    };
+
+    let isStageClearedScreen = false; 
+    let interval = null;
     let isRunning = false;
-    let failureCount = 1;
-    let isSuccess = false;
-    let successRange = [3.11, 3.17]; // 기본 중급
 
-    const timerDisplay = document.querySelector('.timer');
-    const resultDisplay = document.querySelector('.result');
-    const startButton = document.getElementById('start');
-    const stopButton = document.getElementById('stop');
-    const reButton = document.getElementById('reButton');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const gameResultMsg = document.getElementById('gameResultMsg');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const recordTableContainer = document.getElementById('recordTableContainer');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const levelGrid = document.getElementById('levelGrid');
 
-    const easyBtn = document.getElementById('easy');
-    const mediumBtn = document.getElementById('medium');
-    const hardBtn = document.getElementById('hard');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalBody = document.getElementById('modalBody');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
 
-    function setLevel(level) {
-      // 선택 표시
-      [easyBtn, mediumBtn, hardBtn].forEach(btn => btn.classList.remove('selected'));
-      level.classList.add('selected');
-
-      // 성공 범위 설정
-      if (level.id === 'easy') successRange = [3.08, 3.20];
-      else if (level.id === 'medium') successRange = [3.11, 3.17];
-      else if (level.id === 'hard') successRange = [3.13, 3.15];
-
-      resetAll();
+    function init() {
+      loadLocalStorage();
+      updateLevelButtons();
+      restoreLevelView();
+      renderRecordsTable();
     }
 
-    function resetAll() {
-      clearInterval(interval);
-      timer = 0;
-      timerDisplay.textContent = timer.toFixed(2);
-      resultDisplay.textContent = '';
-      resultDisplay.className = 'result';
-      startButton.disabled = false;
-      stopButton.disabled = true;
-      isRunning = false;
-      isSuccess = false;
-      failureCount = 1;
-      reButton.style.display = 'none';
+    function renderState() {
+      if (isStageClearedScreen) {
+        timerDisplay.textContent = "3.14";
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'none';
+        resetBtn.style.display = 'inline-block';
+      } else {
+        startBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'none';
+
+        if (isRunning) {
+          startBtn.disabled = true;
+          startBtn.className = "action-btn inactive";
+          stopBtn.disabled = false;
+          stopBtn.className = "action-btn playable";
+        } else {
+          startBtn.disabled = false;
+          startBtn.className = "action-btn playable";
+          stopBtn.disabled = true;
+          stopBtn.className = "action-btn inactive";
+        }
+      }
+      
+      // 현재 레벨의 실시간 변화 상태를 시각 상태 객체에 저장
+      levelVisualState[currentLevel].timerText = timerDisplay.textContent;
+      levelVisualState[currentLevel].resultText = gameResultMsg.textContent;
+      levelVisualState[currentLevel].resultClass = gameResultMsg.className;
+      levelVisualState[currentLevel].isCleared = isStageClearedScreen;
     }
 
-    function restart() {
-      // 현재 난이도 유지, 나머지 초기화
-      clearInterval(interval);
-      timer = 0;
-      timerDisplay.textContent = timer.toFixed(2);
-      resultDisplay.textContent = '';
-      resultDisplay.className = 'result';
-      startButton.disabled = false;
-      stopButton.disabled = true;
-      isRunning = false;
-      isSuccess = false;
-      failureCount = 1;
-      reButton.style.display = 'none';
+    // 다른 난이도에서 복귀할 때 상태를 그대로 렌더링해주는 함수
+    function restoreLevelView() {
+      const state = levelVisualState[currentLevel];
+      timerDisplay.textContent = state.timerText;
+      gameResultMsg.textContent = state.resultText;
+      gameResultMsg.className = state.resultClass;
+      isStageClearedScreen = state.isCleared;
+
+      renderState();
     }
 
-    // 난이도 버튼 이벤트
-    [easyBtn, mediumBtn, hardBtn].forEach(btn => {
-      btn.addEventListener('click', () => setLevel(btn));
-    });
+    function updateLevelButtons() {
+      Object.keys(dataSets).forEach(lvl => {
+        const btn = document.getElementById(`btn-${lvl}`);
+        if (btn) {
+          btn.classList.toggle('selected', lvl === currentLevel);
+        }
+      });
+    }
+
+    function changeLevel(level) {
+      if (isRunning) {
+        clearInterval(interval);
+        isRunning = false;
+      }
+      
+      // 떠나기 전 현재 상태 최종 저장
+      levelVisualState[currentLevel].timerText = timerDisplay.textContent;
+      levelVisualState[currentLevel].resultText = gameResultMsg.textContent;
+      levelVisualState[currentLevel].resultClass = gameResultMsg.className;
+      levelVisualState[currentLevel].isCleared = isStageClearedScreen;
+
+      currentLevel = level;
+      
+      updateLevelButtons();
+      restoreLevelView(); // 복구 실행 (실패 메시지 포함)
+    }
 
     function startTimer() {
-      timer = 0;
-      timerDisplay.textContent = timer.toFixed(2);
-      startButton.disabled = true;
-      stopButton.disabled = false;
+      if (isStageClearedScreen) return;
+
       isRunning = true;
+      timerDisplay.textContent = "0.00";
+      
+      renderState();
+
+      let elapsed = 0;
       interval = setInterval(() => {
-        timer += 0.01;
-        timerDisplay.textContent = timer.toFixed(2);
+        elapsed += 0.01;
+        elapsed = Math.round(elapsed * 100) / 100;
+        timerDisplay.textContent = elapsed.toFixed(2);
+        levelVisualState[currentLevel].timerText = timerDisplay.textContent;
       }, 10);
     }
 
     function stopTimer() {
+      if (!isRunning) return;
       clearInterval(interval);
-      stopButton.disabled = true;
       isRunning = false;
 
-      if (timer >= successRange[0] && timer <= successRange[1]) {
-        timerDisplay.textContent = "3.14";
-        resultDisplay.textContent = `성공 - ${failureCount}번째`;
-        resultDisplay.className = 'result success';
-        reButton.style.display = 'inline-block';
-        isSuccess = true;
+      const currentTimerVal = parseFloat(timerDisplay.textContent);
+      const bounds = dataSets[currentLevel].range;
+      const count = currentFailureCounts[currentLevel];
+
+      if (currentTimerVal >= bounds[0] && currentTimerVal <= bounds[1]) {
+        // 성공 판정
+        const recordItem = {
+          levelKey: currentLevel,
+          levelName: dataSets[currentLevel].name,
+          successAtCount: count,
+          timestamp: Date.now()
+        };
+        successHistoryList.push(recordItem);
+
+        isStageClearedScreen = true;
+        timerDisplay.textContent = "3.14"; 
+        
+        gameResultMsg.textContent = `성공 - ${count}번째`;
+        gameResultMsg.className = 'game-result-msg success';
+        
+        modalBody.innerHTML = `<b>${count}번째 도전</b>만에 성공하셨습니다!`;
+        modalOverlay.classList.add('active');
+        modalConfirmBtn.focus();
       } else {
-        startButton.disabled = false;
-        resultDisplay.textContent = `실패 - ${failureCount}번째`;
-        failureCount +=1;
-        resultDisplay.className = 'result failure';
+        // 실패 판정
+        gameResultMsg.textContent = `실패 - ${count}번째`;
+        gameResultMsg.className = 'game-result-msg failure';
+        currentFailureCounts[currentLevel] += 1;
+      }
+
+      saveLocalStorage();
+      updateLevelButtons();
+      renderState();
+      renderRecordsTable();
+    }
+
+    function resetLevelState() {
+      if (isRunning) clearInterval(interval);
+      isRunning = false;
+
+      isStageClearedScreen = false; 
+      currentFailureCounts[currentLevel] = 1; 
+      timerDisplay.textContent = "0.00";
+      
+      gameResultMsg.textContent = '';
+      gameResultMsg.className = 'game-result-msg';
+
+      updateLevelButtons();
+      renderState();
+    }
+
+    function renderRecordsTable() {
+      if (successHistoryList.length === 0) {
+        recordTableContainer.innerHTML = `<div class="no-record-msg">아직 성공한 단계가 없습니다.</div>`;
+        return;
+      }
+
+      let rowsHtml = '';
+      const totalLen = successHistoryList.length;
+
+      successHistoryList.forEach((item, index) => {
+        const isLatest = (index === totalLen - 1);
+        const colorClass = isLatest ? 'text-latest-success' : 'text-past-success';
+        const suffix = isLatest ? ' 시도 성공 (최신)' : ' 시도 성공';
+
+        rowsHtml += `
+          <tr>
+            <td><b>${item.levelName}</b></td>
+            <td><span class="${colorClass}">${item.successAtCount}회차${suffix}</span></td>
+          </tr>`;
+      });
+
+      recordTableContainer.innerHTML = `
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>단계</th>
+              <th>성공 횟수 (시도 차수)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>`;
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      renderState();
+    }
+
+    function saveLocalStorage() {
+      const gameData = {
+        counts: currentFailureCounts,
+        history: successHistoryList,
+        visualState: levelVisualState
+      };
+      localStorage.setItem('pie_game_history_2026_v10', JSON.stringify(gameData));
+    }
+
+    function loadLocalStorage() {
+      const data = localStorage.getItem('pie_game_history_2026_v10');
+      if (data) {
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.counts) currentFailureCounts = parsed.counts;
+          if (parsed.history) successHistoryList = parsed.history;
+          if (parsed.visualState) levelVisualState = parsed.visualState;
+        } catch(e) {
+          console.error(e);
+        }
       }
     }
 
-    startButton.addEventListener('click', startTimer);
-    stopButton.addEventListener('click', stopTimer);
+    levelGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('.level-btn');
+      if (btn) changeLevel(btn.dataset.level);
+    });
+
+    startBtn.addEventListener('click', startTimer);
+    stopBtn.addEventListener('click', stopTimer);
+    resetBtn.addEventListener('click', resetLevelState);
+    modalConfirmBtn.addEventListener('click', closeModal);
+
+    clearHistoryBtn.addEventListener('click', () => {
+      if(confirm("모든 단계의 누적 기록을 완전히 초기화하시겠습니까?")) {
+        localStorage.removeItem('pie_game_history_2026_v10');
+        currentFailureCounts = { easy: 1, medium: 1, hard: 1 };
+        successHistoryList = [];
+        levelVisualState = {
+          easy: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+          medium: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+          hard: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false }
+        };
+        currentLevel = 'medium';
+        isStageClearedScreen = false;
+        timerDisplay.textContent = "0.00";
+        gameResultMsg.textContent = '';
+        gameResultMsg.className = 'game-result-msg';
+        updateLevelButtons();
+        renderState();
+        renderRecordsTable();
+      }
+    });
 
     document.addEventListener('keydown', (e) => {
+      if (modalOverlay.classList.contains('active')) {
+        if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          closeModal();
+        }
+        return;
+      }
+
       if (e.code === 'Space') {
         e.preventDefault();
-        if (isSuccess) return;
+        if (isStageClearedScreen) return;
+
         if (!isRunning) startTimer();
         else stopTimer();
       } else if (e.code === 'Escape') {
         e.preventDefault();
-        reButton.click();
+        resetLevelState();
       }
     });
+
+    init();
   </script>
 </body>
-</html>
+</html> 
