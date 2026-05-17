@@ -3,86 +3,507 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=0.90, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
+  <!-- 모바일 줌 방지 및 최적화 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>멀린게임</title>
+  
+  <!-- Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
   <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --danger-light: #fff5f5; /* 마지막 기록 행을 위한 연한 빨간색 */
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border: #e9ecef;
+      --gray-btn: #f8f9fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      text-size-adjust: 50px;
-      font-family: sans-serif;
-    }
-    div {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 20px 15px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      margin: auto;
+      min-height: 100vh;
+      touch-action: manipulation; /* 더블클릭 줌 방지 */
+      user-select: none; /* 텍스트 선택 방지 */
+      -webkit-user-select: none;
     }
-    .container {
-      display: grid;
-      gap: 10px;
+
+    /* 공통 레이아웃 컨테이너 - 가로 최대 크기 800px 제한 */
+    .section-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
     }
-    .row {
-      float: left;
+
+    /* 카드 형태의 고정 컨테이너 */
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      width: 100%;
     }
-    .column {
+
+    /* [영역 1-A: 퍼즐 제목] */
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-main);
+      margin: 10px 0 5px 0;
+    }
+
+    /* [영역 1-B: 크기 입력 및 시작 / Turn 표시 영역] */
+    .setup-container {
+      display: flex;
+      justify-content: space-between; /* 양 끝 배치 */
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* 입력 박스와 버튼이 포함된 컨트롤 그룹을 조금 더 오른쪽(가운데 쪽)으로 밀어주는 세팅 */
+    .input-control-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;  
+      margin-right: auto; 
+    }
+
+    @media (max-width: 530px) {
+      .input-control-box {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .size-input {
       width: 60px;
-      height: 60px;
-      background-color: #DDDDDD;
-      margin-right: 15px;
-      float: left;
-      border-radius: 5px;
-      padding: 5px;
+      height: 40px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .size-input:focus {
+      border-color: var(--active);
+    }
+
+    /* 시작 버튼 */
+    .start-btn {
+      height: 40px;
+      padding: 0 20px;
+      background-color: var(--active);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .start-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* 턴 수 출력 메인보드 */
+    .status-inline {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-sub);
+      background-color: var(--gray-btn);
+      padding: 8px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      min-width: 125px;
+      text-align: center;
+      margin-left: auto; 
+    }
+
+    .status-inline span {
+      color: var(--active);
+    }
+
+    /* [영역 2: 퍼즐 문제 영역] */
+    .puzzle-card {
+      display: flex;
+      justify-content: center; 
+      align-items: center;     
+      padding: 24px;
+    }
+
+    .puzzle-grid-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      width: 100%;
+      max-width: 750px; 
+      margin: 0 auto;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center; 
+      width: 100%;
+      clear: both;
+    }
+
+    /* 사각형 스타일 규칙 (1.2배 상향) */
+    .cell {
+      flex: 1 1 0%;
+      max-width: 72px; 
+      aspect-ratio: 1 / 1;
+      margin-right: 6px;  
+      margin-bottom: 6px; 
+      border-radius: 8px; 
       user-select: none;
       text-align: center;
-      font-size: 30px;
-      line-height: 50px;
+      font-size: 32px; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      font-weight: 700;
+      color: #ffffff;
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,0.1); 
+      transition: background-color 0.2s, transform 0.1s;
+      background-color: #dddddd; 
+    }
+
+    /* 반응형 글자 크기 유동 다운사이징 */
+    @media (max-width: 580px) {
+      .cell {
+        font-size: 22px;
+      }
+    }
+    @media (max-width: 400px) {
+      .cell {
+        font-size: 16px;
+      }
+    }
+
+    .cell:last-child {
+      margin-right: 0;
+    }
+
+    .cell:active {
+      transform: scale(0.92);
+    }
+
+    .cell.on {
+      background-color: var(--danger);
+    }
+
+    /* [영역 4, 5: 하단 가이드 공간] */
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      word-break: keep-all;
+    }
+
+    .guide-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .guide-box h2 {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    /* 영역 4: 누적 기록 (빨간색 강조) */
+    .record-box {
+      border-left: 6px solid var(--danger);
+    }
+    .record-box h2 {
+      color: var(--danger);
+    }
+    
+    .record-clear-btn {
+      background-color: #ffffff;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .record-clear-btn:hover {
+      background-color: rgba(220, 53, 69, 0.05);
+    }
+    
+    .record-content {
+      font-size: 16px;
+      color: var(--text-sub);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .record-table-wrapper {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .record-table th, .record-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .record-table th {
+      background-color: var(--gray-btn);
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .record-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* 마지막 기록된 행 커스텀 타겟 스타일 (연한 빨간색) */
+    .record-table tr.latest-row td {
+      background-color: var(--danger-light) !important;
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    /* 영역 5: 퍼즐 규칙 (파란색 강조) */
+    .rules-box {
+      border-left: 6px solid var(--active);
+    }
+    .rules-box h2 {
+      color: var(--active);
+    }
+    .rules-box ul {
+      list-style: none;
+    }
+    .rules-box li {
+      font-size: 15px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* 게임 보드 비활성화 잠금 */
+    .grid-locked {
+      pointer-events: none;
+      opacity: 0.6;
     }
   </style>
 </head>
 <body>
-  <center>
-    <font size="6px">멀린게임</font><br>
-    <font size="5px">
-      <input type="number" id="txt1" value="3" style="font-size:20px;width:50px;text-align:center">
-      X
-      <input type="number" id="txt2" value="3" style="font-size:20px;width:50px;text-align:center">
-      <button onclick="main(txt1.value, txt2.value)" style="font-size:20px"> 시작 </button>
-    </font>
-  </center>
-  <hr/>
-  <div id="area" style="font-size:30px"></div><br>
-  <div id="result" style="font-size:30px">Turn : 0</div><br>
-  <div id="win" style="font-size:30px; color:blue">성공횟수 : 0</div>
+
+  <!-- [영역 1-A: 퍼즐 제목 영역] -->
+  <div class="section-wrapper">
+    <h1>멀린게임</h1>
+  </div>
+
+  <!-- [영역 1-B: 설정 및 Turn 수 배치 영역] -->
+  <div class="section-wrapper container-fixed">
+    <div class="setup-container">
+      <div class="input-control-box">
+        <div class="input-group">
+          <input type="number" id="txt1" class="size-input" value="3" min="1" max="10">
+          <span>X</span>
+          <input type="number" id="txt2" class="size-input" value="3" min="1" max="10">
+        </div>
+        <button class="start-btn" onclick="validateAndStart()">시작</button>
+      </div>
+      
+      <div class="status-inline" id="statusDisplay">Turn : <span id="turnCount">0</span></div>
+    </div>
+  </div>
+
+  <!-- [영역 2: 퍼즐 문제 영역] -->
+  <div class="section-wrapper container-fixed puzzle-card">
+    <div id="puzzleGridWrapper" class="puzzle-grid-wrapper">
+      <!-- 자바스크립트에서 동적 생성 -->
+    </div>
+  </div>
+
+  <!-- [영역 4: 누적 기록 공간 (새로고침 유지 반영)] -->
+  <div class="section-wrapper guide-box record-box">
+    <div class="guide-title-row">
+      <h2>📊 누적 기록</h2>
+      <button class="record-clear-btn" onclick="clearRecords()">누적 기록 초기화</button>
+    </div>
+    <div class="record-content">
+      <div id="winCount" style="margin-bottom: 4px;">성공 횟수 : 0회</div>
+      
+      <div class="record-table-wrapper">
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>단계 (크기)</th>
+              <th>횟수 (성공 턴 수)</th>
+            </tr>
+          </thead>
+          <tbody id="recordTableBody">
+            <tr>
+              <td colspan="3" style="color: #aaa; padding: 20px 0;">성공 기록이 없습니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- [영역 5: 퍼즐 규칙 공간] -->
+  <div class="section-wrapper guide-box rules-box">
+    <div class="guide-title-row">
+      <h2>◈ 멀린게임(Merlin Game) 방법</h2>
+    </div>
+    <ul>
+      <li>• 타일을 클릭하면 해당 타일과 상하좌우 인접한 타일들의 숫자가 반전됩니다.</li>
+      <li>• 숫자 0은 회색, 숫자 1은 빨간색으로 표시됩니다.</li>
+      <li>• 모든 타일을 하나의 색상(전부 0 또는 전부 1)으로 통일하면 스테이지 클리어!</li>
+    </ul>
+  </div>
 
   <script>
-    // 마우스 오른쪽 버튼 클릭 금지
+    // 마우스 오른쪽 버튼 클릭 및 컨텍스트 메뉴 금지
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
     });
 
     let count = 1;
     let wincount = 0;
+    let historyList = []; 
     let isGameClear = false;
     let list = [];
     let b1 = 3, b2 = 3;
+
+    const puzzleGridWrapper = document.getElementById("puzzleGridWrapper");
+    const turnCountEl = document.getElementById("turnCount");
+    const statusDisplay = document.getElementById("statusDisplay");
+    const winCountEl = document.getElementById("winCount");
+    const recordTableBody = document.getElementById("recordTableBody");
+
+    // 로컬 스토리지에서 데이터 불러오기 함수
+    function loadSavedRecords() {
+      const savedWinCount = localStorage.getItem("merlin_wincount");
+      const savedHistory = localStorage.getItem("merlin_history");
+
+      if (savedWinCount) {
+        wincount = parseInt(savedWinCount);
+        winCountEl.textContent = "성공 횟수 : " + wincount + "회";
+      }
+      
+      if (savedHistory) {
+        historyList = JSON.parse(savedHistory);
+        renderTableRecords();
+      }
+    }
+
+    // 로컬 스토리지에 데이터 저장하기 함수
+    function saveRecords() {
+      localStorage.setItem("merlin_wincount", wincount);
+      localStorage.setItem("merlin_history", JSON.stringify(historyList));
+    }
+
+    function validateAndStart() {
+      let r = parseInt(document.getElementById("txt1").value);
+      let c = parseInt(document.getElementById("txt2").value);
+
+      if (isNaN(r) || r < 1) r = 1;
+      if (r > 10) r = 10;
+      if (isNaN(c) || c < 1) c = 1;
+      if (c > 10) c = 10;
+
+      document.getElementById("txt1").value = r;
+      document.getElementById("txt2").value = c;
+
+      main(r, c);
+    }
+
+    function main(a1, a2) {
+      list = [];
+      count = 1;
+      isGameClear = false;
+
+      b1 = parseInt(a1);
+      b2 = parseInt(a2);
+
+      puzzleGridWrapper.classList.remove("grid-locked");
+      statusDisplay.style.color = "var(--text-sub)";
+      statusDisplay.innerHTML = `Turn : <span id="turnCount">0</span>`;
+
+      let tag = "";
+      for (let j = 0; j < b1; j++) {
+        tag += "<div class='row'>";
+        for (let i = 0; i < b2; i++) {
+          const id = i + j * b2;
+          const value = Math.floor(Math.random() * 2);
+          list.push(value);
+          tag += `<div class='cell' id='${id}' onclick='clickbt(${id})'>${value}</div>`;
+        }
+        tag += "</div>";
+      }
+
+      puzzleGridWrapper.innerHTML = tag;
+      all_bg();
+      
+      if (checkSuccessCondition()) {
+        main(a1, a2);
+      }
+    }
 
     function bg(bl) {
       const cell = document.getElementById(bl);
       if (!cell) return;
       if (list[bl] === 0) {
         cell.style.backgroundColor = "#dddddd";
+        cell.classList.remove("on");
       } else {
-        cell.style.backgroundColor = "red";
-      }
-    }
-
-    function setBoardClickable(clickable) {
-      for (let k = 0; k < b1 * b2; k++) {
-        const el = document.getElementById(k);
-        if (el) {
-          el.style.pointerEvents = clickable ? "auto" : "none";
-          el.style.opacity = clickable ? "1" : "0.5";
-        }
+        cell.style.backgroundColor = "var(--danger)"; 
+        cell.classList.add("on");
       }
     }
 
@@ -92,21 +513,59 @@
       }
     }
 
+    function checkSuccessCondition() {
+      const sum = list.reduce((a, c) => a + c, 0);
+      const average = sum / list.length;
+      return average === 0 || average === 1;
+    }
+
     function success() {
-      let re = document.getElementById("result");
-      const average = list.reduce((a, c) => a + c) / list.length;
-      if (average === 0 || average === 1) {
-        re.textContent = count + "번째 성공하였습니다.";
-        count = 1;
+      const currentTurnCountEl = document.getElementById("turnCount");
+      
+      if (checkSuccessCondition()) {
+        statusDisplay.innerHTML = `<span style="color:var(--success)">성공! (${count}턴)</span>`;
+        
         wincount++;
-        document.getElementById("win").textContent = "성공횟수 : " + wincount;
+        winCountEl.textContent = "성공 횟수 : " + wincount + "회";
+
+        // 이력 데이터 테이블 누적 탑재
+        historyList.push({ id: wincount, stage: `${b1}x${b2}`, turns: count });
+        
+        // 데이터 영구 저장 후 화면 갱신
+        saveRecords();
+        renderTableRecords();
+        
         isGameClear = true;
-        setBoardClickable(false);
+        puzzleGridWrapper.classList.add("grid-locked");
       } else {
-        re.textContent = "Turn : " + count;
+        if (currentTurnCountEl) {
+          currentTurnCountEl.textContent = count;
+        }
         count++;
         all_bg();
       }
+    }
+
+    function renderTableRecords() {
+      if (historyList.length === 0) {
+        recordTableBody.innerHTML = `<tr><td colspan="3" style="color: #aaa; padding: 20px 0;">성공 기록이 없습니다.</td></tr>`;
+        return;
+      }
+
+      let tableHtml = "";
+      for (let i = 0; i < historyList.length; i++) {
+        const isLatest = (i === historyList.length - 1); 
+        const rowClass = isLatest ? "class='latest-row'" : ""; 
+        
+        tableHtml += `
+          <tr ${rowClass}>
+            <td>${historyList[i].id}</td>
+            <td>${historyList[i].stage}</td>
+            <td>${historyList[i].turns}턴</td>
+          </tr>
+        `;
+      }
+      recordTableBody.innerHTML = tableHtml;
     }
 
     function clickbt(location) {
@@ -143,35 +602,20 @@
       success();
     }
 
-    function main(a1, a2) {
-      list = [];
-      count = 1;
-      isGameClear = false;
-
-      b1 = parseInt(a1);
-      b2 = parseInt(a2);
-
-      let tag = "<div class='container'>";
-      for (let j = 0; j < b1; j++) {
-        tag += "<div class='row'>";
-        for (let i = 0; i < b2; i++) {
-          const id = i + j * b2;
-          const value = Math.floor(Math.random() * 2);
-          list.push(value);
-          tag += `<div class='column' id='${id}' onclick='clickbt(${id})'>${value}</div>`;
-        }
-        tag += "</div>";
+    // 초기화 시 로컬 스토리지 데이터도 삭제
+    function clearRecords() {
+      if(confirm("모든 누적 기록을 초기화하시겠습니까?")) {
+        wincount = 0;
+        historyList = [];
+        winCountEl.textContent = "성공 횟수 : 0회";
+        localStorage.removeItem("merlin_wincount");
+        localStorage.removeItem("merlin_history");
+        renderTableRecords();
       }
-      tag += "</div>";
-
-      document.getElementById("area").innerHTML = tag;
-
-      all_bg();
-      setBoardClickable(true);
-      document.getElementById("result").textContent = "Turn : 0";
     }
 
     window.onload = () => {
+      loadSavedRecords(); // 저장된 기록 로드
       main(document.getElementById("txt1").value, document.getElementById("txt2").value);
     };
   </script>
