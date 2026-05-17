@@ -2,88 +2,161 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <!-- viewport 설정에 viewport-fit=cover 추가 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
-  <title>전함 퍼즐</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>🚢 전함 퍼즐</title>
+  <!-- Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
-    /* 
-       [핵심 수정 1] 
-       --cell-size를 vw(너비) 기준에서 vmin(너비와 높이 중 작은 쪽) 기준으로 변경 
-       최대 크기도 65px -> 50px 정도로 줄여서 한 화면에 들어오도록 조정
-    */
     :root { 
-      --bg-color:#f8f9fa; 
-      /* 화면이 좁거나 낮아도 비율을 유지하며 줄어들게 설정 */
-      --cell-size: clamp(28px, 9vmin, 50px); 
+      --bg: #f0f2f5; 
+      --card-bg: #ffffff;
+      --active: #007bff; 
+      --success: #28a745; 
+      --danger: #dc3545; 
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-color: #e9ecef;
+      --cell-size: clamp(30px, 8vmin, 55px);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      font-family: 'Pretendard', sans-serif;
-      background: var(--bg-color);
+      background: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 15px 10px 40px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* [핵심 수정 2] 높이 설정 및 패딩 조정 */
-      min-height: 100dvh; /* 모바일 브라우저 동적 높이 대응 */
-      padding: 10px 10px 40px 10px; /* 아래쪽 패딩을 늘려 버튼 공간 확보 */
-      margin: 0;
-      box-sizing: border-box;
-      /* touch-action을 pan-y로 변경하여 게임판 밖에서는 스크롤 가능하게 함 */
-      touch-action: pan-y; 
+      min-height: 100dvh;
+      touch-action: manipulation;
       overflow-x: hidden;
     }
 
-    h2 { margin: 10px 0; font-size: 1.2rem; }
-
-    .stage-container { 
-      display: flex; 
-      gap: 4px; 
-      margin-bottom: 8px; 
-      flex-wrap: wrap; 
-      justify-content: center; 
-      background: white; 
-      border-radius: 15px;
-      padding: 15px;
-      width: 95%;
-      max-width: 550px;
-      border: 2px solid #dee2e6;
-      box-sizing: border-box;
+    /* 가로 길이를 최대 800px로 확장 조정 */
+    .container-fixed {
+      width: 100%;
+      max-width: 800px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
     }
+
+    .container-fluid {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    /* 제목 영역 */
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 10px 0;
+      color: var(--text-main);
+    }
+
+    /* 단계 선택 */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 400px) {
+      .stage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     .stage-btn {
-      padding: 6px 10px; border: 2px solid #dee2e6; background: white; border-radius: 8px;
-      cursor: pointer; font-size: 12px; font-weight: 800; transition: all 0.2s;
+      padding: 12px 4px;
+      border: 1px solid var(--border-color);
+      background: #f8f9fa;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-sub);
+      transition: all 0.2s ease;
+      text-align: center;
     }
-    .stage-btn.active { background: #007bff; color: white; border-color: #007bff; }
-    .stage-btn.cleared { background: #28a745; color: white; border-color: #28a745; }
+    .stage-btn:hover { background: var(--border-color); }
+    .stage-btn.active {
+      background: var(--active);
+      color: white;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+    }
+    .stage-btn.cleared {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
 
-    #status { min-height: 24px; margin: 4px 0 8px; font-weight: 900; font-size: 24px; color: #28a745; display: none; }
+    /* 퍼즐 핵심 플레이 영역 */
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
 
-    /* 게임판과 독에는 터치 제스처(스크롤) 방지 */
     .grid-container {
-      display: grid; grid-template-columns: repeat(6, var(--cell-size)); gap: 4px;
-      background: #c9d0d6; padding: 8px; border-radius: 12px; position: relative;
-      touch-action: none; /* 게임판 내부 스크롤 방지 */
+      display: grid;
+      grid-template-columns: repeat(6, var(--cell-size));
+      gap: 4px;
+      background: #c9d0d6;
+      padding: 8px;
+      border-radius: 16px;
+      position: relative;
+      touch-action: none;
+      user-select: none;
     }
+
     .cell {
-      width: var(--cell-size); height: var(--cell-size); background: white; border-radius: 6px;
-      display: flex; align-items: center; justify-content: center; position: relative;
-      font-size: calc(var(--cell-size) * 0.5); /* 폰트 크기도 셀 크기에 비례 */
+      width: var(--cell-size);
+      height: var(--cell-size);
+      background: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: calc(var(--cell-size) * 0.45);
+      font-weight: 700;
     }
     .cell.hint { background: none; font-weight: 900; color: #495057; }
-    .cell.hint.correct { color: #28a745; text-shadow: 1px 1px 0px white; }
-    .cell.hint.over { color: #dc3545; text-shadow: 1px 1px 0px white; }
-    .cell.preview { background: rgba(0,123,255,0.22)!important; border: 2px solid #007bff; box-sizing: border-box; }
+    .cell.hint.correct { color: var(--success); text-shadow: 1px 1px 0px white; }
+    .cell.hint.over { color: var(--danger); text-shadow: 1px 1px 0px white; }
+    .cell.preview { background: rgba(0,123,255,0.25) !important; border: 2px solid var(--active); box-sizing: border-box; }
 
+    /* 선박 컴포넌트 */
     .ship {
-      position: absolute; display: flex; border-radius: 8px; cursor: grab;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      z-index: 50; touch-action: none; left: 0; top: 0;
-      user-select: none; -webkit-user-select: none;
+      position: absolute;
+      display: flex;
+      border-radius: 8px;
+      cursor: grab;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      z-index: 50;
+      touch-action: none;
+      left: 0; top: 0;
+      user-select: none;
     }
+    .ship:active { cursor: grabbing; }
     .ship-part {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 900; 
-      font-size: calc(var(--cell-size) * 0.6); /* 배 숫자 크기 조절 */
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: calc(var(--cell-size) * 0.55);
       pointer-events: none;
     }
     .ship.horizontal { height: var(--cell-size); }
@@ -91,84 +164,178 @@
 
     .drag-clone {
       position: fixed !important; left: 0; top: 0; z-index: 99999;
-      pointer-events: none; opacity: 0.92; cursor: grabbing;
+      pointer-events: none; opacity: 0.9;
       will-change: transform;
     }
 
+    /* 선박 대기소(독) */
     .dock {
-      display: flex; gap: 10px; padding: 15px; background: white; border-radius: 15px;
-      margin-top: 10px; min-height: var(--cell-size); width: 95%; max-width: 550px;
-      border: 2px solid #dee2e6; justify-content: center; align-items: center;
-      box-sizing: border-box;
-      touch-action: none; /* 독 내부 스크롤 방지 */
-    }
-    
-    .controls { 
-      margin-top: 10px; 
-      width: 95%; max-width: 550px;
-      display: flex; 
-      gap: 10px; 
-      margin-bottom: 20px; 
+      display: flex;
+      gap: 10px;
+      padding: 15px;
       background: #f8f9fa;
-      border: 2px solid #dee2e6;
-      border-radius: 12px;
-      padding: 16px 10px;
+      border-radius: 14px;
+      min-height: calc(var(--cell-size) + 10px);
+      width: 100%;
+      border: 1px dashed #ced4da;
       justify-content: center;
-      box-sizing: border-box;
+      align-items: center;
+      flex-wrap: wrap;
+      touch-action: none;
     }
-    button.action-btn { 
-        padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; 
-        font-weight: 900; font-size: 0.9rem; 
-        /* 모바일 터치 영역 확보 */
-        min-width: 80px; 
+
+    /* 하단 조작 버튼 영역 (최대 가로폭 800px 대응) */
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 800px;
+      justify-content: center;
     }
     
-    button.hint-btn { background: #ffc107; color: #212529; transition: background 0.3s; }
-    button.hint-btn:disabled { background: #adb5bd; color: #6c757d; cursor: not-allowed; border: 1px solid #ced4da; }
+    /* 힌트 및 초기화 버튼 스타일: 흰색 바탕에 검은색 글씨 */
+    .action-btn {
+      flex: 1;
+      height: 54px;
+      background: #ffffff;
+      color: #000000;
+      border: 2px solid #dee2e6;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    .action-btn:hover { background-color: #f8f9fa; border-color: #ced4da; }
+    .action-btn:active { transform: scale(0.98); background-color: #e9ecef; }
+    .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border-color: #dee2e6; }
+
+    /* 가이드 공간 기본 공통 레이아웃 */
+    .guide-box {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      word-break: keep-all;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .guide-box h3 { margin: 0 0 10px 0; font-size: 17px; font-weight: 800; }
+    .guide-active { border-left: 6px solid var(--active); }
+    .rule-list { margin: 0; padding-left: 0; list-style: none; color: var(--text-sub); }
+    .rule-list li { margin-bottom: 6px; position: relative; }
+
+    /* 모달 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .modal-card {
+      width: 90%;
+      max-width: 350px;
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+    .modal-overlay.active .modal-card { transform: translateY(0); }
+    .modal-card.success { border-top: 6px solid var(--success); }
+    .modal-card.danger { border-top: 6px solid var(--danger); }
+
+    .modal-title { font-size: 24px; font-weight: 900; margin-bottom: 12px; }
+    .modal-title.success { color: var(--success); }
+    .modal-title.danger { color: var(--danger); }
+    
+    .modal-body { color: var(--text-sub); margin-bottom: 20px; font-size: 15px; }
+    .modal-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      color: white;
+    }
+    .modal-btn.success { background: var(--success); }
+    .modal-btn.danger { background: var(--danger); }
   </style>
 </head>
 <body>
-<h2>🚢 전함 퍼즐</h2>
 
-  <div class="stage-container" id="stageButtons"></div>
-  <div id="status">성공입니다.</div>
-  <div id="grid" class="grid-container"></div>
-  <div id="dock" class="dock"></div>
-
-  <div class="controls">
-    <button id="btnHint" class="action-btn hint-btn" onclick="useHint()">힌트</button>
-    <button class="action-btn" style="background:#007bff;color:white;" onclick="resetCurrentStage()">초기화</button>
+  <!-- [영역 1-A] 퍼즐 제목 영역 -->
+  <div class="container-fluid">
+    <h1>🚢 전함 퍼즐</h1>
   </div>
-  
-    <a href="example.html" style="
-    display: block;
-    width: 250px;
-    padding: 20px;
-    border: 1px solid #333;
-    border-radius: 12px;
-    background-color: #ffffff;
-    text-align: center;
-    font-family: sans-serif;
-    font-size: 20px;
-    margin: 30px auto;
-    text-decoration: none;
-    color: #000;
-  ">
-    문제 설명
-  </a>
-  <!-- <br> 태그 제거됨 -->
+
+  <!-- [영역 1-B] 단계 선택 영역 -->
+  <div class="container-fixed">
+    <div class="stage-grid" id="stageButtons"></div>
+  </div>
+
+  <!-- [영역 2] 퍼즐 핵심 플레이 영역 -->
+  <div class="container-fixed game-wrapper">
+    <div id="grid" class="grid-container"></div>
+    <div id="dock" class="dock"></div>
+  </div>
+
+  <!-- [영역 3] 하단 조작 버튼 영역 -->
+  <div class="container-fluid controls-row">
+    <button id="btnHint" class="action-btn" onclick="useHint()">힌트 (H)</button>
+    <button class="action-btn" onclick="resetCurrentStage()">초기화 (R)</button>
+  </div>
+
+  <!-- [영역 5] 퍼즐 규칙 공간 (누적 기록, 키보드 단축키 공간 완전히 삭제) -->
+  <div class="container-fixed guide-box guide-active">
+    <h3 style="color: var(--active);">퍼즐 규칙</h3>
+    <ul class="rule-list">
+      <li>• 1부터 5까지 크기가 3칸인 선박 5척을 격자판 내에 겹치지 않게 배치해야 합니다.</li>
+      <li>• 격자판 외부의 숫자는 해당 행 또는 열에 배치된 모든 선박 조각의 번호 합(Sum)을 의미합니다.</li>
+      <li>• 독에 있는 배를 클릭하면 방향(가로/세로)이 전환되며, 격자판 내에서도 배를 터치(클릭)하면 중앙을 축으로 회전할 수 있습니다.</li>
+      <li>• 격자판 밖으로 드래그하면 배가 회수되어 다시 배치창(독)으로 돌아갑니다.</li>
+    </ul>
+  </div>
+
+  <!-- 결과 알림 팝업창 (모달 디스플레이) -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div id="modalCard" class="modal-card">
+      <div id="modalTitle" class="modal-title"></div>
+      <div id="modalBody" class="modal-body"></div>
+      <button id="modalBtn" class="modal-btn"></button>
+    </div>
+  </div>
 
 <script>
-  // 스크립트 내용은 기존과 동일합니다.
   const SIZE = 5;
   const MAX_HINTS = 4;
+  const TOTAL_STAGES = 11;
 
   let currentStage = 1;
-  let allStagesData = {};
-  let clearedStages = {};
   
-  let stageHintStatus = {};
-  let solutionCache = {};
+  let allStagesData = {};     
+  let stageHistory = {};      
+  let clearedStages = {};     
+  let stageHintStatus = {};   
+  let solutionCache = {};     
 
   const shipColors = ['', '#fcc419', '#51cf66', '#4dabf7', '#ff6b6b', '#cc5de8'];
 
@@ -189,26 +356,57 @@
   let dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
 
   function init(){
-    for(let i=1;i<=11;i++){
-      allStagesData[i]=[];
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('dblclick', (e) => e.preventDefault());
+
+    if(localStorage.getItem('battleship_cleared')) {
+      try { clearedStages = JSON.parse(localStorage.getItem('battleship_cleared')); } catch(e){}
+    }
+
+    for(let i=1; i<=TOTAL_STAGES; i++){
+      allStagesData[i] = [];
+      stageHistory[i] = null;
       stageHintStatus[i] = { count: 0, revealedIds: new Set() };
     }
+
     renderStageButtons();
     loadStage(1);
+
+    window.addEventListener('keydown', handleGlobalKeydown);
   }
 
   function renderStageButtons(){
-    const container=document.getElementById('stageButtons');
-    container.innerHTML='';
-    for(let i=1;i<=11;i++){
-      const btn=document.createElement('button');
+    const container = document.getElementById('stageButtons');
+    container.innerHTML = '';
+    for(let i=1; i<=TOTAL_STAGES; i++){
+      const btn = document.createElement('button');
       const count = stageHintStatus[i].count;
       const hintText = count > 0 ? `(${count})` : '';
-      btn.className=`stage-btn ${i===currentStage?'active':''} ${clearedStages[i]?'cleared':''}`;
+      btn.className = `stage-btn ${i===currentStage?'active':''} ${clearedStages[i]?'cleared':''}`;
       btn.innerText = i + "단계" + hintText;
-      btn.onclick=()=>loadStage(i);
+      btn.onclick = () => loadStage(i);
       container.appendChild(btn);
     }
+  }
+
+  function loadStage(n){
+    if (allStagesData[currentStage]) {
+      stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
+    }
+
+    currentStage = n;
+    
+    if (stageHistory[n] && stageHistory[n].length > 0) {
+      allStagesData[n] = JSON.parse(JSON.stringify(stageHistory[n]));
+    } else {
+      allStagesData[n] = [];
+    }
+
+    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+    renderStageButtons();
+    renderBoard();
+    renderDock();
+    updateHintButtonUI();
   }
 
   function findNextHintTarget(stageNum) {
@@ -242,25 +440,18 @@
     if (targetShip) {
       if (status.count < MAX_HINTS) {
         canUse = true;
-      }
-      else if (targetShip.id >= 2 || status.revealedIds.has(targetShip.id)) {
+      } else if (targetShip.id >= 2 || status.revealedIds.has(targetShip.id)) {
         canUse = true;
       }
     }
 
     if (canUse) {
       btn.disabled = false;
-      btn.innerText = "힌트";
+      btn.innerText = `힌트 (${MAX_HINTS - status.count}) (H)`;
     } else {
       btn.disabled = true;
-      btn.innerText = status.count >= MAX_HINTS ? "힌트 끝" : "힌트";
+      btn.innerText = status.count >= MAX_HINTS ? "힌트 소진" : "힌트 (H)";
     }
-  }
-
-  function setStatus(ok){
-    const el = document.getElementById('status');
-    el.style.display = ok ? 'block' : 'none';
-    el.textContent = ok ? '성공입니다.' : '';
   }
 
   function computeSumsUnified(ships){
@@ -300,23 +491,14 @@
     });
 
     const win = ships.length===5 && rowOk && colOk;
-    setStatus(win);
-    if(win) {
+    if(win && !clearedStages[currentStage]) {
       clearedStages[currentStage] = true;
+      localStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
       renderStageButtons();
       updateHintButtonUI();
+      showModal(true, "🎉 성공!", `스테이지 ${currentStage} 클리어 정답입니다!`, currentStage < TOTAL_STAGES ? "다음 단계로" : "게임 완료");
     }
     return win;
-  }
-
-  function loadStage(n){
-    currentStage=n;
-    setStatus(false);
-    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
-    renderStageButtons();
-    renderBoard();
-    renderDock();
-    updateHintButtonUI();
   }
 
   function getSolution(stageNum) {
@@ -389,9 +571,7 @@
     if (status.count >= MAX_HINTS) {
       const isLargeShip = targetShip.id >= 2;
       const isRevealed = status.revealedIds.has(targetShip.id);
-      if (!isLargeShip && !isRevealed) {
-        return;
-      }
+      if (!isLargeShip && !isRevealed) return;
     }
 
     allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id !== targetShip.id);
@@ -411,35 +591,35 @@
   }
 
   function renderBoard(){
-    const grid=document.getElementById('grid');
-    grid.innerHTML='';
-    const hints=stageHints[currentStage];
-    const ships=allStagesData[currentStage];
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    const hints = stageHints[currentStage];
+    const ships = allStagesData[currentStage];
     const {curR, curC} = computeSumsUnified(ships);
 
-    for(let r=0;r<=SIZE;r++){
-      for(let c=0;c<=SIZE;c++){
-        const cell=document.createElement('div');
+    for(let r=0; r<=SIZE; r++){
+      for(let c=0; c<=SIZE; c++){
+        const cell = document.createElement('div');
         if(r<SIZE && c<SIZE){
-          cell.className='cell';
-          cell.dataset.r=r; cell.dataset.c=c;
+          cell.className = 'cell';
+          cell.dataset.r = r; cell.dataset.c = c;
         } else {
-          cell.className='cell hint';
+          cell.className = 'cell hint';
           if(r<SIZE && c===SIZE){
-            const hint=hints.rSums[r];
+            const hint = hints.rSums[r];
             if(hint===0){
-              cell.innerText='';
+              cell.innerText = '';
             } else {
-              cell.innerText=hint;
+              cell.innerText = hint;
               if(curR[r] === hint) cell.classList.add('correct');
               else if(curR[r] > hint) cell.classList.add('over');
             }
           } else if(r===SIZE && c<SIZE){
-            const hint=hints.cSums[c];
+            const hint = hints.cSums[c];
             if(hint===0){
-              cell.innerText='';
+              cell.innerText = '';
             } else {
-              cell.innerText=hint;
+              cell.innerText = hint;
               if(curC[c] === hint) cell.classList.add('correct');
               else if(curC[c] > hint) cell.classList.add('over');
             }
@@ -448,55 +628,55 @@
         grid.appendChild(cell);
       }
     }
-    ships.forEach(s=>drawShip(s,false));
+    ships.forEach(s => drawShip(s, false));
     checkWinAndUpdateUI();
   }
 
   function renderDock(){
-    const dock=document.getElementById('dock');
-    dock.innerHTML='';
-    const ships=allStagesData[currentStage];
-    const placedIds=ships.map(s=>s.id);
-    for(let i=1;i<=5;i++){
+    const dock = document.getElementById('dock');
+    dock.innerHTML = '';
+    const ships = allStagesData[currentStage];
+    const placedIds = ships.map(s=>s.id);
+    for(let i=1; i<=5; i++){
       if(!placedIds.includes(i)){
-        drawShip({id:i,dir:(dockDir[i]||'h'),r:-1,c:-1},true);
+        drawShip({id:i, dir:(dockDir[i]||'h'), r:-1, c:-1}, true);
       }
     }
   }
 
-  function drawShip(s,inDock){
-    const ship=document.createElement('div');
-    const dir=s.dir||'h';
-    ship.className=`ship ${dir==='h'?'horizontal':'vertical'}`;
-    ship.style.backgroundColor=shipColors[s.id];
-    ship.dataset.id=s.id;
-    ship.dataset.dir=dir;
+  function drawShip(s, inDock){
+    const ship = document.createElement('div');
+    const dir = s.dir||'h';
+    ship.className = `ship ${dir==='h'?'horizontal':'vertical'}`;
+    ship.style.backgroundColor = shipColors[s.id];
+    ship.dataset.id = s.id;
+    ship.dataset.dir = dir;
 
-    const sizeUnit=`var(--cell-size)`;
+    const sizeUnit = `var(--cell-size)`;
     if(dir==='h'){
-      ship.style.width=`calc(${sizeUnit} * 3 + 12px)`;
-      ship.style.height=sizeUnit;
+      ship.style.width = `calc(${sizeUnit} * 3 + 12px)`;
+      ship.style.height = sizeUnit;
     } else {
-      ship.style.width=sizeUnit;
-      ship.style.height=`calc(${sizeUnit} * 3 + 12px)`;
+      ship.style.width = sizeUnit;
+      ship.style.height = `calc(${sizeUnit} * 3 + 12px)`;
     }
 
-    for(let i=0;i<3;i++){
-      const part=document.createElement('div');
-      part.className='ship-part';
-      if(i===1) part.innerText=s.id;
+    for(let i=0; i<3; i++){
+      const part = document.createElement('div');
+      part.className = 'ship-part';
+      if(i===1) part.innerText = s.id;
       ship.appendChild(part);
     }
 
     if(inDock){
-      ship.style.position='relative';
-      ship.style.left='0px'; ship.style.top='0px';
+      ship.style.position = 'relative';
+      ship.style.left = '0px'; ship.style.top = '0px';
       document.getElementById('dock').appendChild(ship);
     } else {
-      const cell=document.querySelector(`.cell[data-r="${s.r}"][data-c="${s.c}"]`);
+      const cell = document.querySelector(`.cell[data-r="${s.r}"][data-c="${s.c}"]`);
       if(cell) {
         cell.appendChild(ship);
-        ship.style.left='0px'; ship.style.top='0px';
+        ship.style.left = '0px'; ship.style.top = '0px';
       }
     }
 
@@ -504,9 +684,9 @@
   }
 
   function getTargetCell(x,y){
-    const cells=document.querySelectorAll('.cell[data-r]');
+    const cells = document.querySelectorAll('.cell[data-r]');
     for(const cell of cells){
-      const rect=cell.getBoundingClientRect();
+      const rect = cell.getBoundingClientRect();
       if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom){
         return { r:parseInt(cell.dataset.r), c:parseInt(cell.dataset.c) };
       }
@@ -525,47 +705,48 @@
     const pointerCell = getTargetCell(x,y);
     const anchor = getAnchorFromPointerCell(pointerCell, dir);
     if(anchor && canPlace(anchor.r, anchor.c, dir, id)){
-      for(let i=0;i<3;i++){
+      for(let i=0; i<3; i++){
         const rr = dir==='h'?anchor.r:anchor.r+i;
         const cc = dir==='h'?anchor.c+i:anchor.c;
-        const cEl=document.querySelector(`.cell[data-r="${rr}"][data-c="${cc}"]`);
+        const cEl = document.querySelector(`.cell[data-r="${rr}"][data-c="${cc}"]`);
         if(cEl) cEl.classList.add('preview');
       }
     }
   }
 
   function clearPreview(){
-    document.querySelectorAll('.cell').forEach(c=>c.classList.remove('preview'));
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('preview'));
   }
 
   function canPlace(r,c,dir,id){
-    for(let i=0;i<3;i++){
-      const rr=dir==='h'?r:r+i;
-      const cc=dir==='h'?c+i:c;
+    for(let i=0; i<3; i++){
+      const rr = dir==='h'?r:r+i;
+      const cc = dir==='h'?c+i:c;
       if(rr<0 || cc<0 || rr>=SIZE || cc>=SIZE) return false;
-      if(allStagesData[currentStage].some(s=>s.id!==id && isOverlapping(s,rr,cc))) return false;
+      if(allStagesData[currentStage].some(s => s.id!==id && isOverlapping(s,rr,cc))) return false;
     }
     return true;
   }
 
   function isOverlapping(s,rr,cc){
-    for(let i=0;i<3;i++){
-      const sr=s.dir==='h'?s.r:s.r+i;
-      const sc=s.dir==='h'?s.c+i:s.c;
+    for(let i=0; i<3; i++){
+      const sr = s.dir==='h'?s.r:s.r+i;
+      const sc = s.dir==='h'?s.c+i:s.c;
       if(sr===rr && sc===cc) return true;
     }
     return false;
   }
 
   function placeShip(id,r,c,dir){
-    allStagesData[currentStage]=allStagesData[currentStage].filter(s=>s.id!==id);
+    allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id!==id);
     allStagesData[currentStage].push({id,r,c,dir});
+    stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
     renderBoard(); renderDock();
   }
 
   function rotateShip(id){
-    const ships=allStagesData[currentStage];
-    const s=ships.find(ss=>ss.id===id);
+    const ships = allStagesData[currentStage];
+    const s = ships.find(ss => ss.id===id);
     if(s){
       const oldDir = s.dir;
       const nextDir = oldDir === 'h' ? 'v' : 'h';
@@ -576,6 +757,7 @@
       if(canPlace(newR, newC, nextDir, id)){
         s.r = newR; s.c = newC; s.dir = nextDir;
       }
+      stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
       renderBoard(); renderDock();
     } else {
       dockDir[id] = (dockDir[id] === 'h') ? 'v' : 'h';
@@ -604,7 +786,6 @@
 
     const onPointerMove = (e) => {
       const dx=e.clientX-startX, dy=e.clientY-startY;
-      
       if(!dragging && Math.hypot(dx,dy) < DRAG_START_THRESHOLD) return;
 
       if(!dragging){
@@ -633,10 +814,7 @@
         return;
       }
 
-      if(clone){ 
-        clone.remove(); 
-        clone=null; 
-      }
+      if(clone){ clone.remove(); clone=null; }
       el.style.visibility='';
 
       const pointerCell = getTargetCell(e.clientX, e.clientY);
@@ -646,7 +824,8 @@
       if(anchor && canPlace(anchor.r, anchor.c, dir, id)){
         placeShip(id, anchor.r, anchor.c, dir);
       } else {
-        allStagesData[currentStage] = allStagesData[currentStage].filter(s=>s.id!==id);
+        allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id!==id);
+        stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
         renderBoard(); renderDock();
       }
     };
@@ -655,13 +834,62 @@
   }
 
   function resetCurrentStage(){
-    allStagesData[currentStage]=[];
-    setStatus(false);
+    allStagesData[currentStage] = [];
+    stageHistory[currentStage] = [];
     dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
     renderStageButtons();
     renderBoard(); 
     renderDock();
     updateHintButtonUI(); 
+  }
+
+  function showModal(isSuccess, title, bodyMessage, buttonText) {
+    const overlay = document.getElementById('modalOverlay');
+    const card = document.getElementById('modalCard');
+    const titleEl = document.getElementById('modalTitle');
+    const bodyEl = document.getElementById('modalBody');
+    const btnEl = document.getElementById('modalBtn');
+
+    card.className = `modal-card ${isSuccess ? 'success' : 'danger'}`;
+    titleEl.className = `modal-title ${isSuccess ? 'success' : 'danger'}`;
+    
+    titleEl.innerText = title;
+    bodyEl.innerText = bodyMessage;
+    btnEl.innerText = buttonText;
+    btnEl.className = `modal-btn ${isSuccess ? 'success' : 'danger'}`;
+
+    btnEl.onclick = () => {
+      hideModal();
+      if (isSuccess && currentStage < TOTAL_STAGES) {
+        loadStage(currentStage + 1);
+      }
+    };
+
+    overlay.classList.add('active');
+    btnEl.focus();
+  }
+
+  function hideModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+  }
+
+  function handleGlobalKeydown(e) {
+    const overlay = document.getElementById('modalOverlay');
+    
+    if (overlay.classList.contains('active')) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('modalBtn').click();
+      }
+      return;
+    }
+
+    if (e.key === 'h' || e.key === 'H' || e.key === 'ㅗ') {
+      const btnHint = document.getElementById('btnHint');
+      if (!btnHint.disabled) useHint();
+    } else if (e.key === 'r' || e.key === 'R' || e.key === 'ㄱ') {
+      resetCurrentStage();
+    }
   }
 
   init();
