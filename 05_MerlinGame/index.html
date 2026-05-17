@@ -59,6 +59,8 @@
       padding: 24px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       width: 100%;
+      border: 3px solid transparent; /* 테두리 변화 시 레이아웃 흔들림 방지 */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     /* [영역 1-A: 퍼즐 제목] */
@@ -163,6 +165,12 @@
       justify-content: center; 
       align-items: center;     
       padding: 24px;
+    }
+
+    /* ★ 게임 성공 시 붙을 녹색 테두리 클래스 */
+    .puzzle-card.game-success {
+      border-color: var(--success);
+      box-shadow: 0 10px 25px rgba(40, 167, 69, 0.15);
     }
 
     .puzzle-grid-wrapper {
@@ -361,7 +369,8 @@
   </div>
 
   <!-- [영역 2: 퍼즐 문제 영역] -->
-  <div class="section-wrapper container-fixed puzzle-card">
+  <!-- puzzleCardEl 매핑을 위해 id="puzzleCard" 추가 및 기존 container-fixed 클래스 유지 -->
+  <div id="puzzleCard" class="section-wrapper container-fixed puzzle-card">
     <div id="puzzleGridWrapper" class="puzzle-grid-wrapper">
       <!-- 자바스크립트에서 동적 생성 -->
     </div>
@@ -420,6 +429,7 @@
     let list = [];
     let b1 = 3, b2 = 3;
 
+    const puzzleCardEl = document.getElementById("puzzleCard"); // 퍼즐 카드 판넬 Element 추가
     const puzzleGridWrapper = document.getElementById("puzzleGridWrapper");
     const turnCountEl = document.getElementById("turnCount");
     const statusDisplay = document.getElementById("statusDisplay");
@@ -471,6 +481,8 @@
       b1 = parseInt(a1);
       b2 = parseInt(a2);
 
+      // 새 게임 생성 시 녹색 테두리 클래스 제거 및 잠금 해제
+      puzzleCardEl.classList.remove("game-success"); 
       puzzleGridWrapper.classList.remove("grid-locked");
       statusDisplay.style.color = "var(--text-sub)";
       statusDisplay.innerHTML = `Turn : <span id="turnCount">0</span>`;
@@ -525,6 +537,9 @@
       if (checkSuccessCondition()) {
         statusDisplay.innerHTML = `<span style="color:var(--success)">성공! (${count}턴)</span>`;
         
+        // ★ 성공 시 퍼즐 영역 판넬에 녹색 테두리 스타일 적용 클래스 추가
+        puzzleCardEl.classList.add("game-success");
+
         wincount++;
         winCountEl.textContent = "성공 횟수 : " + wincount + "회";
 
