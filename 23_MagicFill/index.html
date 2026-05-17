@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>매직 필(Magic Fill)</title>
+    <title>매직 필</title>
     <style>
         :root {
             --board-rows: 5;
             --board-cols: 5;
             
-            --color-bg: #f8f9fa;
+            --color-bg: #f0f2f5;
             --color-cell-empty: #ffffff;
             --color-shape: #4dabf7;
             --color-shape-fixed: #339af0;
@@ -39,14 +39,14 @@
             font-size: 16px; 
         }
 
-        h1 { margin: 0 0 20px 0; font-size: 32px; color: #343a40; font-weight: 800; }
+        h1 { margin: 0 0 20px 0; font-size: 36px; color: #343a40; font-weight: 700; }
 
         .game-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
         }
 
         .level-panel {
@@ -88,12 +88,14 @@
         .info-right { display: flex; justify-content: flex-end; width: 30%; }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #333; }
 
-        .game-board-wrapper {
-            margin-bottom: 20px; width: 100%;
+.game-board-wrapper {
+            margin: 0 auto 20px auto; /* 게임판이 작아져도 중앙에 오도록 설정 */
+            width: 100%;
             display: grid;
             grid-template-columns: 1fr 30px; 
             grid-template-rows: auto 30px;
             gap: 5px; justify-items: center; align-items: center;
+            /* max-width는 자바스크립트에서 단계별로 동적 제어함 */
         }
 
         .game-board {
@@ -221,11 +223,28 @@
         .btn-hint svg { margin-right: 5px; fill: white; width: 16px; height: 16px; }
 
         .rules {
-            font-size: 15px; line-height: 1.6; color: #495057;
-            background: white; padding: 20px; border-radius: 16px;
-            width: 100%; box-sizing: border-box; margin-bottom: 40px;
+            margin-top: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #555;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            border-left: 6px solid var(--color-active);
         }
-        .rules b { color: #212529; font-size: 16px; }
+
+        .rules-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--color-active);
+        }
         .highlight { color: #228be6; font-weight: bold; }
 
         .modal-overlay {
@@ -256,7 +275,7 @@
 <body>
 
     <div class="game-container">
-        <h1>매직 필(Magic Fill)</h1>
+        <h1>매직 필</h1>
 
         <div class="level-panel">
             <div class="level-buttons" id="level-container"></div>
@@ -299,8 +318,8 @@
         </div>
 
         <div class="rules">
-            <b>[게임 규칙]</b><br>
-            1. <b>목표:</b> 모양을 배치하여 목표 개수를 채우세요.<br>
+            <div class="rules-header">◈ 매직 필(Magic Fill) 규칙</div>
+            1. <b>목표:</b> 주어진 갯수만큼 모양을 배치하세요.<br>
             2. <span class="highlight">중요: 각 가로줄과 세로줄에 채워지는 칸의 개수가 모두 동일해야 합니다.</span><br>
             3. <b>회전:</b> 모양을 <b>클릭</b>하면 회전합니다.<br>
             4. <b>배치:</b> 드래그하여 격자에 놓으세요.<br>
@@ -520,7 +539,7 @@
             };
         }
 
-        function loadLevel(idx) {
+function loadLevel(idx) {
             currentLevelIdx = idx;
             const levelData = LEVELS[idx];
             const dims = getDims(levelData);
@@ -533,6 +552,22 @@
             
             document.documentElement.style.setProperty('--board-cols', dims.cols);
             document.documentElement.style.setProperty('--board-rows', dims.rows);
+
+            // --- [여기서부터 게임판 wrapper 크기 조절 코드 추가] ---
+            const wrapper = document.querySelector('.game-board-wrapper');
+            if (wrapper) {
+                const lvlId = levelData.id;
+                if (lvlId === 1) {
+                    wrapper.style.maxWidth = '400px';
+                } else if (lvlId === 2 || lvlId === 3) {
+                    wrapper.style.maxWidth = '480px';
+                } else if (lvlId === 4 || lvlId === 5 || lvlId === 6) {
+                    wrapper.style.maxWidth = '640px';
+                } else {
+                    wrapper.style.maxWidth = '800px';
+                }
+            }
+            // --- [추가 완료] ---
             
             boardElement.style.display = 'grid'; 
             hideMessage();
