@@ -106,6 +106,7 @@
       flex-direction: column;
       align-items: center;
       gap: 24px;
+      width: 100%;
     }
 
     .pool-title {
@@ -163,6 +164,7 @@
       flex-direction: column;
       align-items: center;
       margin-top: 10px;
+      overflow-x: auto; /* 모바일 극단적 상황 방어 */
     }
     #answerArea {
       display: flex;
@@ -207,12 +209,14 @@
     }
     .separator {
       width: 32px;
+      flex-shrink: 0;
     }
     .fulcrum-line {
       height: 8px;
       background: linear-gradient(90deg, var(--pivot-color), var(--beam-color), var(--pivot-color));
       border-radius: 4px;
       margin: 0 auto;
+      max-width: 100%; /* 화면 밖으로 탈출 방지 */
       transition: width 0.2s;
     }
     .fulcrum-pivot {
@@ -371,9 +375,10 @@
       .title-area h1 { font-size: 28px; }
       .control-actions { grid-template-columns: repeat(2, 1fr); gap: 8px; }
       #answerArea { gap: 4px; }
-      .slot { width: 44px; height: 70px; }
-      .block-wrapper { width: 42px; height: 42px; }
-      .block { width: 38px; height: 38px; font-size: 14px; border-radius: 8px; }
+      .slot { width: 38px; height: 65px; padding: 4px 0; } /* 슬롯 폭 축소 */
+      .slot-label { font-size: 10px; padding: 0 4px; }
+      .block-wrapper { width: 34px; height: 34px; }
+      .block { width: 32px; height: 32px; font-size: 12px; border-radius: 6px; }
       .separator { width: 14px; }
       .fulcrum-pivot { border-left-width: 16px; border-right-width: 16px; border-bottom-width: 24px; }
       .action-btn { height: 48px; font-size: 15px; }
@@ -464,15 +469,14 @@
     let solution = [];
     let hintIndex = 0;
     let hintUsedCount = 0; 
-    let checkAttemptsCount = 0; // 요구사항: 정답 확인 시도 횟수 측정 변수
+    let checkAttemptsCount = 0; 
     let selectedBlock = null;
     let dragBlock = null;
     let isCorrect = false;
     let totalBlocksCount = 3; 
     
-    // 요구사항: 기존에 출제되었던 방식을 기억하기 위한 기출 아카이브 맵 캐싱 데이터 구조
-    // Key 구조 예시: "slot3_block4" -> { currentWeights: [...], solution: [...] }
-    const puzzleHistoryMap = {};
+    let puzzleHistoryMap = {};
+    let statsHistoryList = []; // 누적 기록 저장을 위한 배열
 
     const U = {
         slotCount: document.getElementById('slotCount'),
@@ -490,6 +494,185 @@
 
     document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+
+    // LocalStorage 저장 함수
+    function saveStateToLocalStorage() {
+        const boardState = [];
+        document.querySelectorAll('.slot').forEach(slot => {
+            const block = slot.querySelector('.block');
+            if (block) {
+                boardState.push({
+                    side: slot.dataset.side,
+                    index: slot.dataset.index,
+                    blockId: block.id,
+                    weight: block.dataset.weight,
+                    textContent: block.textContent
+                });
+            }
+        });
+
+        const poolState = [];
+        U.blocks.querySelectorAll('.block-wrapper').forEach((wrapper, wIdx) => {
+            const block = wrapper.querySelector('.block');
+            if (block) {
+                poolState.push({
+                    wrapperIndex: wIdx,
+                    blockId: block.id,
+                    weight: block.dataset.weight,
+                    textContent: block.textContent
+                });
+            }
+        });
+
+        const gameState = {
+            slotCount: U.slotCount.value,
+            blockCount: U.blockCount.value,
+            currentWeights,
+            solution,
+            hintIndex,
+            hintUsedCount,
+            checkAttemptsCount,
+            isCorrect,
+            totalBlocksCount,
+            puzzleHistoryMap,
+            statsHistoryList,
+            boardState,
+            poolState
+        };
+        localStorage.setItem('scale_puzzle_state', JSON.stringify(gameState));
+    }
+
+    // LocalStorage 복구 함수
+    function loadStateFromLocalStorage() {
+        const saved = localStorage.getItem('scale_puzzle_state');
+        if (!saved) return false;
+        try {
+            const gameState = JSON.parse(saved);
+            
+            puzzleHistoryMap = gameState.puzzleHistoryMap || {};
+            statsHistoryList = gameState.statsHistoryList || [];
+            currentWeights = gameState.currentWeights || [];
+            solution = gameState.solution || [];
+            hintIndex = gameState.hintIndex || 0;
+            hintUsedCount = gameState.hintUsedCount || 0;
+            checkAttemptsCount = gameState.checkAttemptsCount || 0;
+            isCorrect = gameState.isCorrect || false;
+            totalBlocksCount = gameState.totalBlocksCount || 3;
+
+            U.slotCount.value = gameState.slotCount;
+            updateBlockOptions(true);
+            U.blockCount.value = gameState.blockCount;
+
+            // 누적 기록 테이블 렌더링
+            renderStatsTable();
+
+            // 슬롯 생성 및 채우기 준비
+            createSlots();
+            
+            // 보관소 초기화
+            U.blocks.innerHTML = '';
+            currentWeights.forEach((_, i) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'block-wrapper';
+                addBlockWrapperDropEvents(wrapper);
+                U.blocks.appendChild(wrapper);
+            });
+
+            // 보관소 블록 복원
+            gameState.poolState.forEach(p => {
+                const wrappers = U.blocks.querySelectorAll('.block-wrapper');
+                if (wrappers[p.wrapperIndex]) {
+                    const block = createBlockElement(p.blockId, p.weight, p.textContent);
+                    wrappers[p.wrapperIndex].appendChild(block);
+                }
+            });
+
+            // 저울 위 블록 복원
+            gameState.boardState.forEach(b => {
+                const targetSlot = U.answerArea.querySelector(`.slot[data-side='${b.side}'][data-index='${b.index}']`);
+                if (targetSlot) {
+                    const block = createBlockElement(b.blockId, b.weight, b.textContent);
+                    targetSlot.querySelector('.slot-inner').appendChild(block);
+                }
+            });
+
+            if (isCorrect) {
+                setMessage('🎉 완벽한 균형입니다! 정답입니다.', 'ok');
+                U.newBtn.classList.add('btn-ready');
+            } else {
+                setMessage('');
+                U.newBtn.classList.remove('btn-ready');
+            }
+
+            updateInteractiveState();
+            return true;
+        } catch (e) {
+            console.error("복구 실패, 초기화합니다.", e);
+            return false;
+        }
+    }
+
+    function createBlockElement(id, weight, textContent) {
+        const block = document.createElement('div');
+        block.className = 'block';
+        block.id = id;
+        block.textContent = textContent;
+        block.dataset.weight = weight;
+        block.draggable = true;
+
+        block.addEventListener('dragstart', e => {
+            if(isCorrect) { e.preventDefault(); return; }
+            deselectAllBlocks();
+            e.dataTransfer.setData('text', block.id);
+        });
+
+        block.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectBlock(block);
+        });
+
+        block.addEventListener('touchstart', function(e) {
+            selectBlock(block);
+            dragBlock = block;
+            e.preventDefault();
+        }, {passive: false});
+
+        block.addEventListener('touchmove', function(e) { if (dragBlock) e.preventDefault(); }, {passive: false});
+        block.addEventListener('touchend', function(e) {
+            if (!dragBlock) return;
+            let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+            if (!touch) { dragBlock = null; return; }
+            
+            const x = touch.clientX, y = touch.clientY;
+            dragBlock.classList.remove('selected');
+            selectedBlock = null;
+            
+            const el = document.elementFromPoint(x, y);
+            const slot = el && el.closest && el.closest('.slot');
+            if (slot) {
+                handleBlockPlacement(slot, block);
+            } else {
+                const wrapper = el && el.closest && el.closest('.block-wrapper');
+                if (wrapper) { 
+                    wrapper.appendChild(block); 
+                    setMessage('');
+                } 
+                else {
+                    const emptyWrapper = findEmptyWrapper();
+                    if (emptyWrapper) {
+                        emptyWrapper.appendChild(block);
+                        setMessage('');
+                    }
+                }
+            }
+            dragBlock = null;
+            updateInteractiveState();
+            saveStateToLocalStorage();
+            e.preventDefault();
+        }, {passive: false});
+
+        return block;
+    }
 
     function updateBlockOptions(isInitial = false) {
         const s = parseInt(U.slotCount.value, 10);
@@ -513,12 +696,12 @@
         const slotCount = parseInt(U.slotCount.value, 10);
         let slotW = 58, gap = 8, sepW = 32;
         if (window.innerWidth <= 720) {
-            slotW = 44; gap = 4; sepW = 14;
+            slotW = 38; gap = 4; sepW = 14; /* 미디어쿼리 축소값 동기화 */
         }
         const totalSlots = slotCount * 2;
         const totalGap = (totalSlots - 1) * gap;
-        const totalWidth = (slotW * totalSlots) + totalGap + sepW + 10;
-        U.fulcrumLine.style.width = totalWidth + "px";
+        const totalWidth = (slotW * totalSlots) + totalGap + sepW + 8;
+        U.fulcrumLine.style.width = `calc(min(100%, ${totalWidth}px))`; /* 화면 밖 탈출 원천 차단 */
     }
 
     function createSlots() {
@@ -577,6 +760,7 @@
         targetSlot.querySelector('.slot-inner').appendChild(blockToPlace);
         setMessage('');
         updateInteractiveState();
+        saveStateToLocalStorage();
     }
 
     function attachSlotEvents(slot) {
@@ -641,7 +825,6 @@
         selectedBlock = null;
     }
 
-    // 요구사항 조율: 기존 로드 및 초기 생성 동시 호환을 위한 생성부 로직 분리 및 고도화
     function renderBlocksFromArray(weightsArray) {
         U.blocks.innerHTML = '';
         currentWeights = [...weightsArray];
@@ -651,66 +834,11 @@
             wrapper.className = 'block-wrapper';
             addBlockWrapperDropEvents(wrapper);
 
-            const block = document.createElement('div');
-            block.className = 'block';
-            block.id = 'block' + i;
-            block.textContent = weight;
-            block.dataset.weight = weight;
-            block.draggable = true;
-
-            block.addEventListener('dragstart', e => {
-                if(isCorrect) { e.preventDefault(); return; }
-                deselectAllBlocks();
-                e.dataTransfer.setData('text', block.id);
-            });
-
-            block.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectBlock(block);
-            });
-
-            block.addEventListener('touchstart', function(e) {
-                selectBlock(block);
-                dragBlock = block;
-                e.preventDefault();
-            }, {passive: false});
-
-            block.addEventListener('touchmove', function(e) { if (dragBlock) e.preventDefault(); }, {passive: false});
-            block.addEventListener('touchend', function(e) {
-                if (!dragBlock) return;
-                let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-                if (!touch) { dragBlock = null; return; }
-                
-                const x = touch.clientX, y = touch.clientY;
-                dragBlock.classList.remove('selected');
-                selectedBlock = null;
-                
-                const el = document.elementFromPoint(x, y);
-                const slot = el && el.closest && el.closest('.slot');
-                if (slot) {
-                    handleBlockPlacement(slot, block);
-                } else {
-                    const wrapper = el && el.closest && el.closest('.block-wrapper');
-                    if (wrapper) { 
-                        wrapper.appendChild(block); 
-                        setMessage('');
-                    } 
-                    else {
-                        const emptyWrapper = findEmptyWrapper();
-                        if (emptyWrapper) {
-                            emptyWrapper.appendChild(block);
-                            setMessage('');
-                        }
-                    }
-                }
-                dragBlock = null;
-                updateInteractiveState();
-                e.preventDefault();
-            }, {passive: false});
-
+            const block = createBlockElement('block' + i, weight, weight);
             wrapper.appendChild(block);
             U.blocks.appendChild(wrapper);
         });
+        saveStateToLocalStorage();
     }
 
     function createBlocks(n) {
@@ -736,6 +864,7 @@
             wrapper.appendChild(blockEl);
             setMessage('');
             updateInteractiveState();
+            saveStateToLocalStorage();
         });
     }
 
@@ -818,7 +947,6 @@
         return solutionResult;
     }
 
-    // 요구사항 반영: 과거 출제 내역에 따라 분기 처리하는 핵심 비즈니스 로직
     function handlePuzzleLoadingOrGeneration(forceNew = false) {
         const slotCount = parseInt(U.slotCount.value, 10);
         const blockCount = parseInt(U.blockCount.value, 10);
@@ -826,14 +954,13 @@
         
         const historyKey = `slot${slotCount}_block${blockCount}`;
 
-        // 강제 생성이 아니며, 이미 해당 옵션 조합으로 출제된 기록(history)이 Map에 있는 경우 그대로 계승하여 로딩
         if (!forceNew && puzzleHistoryMap[historyKey]) {
             createSlots();
             const cache = puzzleHistoryMap[historyKey];
             solution = cache.solution;
             hintIndex = 0;
-            hintUsedCount = cache.hintUsedCount; // 기존 힌트 카운트 유지
-            checkAttemptsCount = cache.checkAttemptsCount; // 기존 정답 확인 카운트 유지
+            hintUsedCount = cache.hintUsedCount; 
+            checkAttemptsCount = cache.checkAttemptsCount; 
             isCorrect = cache.isCorrect;
             
             renderBlocksFromArray(cache.weights);
@@ -843,7 +970,6 @@
                 U.newBtn.classList.add('btn-ready');
                 U.checkBtn.disabled = true;
                 U.hintBtn.disabled = true;
-                // 정답 슬롯들 강제 재배치 복원
                 solution.forEach(step => {
                     const targetSlot = U.answerArea.querySelector(`.slot[data-side='${step.side}'][data-index='${step.slotIndex}']`);
                     const blockEl = document.getElementById('block' + step.blockIndex);
@@ -854,10 +980,10 @@
                 U.newBtn.classList.remove('btn-ready');
                 updateInteractiveState();
             }
+            saveStateToLocalStorage();
             return;
         }
 
-        // 새롭게 문제를 짜야 하는 전형적인 경우 동작
         setMessage('수학적 균형 퍼즐 생성 중...');
         isCorrect = false;
         hintUsedCount = 0; 
@@ -879,7 +1005,6 @@
                     setMessage('');
                     U.newBtn.disabled = false;
                     
-                    // 메모리에 현재 상태 박제하여 저장
                     puzzleHistoryMap[historyKey] = {
                         weights: values,
                         solution: sol,
@@ -889,12 +1014,14 @@
                     };
                     
                     updateInteractiveState();
+                    saveStateToLocalStorage();
                     return;
                 }
                 attemptsCount++;
             }
             setMessage('해당 설정으로 수식 균형을 만들지 못했습니다. 설정을 바꾼 후 다시 시도해 보세요.', 'err');
             U.newBtn.disabled = false;
+            saveStateToLocalStorage();
         }, 20);
     }
 
@@ -925,12 +1052,12 @@
         hintIndex++;
         hintUsedCount++; 
         
-        // 메모리 동기화
         const historyKey = `slot${U.slotCount.value}_block${U.blockCount.value}`;
         if (puzzleHistoryMap[historyKey]) puzzleHistoryMap[historyKey].hintUsedCount = hintUsedCount;
 
         setMessage(`💡 블록이 배치되었습니다. (힌트 사용: ${hintUsedCount}회)`);
         updateInteractiveState();
+        saveStateToLocalStorage();
     }
 
     function manualCheckAnswer() {
@@ -940,7 +1067,7 @@
             return;
         }
 
-        checkAttemptsCount++; // 요구사항: 시도 횟수 누적 카운팅
+        checkAttemptsCount++; 
         const historyKey = `slot${U.slotCount.value}_block${U.blockCount.value}`;
         if (puzzleHistoryMap[historyKey]) puzzleHistoryMap[historyKey].checkAttemptsCount = checkAttemptsCount;
 
@@ -954,57 +1081,50 @@
             U.checkBtn.disabled = true;
             U.hintBtn.disabled = true;
             
-            // 요구사항 반영된 테이블 아웃풋 삽입
             addRecordToTable(U.slotCount.value, U.blockCount.value, checkAttemptsCount, hintUsedCount);
         } else {
             setMessage(`❌ 균형이 맞지 않습니다. 틀렸습니다! (현재 시도 횟수: ${checkAttemptsCount}회 | 좌측: ${t.L} / 우측: ${t.R})`, 'err');
         }
+        saveStateToLocalStorage();
     }
 
-    // 요구사항 반영: 간소화된 데이터 구조 인터페이스 렌더링
     function addRecordToTable(slots, blocks, attempts, hints) {
-        const emptyRow = U.statsHistoryBody.querySelector('.empty-row');
-        if (emptyRow) {
-            U.statsHistoryBody.innerHTML = '';
+        // 리스트 데이터 쌓기
+        statsHistoryList.unshift({ slots, blocks, attempts, hints });
+        renderStatsTable();
+    }
+
+    function renderStatsTable() {
+        if (statsHistoryList.length === 0) {
+            U.statsHistoryBody.innerHTML = `<tr><td colspan="4" class="empty-row">아직 성공한 기록이 없습니다. 퍼즐을 맞춰보세요!</td></tr>`;
+            return;
         }
 
-        Array.from(U.statsHistoryBody.querySelectorAll('tr')).forEach(row => {
-            row.classList.remove('latest-record');
+        U.statsHistoryBody.innerHTML = '';
+        statsHistoryList.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            if (index === 0) tr.className = 'latest-record'; 
+            
+            const tdSlots = document.createElement('td');
+            tdSlots.textContent = `${item.slots}개`;
+            
+            const tdBlocks = document.createElement('td');
+            tdBlocks.textContent = `${item.blocks}개`;
+            
+            const tdAttempts = document.createElement('td');
+            tdAttempts.textContent = `${item.attempts}회`;
+            tdAttempts.classList.add(item.attempts === 1 ? 'attempts-blue' : 'attempts-red');
+
+            const tdHints = document.createElement('td');
+            tdHints.textContent = `${item.hints}회`;
+            tdHints.classList.add(item.hints === 0 ? 'hints-blue' : 'hints-red');
+
+            tr.appendChild(tdSlots);
+            tr.appendChild(tdBlocks);
+            tr.appendChild(tdAttempts);
+            tr.appendChild(tdHints);
+            U.statsHistoryBody.appendChild(tr);
         });
-
-        const tr = document.createElement('tr');
-        tr.className = 'latest-record'; 
-        
-        const tdSlots = document.createElement('td');
-        tdSlots.textContent = `${slots}개`; // 요구사항: "좌우 각 3개" 대신 깔끔하게 "3개"로 바꿈
-        
-        const tdBlocks = document.createElement('td');
-        tdBlocks.textContent = `${blocks}개`;
-        
-        // 정답 시도 회수
-        const tdAttempts = document.createElement('td');
-        tdAttempts.textContent = `${attempts}회`;
-        if (attempts === 1) {
-            tdAttempts.classList.add('attempts-blue');
-        } else {
-            tdAttempts.classList.add('attempts-red');
-        }
-
-        // 힌트 사용 횟수
-        const tdHints = document.createElement('td');
-        tdHints.textContent = `${hints}회`;
-        if (hints === 0) {
-            tdHints.classList.add('hints-blue');
-        } else {
-            tdHints.classList.add('hints-red');
-        }
-
-        tr.appendChild(tdSlots);
-        tr.appendChild(tdBlocks);
-        tr.appendChild(tdAttempts);
-        tr.appendChild(tdHints);
-
-        U.statsHistoryBody.insertBefore(tr, U.statsHistoryBody.firstChild);
     }
 
     function resetBoard() {
@@ -1036,9 +1156,9 @@
         U.newBtn.classList.remove('btn-ready');
         isCorrect = false;
         updateInteractiveState();
+        saveStateToLocalStorage();
     }
 
-    // 조건부 탐색 바인딩 트리거
     U.slotCount.addEventListener('change', () => {
         updateBlockOptions(false);
         handlePuzzleLoadingOrGeneration(false);
@@ -1051,7 +1171,6 @@
 
     window.addEventListener('resize', updateFulcrumLineWidth);
     
-    // '새 퍼즐' 버튼을 명시적으로 누른 경우에는 무조건 완전한 신규 인스턴스 문제를 출제하도록 제어
     U.newBtn.addEventListener('click', () => {
         handlePuzzleLoadingOrGeneration(true);
     });
@@ -1059,8 +1178,14 @@
     U.hintBtn.addEventListener('click', showHint);
     U.checkBtn.addEventListener('click', manualCheckAnswer);
 
-    updateBlockOptions(true);
-    handlePuzzleLoadingOrGeneration(false);
+    // 초기화 및 복구 체인 구조화
+    window.addEventListener('DOMContentLoaded', () => {
+        const restored = loadStateFromLocalStorage();
+        if (!restored) {
+            updateBlockOptions(true);
+            handlePuzzleLoadingOrGeneration(false);
+        }
+    });
 </script>
 </body>
 </html>
