@@ -2,682 +2,831 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>매지믹서</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"/>
+    <title>매지믹서(초급)</title>
+    <!-- 프리텐다드 서체 로드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --border: #e9ecef;
+            --disabled: #6c757d;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
         body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .area-transparent {
+            width: 100%;
             text-align: center;
         }
-        #level-selector {
-            margin-bottom: 0px;
-            border-bottom: 3px solid #eee;
-            padding-bottom: 20px;
+
+        .container-fixed {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
         }
-        #level-selector button {
-            width: 80px;
-            height: 45px;
-            padding: 0px;
-            font-size: 18px;
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 10px 0 0 0;
+            color: var(--text-main);
+            letter-spacing: -1px;
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .level-btn {
+            height: 50px;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin: 0 5px;
-            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            color: var(--text-sub);
             transition: all 0.2s ease-in-out;
         }
-        #level-selector button:hover {
-            background-color: #f0f0f0;
+
+        .level-btn:hover {
+            background-color: var(--border);
         }
-        #level-selector button.active {
-            background-color: #007BFF;
+
+        .level-btn.active {
+            background-color: var(--active);
             color: white;
-            border-color: #007BFF;
-            font-weight: bold;
+            border-color: var(--active);
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
         }
-        .button-container {
-            /* flex-wrap: nowrap; 삭제 (작은 화면에서 줄바꿈 허용) */
+
+        .puzzle-layout {
             display: flex;
-            flex-wrap: wrap; 
-            gap: 10px;
-            margin-top: 20px;
-            justify-content: center;
-            max-width: 800px;
-            /* overflow-x: auto; 제거 (스크롤 대신 줄바꿈 유도) */
-        }
-        button {
-            padding: 0px;
-            font-size: 20px;
-            cursor: pointer;
-            width: 60px;
-            height: 40px;
-            border: none;
-            border-radius: 5px;
-            margin: 0px;
-            flex-shrink: 0;
-        }
-        .button_e {
-            padding: 0px;
-            font-size: 20px;
-            cursor: pointer;
-            width: 140px;
-            height: 40px;
-            border: none;
-            border-radius: 5px;
-            margin: 0px;
-            background-color: rgb(134, 190, 255);
-        }
-        .button_new {
-            padding: 0px;
-            font-size: 20px;
-            cursor: pointer;
-            width: 140px;
-            height: 40px;
-            border: none;
-            border-radius: 5px;
-            margin: 0px;
-            background-color: #eee;
-        }
-        .primary {
-            background-color: #007BFF;
-            color: white;
-        }
-        .secondary {
-            background-color: #28A745;
-            color: white;
-        }
-        .disabled {
-            background-color: #6c757d;
-            color: #fff;
-            cursor: not-allowed;
-        }
-        #display {
-            /* 🚩 수정: 왼쪽 정렬 관련 속성 제거 및 중앙 정렬 추가 */
-            margin-top: 20px;
-            font-size: 20px;
-            text-align: left; 
-            width: 100%;
-            max-width: 600px;
-            /* 기존: position: relative; left: 60px; */
-            margin: 20px auto 0 auto; /* 상하 20px, 좌우 auto로 중앙 정렬 */
-            padding: 0 20px; /* 좌우 패딩 추가하여 너무 붙지 않게 함 */
-            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
-        }
-        #display div {
-            margin-bottom: 5px;
-            min-height: 24px;
-        }
-        #input-display {
-            /* 🚩 수정: 고정 너비 460px을 100%로 변경 */
-            border: 2px solid #007BFF;
-            background-color: #f0f8ff;
-            width: 100%; /* 부모 (#display) 너비에 맞게 조정 */
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.2em;
-            margin-bottom: 10px;
-            color: #333;
-            /* 기존: position: relative; left: 0px; */
-            box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
-        }
-        .error-message {
-            color: red;
-            font-weight: bold;
-        }
-        .correct-message {
-            color: green;
-            font-weight: bold;
-        }
-        .line-break {
-            width: 100%;
-            margin: 10px 0;
-        }
-        #button-container, #operator-container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        #operator-container {
-            margin-top: 10px;
             flex-direction: column;
             align-items: center;
+            gap: 20px;
         }
-        .operator-row {
-            display: flex;
-            flex-wrap: wrap; /* 🚩 수정: 연산자 버튼도 줄바꿈 허용 */
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 8px;
-        }
-        #score-table {
-            margin-top: 40px;
+
+        .all-cards-line {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 8px;
             width: 100%;
-            max-width: 500px;
-            border-collapse: collapse;
+            justify-content: center;
+        }
+
+        .num-card {
+            width: 100%;
+            aspect-ratio: 1 / 0.7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            border-radius: 14px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .num-card.primary { background-color: var(--active); }
+        .num-card.secondary { background-color: var(--success); cursor: pointer; transition: transform 0.1s; }
+        .num-card.secondary:active { transform: scale(0.95); }
+        .num-card.disabled { background-color: var(--disabled); cursor: not-allowed; opacity: 0.4; }
+
+        .display-panel {
+            width: 100%;
+            border: 2px solid var(--active);
+            background-color: #f0f8ff;
+            border-radius: 14px;
+            padding: 15px;
+            min-height: 60px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: left;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+        }
+
+        .operator-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .symbols-row {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .op-btn {
+            height: 48px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background 0.1s, opacity 0.1s;
+        }
+        .op-btn:active { background-color: #cbd5e1; }
+
+        .control-r { flex: 1; background-color: #ffffff; color: #111111; border: 2px solid #6b7280; }
+        .control-r:active { background-color: #f3f4f6; }
+        
+        .control-bs { flex: 1; background-color: #fee2e2; color: #b91c1c; }
+        .control-bs:active { background-color: #fecaca; }
+        
+        .control-c { flex: 1; background-color: #fef3c7; color: #b45309; }
+        .control-c:active { background-color: #fde68a; }
+
+        .control-eval { flex: 1.6; background-color: var(--active); color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.25); }
+        .control-eval:active { opacity: 0.9; }
+
+        .solutions-box {
+            border-left: 6px solid var(--success);
+        }
+        .solutions-box h3 { color: var(--success); margin: 0 0 10px 0; }
+        .solutions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 0;
+            padding-left: 20px;
+            color: #111;
+            font-weight: 600;
             font-size: 16px;
         }
-        #score-table caption {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
+        .solutions-list li {
+            background-color: #f4fbf7;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px dashed #a3e635;
+            list-style-type: decimal;
         }
-        #score-table th, #score-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
+
+        .guide-box {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: left;
+            word-break: keep-all;
+        }
+        .guide-box h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .guide-box ul { margin: 0; padding-left: 20px; color: var(--text-sub); }
+        .guide-box li { margin-bottom: 4px; }
+        .guide-box p { margin: 0; color: var(--text-sub); }
+
+        .guide-rule { border-left: 6px solid var(--active); }   
+        .guide-rule h3 { color: var(--active); } 
+
+        .guide-key { border-left: 6px solid var(--success); }   
+        .guide-key h3 { color: var(--success); } 
+
+        .guide-record { border-left: 6px solid var(--danger); } 
+        .guide-record h3 { color: var(--danger); } 
+
+        /* 누적 기록 헤더 정렬 및 초기화 버튼 디자인 */
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .reset-record-btn {
+            height: 32px;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 700;
+            background-color: #ffffff;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        .reset-record-btn:hover {
+            background-color: #fff5f5;
+        }
+        .reset-record-btn:active {
+            transform: scale(0.96);
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; 
+        }
+        
+        .record-table th, .record-table td {
+            width: 25%;
+            border: 1px solid var(--border);
+            padding: 8px;
             text-align: center;
-            color: #333;
+            font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        #score-table th {
-            background-color: #f2f2f2;
-            color: #555;
+        .record-table th { background-color: #f8f9fa; color: var(--text-sub); }
+        
+        .record-table td.stat-num {
+            color: #000000;
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+        .record-table td.stat-num.highlight-red {
+            color: var(--danger) !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0; visibility: hidden;
+            transition: all 0.2s ease-in-out;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        
+        .modal-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 350px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-overlay.open .modal-card { transform: scale(1); }
+
+        .modal-card.success { border-top: 6px solid var(--success); }
+        .modal-card.danger { border-top: 6px solid var(--danger); }
+
+        .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+        .modal-title.success { color: var(--success); }
+        .modal-title.danger { color: var(--danger); }
+        
+        .modal-body { font-size: 16px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.5; }
+
+        .modal-btn {
+            width: 100%; height: 48px; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700; cursor: pointer; color: white;
+        }
+        .modal-btn.success { background-color: var(--success); }
+        .modal-btn.danger { background-color: var(--danger); }
+
+        @media(max-width: 620px) {
+            h1 { font-size: 26px; }
+            .num-card { font-size: 15px; border-radius: 8px; }
+            .display-panel { font-size: 16px; }
+            .controls-row { flex-direction: column; gap: 8px; }
+            .op-btn { width: 100%; }
         }
     </style>
 </head>
-<body role="presentation">
-    
-    <div id="level-selector">
-        <button id="level-easy">초급</button>
-        <button id="level-medium">중급</button>
-        <button id="level-hard">고급</button>
+<body>
+
+    <div class="wrapper">
+        <div class="area-transparent">
+            <h1 id="game-main-title">매지믹서(초급)</h1>
+        </div>
+
+        <div class="container-fixed">
+            <div class="level-grid">
+                <button class="level-btn active" id="btn-easy" onclick="changeLevel('easy')">초급</button>
+                <button class="level-btn" id="btn-medium" onclick="changeLevel('medium')">중급</button>
+                <button class="level-btn" id="btn-hard" onclick="changeLevel('hard')">고급</button>
+            </div>
+        </div>
+
+        <div class="container-fixed puzzle-layout">
+            <div style="width: 100%;">
+                <div class="all-cards-line" id="game-cards-container">
+                    <!-- JS에서 동적 주입 -->
+                </div>
+            </div>
+
+            <div class="display-panel" id="expr-display">
+                입력: 
+            </div>
+
+            <div class="operator-grid">
+                <div class="symbols-row">
+                    <button class="op-btn" onclick="inputOp('+')">+</button>
+                    <button class="op-btn" onclick="inputOp('-')">-</button>
+                    <button class="op-btn" onclick="inputOp('*')">×</button>
+                    <button class="op-btn" onclick="inputOp('/')">÷</button>
+                    <button class="op-btn" onclick="inputOp('(')">(</button>
+                    <button class="op-btn" onclick="inputOp(')')">)</button>
+                    <button class="op-btn" onclick="inputOp('^')">^</button>
+                </div>
+                
+                <div class="controls-row">
+                    <button class="op-btn control-r" onclick="regenerateCurrentStage()">문제 바꾸기</button>
+                    <button class="op-btn control-bs" onclick="popExpression()">한 칸 지우기(←)</button>
+                    <button class="op-btn control-c" onclick="clearExpression()">초기화(C)</button>
+                    <button class="op-btn control-eval" onclick="evaluateExpression()">정답 확인</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-box solutions-box" id="solutions-box" style="display: none;">
+            <h3>✨ 현재 문제에서 찾아낸 정답 수식 목록</h3>
+            <ol class="solutions-list" id="solutions-list">
+                <!-- 발견된 정답 수식이 동적으로 추가됨 -->
+            </ol>
+        </div>
+
+         <!-- 누적 기록 (초기화 버튼 및 정렬 구조 반영) -->
+        <div class="guide-box guide-record">
+            <div class="record-header">
+                <h3>📊 누적 기록</h3>
+                <button class="reset-record-btn" onclick="resetAllScores()">누적 기록 초기화</button>
+            </div>
+            <table class="record-table">
+                <thead>
+                    <tr>
+                        <th>난이도</th>
+                        <th>성공</th>
+                        <th>실패</th>
+                        <th>문제 바꾸기</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>초급</td>
+                        <td id="rec-easy-win" class="stat-num">0</td>
+                        <td id="rec-easy-fail" class="stat-num">0</td>
+                        <td id="rec-easy-new" class="stat-num">0</td>
+                    </tr>
+                    <tr>
+                        <td>중급</td>
+                        <td id="rec-medium-win" class="stat-num">0</td>
+                        <td id="rec-medium-fail" class="stat-num">0</td>
+                        <td id="rec-medium-new" class="stat-num">0</td>
+                    </tr>
+                    <tr>
+                        <td>고급</td>
+                        <td id="rec-hard-win" class="stat-num">0</td>
+                        <td id="rec-hard-fail" class="stat-num">0</td>
+                        <td id="rec-hard-new" class="stat-num">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="guide-box guide-rule">
+            <h3>🧩 게임 규칙</h3>
+            <ul id="rule-list">
+                <li><b>목표 설정:</b> 일렬로 배치된 카드 중 맨 앞의 <b>파란색 카드 2개의 합</b>이 최종 목표값입니다.</li>
+                <li><b>수식 작성:</b> 뒤에 배치된 5개의 <b>초록색 숫자 카드</b>와 아래 연산 기호들을 활용해 목표값과 연산 결과가 일치하는 수식을 유도하세요.</li>
+                <li><b>💡 다중 정답 유도:</b> 이 게임의 목표는 정답을 <b>여러 가지 다양한 연산 방법으로 유도하는 것</b>입니다. 정답을 맞히면 입력창이 자동으로 비워지니, 새로운 조합식으로 또 다른 정답을 연속해서 찾아보세요!</li>
+                <li><b>연속 입력 불가:</b> 올바른 연산 유도를 위해 <b>숫자 뒤에 연속으로 숫자가 올 수 없습니다.</b> 숫자를 배치한 후에는 연산 기호를 선택해야 합니다.</li>
+                <li><b>난이도별 조건:</b>
+                    <br>• <span style="color:var(--active); font-weight:bold;">초급:</span> 초록색 카드 중 일부 카드만 조합에 활용해도 정답으로 인정됩니다.
+                    <br>• <span style="color:var(--success); font-weight:bold;">중급/고급:</span> 주어진 초록색 카드 <b>5개를 전부 빠짐없이 한 번씩 사용</b>하여 식을 설계해야 합니다.
+                </li>
+            </ul>
+        </div>
+
+        <div class="guide-box guide-key">
+            <h3>⌨️ 키보드 단축키</h3>
+            <p>숫자 및 연산자 기호 입력 가능 / <b>[Backspace]</b>: 한 칸 지우기 / <b>[C], [Esc]</b>: 초기화 / <b>[Enter], [Space]</b>: 정답 확인 / <b>[R]</b>: 문제 바꾸기</p>
+        </div>
+
+       
     </div>
 
-    <h2 id="game-title"></h2>
-
-    <div id="button-container" class="button-container"></div>
-    <div class="line-break"></div>
-    <div id="operator-container"></div>
-    <div id="display">
-        <div id="input-display">입력: </div><br>
-        <div id="result-display">결과: </div>
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-card" id="modal-card">
+            <div class="modal-title" id="modal-title">결과</div>
+            <div class="modal-body" id="modal-body">내용</div>
+            <button class="modal-btn" id="modal-action-btn">확인</button>
+        </div>
     </div>
-
-
-    <table id="score-table">
-        <caption>매지믹서 누적 기록</caption>
-        <thead>
-            <tr>
-                <th>수준</th>
-                <th>초급</th>
-                <th>중급</th>
-                <th>고급</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr id="solved-row">
-                <td>해결한 횟수</td>
-                <td id="score-easy-solved">0</td>
-                <td id="score-medium-solved">0</td>
-                <td id="score-hard-solved">0</td>
-            </tr>
-            <tr id="failed-row">
-                <td>실패한 횟수</td>
-                <td id="score-easy-failed">0</td>
-                <td id="score-medium-failed">0</td>
-                <td id="score-hard-failed">0</td>
-            </tr>
-            <tr id="new-problem-row">
-                <td>문제를 바꾼 횟수</td>
-                <td id="score-easy-new">0</td>
-                <td id="score-medium-new">0</td>
-                <td id="score-hard-new">0</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <br>
-
-    <div id="instructions">
-        <p id="instruction-text" style="font-size: 18px;"></p>
-    </div>
-    <div style="font-size: 18px;">
-        ◈ 키보드<br>
-        숫자, 연산기호, Backspace 모두 사용 가능<br>
-        C (초기화): C, Esc<br>
-        = (결과확인): Enter, Space<br>
-        새로운 문제: R
-    </div>
-
-    <a href="example.html" style="
-        width: 250px;
-        padding: 20px;
-        border: 1px solid #333;
-        border-radius: 12px;
-        background-color: #ffffff;
-        text-align: center;
-        font-family: sans-serif;
-        font-size: 20px;
-        margin: 50px auto;
-        text-decoration: none;
-        color: #000;
-    ">
-        문제 설명
-    </a>
 
     <script>
-const easyBtn = document.getElementById('level-easy');
-        const mediumBtn = document.getElementById('level-medium');
-        const hardBtn = document.getElementById('level-hard');
+        let currentLevel = 'easy';
+        let lastUpdatedId = null; 
         
-        let currentLevel = null; 
-        let score = {
-            easy: { solved: 0, failed: 0, new: 0 },
-            medium: { solved: 0, failed: 0, new: 0 },
-            hard: { solved: 0, failed: 0, new: 0 }
+        const scoreBoard = {
+            easy: { win: 0, fail: 0, new: 0 },
+            medium: { win: 0, fail: 0, new: 0 },
+            hard: { win: 0, fail: 0, new: 0 }
         };
 
-        // 현재 게임의 상태를 유지하기 위한 변수들
-        let levelStates = {
-            easy: { numbers: [], targetSum: 0 },
-            medium: { numbers: [], targetSum: 0 },
-            hard: { numbers: [], targetSum: 0 }
+        const stageHistory = {
+            easy: null,
+            medium: null,
+            hard: null
         };
-        let currentNumbers = []; 
-        let currentTargetSum = 0;
-        let solvedExpressions = [];
-        let isSolved = false;
-        let usedGreenNumbers = [];
-        let currentInput = '';
 
-        let lastHighlightedCells = [];
-        let currentKeydownHandler = null;
-        let currentKeyupHandler = null;
+        const levelConfig = {
+            easy: { name: "초급", firstOpts: [10,20,30,40,50,60], maxVal: 6, allRequired: false },
+            medium: { name: "중급", firstOpts: [10,20,30,40,50,60], maxVal: 6, allRequired: true },
+            hard: { name: "고급", firstOpts: [10,20,30,40,50,60,70,80,90], maxVal: 9, allRequired: true }
+        };
 
-        function initializeScoreTable() {
-            const levels = ['easy', 'medium', 'hard'];
-            levels.forEach(lvl => {
-                ['solved', 'failed', 'new'].forEach(cat => {
-                    const id = `score-${lvl}-${cat}`;
-                    const cell = document.getElementById(id);
-                    cell.textContent = score[lvl][cat];
-                    cell.style.color = '#333';
-                });
-            });
-            lastHighlightedCells = [];
+        window.onload = function() {
+            preventGestures();
+            initGame('easy');
+            setupKeyboardEvents();
+        };
+
+        function preventGestures() {
+            document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+            document.addEventListener('dblclick', function(e) { e.preventDefault(); });
         }
 
-        function resetCellColors() {
-            const cells = document.querySelectorAll('#score-table td');
-            cells.forEach(c => c.style.color = '#333');
-            lastHighlightedCells = [];
+        function generateProblem(level) {
+            const config = levelConfig[level];
+            const p1 = config.firstOpts[Math.floor(Math.random() * config.firstOpts.length)];
+            const p2 = Math.floor(Math.random() * config.maxVal) + 1;
+            const pool = Array.from({ length: 5 }, () => Math.floor(Math.random() * config.maxVal) + 1);
+
+            return {
+                p1: p1,
+                p2: p2,
+                targetSum: p1 + p2,
+                pool: pool,
+                currentExpression: [], 
+                usedIndices: [], 
+                clearedSolutions: [] 
+            };
         }
 
-        function highlightScoreCell(cellId) {
-            if (lastHighlightedCells.length > 0) {
-                lastHighlightedCells.forEach(c => c.style.color = '#333');
-            }
-            const cell = document.getElementById(cellId);
-            if (cell) {
-                cell.style.color = 'red';
-                lastHighlightedCells = [cell];
-            }
-        }
-
-        function updateScoreTable(level, category) {
-            const id = `score-${level}-${category}`;
-            const cell = document.getElementById(id);
-            cell.textContent = score[level][category];
-            highlightScoreCell(id);
-        }
-        
-        function updateActiveButton(level) {
-            easyBtn.classList.remove('active');
-            mediumBtn.classList.remove('active');
-            hardBtn.classList.remove('active');
-            if (level === 'easy') easyBtn.classList.add('active');
-            else if (level === 'medium') mediumBtn.classList.add('active');
-            else if (level === 'hard') hardBtn.classList.add('active');
-        }
-
-        function insertImplicitMultiplication(expr) {
-            let tokens = expr.split(' ').filter(t => t.length > 0);
-            let result = [];
-            for (let i = 0; i < tokens.length; i++) {
-                result.push(tokens[i]);
-                if (i < tokens.length - 1 && ((!isNaN(tokens[i]) && tokens[i] !== '') || tokens[i] === ')') && tokens[i + 1] === '(') {
-                    result.push('*');
-                }
-                if (i < tokens.length - 1 && tokens[i] === ')' && !isNaN(tokens[i + 1]) && tokens[i + 1] !== '') {
-                    result.push('*');
-                }
-            }
-            return result.join(' ');
-        }
-
-        // --- UI 업데이트 함수 (레벨 변경 시 호출) ---
-        function updateUIByLevel(level) {
+        function initGame(level) {
             currentLevel = level;
-            updateActiveButton(level);
+            const config = levelConfig[level];
             
-            const gameTitle = document.getElementById('game-title');
-            const instructionText = document.getElementById('instruction-text');
+            document.getElementById('game-main-title').innerText = `매지믹서(${config.name})`;
+            document.title = `매지믹서(${config.name})`;
             
-            if (level === 'easy') {
-                gameTitle.textContent = '매지믹서(초급)';
-                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개 숫자 중 일부만 이용해도 됩니다.)';
-            } else if (level === 'medium') {
-                gameTitle.textContent = '매지믹서(중급)';
-                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
+            if (!stageHistory[level]) {
+                stageHistory[level] = generateProblem(level);
+            }
+
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${level}`).classList.add('active');
+
+            renderPuzzleBoard();
+            renderSolutionsList();
+        }
+
+        function isLastItemNumber() {
+            const state = stageHistory[currentLevel];
+            if (state.currentExpression.length === 0) return false;
+            const lastItem = state.currentExpression[state.currentExpression.length - 1];
+            return lastItem.type === 'number';
+        }
+
+        function renderPuzzleBoard() {
+            const state = stageHistory[currentLevel];
+            const container = document.getElementById('game-cards-container');
+            container.innerHTML = '';
+
+            const blueVals = [state.p1, state.p2];
+            blueVals.forEach(val => {
+                const card = document.createElement('div');
+                card.className = 'num-card primary';
+                card.innerText = val;
+                container.appendChild(card);
+            });
+
+            state.pool.forEach((num, idx) => {
+                const card = document.createElement('div');
+                card.className = 'num-card secondary';
+                card.innerText = num;
+
+                if (state.usedIndices.includes(idx)) {
+                    card.classList.add('disabled');
+                } else {
+                    card.onclick = () => inputNumber(num, idx);
+                }
+                container.appendChild(card);
+            });
+
+            updateDisplayString();
+        }
+
+        function renderSolutionsList() {
+            const state = stageHistory[currentLevel];
+            const box = document.getElementById('solutions-box');
+            const listContainer = document.getElementById('solutions-list');
+            
+            listContainer.innerHTML = '';
+            
+            if (state && state.clearedSolutions.length > 0) {
+                box.style.display = 'block';
+                state.clearedSolutions.forEach(sol => {
+                    const li = document.createElement('li');
+                    li.innerText = sol;
+                    listContainer.appendChild(li);
+                });
             } else {
-                gameTitle.textContent = '매지믹서(고급)';
-                instructionText.innerHTML = '□ 초록색 5개 숫자를 이용하여 파란색 2개 숫자를 더한 수를 만드세요.<br>(단, 초록색 5개를 모두 이용해야 합니다.)';
+                box.style.display = 'none';
             }
-            document.title = gameTitle.textContent;
         }
 
-        // --- 새로운 문제 생성 및 게임판 그리기 ---
-        function startGame(level, isNewProblem = true) {
-            if (currentKeydownHandler) document.removeEventListener('keydown', currentKeydownHandler);
-            if (currentKeyupHandler) document.removeEventListener('keyup', currentKeyupHandler);
-
-            updateUIByLevel(level);
-
-            const buttonContainer = document.getElementById('button-container');
-            const operatorContainer = document.getElementById('operator-container');
-            const inputDisplay = document.getElementById('input-display');
-            const resultDisplay = document.getElementById('result-display');
-            const display = document.getElementById('display');
-
-            // 초기화
-            buttonContainer.innerHTML = '';
-            operatorContainer.innerHTML = '';
-            inputDisplay.textContent = '입력: ';
-            resultDisplay.textContent = '결과: ';
-            resultDisplay.classList.remove('error-message', 'correct-message');
-            const oldAnswers = display.querySelectorAll('.answer');
-            oldAnswers.forEach(div => div.remove());
+        function inputNumber(num, idx) {
+            const state = stageHistory[currentLevel];
             
-            currentInput = '';
-            usedGreenNumbers = [];
-            isSolved = false;
-            solvedExpressions = [];
-            let isProcessing = false;
+            if (state.usedIndices.includes(idx) || isLastItemNumber()) return;
 
-            // 새로운 문제일 경우에만 숫자 재생성 및 저장
-            if (isNewProblem) {
-                let firstOptions = (level === 'hard') ? [10, 20, 30, 40, 50, 60, 70, 80, 90] : [10, 20, 30, 40, 50, 60];
-                let otherMax = (level === 'hard') ? 9 : 6;
-                
-                const p1 = firstOptions[Math.floor(Math.random() * firstOptions.length)];
-                const p2 = Math.floor(Math.random() * otherMax) + 1;
-                const secondaries = Array.from({ length: 5 }, () => Math.floor(Math.random() * otherMax) + 1);
-                
-                // 해당 레벨의 전용 저장소에 저장
-                levelStates[level].numbers = [p1, p2, ...secondaries];
-                levelStates[level].targetSum = p1 + p2;
-            }
-
-            // 화면에 그릴 숫자를 현재 레벨 저장소에서 불러오기
-            currentNumbers = levelStates[level].numbers;
-            currentTargetSum = levelStates[level].targetSum;
-
-            const buttons = [];
-            currentNumbers.forEach((num, index) => {
-                const button = document.createElement('button');
-                button.textContent = num;
-                if (index < 2) {
-                    button.classList.add('primary');
-                    button.disabled = true;
-                } else {
-                    button.classList.add('secondary');
-                    button.addEventListener('click', () => {
-                        if (isSolved) {
-                            resultDisplay.textContent = '결과: ';
-                            resultDisplay.classList.remove('error-message', 'correct-message');
-                            isSolved = false;
-                        }
-                        if (!button.disabled) {
-                            currentInput += num;
-                            inputDisplay.textContent = `입력: ${currentInput}`;
-                            button.disabled = true;
-                            button.classList.remove('secondary');
-                            button.classList.add('disabled');
-                            usedGreenNumbers.push(num);
-                            enterOperatorMode();
-                        }
-                    });
-                }
-                buttonContainer.appendChild(button);
-                buttons.push(button);
-            });
-
-            const enterNumberMode = () => {
-                buttons.forEach(btn => {
-                    if (btn.classList.contains('temp-disabled')) {
-                        btn.disabled = false;
-                        btn.classList.remove('temp-disabled');
-                    }
-                });
-            };
-
-            const enterOperatorMode = () => {
-                buttons.forEach((btn, idx) => {
-                    if (idx >= 2 && !btn.classList.contains('disabled')) {
-                        btn.disabled = true;
-                        btn.classList.add('temp-disabled');
-                    }
-                });
-            };
-
-            const operators = ['+', '-', '*', '/', '(', ')', '^'];
-            const operatorRow1 = document.createElement('div');
-            operatorRow1.className = 'operator-row';
-            const operatorRow2 = document.createElement('div');
-            operatorRow2.className = 'operator-row';
-
-            operators.forEach(op => {
-                const button = document.createElement('button');
-                button.textContent = op;
-                button.addEventListener('click', () => {
-                    currentInput += ` ${op} `;
-                    inputDisplay.textContent = `입력: ${currentInput}`;
-                    enterNumberMode();
-                });
-                operatorRow1.appendChild(button);
-            });
-
-            const resetButton = document.createElement('button');
-            resetButton.textContent = 'C';
-            resetButton.addEventListener('click', () => {
-                currentInput = '';
-                inputDisplay.textContent = '입력: ';
-                resultDisplay.textContent = '결과: ';
-                resultDisplay.classList.remove('error-message', 'correct-message');
-                isSolved = false;
-                buttons.forEach((btn, index) => {
-                    if (index >= 2) {
-                        btn.disabled = false;
-                        btn.classList.remove('disabled', 'temp-disabled');
-                        btn.classList.add('secondary');
-                    }
-                });
-                usedGreenNumbers = [];
-            });
-            operatorRow2.appendChild(resetButton);
-
-            const backspaceButton = document.createElement('button');
-            backspaceButton.textContent = '←';
-            backspaceButton.addEventListener('click', () => {
-                const tokens = currentInput.trim().split(' ');
-                if (tokens.length === 0 || (tokens.length === 1 && tokens[0] === '')) return;
-                const lastToken = tokens.pop();
-                currentInput = tokens.join(' ') + (tokens.length > 0 ? ' ' : '');
-                if (!isNaN(lastToken)) {
-                    const lastNumber = Number(lastToken);
-                    let foundButton = false;
-                    for (let i = buttons.length - 1; i >= 2; i--) {
-                        if (Number(buttons[i].textContent) === lastNumber && buttons[i].classList.contains('disabled') && !foundButton) {
-                            buttons[i].disabled = false;
-                            buttons[i].classList.remove('disabled');
-                            buttons[i].classList.add('secondary');
-                            foundButton = true;
-                            break;
-                        }
-                    }
-                    for (let i = usedGreenNumbers.length - 1; i >= 0; i--) {
-                        if (Number(usedGreenNumbers[i]) === lastNumber) {
-                            usedGreenNumbers.splice(i, 1);
-                            break;
-                        }
-                    }
-                    enterNumberMode();
-                }
-                inputDisplay.textContent = `입력: ${currentInput}`;
-            });
-            operatorRow2.appendChild(backspaceButton);
-
-            const calcLogic = () => {
-                if (isSolved || isProcessing) return;
-                isProcessing = true;
-                resetCellColors();
-                const normalizedInput = currentInput.trim();
-                const useAllNumbers = (currentLevel !== 'easy');
-                
-                try {
-                    if (normalizedInput === '') {
-                        handleGameResult(false, '잘못된 수식입니다. (입력 없음)');
-                        return;
-                    }
-                    let result;
-                    try {
-                        let fixedInput = insertImplicitMultiplication(normalizedInput.replace(/\^/g, '**'));
-                        result = eval(fixedInput);
-                        if (typeof result !== 'number' || !isFinite(result)) throw new Error();
-                    } catch (e) {
-                        handleGameResult(false, '잘못된 수식입니다. (계산 불가)');
-                        return; 
-                    }
-                    
-                    if (useAllNumbers) {
-                        if (usedGreenNumbers.length < 5) {
-                            handleGameResult(false, '모든 초록색 숫자를 사용해야 합니다.');
-                            return; 
-                        }
-                    }
-                    
-                    if (result === currentTargetSum) {
-                        if (solvedExpressions.includes(normalizedInput)) {
-                            handleGameResult(false, '동일한 결과가 있습니다.');
-                            return;
-                        }
-                        handleGameResult(true, '정답입니다!', normalizedInput, result);
-                    } else {
-                        handleGameResult(false, `${result} (틀렸습니다. 목표값: ${currentTargetSum})`);
-                    }
-                } finally {
-                    isProcessing = false;
-                }
-            };
-
-            const handleGameResult = (isSuccess, message, expression = null, resultValue = null) => {
-                if (message.includes('계산 불가') || message.includes('입력 없음') || message.includes('동일한 결과') || message.includes('모든 초록색')) {
-                    resultDisplay.className = 'error-message';
-                    resultDisplay.textContent = `결과: ${message}`;
-                    if(message.includes('동일한 결과')) isSolved = true;
-                    return;
-                }
-                if (isSuccess) {
-                    score[currentLevel].solved++;
-                    updateScoreTable(currentLevel, 'solved');
-                    solvedExpressions.push(expression);
-                    resultDisplay.className = 'correct-message';
-                    const answerDiv = document.createElement('div');
-                    answerDiv.className = 'answer';
-                    answerDiv.style.color = '#007BFF';
-                    answerDiv.textContent = `정답: ${expression} = ${resultValue}`;
-                    display.appendChild(answerDiv);
-                    resultDisplay.textContent = `결과: ${resultValue} (정답입니다!)`;
-                    isSolved = true;
-                    currentInput = '';
-                    buttons.forEach((btn, idx) => { if(idx >= 2) { btn.disabled = false; btn.className = 'secondary'; }});
-                    usedGreenNumbers = [];
-                } else {
-                    score[currentLevel].failed++;
-                    updateScoreTable(currentLevel, 'failed');
-                    resultDisplay.className = 'error-message';
-                    resultDisplay.textContent = `결과: ${message}`;
-                }
-            };
-
-            const calcButton = document.createElement('button');
-            calcButton.textContent = '=';
-            calcButton.className = 'button_e';
-            calcButton.addEventListener('click', calcLogic); 
-            operatorRow2.appendChild(calcButton);
-
-            const newProblemButton = document.createElement('button');
-            newProblemButton.textContent = '새로운 문제';
-            newProblemButton.className = 'button_new';
-            newProblemButton.addEventListener('click', () => {
-                resetCellColors();
-                score[currentLevel].new++;
-                updateScoreTable(currentLevel, 'new');
-                startGame(currentLevel, true); // 진짜 새로운 문제 생성
-            });
-            operatorRow2.appendChild(newProblemButton);
-
-            operatorContainer.appendChild(operatorRow1);
-            operatorContainer.appendChild(operatorRow2);
-            calcButton.focus();
-
-            currentKeydownHandler = (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); return; }
-                let handled = false;
-                if (e.key >= '0' && e.key <= '9') {
-                    const target = buttons.find(btn => btn.textContent === e.key && !btn.disabled && btn.classList.contains('secondary'));
-                    if (target) { target.click(); handled = true; }
-                } else if (['+', '-', '*', '/', '(', ')', '^'].includes(e.key)) {
-                    const opTarget = Array.from(operatorRow1.children).find(btn => btn.textContent === e.key);
-                    if (opTarget) { opTarget.click(); handled = true; }
-                } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') { resetButton.click(); handled = true; }
-                else if (e.key === 'Backspace') { backspaceButton.click(); handled = true; }
-                if (handled) { e.preventDefault(); }
-            };
-
-            currentKeyupHandler = (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); calcLogic(); }
-                else if (e.key.toLowerCase() === 'r') { newProblemButton.click(); }
-            };
-
-            document.addEventListener('keydown', currentKeydownHandler);
-            document.addEventListener('keyup', currentKeyupHandler);
+            state.currentExpression.push({ type: 'number', val: num, index: idx });
+            state.usedIndices.push(idx);
+            renderPuzzleBoard();
         }
 
-        
-// [수정 후] 지능적 레벨 변경 방식
+        function inputOp(op) {
+            const state = stageHistory[currentLevel];
+            state.currentExpression.push({ type: 'operator', val: op });
+            renderPuzzleBoard();
+        }
 
-// 1. 각 레벨 방문 여부 저장 (초급은 시작하자마자 방문한 상태)
-let visitedLevels = { easy: true, medium: false, hard: false };
+        function popExpression() {
+            const state = stageHistory[currentLevel];
+            if (state.currentExpression.length > 0) {
+                const popped = state.currentExpression.pop();
+                if (popped.type === 'number') {
+                    state.usedIndices = state.usedIndices.filter(idx => idx !== popped.index);
+                }
+                renderPuzzleBoard();
+            }
+        }
 
-function handleLevelChange(newLevel) {
-    resetCellColors();
-    
-    if (!visitedLevels[newLevel]) {
-        visitedLevels[newLevel] = true; 
-        // 첫 방문이므로 해당 레벨의 문제를 처음으로 생성함
-        startGame(newLevel, true); 
-    } else {
-        // 이미 생성된 적이 있으므로, 해당 레벨 저장소에 있던 숫자를 그대로 보여줌
-        startGame(newLevel, false); 
-    }
-}
+        function clearExpression() {
+            const state = stageHistory[currentLevel];
+            state.currentExpression = [];
+            state.usedIndices = [];
+            renderPuzzleBoard();
+        }
 
-        easyBtn.addEventListener('click', () => handleLevelChange('easy'));
-        mediumBtn.addEventListener('click', () => handleLevelChange('medium'));
-        hardBtn.addEventListener('click', () => handleLevelChange('hard'));
+        function getReadableExpressionString() {
+            const state = stageHistory[currentLevel];
+            let str = '';
+            state.currentExpression.forEach(item => {
+                if (item.type === 'operator') {
+                    if (item.val === '*') str += ' × ';
+                    else if (item.val === '/') str += ' ÷ ';
+                    else if (item.val === '^') str += ' ^ ';
+                    else str += ` ${item.val} `;
+                } else {
+                    str += item.val;
+                }
+            });
+            return str;
+        }
 
-        // 초기 실행
-        initializeScoreTable();
-        startGame('easy', true);
+        function updateDisplayString() {
+            document.getElementById('expr-display').innerText = '입력: ' + getReadableExpressionString();
+        }
+
+        function evaluateExpression() {
+            const state = stageHistory[currentLevel];
+            const config = levelConfig[currentLevel];
+
+            if (state.currentExpression.length === 0) {
+                showModal('danger', '❌ 입력 오류', '수식 내용이 존재하지 않습니다.');
+                return;
+            }
+
+            if (config.allRequired && state.usedIndices.length < 5) {
+                showModal('danger', '❌ 규칙 미준수', '초록색 5개 카드를 누락 없이 완벽히 사용해야 처리가 진행됩니다.');
+                triggerScoreUpdate(`rec-${currentLevel}-fail`, () => scoreBoard[currentLevel].fail++);
+                return;
+            }
+
+            const currentSolutionText = getReadableExpressionString() + ` = ${state.targetSum}`;
+
+            if (state.clearedSolutions.includes(currentSolutionText)) {
+                showModal('danger', '❌ 중복된 수식', '이미 상단 리스트에 등록 완료된 형태의 정답 수식 기법입니다. 다른 방식을 개척해 보세요.');
+                return;
+            }
+
+            let mathString = '';
+            state.currentExpression.forEach(item => {
+                if (item.val === '^') mathString += '**';
+                else mathString += item.val;
+            });
+
+            mathString = mathString.replace(/(\d)(\()/g, '$1*$2');
+            mathString = mathString.replace(/(\))(\d)/g, '$1*$2');
+
+            try {
+                const result = Function(`"use strict"; return (${mathString})`)();
+                
+                if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
+                    throw new Error("유효하지 않은 계산");
+                }
+
+                if (result === state.targetSum) {
+                    state.clearedSolutions.push(currentSolutionText);
+                    
+                    triggerScoreUpdate(`rec-${currentLevel}-win`, () => scoreBoard[currentLevel].win++);
+                    renderSolutionsList();
+                    
+                    showModal('success', '🎉 새로운 정답 발견!', `멋집니다! 또 하나의 정답 해결 수식을 찾아냈습니다. 이 기세를 몰아 또 다른 조합식도 찾아보세요!`, function() {
+                        clearExpression();
+                    });
+                } else {
+                    triggerScoreUpdate(`rec-${currentLevel}-fail`, () => scoreBoard[currentLevel].fail++);
+                    showModal('danger', '❌ 오답입니다', `계산 결과: ${result} <br>목표값인 ${state.targetSum}와 일치하지 않습니다.`);
+                }
+            } catch (e) {
+                triggerScoreUpdate(`rec-${currentLevel}-fail`, () => scoreBoard[currentLevel].fail++);
+                showModal('danger', '❌ 잘못된 수식', '완성되지 않았거나 연산자 배치가 수학적 문법에 위배됩니다.');
+            }
+        }
+
+        function regenerateCurrentStage() {
+            triggerScoreUpdate(`rec-${currentLevel}-new`, () => scoreBoard[currentLevel].new++);
+            stageHistory[currentLevel] = generateProblem(currentLevel);
+            initGame(currentLevel);
+        }
+
+        function changeLevel(level) {
+            initGame(level);
+        }
+
+        function triggerScoreUpdate(targetId, scoreUpdateCallback) {
+            if (lastUpdatedId) {
+                const prevEl = document.getElementById(lastUpdatedId);
+                if (prevEl) prevEl.classList.remove('highlight-red');
+            }
+
+            scoreUpdateCallback();
+            updateScoreTable();
+
+            lastUpdatedId = targetId;
+            const currentEl = document.getElementById(targetId);
+            if (currentEl) {
+                currentEl.classList.add('highlight-red');
+            }
+        }
+
+        function updateScoreTable() {
+            document.getElementById('rec-easy-win').innerText = scoreBoard.easy.win;
+            document.getElementById('rec-easy-fail').innerText = scoreBoard.easy.fail;
+            document.getElementById('rec-easy-new').innerText = scoreBoard.easy.new;
+            
+            document.getElementById('rec-medium-win').innerText = scoreBoard.medium.win;
+            document.getElementById('rec-medium-fail').innerText = scoreBoard.medium.fail;
+            document.getElementById('rec-medium-new').innerText = scoreBoard.medium.new;
+            
+            document.getElementById('rec-hard-win').innerText = scoreBoard.hard.win;
+            document.getElementById('rec-hard-fail').innerText = scoreBoard.hard.fail;
+            document.getElementById('rec-hard-new').innerText = scoreBoard.hard.new;
+        }
+
+        // 모든 난이도의 누적 기록판 데이터를 완전 초기화하는 함수
+        function resetAllScores() {
+            for (let lvl in scoreBoard) {
+                scoreBoard[lvl].win = 0;
+                scoreBoard[lvl].fail = 0;
+                scoreBoard[lvl].new = 0;
+            }
+            if (lastUpdatedId) {
+                const prevEl = document.getElementById(lastUpdatedId);
+                if (prevEl) prevEl.classList.remove('highlight-red');
+                lastUpdatedId = null;
+            }
+            updateScoreTable();
+        }
+
+        function showModal(type, title, message, callback = null) {
+            const overlay = document.getElementById('modal-overlay');
+            const card = document.getElementById('modal-card');
+            const titleDiv = document.getElementById('modal-title');
+            const bodyDiv = document.getElementById('modal-body');
+            const actionBtn = document.getElementById('modal-action-btn');
+
+            card.className = `modal-card ${type}`;
+            titleDiv.className = `modal-title ${type}`;
+            titleDiv.innerText = title;
+            bodyDiv.innerHTML = message;
+            
+            actionBtn.className = `modal-btn ${type}`;
+            actionBtn.innerText = type === 'success' ? '계속 도전하기 (Enter)' : '다시 시도 (Enter)';
+
+            overlay.classList.add('open');
+            actionBtn.focus();
+
+            const closeModalFunc = () => {
+                overlay.classList.remove('open');
+                if (callback) callback(); 
+                document.removeEventListener('keydown', modalKeyHandler);
+            };
+
+            actionBtn.onclick = closeModalFunc;
+
+            function modalKeyHandler(e) {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                    e.preventDefault();
+                    closeModalFunc();
+                }
+            }
+            setTimeout(() => {
+                document.addEventListener('keydown', modalKeyHandler);
+            }, 50);
+        }
+
+        function setupKeyboardEvents() {
+            document.addEventListener('keydown', function(e) {
+                if (document.getElementById('modal-overlay').classList.contains('open')) return;
+
+                const key = e.key;
+                if (key >= '1' && key <= '9') {
+                    if (isLastItemNumber()) return;
+
+                    const parsedNum = parseInt(key);
+                    const state = stageHistory[currentLevel];
+                    const foundIdx = state.pool.findIndex((num, idx) => num === parsedNum && !state.usedIndices.includes(idx));
+                    if (foundIdx !== -1) {
+                        inputNumber(parsedNum, foundIdx);
+                        e.preventDefault();
+                    }
+                }
+                else if (['+', '-', '*', '/', '(', ')', '^'].includes(key)) {
+                    inputOp(key);
+                    e.preventDefault();
+                }
+                else if (key === 'Backspace') {
+                    e.preventDefault();
+                    popExpression(); 
+                }
+                else if (key.toLowerCase() === 'c' || key === 'Escape') {
+                    e.preventDefault();
+                    clearExpression();
+                }
+                else if (key === 'Enter' || key === ' ') {
+                    e.preventDefault();
+                    evaluateExpression();
+                }
+                else if (key.toLowerCase() === 'r') {
+                    e.preventDefault();
+                    regenerateCurrentStage();
+                }
+            });
+        }
     </script>
 </body>
 </html>
