@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>누리카베(Nurikabe Puzzle)</title>
+    <title>누리카베</title>
     <style>
         :root {
             --board-size: 5;
@@ -14,6 +14,9 @@
             --color-error: #ffebee;
             --bg-color: #f8f9fa;
             --grid-line-color: #444444; /* 짙은 회색 테두리 */
+            --active: #007bff;
+            --success: #28a745;
+
         }
 
         body {
@@ -31,7 +34,7 @@
             user-select: none;
         }
 
-        h1 { margin: 0 0 20px 0; font-size: 26px; color: #2c3e50; letter-spacing: -0.5px; }
+        h1 { margin: 0 0 20px 0; font-size: 36px; color: #2c3e50; letter-spacing: -0.5px; }
 
         .level-panel {
             background: white;
@@ -40,7 +43,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             margin-bottom: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             box-sizing: border-box;
         }
 
@@ -65,19 +68,20 @@
 
         .level-btn {
             position: relative;
-            padding: 5px 0;
+            padding: 10px 6px;
             background-color: #fff;
             color: #555;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
+            font-weight: 700;
+            font-size: 14px;
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 50px;
         }
         
         .level-btn:hover { background-color: #f1f3f5; border-color: #ced4da; }
@@ -109,7 +113,7 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             margin-bottom: 20px;
             background: white;
             padding: 15px 20px;
@@ -120,19 +124,22 @@
         .info-title { font-weight: bold; font-size: 16px; }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 700; color: #333; }
 
-        .game-board {
+.game-board {
             display: none; 
             grid-template-columns: repeat(var(--board-size), 1fr);
             grid-template-rows: repeat(var(--board-size), 1fr);
             
-            border: 2px solid var(--grid-line-color);
-            background-color: var(--grid-line-color); 
+            /* 외곽 테두리 두께 균일화를 위한 재설정 */
+            border-top: 2px solid var(--grid-line-color);
+            border-left: 2px solid var(--grid-line-color);
+            border-bottom: 1px solid var(--grid-line-color);
+            border-right: 1px solid var(--grid-line-color);
             
-            gap: 1px;
+            gap: 0; /* [수정] 1px에서 0으로 변경하여 소수점 공백 오차 원천 차단 */
             user-select: none;
             box-shadow: 0 8px 30px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             aspect-ratio: 1;
             margin-bottom: 25px;
             touch-action: none; 
@@ -142,7 +149,7 @@
             background-color: var(--color-bg-solved);
         }
 
-        .cell {
+.cell {
             background-color: #fff;
             display: flex;
             justify-content: center;
@@ -155,8 +162,11 @@
             position: relative;
             aspect-ratio: 1;
             overflow: hidden; 
+            
+            /* [추가] 각 셀의 우측과 하단에 내부 격자선 직접 부여 */
+            border-right: 1px solid var(--grid-line-color);
+            border-bottom: 1px solid var(--grid-line-color);
         }
-
         @media (min-width: 500px) {
             .cell { font-size: 24px; }
         }
@@ -196,7 +206,8 @@
             font-size: 16px;
             text-align: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
+            box-sizing: border-box;
             padding: 10px;
             border-radius: 8px;
         }
@@ -207,7 +218,7 @@
             display: flex;
             gap: 12px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
         }
 
         .btn-ctrl {
@@ -225,8 +236,15 @@
         .btn-ctrl:active { transform: translateY(2px); box-shadow: none; }
         .btn-check { background-color: var(--color-active); }
         .btn-check:hover { background-color: #0056b3; }
-        .btn-reset { background-color: #6c757d; }
-        .btn-reset:hover { background-color: #545b62; }
+        .btn-reset { 
+    background-color: #ffffff; /* 흰색 바탕 */
+    color: #212529;            /* 진한 검은색 글씨 */
+    border: 1px solid #ced4da; /* 전체 배경이 밝은 편이므로 깔끔하게 테두리 추가 */
+}
+.btn-reset:hover { 
+    background-color: #f1f3f5; /* 마우스 올렸을 때 연한 회색으로 변하게 설정 */
+    color: #212529;            /* 글씨 색상 유지 */
+}
 
         .modal-overlay {
             position: fixed;
@@ -238,34 +256,62 @@
             z-index: 1000;
             backdrop-filter: blur(4px);
         }
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 24px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 280px;
-            width: 90%;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+.modal-content {
+    background: white;
+    padding: 36px 30px 30px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 320px;
+    width: 90%;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
         @keyframes popIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        .modal-title { font-size: 32px; margin: 0 0 15px 0; color: #28a745; }
-        .close-modal-btn {
-            background: var(--color-active);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+        
+.success-card {
+    border-top: 6px solid var(--success);
+}
 
-        .rules {
+.success-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--success);
+    margin: 0 0 18px;
+}
+
+.success-time {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.success-time span {
+    font-weight: bold;
+    color: var(--success);
+}
+
+.close-modal-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+    transition: background 0.2s;
+}
+
+.close-modal-btn:hover {
+    background: #218838;
+}
+        /* .rules {
             margin-top: 30px;
             font-size: 14px;
             line-height: 1.6;
@@ -277,23 +323,52 @@
             max-width: 500px;
             box-sizing: border-box;
         }
-        .rules b { color: #2c3e50; }
+        .rules b { color: #2c3e50; } */
 
-        @media (hover: hover) {
-            .rules::after {
-                content: "⌨ 단축키: [Space/Enter] 확인, [C/R/Esc] 초기화";
-                display: block;
-                margin-top: 10px;
-                color: #888;
-                font-size: 12px;
-            }
-        }
+        .guide-box {
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    padding: 4px 4px 4px 20px;
+    margin-bottom: 14px;
+    word-break: keep-all;
+}
 
+.guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.guide-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.guide-active {
+    border-left: 6px solid var(--active);
+}
+
+.guide-active .guide-title {
+    color: var(--active);
+}
+
+.guide-success {
+    border-left: 6px solid var(--success);
+}
+
+.guide-success .guide-title {
+    color: var(--success);
+}
     </style>
 </head>
 <body>
 
-    <h1>누리카베(Nurikabe Puzzle)</h1>
+    <h1>누리카베</h1>
 
     <div class="level-panel">
         <div class="level-group">
@@ -315,33 +390,52 @@
     <div id="messageArea" class="message-area"></div>
 
     <div class="controls">
-        <button class="btn-ctrl btn-check" onclick="checkSolution()">
-            확인 (Check)
-        </button>
         <button class="btn-ctrl btn-reset" onclick="resetBoard()">
-            초기화 (Reset)
+            초기화
+        </button>
+        <button class="btn-ctrl btn-check" onclick="checkSolution()">
+            확인
         </button>
     </div>
+    <br>
 
-    <div class="rules">
-        <b>[누리카베 규칙]</b><br>
+<section class="guide-box guide-active">
+    <div class="guide-title">◈ 누리카베(Nurikabe) 규칙</div>
         1. <b>흰색 섬:</b> 숫자가 적힌 칸은 섬입니다. 숫자는 그 섬의 칸 수를 의미합니다. 각 섬에는 숫자가 하나씩만 들어갑니다.<br>
         2. <b>검은색 벽:</b> 섬이 아닌 모든 칸은 벽(검은색)입니다. 모든 벽은 하나로 연결되어야 합니다.<br>
         3. <b>2x2 금지:</b> 검은색 벽이 2x2 형태의 덩어리가 되면 안 됩니다.<br>
         4. 대각선으로 붙은 것은 연결되지 않은 것으로 봅니다.<br>
-        <br>
-        * <b>드래그</b>하여 여러 칸을 한 번에 선택할 수 있습니다.
-    </div>
+</section>
 
-    <div id="successModal" class="modal-overlay">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h2 class="modal-title">🎉 Clear!</h2>
-            <div style="font-size: 18px; color: #555;">
-                기록: <span id="currentClearTime" style="font-weight:bold; color:#28a745"></span>
-            </div>
-            <button class="close-modal-btn" onclick="closeModal()">확인</button>
+<section class="guide-box guide-success">
+    <div class="guide-title">⌨ 키보드 단축키</div>
+        <b>[Space] / [Enter]</b> : 정답 확인<br>
+        <b>[C] / [R] / [ESC]</b> : 보드 초기화<br>
+        드래그 : 여러 칸 한 번에 칠하기
+</section>
+
+
+
+<div id="successModal" class="modal-overlay">
+    <div class="modal-content success-card" onclick="event.stopPropagation()">
+
+        <h2 class="success-title">🎉 정답!</h2>
+
+        <div class="success-time">
+            기록:
+            <span id="currentClearTime"></span>
         </div>
+
+        <button
+            id="successConfirmBtn"
+            class="close-modal-btn"
+            onclick="closeModal()"
+        >
+            확인
+        </button>
+
     </div>
+</div>
 
     <script>
         const LEVELS = {
@@ -403,18 +497,32 @@
         const successModal = document.getElementById('successModal');
         const messageArea = document.getElementById('messageArea');
 
-        document.addEventListener('keydown', (e) => {
-            if (!gameActive || successModal.style.display === 'flex') return;
-            const key = e.key.toLowerCase();
-            if (key === 'enter' || key === ' ') {
-                e.preventDefault();
-                checkSolution();
-            }
-            if (key === 'c' || key === 'r' || key === 'escape') {
-                resetBoard();
-            }
-        });
+document.addEventListener('keydown', (e) => {
 
+    const key = e.key.toLowerCase();
+
+    // 성공 팝업 열려있을 때
+    if (successModal.style.display === 'flex') {
+
+        if (key === 'enter' || key === ' ') {
+            e.preventDefault();
+            document.getElementById('successConfirmBtn').click();
+        }
+
+        return;
+    }
+
+    if (!gameActive) return;
+
+    if (key === 'enter' || key === ' ') {
+        e.preventDefault();
+        checkSolution();
+    }
+
+    if (key === 'c' || key === 'r' || key === 'escape') {
+        resetBoard();
+    }
+});
         document.addEventListener('mouseup', () => { isDragging = false; dragTargetState = null; });
         document.addEventListener('touchend', () => { isDragging = false; dragTargetState = null; });
 
@@ -465,7 +573,19 @@
             const isCleared = (records[key]);
 
             document.documentElement.style.setProperty('--board-size', levelData.size);
-            levelInfo.innerText = `${levelData.size}x${levelData.size} - ${levelData.id}단계`;
+
+            let maxBoardWidth = 800;
+
+            if (levelData.id >= 1 && levelData.id <= 5) {
+                maxBoardWidth = 400;
+            }
+            else if (levelData.id >= 6 && levelData.id <= 10) {
+                maxBoardWidth = 560;
+            }
+
+boardElement.style.maxWidth = `${maxBoardWidth}px`;
+
+            levelInfo.innerText = `${levelData.id}단계 - ${levelData.size}x${levelData.size}`;
 
             document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${groupKey}-${levelData.id}`).classList.add('active');
