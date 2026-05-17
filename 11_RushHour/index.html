@@ -86,12 +86,19 @@
       gap: 12px;
     }
 
-    /* 단계 선택 그리드 (가로 꽉 차게 변경) */
+    /* 단계 선택 그리드 */
     .stage-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 6px;
       width: 100%;
+    }
+
+    /* 모바일 환경(최대 폭 500px 이하)에서 2줄(4열 구조)로 변경 */
+    @media (max-width: 500px) {
+      .stage-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
     }
 
     /* 단계 버튼 크기 확대 */
@@ -603,12 +610,14 @@
       });
     }
 
-    // --- 즉각 이동 인터랙션 로직 ---
+    // --- 즉각 이동 및 드래그 완결형 히스토리 기록 로직 ---
     function bindInteraction(element, block) {
       let originX = 0, originY = 0;
       let isDragging = false;
       let lastValidX = block.x;
       let lastValidY = block.y;
+      
+      let initialBlocksState = null; 
       
       const moveThreshold = 20;
 
@@ -623,6 +632,9 @@
         
         lastValidX = block.x;
         lastValidY = block.y;
+
+        // 드래그 시작 시점의 보드 전체 상태 백업
+        initialBlocksState = JSON.parse(JSON.stringify(blocks));
 
         element.style.transition = 'none';
         element.style.zIndex = '1000';
@@ -649,13 +661,6 @@
         }
 
         if (canMove(block, tempX, tempY)) {
-          if (lastValidX === block.x && lastValidY === block.y) {
-            if (!stageHistory[currentStage].historyStack) {
-              stageHistory[currentStage].historyStack = [];
-            }
-            stageHistory[currentStage].historyStack.push(JSON.parse(JSON.stringify(blocks)));
-          }
-
           lastValidX = tempX;
           lastValidY = tempY;
           block.x = tempX;
@@ -677,14 +682,23 @@
         element.style.zIndex = '10';
         element.style.transition = 'all 0.15s ease-out';
 
-        const savedState = stageHistory[currentStage]?.historyStack;
-        const lastSaved = savedState && savedState[savedState.length - 1];
-        
-        if (lastSaved && (lastSaved.find(b => b.id === block.id).x !== block.x || lastSaved.find(b => b.id === block.id).y !== block.y)) {
-          moveCount++;
-          moveCountEl.textContent = moveCount;
-          checkWinCondition();
+        // 드래그가 끝났을 때 실제로 위치 변화가 생긴 경우에만 히스토리에 한 번 기록
+        if (initialBlocksState) {
+          const originalBlock = initialBlocksState.find(b => b.id === block.id);
+          if (originalBlock && (originalBlock.x !== block.x || originalBlock.y !== block.y)) {
+            
+            if (!stageHistory[currentStage].historyStack) {
+              stageHistory[currentStage].historyStack = [];
+            }
+            stageHistory[currentStage].historyStack.push(initialBlocksState);
+
+            moveCount++;
+            moveCountEl.textContent = moveCount;
+            checkWinCondition();
+          }
         }
+        
+        initialBlocksState = null;
         renderBlocks();
       }
 
