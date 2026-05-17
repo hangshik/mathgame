@@ -20,8 +20,8 @@
         --gray-border: #e9ecef;
         
         /* 파란색 계열 디자인 변수 */
-        --blue-current: #0056b3;  /* 현재 선택된 칸 (딥 블루) */
-        --blue-clickable: #4dabf7; /* 이동 가능한 칸 (스카이 블루) */
+        --blue-current: #0056b3;  
+        --blue-clickable: #4dabf7; 
         --blue-glow: rgba(77, 171, 247, 0.6);
     }
 
@@ -53,12 +53,18 @@
 
     .container-fixed {
         width: 100%;
-        max-width: 800px;
+        max-width: 800px; 
         background-color: var(--card-bg);
         border-radius: 20px;
-        padding: 24px;
+        padding: 30px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.05);
         margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+        .container-fixed {
+            padding: 16px;
+        }
     }
 
     /* [영역 1-A: 퍼즐 제목 영역] */
@@ -107,11 +113,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        width: 100%;
     }
 
+    /* 퍼즐 상단 정보 바 너비 동기화 */
     .status-bar {
         width: 100%;
-        max-width: 500px;
+        max-width: var(--puzzle-total-width, 100%);
         display: flex;
         justify-content: space-between;
         margin-bottom: 15px;
@@ -119,28 +127,37 @@
         font-weight: 600;
         color: var(--text-sub);
         padding: 0 5px;
+        transition: max-width 0.2s ease;
     }
 
+    /* JS 연산 로직에 맞춰 85px 단위를 베이스로 작동하는 반응형 그리드 */
     #grid-container {
         display: grid;
         justify-content: center;
+        align-content: center;
         margin: 20px auto;
         border: 3px solid #dee2e6;
         padding: 5px;
         background-color: #fff;
+        
+        width: 100%;
+        /* 칸당 85px을 기준으로 늘어나되, 가로 누적 800px을 넘어가면 100% 꽉 채우도록 제한 */
+        max-width: var(--puzzle-total-width, 100%); 
+        aspect-ratio: 1 / 1; 
+        transition: max-width 0.2s ease;
     }
 
     .grid-cell {
-        width: 45px;
-        height: 45px;
+        width: 100%;
+        height: 100%;
         border: 1px solid #ced4da;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1.25em;
         font-weight: bold;
         user-select: none;
         transition: all 0.2s ease;
+        font-size: calc(1.6rem - var(--cell-scale, 0rem)); 
     }
 
     /* ===== 파란색 계열 UI 디자인 ===== */
@@ -151,14 +168,14 @@
         border-radius: 6px;
     }
     .grid-cell.clickable:hover {
-        transform: scale(1.1);
+        transform: scale(1.05);
         box-shadow: 0 0 12px var(--blue-glow);
     }
 
     .grid-cell.current {
         background-color: var(--blue-current) !important;
         color: #ffffff !important;
-        transform: scale(1.15);
+        transform: scale(1.08);
         border-radius: 50%;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
@@ -170,13 +187,11 @@
         opacity: 0.7;
     }
 
-    /* 기본 F칸 상태 (도달할 수 없을 때) */
     .grid-cell.finish {
         background-color: #dc3545 !important;
         color: white !important;
     }
 
-    /* 이동 가능할 때 F칸에 부여되는 활성화 애니메이션 효과 */
     .grid-cell.finish-active {
         animation: pulseBlue 1.5s infinite ease-in-out;
         box-shadow: 0 0 15px var(--blue-glow);
@@ -184,16 +199,9 @@
     }
 
     @keyframes pulseBlue {
-        0% {
-            background-color: var(--blue-clickable) !important;
-        }
-        50% {
-            background-color: #1c7ed6 !important;
-            transform: scale(1.1);
-        }
-        100% {
-            background-color: var(--blue-clickable) !important;
-        }
+        0% { background-color: var(--blue-clickable) !important; }
+        50% { background-color: #1c7ed6 !important; transform: scale(1.08); }
+        100% { background-color: var(--blue-clickable) !important; }
     }
 
     .grid-cell.start-cell {
@@ -211,7 +219,7 @@
     }
     .action-btn {
         flex: 1;
-        min-width: 120px;
+        min-width: 100px;
         max-width: 200px;
         height: 54px;
         border: none;
@@ -398,9 +406,9 @@
 </div>
 
 <!-- [영역 2: 퍼즐 문제 영역] -->
-<div class="container-fixed">
+<div class="container-fixed" id="puzzle-card">
     <div class="puzzle-wrapper">
-        <div class="status-bar">
+        <div class="status-bar" id="status-bar-wrapper">
             <span id="status-stage">크기: 3x3</span>
             <span id="status-moves">이동 횟수: 0</span>
         </div>
@@ -448,14 +456,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const dataSets = {};
 
-    // 정답(경로) 존재 여부를 확인하는 DFS 검증 함수
     function hasValidPath(size, numbers) {
         const visited = Array.from({ length: size }, () => Array(size).fill(false));
         let solvable = false;
 
         function dfs(r, c) {
             if (solvable) return;
-            // 목적지 F(0, size-1)에 도달한 경우
             if (r === 0 && c === size - 1) {
                 solvable = true;
                 return;
@@ -463,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             visited[r][c] = true;
             const jump = numbers[r][c];
-            if (jump === 0) return; // 무한 루프나 움직임 없는 칸 방지
+            if (jump === 0) return;
 
             const directions = [
                 {r: -jump, c: 0}, {r: jump, c: 0},
@@ -481,15 +487,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 시작 지점: 좌측 하단 (size-1, 0)
         dfs(size - 1, 0);
         return solvable;
     }
 
-    // 항상 정답이 존재하는 퍼즐을 생성하는 무한루프 보장 로직
     function generatePuzzleData(size) {
         let attempts = 0;
-        while (attempts < 2000) { // 안전 브레이크 설정
+        while (attempts < 2000) {
             const numbers = Array.from({ length: size }, () => Array(size).fill(0));
             
             for (let r = 0; r < size; r++) {
@@ -520,25 +524,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // 생성된 맵에 정답 경로가 실제로 있는지 검증
             if (hasValidPath(size, numbers)) {
                 return { size, numbers };
             }
             attempts++;
         }
         
-        // 만약 탐색이 길어질 경우를 대비한 가상의 완벽한 기본 탈출 보장 데이터 리턴 구조 (Fallback)
         const fallback = Array.from({ length: size }, () => Array(size).fill(1));
         fallback[0][size-1] = 0;
         return { size, numbers: fallback };
     }
 
-    // 3부터 14단계 초기 퍼즐 생성
     for (let s = 3; s <= 14; s++) {
         dataSets[s] = generatePuzzleData(s);
     }
 
-    // ===== 상태 저장 변수 =====
     let currentSize = 3;
     let currentRow = 2;
     let currentCol = 0;
@@ -610,6 +610,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         statusStage.textContent = `크기: ${size}x${size}`;
 
+        /* 
+          [85px 연산 최적화 시스템]
+          기본 칸 크기 지정을 85px로 정밀 세팅합니다.
+          보더와 패딩 마진 두께를 포함하면 단일 칸 실측 공간은 약 86px 가량 소요됩니다.
+          86px * 단일 칸 수 계산 금액이 전체 컨테이너 한계폭인 800px 미만일 때는 칸 크기를 완전히 보존하며 늘어납니다.
+          누적 폭이 800px을 초과하는 대형 스테이지(10x10 이상)부터 가로폭 최대치를 100%로 고정해 내부 칸이 부드럽게 줄어듭니다.
+        */
+        const targetCellWidth = 86; 
+        let calculatedWidth = '100%';
+
+        if ((size * targetCellWidth) + 16 < 800) {
+            // 최대 제한인 800px보다 작을 때는 85px 정비례 수치 반영
+            calculatedWidth = ((size * targetCellWidth) + 16) + 'px';
+        } else {
+            // 800px 한계를 넘어갈 때만 가로폭 가득 차도록 100% 처리
+            calculatedWidth = '100%'; 
+        }
+        
+        document.documentElement.style.setProperty('--puzzle-total-width', calculatedWidth);
+
         if (stageHistory[size]) {
             const hist = stageHistory[size];
             currentRow = hist.currentRow;
@@ -631,7 +651,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderGrid() {
         gridContainer.innerHTML = '';
-        gridContainer.style.gridTemplateColumns = `repeat(${currentSize}, 45px)`; 
+        gridContainer.style.gridTemplateColumns = `repeat(${currentSize}, 1fr)`; 
+        gridContainer.style.gridTemplateRows = `repeat(${currentSize}, 1fr)`; 
+
+        let cellScale = "0rem";
+        if (currentSize >= 12) cellScale = "0.7rem";
+        else if (currentSize >= 9) cellScale = "0.4rem";
+        else if (currentSize >= 6) cellScale = "0.1rem";
+        gridContainer.style.setProperty('--cell-scale', cellScale);
 
         const puzzleData = dataSets[currentSize];
         const jumpValue = puzzleData.numbers[currentRow][currentCol];
