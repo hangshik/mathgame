@@ -129,21 +129,37 @@ h1 {
   gap: 20px;
 }
 
+/* 변경: flex-wrap을 적용하여 좁은 화면에서 유연하게 대처 */
 .stage-badge-container {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   width: 100%;
   border-bottom: 2px solid var(--border);
   padding-bottom: 12px;
+  gap: 8px;
 }
 
 /* 상단 정보 글자 크기 기존 15px -> 22.5px (1.5배 확대) */
 .info-item {
   font-size: 22.5px;
   color: var(--text-sub);
+  white-space: nowrap;
 }
 .info-item strong {
   color: var(--text-main);
+}
+
+/* 미디어 쿼리 추가: 화면 폭이 좁아 한 줄에 안 들어갈 때 남은 횟수를 아래로 내림 */
+@media (max-width: 480px) {
+  .stage-badge-container {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  #info-limit {
+    width: 100%; /* 부모 너비를 다 차지하게 해서 강제 줄바꿈 효과 */
+    margin-top: 2px;
+  }
 }
 
 .display-panel {
@@ -162,7 +178,7 @@ h1 {
   color: var(--text-main);
 }
 
-/* 연산 이력 박스: 스크롤을 없애고 전체 노출되도록 수정 */
+/* 연산 이력 박스 */
 .history-box {
   border-top: 1px dashed #cccccc;
   padding-top: 12px;
@@ -422,26 +438,56 @@ const stages = {
   4:{start:13,end:14,limit:3},5:{start:19,end:20,limit:3},6:{start:26,end:27,limit:3},
   7:{start:4,end:5,limit:4}, 8:{start:30,end:31,limit:4}, 9:{start:47,end:48,limit:4},
   10:{start:61,end:62,limit:5},11:{start:69,end:70,limit:5},12:{start:87,end:88,limit:5},
-  13:{start:42,end:43,limit:6},14:{start:60,end:61,limit:6},15:{start:75,end:76,limit:6},
+  13:{start:42,end:43,limit:6},14:{start:60,grid:61,end:61,limit:6},15:{start:75,end:76,limit:6},
   16:{start:117,end:118,limit:7},17:{start:127,end:128,limit:7},18:{start:139,end:140,limit:7}
 };
 
-/* -------- 상태 관리 (스테이지별 이력 보존 포함) -------- */
+/* -------- 상태 관리 및 LocalStorage 저장/로드 -------- */
 let currentStage = 1;
 let successStages = new Set();
 let stageFailCounts = {}; 
 let isModalOpen = false;
-
-// 스테이지별 현재 진행 상황 저장 오브젝트
 let stageHistory = {}; 
 
-// 데이터 초기화 구조 설정
-for(let i = 1; i <= 18; i++) {
-  stageFailCounts[i] = 0;
-  stageHistory[i] = {
-    value: stages[i].start,
-    history: []
-  };
+// 데이터 초기화 및 LocalStorage 데이터 병합 함수
+function loadGameData() {
+  // 1. 기본 구조 생성
+  for(let i = 1; i <= 18; i++) {
+    stageFailCounts[i] = 0;
+    stageHistory[i] = {
+      value: stages[i].start,
+      history: []
+    };
+  }
+
+  // 2. 로컬스토리지 복구 시도
+  try {
+    const savedCurrentStage = localStorage.getItem('weird_calc_currentStage');
+    if (savedCurrentStage) currentStage = parseInt(savedCurrentStage, 10);
+
+    const savedSuccess = localStorage.getItem('weird_calc_successStages');
+    if (savedSuccess) successStages = new Set(JSON.parse(savedSuccess));
+
+    const savedFailCounts = localStorage.getItem('weird_calc_stageFailCounts');
+    if (savedFailCounts) stageFailCounts = JSON.parse(savedFailCounts);
+
+    const savedHistory = localStorage.getItem('weird_calc_stageHistory');
+    if (savedHistory) stageHistory = JSON.parse(savedHistory);
+  } catch (e) {
+    console.error("로컬스토리지 데이터를 가져오는 데 실패했습니다.", e);
+  }
+}
+
+// 데이터를 저장하는 함수
+function saveGameData() {
+  try {
+    localStorage.setItem('weird_calc_currentStage', currentStage);
+    localStorage.setItem('weird_calc_successStages', JSON.stringify([...successStages]));
+    localStorage.setItem('weird_calc_stageFailCounts', JSON.stringify(stageFailCounts));
+    localStorage.setItem('weird_calc_stageHistory', JSON.stringify(stageHistory));
+  } catch (e) {
+    console.error("로컬스토리지 데이터 저장 실패", e);
+  }
 }
 
 /* -------- UI 초기화 및 렌더링 -------- */
@@ -479,6 +525,7 @@ function updateSelectorUI() {
 function switchStage(n) {
   if(isModalOpen) return;
   currentStage = n;
+  saveGameData(); // 현재 조작 단계 저장
   updateSelectorUI();
   renderPuzzle();
 }
@@ -494,7 +541,7 @@ function renderPuzzle() {
   document.getElementById('current-value').textContent = currentStatus.value;
   
   const histBox = document.getElementById('history');
-  if(currentStatus.history.length === 0) {
+  if(!currentStatus.history || currentStatus.history.length === 0) {
     histBox.innerHTML = "<span style='color:#bbb;'>연산 이력이 없습니다.</span>";
   } else {
     histBox.innerHTML = currentStatus.history.map((h, i) => 
@@ -529,6 +576,7 @@ function applyOp(op, num) {
   
   currentStatus.history.push({ before, op, num, after: currentStatus.value });
   
+  saveGameData(); // 연산 실행 시 데이터 백업
   renderPuzzle();
   checkGameResult();
 }
@@ -539,6 +587,7 @@ function undo() {
   if(currentStatus.history.length > 0) {
     const last = currentStatus.history.pop();
     currentStatus.value = last.before;
+    saveGameData(); // 되돌리기 시 데이터 백업
     renderPuzzle();
   }
 }
@@ -547,12 +596,14 @@ function clearValue() {
   if(isModalOpen || successStages.has(currentStage)) return;
   stageHistory[currentStage].value = stages[currentStage].start;
   stageHistory[currentStage].history = [];
+  saveGameData(); // 초기화 시 데이터 백업
   renderPuzzle();
 }
 
 function retryStage() {
   stageHistory[currentStage].value = stages[currentStage].start;
   stageHistory[currentStage].history = [];
+  saveGameData(); // 재시도 시 데이터 백업
   renderPuzzle();
 }
 
@@ -563,6 +614,7 @@ function checkGameResult() {
   
   if(currentStatus.value === s.end) {
     successStages.add(currentStage);
+    saveGameData(); // 결과 업데이트 백업
     updateSelectorUI();
     showModal(true);
     return;
@@ -570,6 +622,7 @@ function checkGameResult() {
   
   if(currentStatus.history.length >= s.limit) {
     stageFailCounts[currentStage]++;
+    saveGameData(); // 결과 업데이트 백업
     updateSelectorUI();
     showModal(false);
   }
@@ -641,8 +694,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* 시스템 구동 시작 */
+loadGameData(); // 데이터 로드 완료 후 렌더링 진행
 initLevelSelector();
-switchStage(1);
+switchStage(currentStage);
 </script>
 
 </body>
