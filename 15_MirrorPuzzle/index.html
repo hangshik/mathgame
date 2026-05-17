@@ -27,7 +27,7 @@
       color: var(--text-main);
       min-height: 100vh;
       margin: 0;
-      padding: 15px 10px;
+      padding: 10px 4px; /* 바깥 여백 최소화하여 가로 공간 확보 */
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -43,12 +43,12 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 16px; /* 모바일에서 컴포넌트 간격 최적화 */
     }
 
     h1 {
       text-align: center;
-      font-size: 36px;
+      font-size: clamp(24px, 7vw, 36px); /* 타이틀 크기 유동적 조절 */
       font-weight: 800;
       margin: 10px 0 0 0;
       color: var(--text-main);
@@ -58,23 +58,23 @@
     .stage-buttons {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
+      gap: 4px;
       background: var(--card-bg);
-      padding: 12px;
-      border-radius: 16px;
+      padding: 8px;
+      border-radius: 12px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.03);
     }
 
     .stage-buttons button {
       width: 100%;
-      padding: 10px 0;
-      font-size: clamp(11px, 2.3vw, 14px);
+      padding: 8px 0;
+      font-size: clamp(9px, 2.5vw, 13px); /* 작은 화면에서 폰트 깨짐 방지 */
       font-weight: 600;
       cursor: pointer;
       border: 1px solid #e9ecef;
       background: #f8f9fa;
       color: var(--text-sub);
-      border-radius: 8px;
+      border-radius: 6px;
       transition: all 0.2s ease;
       display: flex;
       justify-content: center;
@@ -99,11 +99,11 @@
       border-color: var(--success);
     }
 
-    /* 영역 2: 퍼즐 문제 영역 */
+    /* 영역 2: 퍼즐 문제 영역 (가로 공간 극대화) */
     .grid-container {
       background: var(--card-bg);
-      padding: 24px;
-      border-radius: 20px;
+      padding: 12px; /* 패딩을 줄여 게임판 자체 크기를 키움 */
+      border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       width: 100%;
       display: flex;
@@ -124,7 +124,7 @@
       justify-content: center;
       align-items: center;
       background: white;
-      font-size: clamp(16px, 5.5vw, 26px);
+      font-size: clamp(16px, 6vw, 28px); /* 모바일 화면 비례 글자 크기 증가 */
       font-weight: 700;
       width: 100%;
       height: 100%;
@@ -191,21 +191,21 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
     }
 
     .buttons button, .btn-desc {
       flex: 1;
-      height: 54px;
+      height: 48px;
       padding: 0;
-      font-size: clamp(14px, 3.5vw, 16px);
+      font-size: clamp(13px, 3.5vw, 16px);
       font-weight: 700;
       cursor: pointer;
       border: 1px solid #ced4da;
       background: var(--card-bg);
       color: var(--text-main);
-      border-radius: 12px;
+      border-radius: 10px;
       transition: all 0.2s ease;
       display: flex;
       justify-content: center;
@@ -236,12 +236,12 @@
     /* 영역 5: 하단 가이드 공간 */
     .keyboard-info {
       background: var(--card-bg);
-      padding: 15px 20px; 
+      padding: 12px 16px; 
       border-radius: 12px;
       border-left: 6px solid var(--success);
       box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-      font-size: 17px;
-      line-height: 1.6;
+      font-size: 14px;
+      line-height: 1.5;
       color: var(--text-sub);
       width: 100%;
       word-break: keep-all;
@@ -249,9 +249,13 @@
     }
 
     .keyboard-info h3 {
-      font-size: 18px;
-      margin-bottom: 6px;
-      color: var(--success); /* 녹색 타이틀 지정 */
+      font-size: 15px;
+      margin: 0 0 4px 0;
+      color: var(--success);
+    }
+
+    .keyboard-info p {
+      margin: 0;
     }
 
     /* 결과 알림 팝업창 */
@@ -353,7 +357,7 @@
       </div>
     </div>
 
-    <!-- 영역 5: 하단 가이드 공간 (수정 완료) -->
+    <!-- 영역 5: 하단 가이드 공간 -->
     <div class="keyboard-info">
       <h3>⌨️ 키보드 단축키</h3>
       <p><b>[Space]</b> 또는 <b>[Enter]</b> : 정답 확인 및 결과 팝업 확인 / <b>[R]</b> : 현재 단계 초기화</p>
@@ -390,12 +394,22 @@
     let currentData = [];
     let gridSize = 5;
     let innerSize = 3;
-    let currentStage = 1;
     let isModalOpen = false;
     let modalType = '';
-    const completedStages = new Set();
-    const stageHistory = {}; // 스테이지별 이전 변경 이력 저장 객체
-    const stageFailCounts = {}; // [추가] 스테이지별 오답 횟수 저장 객체
+
+    // --- localStorage 기반 상태 로드 및 복원 ---
+    let currentStage = parseInt(localStorage.getItem('mp_currentStage')) || 1;
+    const completedStages = new Set(JSON.parse(localStorage.getItem('mp_completedStages')) || []);
+    const stageHistory = JSON.parse(localStorage.getItem('mp_stageHistory')) || {};
+    const stageFailCounts = JSON.parse(localStorage.getItem('mp_stageFailCounts')) || {};
+
+    // 로컬 스토리지에 모든 상태를 저장하는 함수
+    function saveToStorage() {
+      localStorage.setItem('mp_currentStage', currentStage);
+      localStorage.setItem('mp_completedStages', JSON.stringify([...completedStages]));
+      localStorage.setItem('mp_stageHistory', JSON.stringify(stageHistory));
+      localStorage.setItem('mp_stageFailCounts', JSON.stringify(stageFailCounts));
+    }
 
     const dataSets = [
       [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
@@ -444,6 +458,7 @@
       closeModal();
       renderGrid();
       updateStageButtons();
+      saveToStorage(); // 전환될 때 상태 저장
     }
 
     function renderGrid() {
@@ -452,12 +467,13 @@
       grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
       grid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
+      // 모바일 및 데스크톱을 포괄하여 최대 크기 지정 (화면 크기에 따라 100% 대응)
       if (gridSize === 5) {
-        grid.style.maxWidth = "380px";
+        grid.style.maxWidth = "400px";
       } else if (gridSize === 6) {
-        grid.style.maxWidth = "450px";
+        grid.style.maxWidth = "480px";
       } else {
-        grid.style.maxWidth = "520px";
+        grid.style.maxWidth = "560px";
       }
 
       for (let row = 0; row < gridSize; row++) {
@@ -499,6 +515,7 @@
                   stageHistory[currentStage] = {};
               }
               stageHistory[currentStage][`${row},${col}`] = current;
+              saveToStorage(); // 블록 전환될 때 실시간 저장
             });
 
             cell.appendChild(btn);
@@ -525,6 +542,7 @@
         btn.dataset.state = 0;
         shape.className = 'shape circle';
       });
+      saveToStorage();
     });
 
     // 정답 확인 버튼 클릭 이벤트
@@ -541,20 +559,19 @@
         completedStages.add(currentStage);
         showModal('success', '🎉 성공!', '축하합니다! 정답입니다. 다음 단계로 나아갈 준비가 되었습니다.');
       } else {
-        // [수정 반영] 오답 발생 시 오답 카운트 증가
         stageFailCounts[currentStage] = (stageFailCounts[currentStage] || 0) + 1;
         showModal('danger', '❌ 틀렸습니다!', `현재 ${correct} / ${total} 개 맞았습니다. 다시 한번 고민해보세요!`);
       }
       updateStageButtons();
+      saveToStorage();
     });
 
-    // [수정 반영] 오답 횟수를 포함하여 단계 버튼 이름 일괄 업데이트
+    // 오답 횟수를 포함하여 단계 버튼 이름 일괄 업데이트
     function updateStageButtons() {
       document.querySelectorAll('.stage-buttons button').forEach(btn => {
         btn.classList.remove('selected', 'completed');
         const s = parseInt(btn.dataset.stage);
         
-        // 오답 횟수가 존재하면 텍스트 뒤에 붙여서 표시
         const failCount = stageFailCounts[s] || 0;
         if (failCount > 0) {
           btn.textContent = `${s}단계(${failCount})`;
@@ -581,6 +598,7 @@
       
       if(type === 'success') {
         modalTitle.className = 'modal-title success';
+        addBorderClass = 'success-border';
         modalCard.className = 'modal-card success-border';
         modalBtn.classList.add('success');
         modalBtn.textContent = '다음 단계로';
@@ -645,8 +663,8 @@
       }
     });
 
-    // 앱 첫 로드 시 1단계 실행
-    loadStage(1);
+    // 앱 첫 로드 시 브라우저에 기록되어 있던 스테이지 실행
+    loadStage(currentStage);
   </script>
 </body>
 </html>
