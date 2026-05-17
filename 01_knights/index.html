@@ -2,93 +2,497 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>기사의 여행</title>
+  
+  <!-- Pretendard 최신 웹폰트 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
   <style>
-    body{
-        text-size-adjust: 50px;
+    /* 디자인 시스템 변수 정의 */
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --active-hover: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --danger-hover: #bd2130;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --gray-light: #f8f9fa;
+      --gray-border: #e9ecef;
+      --cell-default: #dddddd;
+      --cell-passed: #87ceeb; /* skyblue */
+      --cell-valid: #28a745;   /* green */
+      --record-latest-bg: #fff5f5; /* 마지막 기록용 연한 빨간색 */
     }
 
-    div {
-        display: flex;
-        justify-content: center;
-        align-items: center;    
-        margin: auto;
+    /* 초기화 및 기본 스타일 */
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
-    .container{
-        display: grid;
-        gap:10px;
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 15px 10px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
-    .row{
-        float: left;
+    /* 레이아웃 컨테이너 */
+    .full-width {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .column{
-        width: 60px;
-        height: 60px;
-        background-color: #DDDDDD;
-        margin: -3px 2px -3px 2px;
-        float: left;
-        border-radius: 5px;
-        padding: 5px;
-        
-        user-select: none;
+    /* 일반 설정용 콘텐트 상자 */
+    .container-fixed {
+      width: 100%;
+      max-width: 800px;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    /* 게임판 전용 동적 컨테이너 */
+    .container-dynamic-board {
+      width: -webkit-fit-content;
+      width: -moz-fit-content;
+      width: fit-content;            
+      max-width: 100%;               
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 16px;                 
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 퍼즐 제목 영역 */
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-align: center;
+      margin: 15px 0;
+      word-break: keep-all;
+    }
+
+    /* 제어 영역 행 */
+    .control-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input-box {
+      font-size: 20px;
+      width: 65px;
+      height: 46px;
+      text-align: center;
+      border-radius: 12px;
+      border: 2px solid var(--gray-border);
+      font-weight: bold;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-box:focus {
+      border-color: var(--active);
+    }
+
+    .mult-sign {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--text-sub);
     }
 
     .game-btn {
-    width: 70px;
-    height: 50px;       /* 높이 고정 */
-    font-size: 20px;
-    line-height: 34px;  /* 세로 정렬 맞추기 */
-    padding: 0;         /* 패딩을 없애고 line-height로 맞춤 */
-    margin: 2px;
-    border: none;
-    border-radius: 8px;
-    background-color: lightgray;
-    color: black;
-    cursor: pointer;
-}
-
-
-        .game-btn.active {
-        background-color: #007BFF;
-        color: white;
+      height: 46px;
+      padding: 0 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      background-color: var(--gray-light);
+      border: 1px solid var(--gray-border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
+    .game-btn:hover {
+      background-color: var(--gray-border);
+    }
+
+    .game-btn.active {
+      background-color: var(--active);
+      color: white;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    /* 퍼즐 문제 영역 */
+    .puzzle-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .puzzle-container {
+      display: grid;
+      gap: 2px; 
+      margin: 0 auto;
+    }
+
+    .puzzle-column {
+      background-color: var(--cell-default);
+      border-radius: 4px; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      color: #222222;
+      cursor: pointer;
+      transition: background-color 0.1s ease, transform 0.05s ease;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
+    }
+
+    .puzzle-column:active {
+      transform: scale(0.96);
+    }
+
+    /* 하단 조작 버튼 영역 */
+    .control-area {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .action-btn {
+      flex: 1;
+      height: 54px;
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset {
+      background-color: var(--card-bg);
+      color: var(--danger);
+      border: 2px solid var(--danger);
+    }
+
+    .btn-reset:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    /* 하단 공통 가이드 박스 */
+    .guide-box {
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      word-break: keep-all;
+      font-size: 17px;
+    }
+
+    .guide-box.danger-style { border-left: 6px solid var(--danger); }
+    .guide-box.active-style { border-left: 6px solid var(--active); }
+    .guide-box.success-style { border-left: 6px solid var(--success); }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .guide-header.danger-text { color: var(--danger); }
+    .guide-header.active-text { color: var(--active); }
+    .guide-header.success-text { color: var(--success); }
+
+    .inline-reset-btn {
+      background: white;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .inline-reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .guide-content {
+      color: var(--text-sub);
+      list-style-type: none;
+    }
+
+    .guide-content li {
+      margin-bottom: 4px;
+    }
+
+    /* 누적 기록 표 디자인 */
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+      font-size: 15px;
+    }
+
+    .record-table th, .record-table td {
+      border: 1px solid var(--gray-border);
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    .record-table th {
+      background-color: var(--gray-light);
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .record-table td {
+      color: var(--text-sub);
+    }
+
+    .status-text {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text-main);
+    }
+
+    /* 결과 알림 팝업창 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      width: 350px;
+      max-width: 90%;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-card.success-mode { border-top: 6px solid var(--success); }
+    .modal-card.danger-mode { border-top: 6px solid var(--danger); }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .modal-card.success-mode .modal-title { color: var(--success); }
+    .modal-card.danger-mode .modal-title { color: var(--danger); }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      word-break: keep-all;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .modal-card.success-mode .modal-btn { background-color: var(--success); }
+    .modal-card.success-mode .modal-btn:hover { background-color: #218838; }
+    .modal-card.danger-mode .modal-btn { background-color: var(--danger); }
+    .modal-card.danger-mode .modal-btn:hover { background-color: var(--danger-hover); }
+
+    @media (max-width: 500px) {
+      h1 { font-size: 28px; }
+      .status-text { font-size: 18px; }
+    }
   </style>
 </head>
 <body>
-  <center>
-    <font size=6px>기사의 여행</font>
-    <br>
-    
-      <input type="number" id="txt1" value="5" style="font-size:20px;width:40px;height:40px;text-align:center;border-radius: 5px;">
-      <font size=5px>X </font>
-      <input type="number" id="txt2" value="5" style="font-size:20px;width:40px;height:40px;text-align:center;border-radius: 5px;">
-      <button id="btnStart" class="game-btn" onclick="main(txt1.value, txt2.value, 'btnStart')"> 시작 </button>&nbsp&nbsp&nbsp&nbsp&nbsp
-      <button id="btn4x4" class="game-btn" onclick="main4x4('btn4x4')"> 4x4 </button>
-    
-  </center>
-  <hr/><br>
-  <div id="area" style="font-size:30px"></div><br>
-  <div id="result" style="font-size:25px">Turn : 0</div>
-  <br>
-  
-    <div>
-    <font size="4px">
-      <b>[기사의 여행 규칙]</b><br>
-      1. 출발점에서 체스의 나이트가 움직이는 경로로 움직인다.<br>
-      2. 한 번 지나간 지점을 다시 갈 수 없다.<br>
-      3. 게임 판의 모든 지점을 지나가면 성공이다.<br>
-      4. 빨간색 칸을 누르면 뒤로 간다.
-    </font>
+
+  <!-- 퍼즐 제목 영역 -->
+  <div class="full-width">
+    <h1>기사의 여행</h1>
+  </div>
+
+  <!-- 단계 선택 및 제어 영역 -->
+  <div class="container-fixed">
+    <div class="control-row">
+      <input type="number" id="txt1" value="5" min="1" class="input-box">
+      <span class="mult-sign">X</span>
+      <input type="number" id="txt2" value="5" min="1" class="input-box">
+      <!-- 시작 버튼 id부여 -->
+      <button id="btnStart" class="game-btn active" onclick="setupNormalGame()">시작</button>
+      <button id="btn4x4" class="game-btn" onclick="setupSpecial4x4Game()">4x4 (특수)</button>
     </div>
-  
+  </div>
+
+  <!-- 퍼즐 문제 영역 -->
+  <div class="container-dynamic-board">
+    <div class="puzzle-wrapper">
+      <div id="area" class="puzzle-container"></div>
+    </div>
+  </div>
+
+  <!-- 상태 안내 및 타이머 메시지 표시 영역 -->
+  <div class="container-fixed" style="padding: 15px; margin-bottom: 20px;">
+    <div id="result" class="status-text">시작할 칸을 선택하세요.</div>
+    <div id="timerDisplay" style="text-align:center; margin-top:5px; font-weight:600; color:var(--text-sub); font-size:15px;">진행 시간: 0.0초</div>
+  </div>
+
+  <!-- 하단 조작 버튼 영역 -->
+  <div class="full-width" style="margin-bottom: 25px;">
+    <div class="control-area">
+      <button class="action-btn btn-reset" onclick="resetCurrentStage()">현재 단계 초기화</button>
+    </div>
+  </div>
+
+  <!-- 누적 기록 표 공간 -->
+  <div class="full-width" style="margin-bottom: 12px;">
+    <div class="guide-box danger-style">
+      <div class="guide-header danger-text">
+        <span>📊 누적 기록</span>
+        <button class="inline-reset-btn" onclick="clearGlobalHistory()">누적 기록 초기화</button>
+      </div>
+      <div id="recordTableWrapper"></div>
+    </div>
+  </div>
+
+  <!-- 퍼즐 규칙 공간 -->
+  <div class="full-width" style="margin-bottom: 12px;">
+    <div class="guide-box active-style">
+      <div class="guide-header active-text">🧭 기사의 여행(Knight's Tour) 규칙</div>
+      <ul class="guide-content">
+        <li>• 출발점에서 체스의 나이트가 움직이는 경로(L자 형태)로 이동합니다.</li>
+        <li>• 한 번 지나간 지점(하늘색)은 다시 갈 수 없습니다.</li>
+        <li>• 게임 판의 모든 지점을 지나가면 성공입니다.</li>
+        <li>• 현재 서 있는 빨간색 칸을 다시 누르면 한 단계 뒤로 되돌아갑니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 키보드 단축키 공간 -->
+  <div class="full-width">
+    <div class="guide-box success-style">
+      <div class="guide-header success-text">⌨ 키보드 단축키</div>
+      <ul class="guide-content">
+        <li>• <b style="color:var(--text-main);">[Esc], [C]</b> : 현재 플레이 중인 맵을 초기화합니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 결과 알림 팝업창 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공!</div>
+      <div class="modal-body" id="modalBody">축하합니다. 성공하였습니다.</div>
+      <button class="modal-btn" id="modalActionBtn" onclick="closeModal()">확인</button>
+    </div>
+  </div>
 
   <script>
+    // 우클릭 방지
     document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 상태 관리 변수
+    let b1 = 5, b2 = 5;      
+    let isSpecial4x4 = false;
+    let list = [];          
+    let list_number = [];   
+    let number = 1;         
+    let last_x = -1, last_y = -1; 
+    let success_ck = false; 
+
+    // 타이머 변수
+    let startTime = null;
+    let timerInterval = null;
+    let isGaming = false;
+
+    let clearedRecords = JSON.parse(localStorage.getItem("knight_tour_records")) || [];
+
+    // [수정] 리사이즈가 일어날 때 그리드를 다시 그리고 현재 진행 상태의 색상(bg)까지 복구하도록 변경
+    window.addEventListener('resize', () => {
+      if(list.length > 0) {
+        rebuildBoardUI();
+        bg(last_x, last_y);
+      }
+    });
 
     function getDisplayInfo() {
       return {
@@ -97,146 +501,368 @@
       };
     }
 
-    function bg(bl1,bl2) {
-      success_ck=false;
-      for(i=0;i<b1*b2;i++){
-        // 4x4 모서리 → 항상 흰색 유지
-        if (b1===4 && b2===4 && (i===0 || i===3 || i===12 || i===15)) {
-          document.getElementById(i).style.backgroundColor="white";
-          continue;
-        }
+    window.onload = () => {
+      setupNormalGame();
+      updateRecordTable();
+    };
 
-        if (list[i]===1){
-          document.getElementById(i).style.backgroundColor="skyblue";
-        } else {
-          if((((parseInt(i/b2)-bl2)**2 + (i%b2-bl1)**2)==5)){
-            document.getElementById(i).style.backgroundColor="green";
-            success_ck=true;
-          } else {
-            document.getElementById(i).style.backgroundColor="#dddddd";
+    function setupNormalGame() {
+      isSpecial4x4 = false;
+      
+      document.getElementById("btnStart").classList.add("active");
+      document.getElementById("btn4x4").classList.remove("active");
+
+      let input1 = parseInt(document.getElementById("txt1").value) || 5;
+      let input2 = parseInt(document.getElementById("txt2").value) || 5;
+      if(input1 < 1) { input1 = 1; document.getElementById("txt1").value = 1; }
+      if(input2 < 1) { input2 = 1; document.getElementById("txt2").value = 1; }
+
+      b1 = input1;
+      b2 = input2;
+
+      initNewBoard();
+    }
+
+    function setupSpecial4x4Game() {
+      isSpecial4x4 = true;
+
+      document.getElementById("btnStart").classList.remove("active");
+      document.getElementById("btn4x4").classList.add("add");
+
+      b1 = 4;
+      b2 = 4;
+
+      initNewBoard();
+    }
+
+    function initNewBoard() {
+      list = [];
+      list_number = [];
+      number = 1; last_x = -1; last_y = -1; success_ck = false;
+      stopTimer();
+      resetTimerDisplay();
+      isGaming = false;
+
+      if(isSpecial4x4) {
+        list = [1,0,0,1, 0,0,0,0, 0,0,0,0, 1,0,0,1];
+      } else {
+        for(let i=0; i < b1*b2; i++) list.push(0);
+      }
+
+      rebuildBoardUI();
+      
+      const resultEl = document.getElementById("result");
+      resultEl.style.color = "var(--text-main)";
+      resultEl.textContent = isSpecial4x4 ? "네모칸을 선택하여 게임을 시작하십시오." : "시작할 칸을 선택하세요.";
+    }
+
+    function rebuildBoardUI() {
+      const area = document.getElementById("area");
+      let tag = "";
+      const size = getDisplayInfo();
+      
+      const gapSize = 2; 
+      let maxAvailableWidth = size.width - 50; 
+      let defaultCellSize = 60;
+      let totalNeededWidth = (defaultCellSize * b2) + (gapSize * (b2 - 1));
+      let finalCellSize = defaultCellSize;
+
+      if (totalNeededWidth > maxAvailableWidth) {
+        finalCellSize = (maxAvailableWidth - (gapSize * (b2 - 1))) / b2;
+        if (finalCellSize < 8) finalCellSize = 8;
+      }
+
+      let finalFontSize = Math.max(finalCellSize * 0.45, 8);
+
+      area.style.gridTemplateColumns = `repeat(${b2}, minmax(0, 1fr))`;
+      area.style.width = `${(finalCellSize * b2) + (gapSize * (b2 - 1))}px`;
+
+      for (let j = 0; j < b1; j++) { 
+        for (let i = 0; i < b2; i++) {
+          let idx = i + j * b2;
+          let textVal = list_number[idx] ? list_number[idx] : "";
+          
+          let hiddenStyle = "";
+          if (isSpecial4x4 && (idx === 0 || idx === 3 || idx === 12 || idx === 15)) {
+            hiddenStyle = "visibility: hidden;";
+          }
+
+          // [보정] 이미 지나온 길이라면 기본 검은색 글자가 아닌 흰색 계열로 렌더링되게 기본 컬러 처리
+          let fontColorStyle = textVal ? "color: white;" : "color: #222222;";
+
+          tag += `<div class='puzzle-column' id='${idx}' style='font-size:${finalFontSize}px; width:${finalCellSize}px; height:${finalCellSize}px; ${hiddenStyle} ${fontColorStyle}'>${textVal}</div>`;
+        }
+      }
+      area.innerHTML = tag;
+      
+      for (let j = 0; j < b1; j++) {
+        for (let i = 0; i < b2; i++) {
+          let idx = i + j * b2;
+          let el = document.getElementById(idx);
+          if(el) {
+            el.onclick = () => clickbt(i, j);
           }
         }
       }
-      document.getElementById(bl1+bl2*b2).style.backgroundColor="red";
     }
 
-    let count = 1;
+    function bg(bl1, bl2) {
+      success_ck = false;
+      let absoluteFirstStart = (bl1 === -1 && bl2 === -1);
 
-    function success(){
+      for(let i = 0; i < b1 * b2; i++){
+        if (isSpecial4x4 && (i === 0 || i === 3 || i === 12 || i === 15)) {
+          continue;
+        }
+        let targetEl = document.getElementById(i);
+        if (!targetEl) continue;
+
+        if (list[i] === 1){
+          targetEl.style.backgroundColor = "var(--cell-passed)";
+          targetEl.style.color = "white"; // 지나간 경로 글자색 고정
+        } else {
+          if(!absoluteFirstStart && (((parseInt(i / b2) - bl2) ** 2 + (i % b2 - bl1) ** 2) == 5)){
+            targetEl.style.backgroundColor = "var(--cell-valid)";
+            targetEl.style.color = "white"; // 이동 가능한 경로 글자색 고정
+            success_ck = true;
+          } else {
+            targetEl.style.backgroundColor = "var(--cell-default)";
+            targetEl.style.color = "#222222";
+          }
+        }
+      }
+      
+      if(!absoluteFirstStart && (bl1 + bl2 * b2 >= 0)) {
+        let currentActiveEl = document.getElementById(bl1 + bl2 * b2);
+        if (currentActiveEl) {
+          currentActiveEl.style.backgroundColor = "var(--danger)";
+          currentActiveEl.style.color = "white"; // 현재 서 있는 칸 글자색 고정
+        }
+      }
+    }
+
+    function success() {
       let re = document.getElementById("result");
-      const average = list.reduce((a,c)=>a+c)/list.length;
-      if(average==1){
-        re.style.color="green";
-        re.textContent ="축하합니다. 성공하였습니다.";
+      const average = list.reduce((a, c) => a + c, 0) / list.length;
+      
+      if(average == 1){
+        re.style.color = "var(--success)";
+        re.textContent = "축하합니다. 성공하였습니다.";
+        
+        stopTimer();
+        let finalTime = ((performance.now() - startTime) / 1000).toFixed(1);
+        
+        saveClearRecord(finalTime);
+        showModal(true, finalTime); 
       } else {
         if(success_ck){
-          re.style.color="black";
-          re.textContent ="게임중입니다. 녹색을 선택하여 이동하십시오.";
+          re.style.color = "var(--text-main)";
+          re.textContent = "게임중입니다. 녹색을 선택하여 이동하십시오.";
         } else {
-          re.style.color="red";
-          re.textContent ="더 이상 갈 곳이 없습니다. 빨간색을 선택하여 되돌아 가거나, 게임을 다시 시작하십시오.";
+          if(last_x === -1 && last_y === -1) {
+            re.style.color = "var(--text-main)";
+            re.textContent = isSpecial4x4 ? "네모칸을 선택하여 게임을 시작하십시오." : "시작할 칸을 선택하세요.";
+            return;
+          }
+          re.style.color = "var(--danger)";
+          re.textContent = "더 이상 갈 곳이 없습니다. 빨간색을 선택하여 되돌아 가거나, 게임을 다시 시작하십시오.";
+          stopTimer();
+          showModal(false); 
         }
       }
     }
 
     function clickbt(lo1, lo2) {
-      if(lo1==last_x && lo2==last_y){
-        if(list_number[lo1+lo2*b2]=="1"){
-          window.location.reload();
-        }
-        list[lo1+lo2*b2]=(list[lo1+lo2*b2]+1)%2;
-        list_number[lo1+lo2*b2]="0";
-        document.getElementById(lo1+lo2*b2).innerText = "";
-
-        let last_number1=list_number.indexOf(number-2);
-        lo2=parseInt(last_number1/b2);
-        lo1=last_number1%b2;
-
-        let last_number2=list_number.indexOf(number-3);
-        last_y=parseInt(last_number2/b2);
-        last_x=last_number2%b2;
-        number-=2;
-
-        const element = document.getElementById(lo1+lo2*b2);
-        element.innerText = number;
-        list_number[lo1+lo2*b2] = number;
-        number++;
-        bg(lo1,lo2);
-        last_x=lo1;
-        last_y=lo2;
+      if(!isGaming && !(lo1 === last_x && lo2 === last_y)) {
+        isGaming = true;
+        startTime = performance.now();
+        startTimer();
       }
 
-      if((last_x+last_y==-2 || (((last_x-lo1)**2 + (last_y-lo2)**2)==5))&& list[lo1+lo2*b2]==0 ){
-        list[lo1+lo2*b2]=(list[lo1+lo2*b2]+1)%2;
-        const element = document.getElementById(lo1+lo2*b2);
+      if(lo1 == last_x && lo2 == last_y){
+        if(list_number[lo1 + lo2 * b2] == "1"){
+          initNewBoard();
+          return;
+        }
+        list[lo1 + lo2 * b2] = (list[lo1 + lo2 * b2] + 1) % 2;
+        list_number[lo1 + lo2 * b2] = "";
+        document.getElementById(lo1 + lo2 * b2).innerText = "";
+
+        let last_number1 = list_number.indexOf(number - 2);
+        lo2 = parseInt(last_number1 / b2);
+        lo1 = last_number1 % b2;
+
+        let last_number2 = list_number.indexOf(number - 3);
+        last_y = parseInt(last_number2 / b2);
+        last_x = last_number2 % b2;
+        number -= 2;
+
+        const element = document.getElementById(lo1 + lo2 * b2);
         element.innerText = number;
-        list_number[lo1+lo2*b2] = number;
+        list_number[lo1 + lo2 * b2] = number;
         number++;
-        bg(lo1,lo2);
-        last_x=lo1;
-        last_y=lo2;
+        bg(lo1, lo2);
+        last_x = lo1;
+        last_y = lo2;
+      }
+      else if((last_x + last_y == -2 || (((last_x - lo1) ** 2 + (last_y - lo2) ** 2) == 5)) && list[lo1 + lo2 * b2] == 0 ){
+        list[lo1 + lo2 * b2] = (list[lo1 + lo2 * b2] + 1) % 2;
+        const element = document.getElementById(lo1 + lo2 * b2);
+        element.innerText = number;
+        list_number[lo1 + lo2 * b2] = number;
+        number++;
+        bg(lo1, lo2);
+        last_x = lo1;
+        last_y = lo2;
       }
       success();
     }
 
-    function highlightButton(activeId){
-        // 모든 버튼에서 active 제거
-        document.querySelectorAll('.game-btn').forEach(btn => btn.classList.remove('active'));
-        // 선택된 버튼에 active 추가
-        document.getElementById(activeId).classList.add('active');
-    }
-
-
-    function main(a1, a2, btnId) {
-      highlightButton(btnId);
-      list=[];
-      list_number=[];
-      count=1; number = 1; last_x=-1; last_y=-1;
-      let tag="<div class='container'>";
-      b1=parseInt(a1); b2=parseInt(a2);
-      var size=getDisplayInfo();
-      s=Math.min((size.width-15*b2)/b2,60);
-      t=Math.min(Math.max((30-0.3*Math.max(b1,b2)),10),30);
-      for (j=0;j<b1;j++){ 
-        tag+="<div class='row'>";
-        for (i=0;i<b2;i++){
-          list.push(0);
-          tag+="<div class='column' id='"+(i+j*b2)+"' style=font-size:"+t+"px;width:"+s+"px;height:"+s+"px; onclick='clickbt("+i+","+j+")'></div>";
+    function startTimer() {
+      if(timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if(startTime) {
+          let current = ((performance.now() - startTime) / 1000).toFixed(1);
+          document.getElementById("timerDisplay").textContent = `진행 시간: ${current}초`;
         }
-        tag+="</div>";
-      }
-      tag+="</div>";
-      area.innerHTML=tag;
-      document.getElementById("result").style.color="black";
-      document.getElementById("result").textContent="시작할 칸을 선택하세요.";
+      }, 100);
     }
 
-    function main4x4(btnId) {
-      highlightButton(btnId);
-      list=[1,0,0,1, 0,0,0,0, 0,0,0,0, 1,0,0,1];
-      list_number=[]; count=1; number=1; last_x=-1; last_y=-1;
-      let tag="<div class='container'>";
-      b1=4; b2=4;
-      var size=getDisplayInfo();
-      s=Math.min((size.width-15*b2)/b2,60);
-      for (j=0;j<b1;j++){ 
-        tag+="<div class='row'>";
-        for (i=0;i<b2;i++){
-          tag+="<div class='column' id='"+(i+j*b2)+"' style=width:"+s+"px;height:"+s+"px; onclick='clickbt("+i+","+j+")'></div>";
+    function stopTimer() {
+      if(timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function resetTimerDisplay() {
+      document.getElementById("timerDisplay").textContent = "진행 시간: 0.0초";
+    }
+
+    function resetCurrentStage() {
+      initNewBoard();
+    }
+
+    function saveClearRecord(timeSpent) {
+      let sizeStr = isSpecial4x4 ? "4 x 4 (특수)" : `${b1} x ${b2}`;
+      clearedRecords.push({
+        size: sizeStr,
+        time: `${timeSpent}초`
+      });
+      localStorage.setItem("knight_tour_records", JSON.stringify(clearedRecords));
+      updateRecordTable();
+    }
+
+    function updateRecordTable() {
+      const wrapper = document.getElementById("recordTableWrapper");
+      if(clearedRecords.length === 0) {
+        wrapper.innerHTML = `<div style="color:var(--text-sub); font-size:15px; margin-top:5px;">성공한 기록이 없습니다. 모든 발판을 돌파해 보세요!</div>`;
+        return;
+      }
+
+      let tableTag = `
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>가로 * 세로 크기</th>
+              <th>걸린 시간</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      for(let i = clearedRecords.length - 1; i >= 0; i--) {
+        // 배열의 가장 마지막 요소(최신 기록)가 역순 출력 방식에 의해 첫 번째 행(i === clearedRecords.length - 1)에 위치하게 됩니다.
+        let isLatest = (i === clearedRecords.length - 1);
+        let rowStyle = isLatest ? `style="background-color: var(--record-latest-bg);"` : "";
+
+        tableTag += `
+          <tr ${rowStyle}>
+            <td>${i + 1}</td>
+            <td><b>${clearedRecords[i].size}</b></td>
+            <td style="color:var(--success); font-weight:bold;">${clearedRecords[i].time}</td>
+          </tr>
+        `;
+      }
+      tableTag += `</tbody></table>`;
+      wrapper.innerHTML = tableTag;
+    }
+
+    function clearGlobalHistory() {
+      if(confirm("기록 판의 모든 데이터가 소멸됩니다. 초기화하시겠습니까?")) {
+        clearedRecords = [];
+        localStorage.removeItem("knight_tour_records");
+        updateRecordTable();
+        initNewBoard();
+      }
+    }
+
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalCard = document.getElementById("modalCard");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalBody = document.getElementById("modalBody");
+    const modalActionBtn = document.getElementById("modalActionBtn");
+
+    function showModal(isSuccess, finalTime) {
+      cardClassName = "modal-card " + (isSuccess ? "success-mode" : "danger-mode");
+      modalCard.className = cardClassName;
+      if(isSuccess) {
+        modalTitle.textContent = "🎉 성공!";
+        modalBody.textContent = `축하합니다! 클리어 타임 ${finalTime}초 만에 퍼즐판의 모든 구역을 정복했습니다.`;
+        modalActionBtn.textContent = "닫기";
+      } else {
+        modalTitle.textContent = "❌ 실패";
+        modalBody.textContent = "더 이상 도달할 수 있는 행마법이 존재하지 않습니다.";
+        modalActionBtn.textContent = "다시 시도";
+      }
+      modalOverlay.classList.add("show");
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove("show");
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+      
+      if (document.activeElement.tagName === 'INPUT') {
+        if (e.key === "Enter") {
+          document.activeElement.blur(); 
+          if(isSpecial4x4) setupSpecial4x4Game(); else setupNormalGame();
         }
-        tag+="</div>";
+        return; 
       }
-      tag+="</div>";
-      area.innerHTML=tag;
-      document.getElementById(0).style.backgroundColor="white";
-      document.getElementById(3).style.backgroundColor="white";
-      document.getElementById(12).style.backgroundColor="white";
-      document.getElementById(15).style.backgroundColor="white";
-      document.getElementById("result").style.color="black";
-      document.getElementById("result").textContent="네모칸을 선택하여 게임을 시작하십시오.";
-    }
-
-    onload=()=>{ main(txt1.value, txt2.value, 'btnStart'); }
+      
+      if (modalOverlay.classList.contains("show")) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          closeModal();
+        }
+      } 
+      else {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          if (isSpecial4x4) {
+            setupSpecial4x4Game();
+          } else {
+            setupNormalGame();
+          }
+          
+          let re = document.getElementById("result");
+          re.style.color = "var(--active)";
+          re.textContent = "단축키 동작: 게임판을 초기화하고 새 게임을 시작합니다.";
+        }
+        else if (e.key === "Escape" || key === "c" || key === "ㅊ") {
+          e.preventDefault();
+          resetCurrentStage();
+          
+          let re = document.getElementById("result");
+          re.style.color = "var(--danger)";
+          re.textContent = "단축키 동작: 스테이지 상태가 초기화되었습니다.";
+        }
+      }
+    });
   </script>
 </body>
 </html>
