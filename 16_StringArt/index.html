@@ -2,89 +2,281 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>스트링아트</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>스트링아트 그리기</title>
+<!-- Pretendard 고딕 서체 로드 -->
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <style>
+  :root {
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --active: #007bff;
+    --success: #28a745;
+    --danger: #dc3545;
+    --text-main: #222222;
+    --text-sub: #555555;
+    --border: #e9ecef;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
   body {
-    font-family: 'Arial', sans-serif;
-    padding: 20px;
-    background: #f0f0f0;
+    background-color: var(--bg);
+    color: var(--text-main);
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    touch-action: manipulation;
+    overflow-x: auto; /* 전체 페이지 가로 스크롤 허용 */
+  }
+
+  /* 전체 레이아웃 구조: 스트링아트가 커지면 미디움 폭(800px) 이상으로 유연하게 확장 */
+  .wrapper {
+    width: 100%;
+    max-width: 800px; /* 기본값 */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: max-width 0.1s ease; /* 크기 변경 시 부드러운 전환 */
+  }
+
+  /* [영역 1-A: 제목 영역] - 배경 없음 */
+  .title-area {
     text-align: center;
+    padding: 10px 0;
+    width: 100%;
   }
-  label {
-    margin: 0 10px;
-    font-weight: bold;
+  .title-area h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -1px;
   }
-  input, select, button {
-    margin: 0 5px 15px;
-    padding: 5px 10px;
-    font-size: 1rem;
+
+  /* 카드 공통 스타일 (.container-fixed) */
+  .container-fixed {
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    width: 100%;
+  }
+
+  /* [영역 1-B: 옵션 설정 영역] */
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 15px;
+    align-items: center;
+  }
+  .control-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .control-item label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .control-item input, .control-item select {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .control-item input:focus, .control-item select:focus {
+    border-color: var(--active);
+    background-color: #ffffff;
+  }
+
+  /* [영역 2: 스트링아트 프리뷰 영역] */
+  .canvas-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .canvas-wrapper {
+    position: relative;
   }
   canvas {
-    background: white;
-    border: 1px solid #ccc;
-    margin-top: 10px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
     display: block;
-    margin-left: auto;
-    margin-right: auto;
   }
-  #controls {
-    margin-bottom: 10px;
+
+  /* [영역 3: 하단 조작 버튼 영역] - 배경 없음 */
+  .action-area {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    height: 54px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.2s;
+    color: #ffffff;
+  }
+  .action-btn:active {
+    transform: scale(0.98);
+  }
+  .btn-one { background-color: var(--active); }
+  .btn-one:hover { background-color: #0056b3; }
+  .btn-all { background-color: var(--success); }
+  .btn-all:hover { background-color: #1e7e34; }
+  .btn-reset { background-color: #6c757d; }
+  .btn-reset:hover { background-color: #5a6268; }
+
+  /* [영역 6: 키보드 단축키 안내 공간] */
+  .guide-box {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    font-size: 17px;
+    line-height: 1.6;
+    word-break: keep-all;
+    width: 100%;
+  }
+  .guide-box h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .key-box {
+    border-left: 6px solid var(--success);
+  }
+  .key-box h3 {
+    color: var(--success);
+  }
+  .key-badge {
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-main);
+  }
+
+  @media (max-width: 600px) {
+    .control-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .title-area h1 { font-size: 28px; }
+    .action-btn { height: 48px; font-size: 15px; }
   }
 </style>
 </head>
 <body>
 
-<h1>스트링아트 그리기</h1>
-
-<div>
-  <label for="radius">크기:</label>
-  <input type="number" id="radius" min="50" max="350" value="150" />
+<div class="wrapper" id="mainWrapper">
   
-  <label for="shape">도형:</label>
-  <select id="shape">
-    <option value="circle" selected>원</option>
-    <option value="3">삼각형</option>
-    <option value="4">사각형</option>
-    <option value="5">오각형</option>
-    <option value="6">육각형</option>
-  </select>
-  
-  <label for="points">점의 수:</label>
-  <input type="number" id="points" min="2" max="200" value="30" />
+  <!-- [영역 1-A: 제목 영역] -->
+  <div class="title-area">
+    <h1>스트링아트 그리기</h1>
+  </div>
 
-  <label for="skip">건너는 수:</label>
-  <input type="number" id="skip" min="1" max="100" value="6" />
+  <!-- [영역 1-B: 옵션 설정 영역] -->
+  <div class="container-fixed">
+    <div class="control-grid">
+      <div class="control-item">
+        <label for="radius">크기</label>
+        <input type="number" id="radius" min="50" max="1000" value="150" />
+      </div>
+      <div class="control-item">
+        <label for="shape">도형</label>
+        <select id="shape">
+          <option value="circle" selected>원</option>
+          <option value="3">삼각형</option>
+          <option value="4">사각형</option>
+          <option value="5">오각형</option>
+          <option value="6">육각형</option>
+        </select>
+      </div>
+      <div class="control-item">
+        <label for="points">점의 수</label>
+        <input type="number" id="points" min="2" max="200" value="30" />
+      </div>
+      <div class="control-item">
+        <label for="skip">건너는 수</label>
+        <input type="number" id="skip" min="1" max="100" value="6" />
+      </div>
+      <div class="control-item">
+        <label for="skipAdd">더한 수</label>
+        <input type="number" id="skipAdd" min="0" max="50" value="0" />
+      </div>
+      <div class="control-item">
+        <label for="colorMode">색상 모드</label>
+        <select id="colorMode">
+          <option value="single" selected>단색</option>
+          <option value="multi">다채색</option>
+        </select>
+      </div>
+      <div class="control-item" id="colorPickerContainer">
+        <label for="color">선 색상</label>
+        <input type="color" id="color" value="#0088cc" style="height: 41px; padding: 2px; cursor: pointer;" />
+      </div>
+    </div>
+  </div>
 
-  <label for="skipAdd">더한 수:</label>
-  <input type="number" id="skipAdd" min="0" max="50" value="0" />
-  
-  <label for="colorMode">색상 모드:</label>
-  <select id="colorMode">
-    <option value="single" selected>단색</option>
-    <option value="multi">다채색</option>
-  </select>
+  <!-- [영역 2: 스트링아트 프리뷰 영역] -->
+  <div class="container-fixed canvas-container">
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
 
-  <label for="color">선 색상:</label>
-  <input type="color" id="color" value="#0088cc" />
-</div>
+  <!-- [영역 3: 하단 조작 버튼 영역] -->
+  <div class="action-area">
+    <button class="action-btn btn-one" id="drawOne">하나씩 그리기</button>
+    <button class="action-btn btn-all" id="drawAll">전체 그리기</button>
+    <button class="action-btn btn-reset" id="reset">초기화</button>
+  </div>
 
-<div id="controls">
-  <button id="drawOne">하나씩 그리기</button>
-  <button id="drawAll">전체 그리기</button>
-  <button id="reset">초기화</button>
-</div>
+  <!-- [영역 6: 키보드 단축키 안내 공간] -->
+  <div class="guide-box key-box">
+    <h3>⌨ 키보드 단축키</h3>
+    <p>하나씩 그리기: <span class="key-badge">Space</span></p>
+    <p>전체 그리기: <span class="key-badge">Enter</span></p>
+    <p>초기화: <span class="key-badge">Esc</span></p>
+  </div>
 
-<canvas id="canvas"></canvas>
-<br><br>
-<div style="font-size: 25px;">
-  ◈ 키보드<br>
-  하나씩 그리기: Space<br>
-  전체 그리기: Enter<br>
-  초기화: Esc<br>
 </div>
 
 <script>
+  // 모바일 줌 및 더블탭 방지
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, false);
+
   const radiusInput = document.getElementById('radius');
   const pointsInput = document.getElementById('points');
   const shapeSelect = document.getElementById('shape');
@@ -92,7 +284,10 @@
   const skipAddInput = document.getElementById('skipAdd');
   const colorMode = document.getElementById('colorMode');
   const colorInput = document.getElementById('color');
+  const colorPickerContainer = document.getElementById('colorPickerContainer');
   const canvas = document.getElementById('canvas');
+  const canvasWrapper = document.getElementById('canvasWrapper');
+  const mainWrapper = document.getElementById('mainWrapper');
   const ctx = canvas.getContext('2d');
 
   const drawOneBtn = document.getElementById('drawOne');
@@ -104,67 +299,87 @@
 
   function setupCanvas() {
     const radius = parseInt(radiusInput.value);
-    const size = Math.min(900, radius * 2 + 120);
+    const size = radius * 2 + 120; // 핀 번호 라벨 여백을 포함한 크기
+    
     canvas.width = size;
     canvas.height = size;
+    
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    canvasWrapper.style.width = size + 'px';
+    canvasWrapper.style.height = size + 'px';
+
+    // [핵심 요구사항 변경]: 스트링아트의 크기가 기본 폭(800px)보다 크면 wrapper의 max-width도 동적으로 늘려줍니다.
+    // 캔버스 양쪽 레이아웃 패딩 여백(약 48px)을 반영하여 상위 컨테이너 폭을 맞춰 늘려줍니다.
+    if (size + 48 > 800) {
+      mainWrapper.style.maxWidth = (size + 48) + 'px';
+    } else {
+      mainWrapper.style.maxWidth = '800px';
+    }
   }
 
   function calculatePoints(shape, radius, pointsPerSide, centerX, centerY) {
-  const pts = [];
-  if (shape === "circle") {
-    for (let i = 0; i < pointsPerSide; i++) {
-      const angle = (2 * Math.PI * i) / pointsPerSide - Math.PI / 2;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      pts.push({ x, y });
-    }
-  } else {
-    const sides = parseInt(shape);
-    const angleStep = (2 * Math.PI) / sides;
-    const rotationOffset = (sides === 4 ? Math.PI / 4 : 0);
-    const verts = [];
-    for (let i = 0; i < sides; i++) {
-      const a = angleStep * i - Math.PI / 2 + rotationOffset;
-      verts.push({ x: centerX + radius * Math.cos(a), y: centerY + radius * Math.sin(a) });
-    }
-    for (let e = 0; e < sides; e++) {
-      const v0 = verts[e];
-      const v1 = verts[(e + 1) % sides];
-      for (let j = 0; j < pointsPerSide; j++) {
-        const t = j / pointsPerSide;
-        const x = v0.x + (v1.x - v0.x) * t;
-        const y = v0.y + (v1.y - v0.y) * t;
+    const pts = [];
+    if (shape === "circle") {
+      for (let i = 0; i < pointsPerSide; i++) {
+        const angle = (2 * Math.PI * i) / pointsPerSide - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
         pts.push({ x, y });
       }
-    }
-  }
-  return pts;
-}
-
-function init() {
-  currentLineIndex = 0;
-  const radius = parseInt(radiusInput.value);
-  const shape = shapeSelect.value;
-
-  // 도형이 바뀔 때 기본값 설정
-  if (document.activeElement === shapeSelect) {
-    if (shape === "circle") {
-      pointsInput.value = 30;
     } else {
-      pointsInput.value = 5;
+      const sides = parseInt(shape);
+      const angleStep = (2 * Math.PI) / sides;
+      const rotationOffset = (sides === 4 ? Math.PI / 4 : 0);
+      const verts = [];
+      for (let i = 0; i < sides; i++) {
+        const a = angleStep * i - Math.PI / 2 + rotationOffset;
+        verts.push({ x: centerX + radius * Math.cos(a), y: centerY + radius * Math.sin(a) });
+      }
+      for (let e = 0; e < sides; e++) {
+        const v0 = verts[e];
+        const v1 = verts[(e + 1) % sides];
+        for (let j = 0; j < pointsPerSide; j++) {
+          const t = j / pointsPerSide;
+          const x = v0.x + (v1.x - v0.x) * t;
+          const y = v0.y + (v1.y - v0.y) * t;
+          pts.push({ x, y });
+        }
+      }
     }
-    skipInput.value = 6;
-    skipAddInput.value = 0;
+    return pts;
   }
 
-  let perSide = parseInt(pointsInput.value);
+  function toggleColorPicker() {
+    if (colorMode.value === "multi") {
+      colorPickerContainer.style.display = "none";
+    } else {
+      colorPickerContainer.style.display = "flex";
+    }
+  }
 
-  setupCanvas();
-  points = calculatePoints(shape, radius, perSide, canvas.width / 2, canvas.height / 2);
-  drawBase(shape, radius);
-}
+  function init() {
+    currentLineIndex = 0;
+    const radius = parseInt(radiusInput.value);
+    const shape = shapeSelect.value;
 
+    if (document.activeElement === shapeSelect) {
+      if (shape === "circle") {
+        pointsInput.value = 30;
+      } else {
+        pointsInput.value = 5;
+      }
+      skipInput.value = 6;
+      skipAddInput.value = 0;
+    }
 
+    let perSide = parseInt(pointsInput.value);
+
+    toggleColorPicker();
+    setupCanvas();
+    points = calculatePoints(shape, radius, perSide, canvas.width / 2, canvas.height / 2);
+    drawBase(shape, radius);
+  }
 
   function drawBase(shape, radius) {
     const cx = canvas.width / 2;
@@ -236,6 +451,7 @@ function init() {
     }
     return colorInput.value;
   }
+
   function drawNextLine() {
     const n = points.length;
     const baseSkip = parseInt(skipInput.value);
@@ -276,9 +492,6 @@ function init() {
     }
     currentLineIndex = n;
   }
-
-
-
 
   [radiusInput, pointsInput, shapeSelect, skipInput, skipAddInput, colorMode, colorInput].forEach(el => 
     el.addEventListener('input', init)
