@@ -18,7 +18,7 @@
             --color-bg-solved: #e8f5e9;
             --color-dot: #b0b8c0;
             --color-hint-active: #e3f2fd; /* 힌트 강조색 (연한 파랑) */
-            --bg-color: #f8f9fa;
+            --bg-color: #f0f2f5;
         }
 
         body {
@@ -33,7 +33,10 @@
             min-height: 100vh;
         }
 
-        h1 { margin: 0 0 20px 0; font-size: 26px; color: #2c3e50; letter-spacing: -0.5px; }
+        h1 { font-size: 36px;
+            color: #1a1a1a;
+            margin: 0 0 20px 0;
+            letter-spacing: -0.5px;}
 
         /* --- 레벨 패널 --- */
         .level-panel {
@@ -43,7 +46,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             margin-bottom: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             box-sizing: border-box;
         }
 
@@ -123,7 +126,7 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             margin-bottom: 20px;
             background: white;
             padding: 15px 20px;
@@ -136,7 +139,7 @@
         .stars-left { font-size: 14px; font-weight: 600; color: var(--color-active); }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 700; color: #333; }
 
-        /* --- 보드 --- */
+/* --- 보드 --- */
         .game-board {
             display: none; 
             grid-template-columns: repeat(var(--board-size), minmax(0, 1fr));
@@ -146,12 +149,24 @@
             user-select: none;
             box-shadow: 0 8px 30px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             aspect-ratio: 1;
             margin-bottom: 25px;
             transition: background-color 0.3s ease;
             /* [추가] 자식 요소가 보드 너비를 기준으로 크기를 계산할 수 있게 설정 */
             container-type: inline-size;
+        }
+
+        /* [수정] 최상단 html 태그의 스타일에 --board-size: 5가 입력되었을 때 보드 크기를 축소합니다. */
+        html[style*="--board-size: 5"] .game-board {
+            width: 400px;
+            max-width: 100%; /* 화면이 250px보다 작은 모바일 환경 대응 */
+        }
+
+        /* [추가] 최상단 html 태그의 스타일에 --board-size: 8이 입력되었을 때 보드 크기를 최대 640px로 제한합니다. */
+        html[style*="--board-size: 8"] .game-board {
+            width: 640px;
+            max-width: 100%; /* 화면이 640px보다 작은 환경 대응 */
         }
 
         .game-board.solved-board .cell {
@@ -222,7 +237,7 @@
             display: flex;
             gap: 12px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
         }
         /* (1) 버튼 기본 파란색 스타일 적용 */
         .btn-ctrl {
@@ -344,7 +359,7 @@
             text-align: center;
             color: #333;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
         }
 
         
@@ -353,17 +368,27 @@
         .msg-error { color: #e53935; }   /* 빨간색 */
         .rules {
             margin-top: 30px;
-            font-size: 19px;
+            font-size: 18px;
             line-height: 1.6;
             color: #555;
             background: white;
             padding: 20px;
             border-radius: 12px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
             box-sizing: border-box;
+            border-left: 6px solid var(--color-active);
         }
 
+        .rules-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--color-active);
+        }
     </style>
 </head>
 <body>
@@ -418,11 +443,10 @@
 
     </div>
 
-
     <div class="rules">
-        <b>[규칙]</b><br>
-        1. 각 가로줄, 각 세로줄, 그리고 굵은 줄로 나뉜 각 구역에 별1개 또는 2개가 들어간다.<br>
-        2. 별들이 서로 닿아선 안 된다. 대각선으로도 닿을 수 없다.
+        <div class="rules-header">◈ 게임 규칙</div>
+        1. 각 가로줄(행), 세로줄(열), 그리고 굵은 선으로 구분된 구역에 별(★) 1개 또는 2개가 들어간다.<br>
+        2. 별끼리는 상하좌우 및 대각선으로 인접할 수 없습니다.
     </div>
 
 
