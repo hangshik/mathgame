@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>라스트 원 님 게임</title>
+  <!-- 프리미엄 Pretendard 서체 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
+  <style>
+    /* 디자인 시스템 및 전역 변수 설정 */
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --active-hover: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-light: #e9ecef;
+      --btn-bg: #f8f9fa;
+      
+      /* 팀 컬러 시스템 */
+      --color-p1: #007bff; /* 플레이어 1 / 사람 (블루) */
+      --color-p2: #dc3545; /* 플레이어 2 / AI (레드) */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    /* 누적 기록 하이라이트 스타일 추가 */
+    .record-table tr.last-record-highlight {
+      background-color: #fff0f0; /* 연한 빨간색 */
+      transition: background-color 0.3s ease;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 20px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* 전체 레이아웃 컨테이너 */
+    .wrapper {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 영역 1-A: 퍼즐 제목 영역 (Fluid) */
+    .puzzle-header {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .puzzle-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1px;
+    }
+    .puzzle-header p {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-top: 6px;
+    }
+
+    /* 공통 카드 컨테이너 (Fixed) */
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    /* 영역 1-B: 단계 선택 영역 */
+    .stage-container h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .stage-btn {
+      height: 54px;
+      border: 1px solid var(--border-light);
+      background-color: var(--btn-bg);
+      color: var(--text-sub);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stage-btn .sub-label {
+      font-size: 12px; /* 가독성 확보 조치 */
+      font-weight: 600;
+      opacity: 0.95;  
+      margin-top: 3px;
+    }
+    .stage-btn:hover {
+      background-color: var(--border-light);
+    }
+    /* 오직 현재 단계만 파란색 활성화 */
+    .stage-btn.active {
+      background-color: var(--active);
+      color: #ffffff;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+    }
+
+    /* 선공 선택 옵션 패널 */
+    .turn-selector-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed var(--border-light);
+    }
+    .turn-selector-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    .turn-selector-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .select-btn {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background-color: #f1f3f5;
+      color: var(--text-sub);
+      transition: all 0.2s;
+    }
+    .select-btn.p1-btn {
+      background-color: rgba(0, 123, 255, 0.08);
+      color: var(--color-p1);
+      border-color: rgba(0, 123, 255, 0.2);
+    }
+    .select-btn.p1-btn.selected {
+      background-color: var(--color-p1);
+      color: #ffffff;
+      border-color: var(--color-p1);
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+    }
+    .select-btn.p2-btn {
+      background-color: rgba(220, 53, 69, 0.08);
+      color: var(--color-p2);
+      border-color: rgba(220, 53, 69, 0.2);
+    }
+    .select-btn.p2-btn.selected {
+      background-color: var(--color-p2);
+      color: #ffffff;
+      border-color: var(--color-p2);
+      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+    }
+
+    /* 영역 2: 퍼즐 문제 영역 */
+    .game-board-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .turn-indicator {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: 30px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      letter-spacing: -0.5px;
+      border: 1px solid transparent;
+    }
+    .turn-indicator.p1-turn {
+      color: var(--color-p1);
+      background-color: rgba(0, 123, 255, 0.08);
+      border-color: rgba(0, 123, 255, 0.15);
+    }
+    .turn-indicator.p2-turn {
+      color: var(--color-p2);
+      background-color: rgba(220, 53, 69, 0.08);
+      border-color: rgba(220, 53, 69, 0.15);
+    }
+    .turn-indicator.warning-turn {
+      color: var(--danger);
+      background-color: rgba(220, 53, 69, 0.08);
+      border-color: rgba(220, 53, 69, 0.2);
+    }
+
+    /* 게임판 외곽 테두리 및 활성화 글로우 */
+    .board-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 24px;
+      padding: 8px;
+      border: 4px solid #e9ecef;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+    .board-wrapper.glow-p1 {
+      border-color: var(--color-p1);
+      box-shadow: 0 0 25px rgba(0, 123, 255, 0.4);
+    }
+    .board-wrapper.glow-p2 {
+      border-color: var(--color-p2);
+      box-shadow: 0 0 25px rgba(220, 53, 69, 0.4);
+    }
+
+    /* 선공 미선택시 게임판 비활성화 잠금 오버레이 */
+    .board-lock-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(6px);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      transition: all 0.3s ease;
+      padding: 20px;
+      text-align: center;
+    }
+    .board-lock-overlay p {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    .board-lock-overlay .arrow-up {
+      font-size: 28px;
+      margin-bottom: 8px;
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .game-board {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      gap: 10px;
+      background-color: #f8f9fa;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .cell {
+      background-color: #ffffff;
+      border: 2px solid #e9ecef;
+      border-radius: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .cell::before {
+      content: "";
+      width: 44%;
+      height: 44%;
+      border-radius: 50%;
+      border: 6px solid #ced4da;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cell:hover:not(.empty):not(.selected) {
+      transform: scale(1.03);
+      border-color: #adb5bd;
+    }
+    .cell:hover:not(.empty):not(.selected)::before {
+      border-color: #adb5bd;
+    }
+    .cell.empty {
+      background-color: #f1f3f5;
+      border-color: #f1f3f5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .cell.empty::before {
+      display: none;
+    }
+    .cell.selected {
+      transform: scale(0.96);
+    }
+    .cell.selected.p1-sel {
+      background-color: rgba(0,123,255,0.08);
+      border-color: var(--color-p1);
+    }
+    .cell.selected.p1-sel::before {
+      border-color: var(--color-p1);
+      background-color: var(--color-p1);
+      box-shadow: 0 0 10px rgba(0,123,255,0.4);
+    }
+    .cell.selected.p2-sel {
+      background-color: rgba(220, 53, 69, 0.08);
+      border-color: var(--color-p2);
+    }
+    .cell.selected.p2-sel::before {
+      border-color: var(--color-p2);
+      background-color: var(--color-p2);
+      box-shadow: 0 0 10px rgba(220, 53, 69, 0.4);
+    }
+    .cell.empty {
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* 액션 버튼 컨테이너 */
+    .action-container {
+      display: flex;
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    .action-btn {
+      height: 56px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 2px solid transparent;
+      user-select: none;
+    }
+
+    /* ↩ 되돌아가기 버튼 디자인 */
+    .btn-reset {
+      flex: 1;
+      background-color: #f8f9fa;
+      color: #495057;
+      border-color: #dee2e6;
+    }
+    .btn-reset:hover:not(:disabled) {
+      background-color: #e9ecef;
+      border-color: #ced4da;
+    }
+    
+    /* 確定 제출 버튼 디자인 */
+    .btn-submit {
+      flex: 1.5;
+      background-color: var(--active);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,123,255,0.25);
+    }
+    .btn-submit:hover:not(:disabled) {
+      background-color: var(--active-hover);
+      box-shadow: 0 6px 16px rgba(0,123,255,0.35);
+    }
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+    .action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none;
+    }
+
+    /* 하단 안내 가이드 컴포넌트 */
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      word-break: keep-all;
+    }
+    .guide-title-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .guide-box h2 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    /* 영역 4: 누적 기록 */
+    .guide-record {
+      border-left: 6px solid var(--danger);
+      display: none; 
+    }
+    .guide-record.active {
+      display: block;
+    }
+    .guide-record h2 {
+      color: var(--danger);
+    }
+    .btn-clear-record {
+      background-color: #ffffff;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-clear-record:hover {
+      background-color: var(--danger);
+      color: #ffffff;
+    }
+    .record-section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 15px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+    .record-table th, .record-table td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .record-table th {
+      font-weight: 700;
+      color: var(--text-sub);
+      background-color: #f8f9fa;
+    }
+
+    /* 영역 5: 퍼즐 규칙 */
+    .guide-rules {
+      border-left: 6px solid var(--active);
+    }
+    .guide-rules h2 {
+      color: var(--active);
+    }
+    .guide-rules ul {
+      list-style: none;
+    }
+    .guide-rules li {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 5px;
+    }
+
+    /* 영역 6: 키보드 단축키 */
+    .guide-shortcuts {
+      border-left: 6px solid var(--success);
+    }
+    .guide-shortcuts h2 {
+      color: var(--success);
+    }
+    .shortcut-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .shortcut-item {
+      font-size: 14px;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .key-badge {
+      background: #e9ecef;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      box-shadow: 0 2px 0 #ced4da;
+      color: #495057;
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 6px;
+      text-align: center;
+      min-width: 24px;
+    }
+
+    /* 결과 알림 및 확인 모달 팝업 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-card {
+      width: 90%;
+      max-width: 350px;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      transform: scale(0.9);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+    .modal-card.success {
+      border-top: 6px solid var(--success);
+    }
+    .modal-card.danger {
+      border-top: 6px solid var(--danger);
+    }
+    
+    /* 사람 대 사람 전용 승리 클래스 (팀 전용 색상 적용) */
+    .modal-card.p1-win {
+      border-top: 6px solid var(--color-p1);
+    }
+    .modal-card.p1-win .modal-title {
+      color: var(--color-p1);
+    }
+    .modal-card.p1-win .modal-btn {
+      background-color: var(--color-p1);
+    }
+    .modal-card.p1-win .modal-btn:hover {
+      background-color: var(--active-hover);
+    }
+
+    .modal-card.p2-win {
+      border-top: 6px solid var(--color-p2);
+    }
+    .modal-card.p2-win .modal-title {
+      color: var(--color-p2);
+    }
+    .modal-card.p2-win .modal-btn {
+      background-color: var(--color-p2);
+    }
+    .modal-card.p2-win .modal-btn:hover {
+      background-color: #bd2130;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .modal-card.success .modal-title { color: var(--success); }
+    .modal-card.danger .modal-title { color: var(--danger); }
+    
+    .modal-body {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #ffffff;
+      transition: opacity 0.2s;
+    }
+    .modal-btn:hover {
+      opacity: 0.9;
+    }
+    .modal-card.success .modal-btn { background-color: var(--success); }
+    .modal-card.danger .modal-btn { background-color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <!-- 영역 1-A: 퍼즐 제목 영역 -->
+    <div class="puzzle-header">
+      <h1>라스트 원 님 게임</h1>
+      <!-- <p>가로 또는 세로줄을 선택해 원을 지우세요. 마지막 원을 차지하는 자가 승리합니다!</p> -->
+    </div>
+
+    <!-- 영역 1-B: 단계 선택 및 선공 설정 영역 -->
+    <div class="container-fixed stage-container">
+      <!-- <h2>STAGE SELECT</h2> -->
+      <div class="stage-grid" id="stageGrid">
+        <!-- JS 동적 버튼 로드 -->
+      </div>
+
+      <!-- 선공 선택 옵션 패널 -->
+      <div class="turn-selector-container" id="turnSelectorContainer">
+        <div class="turn-selector-title" id="turnSelectorTitle">선공 플레이어 선택 (필수)</div>
+        <div class="turn-selector-buttons">
+          <button class="select-btn p1-btn" id="btnSelectP1">플레이어 1 (블루 선공)</button>
+          <button class="select-btn p2-btn" id="btnSelectP2">플레이어 2 (레드 선공)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 영역 2: 퍼즐 문제 영역 -->
+    <div class="container-fixed game-board-container">
+      <div class="turn-indicator" id="turnIndicator">선공을 결정해 주세요</div>
+      <div class="board-wrapper" id="boardWrapper">
+        <!-- 선공 선택 안내 락 레이어 -->
+        <div class="board-lock-overlay" id="boardLockOverlay">
+          <div class="arrow-up">👆</div>
+          <p>상단에서 먼저 시작할 팀을 선택하면<br>게임판이 활성화됩니다.</p>
+        </div>
+        <div class="game-board" id="gameBoard">
+          <!-- JS 격자판 로드 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 영역 3: 하단 조작 버튼 영역 (되돌아가기 - 백스페이스 및 선택확정) -->
+    <div class="action-container">
+      <button class="action-btn btn-reset" id="btnReset" title="단축키: Backspace" disabled>↶ 되돌아가기</button>
+      <button class="action-btn btn-submit" id="btnSubmit" title="단축키: Enter" disabled>✓ 선택 확정</button>
+    </div>
+
+    <!-- 영역 4: 이원화된 누적 기록 -->
+    <div class="guide-box guide-record" id="recordBox">
+      <div class="guide-title-container">
+        <h2>📊 누적 기록</h2>
+        <button class="btn-clear-record" id="btnClearRecord">누적기록 초기화</button>
+      </div>
+      
+      <!-- PvP 사람 대결 전적 기록 테이블 (항상 최상단 배치) -->
+      <div class="record-section-title" id="pvpRecordTitle" style="display: none;">👥 로컬 PvP 기록</div>
+      <table class="record-table" id="pvpRecordTable" style="display: none;">
+        <thead>
+          <tr>
+            <th>격자 크기</th>
+            <th>블루팀 승리 (P1)</th>
+            <th>레드팀 승리 (P2)</th>
+          </tr>
+        </thead>
+        <tbody id="pvpRecordTableBody">
+          <!-- JS 렌더링 -->
+        </tbody>
+      </table>
+
+      <!-- AI 전적 기록 테이블 -->
+      <div class="record-section-title" id="aiRecordTitle" style="display: none;">🤖 AI 대결 기록</div>
+      <table class="record-table" id="aiRecordTable" style="display: none;">
+        <thead>
+          <tr>
+            <th>격자 크기</th>
+            <th>선공팀</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="aiRecordTableBody">
+          <!-- JS 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 영역 5: 퍼즐 규칙 -->
+    <div class="guide-box guide-rules">
+      <h2>◈ 게임 방법</h2>
+      <ul>
+        <!-- <li>• 플레이어와 AI(또는 두 사람)가 번갈아 가며 격자판 위의 ○을 선택하여 제거합니다.</li>
+        <li>• 한 턴에 최소 1개에서 최대 4개까지의 ○을 선택하여 지울 수 있습니다.</li>
+        <li>• 2개 이상의 ○를 동시에 지울 때는 반드시 <strong>같은 가로 줄</strong> 또는 <strong>같은 세로 줄</strong>에 위치해 있어야 하며 바로 이웃해 있을 필요는 없습니다.</li>
+        <li>• 격자판 위의 <strong>마지막 남은 ○을 표시(제거)하는 사람</strong>이 최종적으로 이기게 됩니다.</li> -->
+        <li><b>지우기</b>: 한 턴에 같은 가로/세로 줄의 원을 1~4개까지 자유롭게 지웁니다.</li>
+
+        <li><b>조건</b>: 여러 개를 지울 때는 반드시 같은 가로 줄이나 세로 줄에 있어야 하며 바로 이웃할 필요는 없습니다.</li>
+
+        <li><b>승리</b>: 격자판의 마지막 원을 지우는 사람이 승리합니다.</li>
+      </ul>
+    </div>
+
+    <!-- 영역 6: 키보드 단축키 -->
+    <div class="guide-box guide-shortcuts">
+      <h2>⌨ 키보드 단축키</h2>
+      <div class="shortcut-list">
+        <div class="shortcut-item"><span class="key-badge">Enter</span> 또는 <span class="key-badge">Space</span> <span>선택 완료 및 턴 종료 / 팝업창 확인</span></div>
+        <div class="shortcut-item"><span class="key-badge">Backspace</span> <span>이전 확정 턴 상태로 무제한 되돌아가기 (Undo)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 알림 모달 시스템 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공!</div>
+      <div class="modal-body" id="modalBody">축하합니다! 대결에서 승리하셨습니다.</div>
+      <button class="modal-btn" id="modalBtn">다시 하기</button>
+    </div>
+  </div>
+
+  <!-- 누적 기록 초기화 전용 커스텀 확인 모달 -->
+  <div class="modal-overlay" id="confirmModalOverlay">
+    <div class="modal-card danger">
+      <div class="modal-title" style="color: var(--danger);">⚠️ 기록 초기화</div>
+      <div class="modal-body">정말로 모든 누적 기록을 리셋하시겠습니까?<br>이 작업은 되돌릴 수 없으며 복구가 불가합니다.</div>
+      <div style="display: flex; gap: 10px;">
+        <button class="modal-btn" id="btnConfirmCancel" style="background-color: #6c757d;">취소</button>
+        <button class="modal-btn" id="btnConfirmReset" style="background-color: var(--danger);">초기화 실행</button>
+      </div>
+    </div>
+  </div>
+
+    <script>
+    // 1. 단계 버튼 위치 변경: PvP 모드(3, 4단계)를 앞으로 이동
+    const dataSets = [
+      { stage: 3, size: 3, opponent: 'PLAYER', label: "1단계 (3x3 PvP)" },
+      { stage: 4, size: 4, opponent: 'PLAYER', label: "2단계 (4x4 PvP)" },
+      { stage: 1, size: 3, opponent: 'AI', label: "3단계 (3x3 vs AI)" },
+      { stage: 2, size: 4, opponent: 'AI', label: "4단계 (4x4 vs AI)" }
+    ];
+
+    let currentStage = 3; // 2. 초기 단계를 3x3 PvP(3번)로 변경
+    let selectedIndices = [];  // 임시 선택된 인덱스들
+    let currentMask = 0;       // 보드 상태 비트 마스킹 데이터 (켜져있는 셀)
+    let currentTurn = 0;       // 1: 블루팀 (P1), 2: 레드팀 (P2 / AI), 0: 대기 상태
+    let selectedFirstTurn = null; // 선공 결정 전까지 null로 설정하여 강제 잠금 구현
+
+    // 타임머신 무제한 되돌아가기 스택
+    let undoHistory = [];
+
+    // 로컬 스토리지 상태 기억 저장소
+    let gameState = {
+      clearedStages: [],
+      attempts: { 1: 0, 2: 0, 3: 0, 4: 0 }, 
+      pvpWins: { 
+        3: { p1: 0, p2: 0 }, 
+        4: { p1: 0, p2: 0 } 
+      }, 
+      stageHistory: {}, 
+      aiHistory: [] 
+    };
+
+    // AI 연산을 위한 사전 비트 마스크 보관소
+    let moveMasks = {};       
+    let memoizedWins = {};    
+
+    // DOM 캐싱
+    const stageGrid = document.getElementById('stageGrid');
+    const gameBoard = document.getElementById('gameBoard');
+    const boardWrapper = document.getElementById('boardWrapper');
+    const boardLockOverlay = document.getElementById('boardLockOverlay');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const turnSelectorContainer = document.getElementById('turnSelectorContainer');
+    const turnSelectorTitle = document.getElementById('turnSelectorTitle');
+    const btnSelectP1 = document.getElementById('btnSelectP1');
+    const btnSelectP2 = document.getElementById('btnSelectP2');
+    const btnReset = document.getElementById('btnReset');
+    const btnSubmit = document.getElementById('btnSubmit');
+    
+    const recordBox = document.getElementById('recordBox');
+    const aiRecordTitle = document.getElementById('aiRecordTitle');
+    const aiRecordTable = document.getElementById('aiRecordTable');
+    const aiRecordTableBody = document.getElementById('aiRecordTableBody');
+    const pvpRecordTitle = document.getElementById('pvpRecordTitle');
+    const pvpRecordTable = document.getElementById('pvpRecordTable');
+    const pvpRecordTableBody = document.getElementById('pvpRecordTableBody');
+    
+    const btnClearRecord = document.getElementById('btnClearRecord');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCard = document.getElementById('modalCard');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const modalBtn = document.getElementById('modalBtn');
+
+    // 커스텀 컨펌 모달 DOM 캐싱
+    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+    const btnConfirmCancel = document.getElementById('btnConfirmCancel');
+    const btnConfirmReset = document.getElementById('btnConfirmReset');
+
+    function init() {
+      loadLocalStorage();
+      
+      // 수학적 AI 마스킹 구조 계산
+      precomputeSizeMoves(3);
+      precomputeSizeMoves(4);
+      lazyBuildSolutionTable(3);
+      lazyBuildSolutionTable(4);
+
+      renderStageButtons();
+      renderRecordTable();
+      loadStage(currentStage);
+      setupGlobalEvents();
+    }
+
+    function loadLocalStorage() {
+      const saved = localStorage.getItem('nim_game_premium_advanced_2026_rev3');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.clearedStages) gameState.clearedStages = parsed.clearedStages;
+          if (parsed.attempts) gameState.attempts = parsed.attempts;
+          if (parsed.pvpWins) gameState.pvpWins = parsed.pvpWins;
+          if (parsed.stageHistory) gameState.stageHistory = parsed.stageHistory;
+          if (parsed.aiHistory) gameState.aiHistory = parsed.aiHistory;
+        } catch (e) {
+          console.error("데이터 복구 에러 발생", e);
+        }
+      }
+      if (!gameState.aiHistory) {
+        gameState.aiHistory = [];
+      }
+    }
+
+    function saveLocalStorage() {
+      localStorage.setItem('nim_game_premium_advanced_2026_rev3', JSON.stringify(gameState));
+    }
+
+    function renderStageButtons() {
+      stageGrid.innerHTML = '';
+      dataSets.forEach(dt => {
+        const btn = document.createElement('button');
+        btn.classList.add('stage-btn');
+        if (dt.stage === currentStage) {
+          btn.classList.add('active');
+        }
+
+        const labelSpan = document.createElement('span');
+        labelSpan.innerText = `${dt.size} × ${dt.size}`;
+        
+        const subSpan = document.createElement('span');
+        subSpan.classList.add('sub-label');
+        subSpan.innerText = dt.opponent === 'AI' ? '대결: AI' : '대결: 2인용';
+
+        btn.appendChild(labelSpan);
+        btn.appendChild(subSpan);
+
+        btn.addEventListener('click', () => {
+          changeStage(dt.stage);
+        });
+        stageGrid.appendChild(btn);
+      });
+    }
+
+    function renderRecordTable() {
+      aiRecordTableBody.innerHTML = '';
+      pvpRecordTableBody.innerHTML = '';
+      
+      let hasAiRecord = false;
+      let hasPvpRecord = false;
+
+      const wins3 = gameState.pvpWins[3] || { p1: 0, p2: 0 };
+      const wins4 = gameState.pvpWins[4] || { p1: 0, p2: 0 };
+      
+      // PvP 기록 렌더링
+      const pvpRows = [];
+      if (wins3.p1 > 0 || wins3.p2 > 0) pvpRows.push({ size: '3 × 3', p1: wins3.p1, p2: wins3.p2 });
+      if (wins4.p1 > 0 || wins4.p2 > 0) pvpRows.push({ size: '4 × 4', p1: wins4.p1, p2: wins4.p2 });
+
+      pvpRows.forEach((data, idx) => {
+        hasPvpRecord = true;
+        const tr = document.createElement('tr');
+        if (idx === pvpRows.length - 1) tr.classList.add('last-record-highlight'); // 마지막 행 강조
+        tr.innerHTML = `
+          <td>${data.size}</td>
+          <td style="color: var(--color-p1); font-weight: 700;">${data.p1}회 승리</td>
+          <td style="color: var(--color-p2); font-weight: 700;">${data.p2}회 승리</td>
+        `;
+        pvpRecordTableBody.appendChild(tr);
+      });
+
+      // AI 기록 렌더링
+      if (gameState.aiHistory && gameState.aiHistory.length > 0) {
+        hasAiRecord = true;
+        // [수정사항] 최신 기록이 맨 위로 오도록 reverse() 적용 및 하이라이트 인덱스 수정
+        [...gameState.aiHistory].reverse().forEach((log, idx) => {
+          const tr = document.createElement('tr');
+          if (idx === 0) tr.classList.add('last-record-highlight'); // 첫 번째 행(최신 기록) 강조
+          const statusColor = log.status === 'SUCCESS' ? 'var(--success)' : 'var(--danger)';
+          tr.innerHTML = `
+            <td>${log.size}</td>
+            <td>${log.firstTurn}</td>
+            <td style="color: ${statusColor}; font-weight: 700;">${log.status}</td>
+          `;
+          aiRecordTableBody.appendChild(tr);
+        });
+      }
+
+      if (hasPvpRecord) {
+        pvpRecordTitle.style.display = 'block';
+        pvpRecordTable.style.display = 'table';
+      } else {
+        pvpRecordTitle.style.display = 'none';
+        pvpRecordTable.style.display = 'none';
+      }
+
+      if (hasAiRecord) {
+        aiRecordTitle.style.display = 'block';
+        aiRecordTable.style.display = 'table';
+      } else {
+        aiRecordTitle.style.display = 'none';
+        aiRecordTable.style.display = 'none';
+      }
+
+      if (hasAiRecord || hasPvpRecord) {
+        recordBox.classList.add('active');
+      } else {
+        recordBox.classList.remove('active');
+      }
+    }
+
+    function changeStage(stageNum) {
+      backupCurrentState();
+      currentStage = stageNum;
+      selectedIndices = [];
+      undoHistory = [];
+      btnSubmit.disabled = true;
+
+      renderStageButtons();
+      loadStage(currentStage);
+    }
+
+    function backupCurrentState() {
+      if (currentStage !== undefined) {
+        gameState.stageHistory[currentStage] = {
+          mask: currentMask,
+          turn: currentTurn,
+          selectedFirstTurn: selectedFirstTurn,
+          undoHistory: undoHistory
+        };
+        saveLocalStorage();
+      }
+    }
+
+    function loadStage(stageNum) {
+      const config = dataSets.find(d => d.stage === stageNum);
+      const size = config.size;
+
+      if (config.opponent === 'AI') {
+        turnSelectorTitle.innerText = "선공 플레이어 선택 (플레이어 vs AI)";
+        btnSelectP1.innerText = "플레이어 선공 (블루)";
+        btnSelectP2.innerText = "AI 선공 (레드)";
+      } else {
+        turnSelectorTitle.innerText = "선공 플레이어 선택 (플레이어1 vs 플레이어2)";
+        btnSelectP1.innerText = "플레이어 1 (블루 선공)";
+        btnSelectP2.innerText = "플레이어 2 (레드 선공)";
+      }
+
+      let savedState = gameState.stageHistory[stageNum];
+      if (savedState && savedState.selectedFirstTurn !== null) {
+        currentMask = savedState.mask;
+        currentTurn = savedState.turn;
+        selectedFirstTurn = savedState.selectedFirstTurn;
+        undoHistory = savedState.undoHistory || [];
+      } else {
+        currentMask = (1 << (size * size)) - 1; 
+        selectedFirstTurn = null; 
+        currentTurn = 0;
+        undoHistory = [];
+      }
+
+      updateSelectorButtons();
+      updateUndoButtonState();
+
+      gameBoard.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
+      gameBoard.style.gridTemplateRows = `repeat(${size}, minmax(0, 1fr))`;
+      gameBoard.innerHTML = '';
+
+      for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+
+        if ((currentMask & (1 << i)) === 0) {
+          cell.classList.add('empty');
+        }
+
+        cell.addEventListener('click', () => handleCellInteraction(i));
+        gameBoard.appendChild(cell);
+      }
+
+      applyLockState();
+    }
+
+    function updateSelectorButtons() {
+      btnSelectP1.classList.remove('selected');
+      btnSelectP2.classList.remove('selected');
+      if (selectedFirstTurn === 1) {
+        btnSelectP1.classList.add('selected');
+      } else if (selectedFirstTurn === 2) {
+        btnSelectP2.classList.add('selected');
+      }
+    }
+
+    function updateUndoButtonState() {
+      btnReset.disabled = (undoHistory.length === 0);
+    }
+
+    function applyLockState() {
+      if (selectedFirstTurn === null) {
+        boardLockOverlay.style.display = 'flex';
+        boardLockOverlay.style.opacity = '1';
+        boardLockOverlay.style.visibility = 'visible';
+        turnIndicator.innerText = '선공을 결정해 주세요';
+        turnIndicator.className = 'turn-indicator warning-turn';
+        boardWrapper.className = 'board-wrapper';
+      } else {
+        boardLockOverlay.style.opacity = '0';
+        boardLockOverlay.style.visibility = 'hidden';
+        setTimeout(() => {
+          if (selectedFirstTurn !== null) {
+            boardLockOverlay.style.display = 'none';
+          }
+        }, 300);
+        updateTurnIndicatorAndBorder();
+      }
+    }
+
+    function updateTurnIndicatorAndBorder() {
+      const config = dataSets.find(d => d.stage === currentStage);
+      const isAI = config.opponent === 'AI';
+
+      boardWrapper.classList.remove('glow-p1', 'glow-p2');
+
+      if (currentTurn === 1) {
+        boardWrapper.classList.add('glow-p1');
+        if (isAI) {
+          turnIndicator.innerText = '플레이어 차례 (블루)';
+        } else {
+          turnIndicator.innerText = '플레이어 1 차례 (블루)';
+        }
+        turnIndicator.className = 'turn-indicator p1-turn';
+      } else if (currentTurn === 2) {
+        boardWrapper.classList.add('glow-p2');
+        if (isAI) {
+          turnIndicator.innerText = 'AI 차례 (레드)';
+        } else {
+          turnIndicator.innerText = '플레이어 2 차례 (레드)';
+        }
+        turnIndicator.className = 'turn-indicator p2-turn';
+      }
+    }
+
+    function setFirstTurn(team) {
+      selectedFirstTurn = team;
+      currentTurn = team;
+      
+      const config = dataSets.find(d => d.stage === currentStage);
+      const size = config.size;
+      currentMask = (1 << (size * size)) - 1;
+      selectedIndices = [];
+      undoHistory = [];
+      btnSubmit.disabled = true;
+
+      gameState.stageHistory[currentStage] = {
+        mask: currentMask,
+        turn: currentTurn,
+        selectedFirstTurn: selectedFirstTurn,
+        undoHistory: undoHistory
+      };
+      saveLocalStorage();
+
+      updateSelectorButtons();
+      updateUndoButtonState();
+      applyLockState();
+      
+      loadStage(currentStage);
+
+      if (config.opponent === 'AI' && currentTurn === 2) {
+        executeAITurn();
+      }
+    }
+
+    function handleCellInteraction(idx) {
+      if (selectedFirstTurn === null) return; 
+
+      const cell = gameBoard.children[idx];
+      if (cell.classList.contains('empty')) return;
+
+      const config = dataSets.find(d => d.stage === currentStage);
+      if (config.opponent === 'AI' && currentTurn === 2) return; 
+
+      const isAlreadySelected = selectedIndices.includes(idx);
+      const size = config.size;
+      const r = Math.floor(idx / size);
+      const c = idx % size;
+
+      if (isAlreadySelected) {
+        selectedIndices = selectedIndices.filter(i => i !== idx);
+        cell.classList.remove('selected', 'p1-sel', 'p2-sel');
+      } else {
+        if (selectedIndices.length >= 4) {
+          clearCurrentSelectionUI();
+          selectedIndices.push(idx);
+          cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel'); // 1. 팀별 색상 적용
+        } else if (selectedIndices.length === 0) {
+          selectedIndices.push(idx);
+          cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel');
+        } else {
+          const testRows = selectedIndices.map(i => Math.floor(i / size));
+          const testCols = selectedIndices.map(i => i % size);
+
+          const isSameRow = testRows.every(rowVal => rowVal === r);
+          const isSameCol = testCols.every(colVal => colVal === c);
+
+          if (isSameRow || isSameCol) {
+            selectedIndices.push(idx);
+            cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel');
+          } else {
+            clearCurrentSelectionUI();
+            selectedIndices.push(idx);
+            cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel');
+          }
+        }
+      }
+
+      btnSubmit.disabled = selectedIndices.length === 0;
+    }
+
+    // 임시 선택된 하이라이트 UI만 해제
+    function clearCurrentSelectionUI() {
+      selectedIndices.forEach(idx => {
+        const cell = gameBoard.children[idx];
+        if (cell) cell.classList.remove('selected', 'p1-sel', 'p2-sel');
+      });
+      selectedIndices = [];
+      btnSubmit.disabled = true;
+    }
+
+    function saveToUndoHistory() {
+      undoHistory.push({
+        mask: currentMask,
+        turn: currentTurn
+      });
+      updateUndoButtonState();
+    }
+
+    // ↩ "되돌아가기" 기능 - 선택 확정 전 상태로 역추적
+    function handleUndo() {
+      if (undoHistory.length === 0) return;
+
+      const prevState = undoHistory.pop();
+      currentMask = prevState.mask;
+      currentTurn = prevState.turn;
+
+      // 임시로 드래그 선택 중이던 것 초기화
+      selectedIndices = [];
+      btnSubmit.disabled = true;
+
+      // 보드 상태 리프레시
+      const config = dataSets.find(d => d.stage === currentStage);
+      const size = config.size;
+      for (let i = 0; i < size * size; i++) {
+        const cell = gameBoard.children[i];
+        if (cell) {
+          if ((currentMask & (1 << i)) === 0) {
+            cell.className = 'cell empty';
+          } else {
+            cell.className = 'cell';
+          }
+        }
+      }
+
+      backupCurrentState();
+      updateTurnIndicatorAndBorder();
+      updateUndoButtonState();
+    }
+
+    function restartStage() {
+      selectedFirstTurn = null;
+      currentTurn = 0;
+      selectedIndices = [];
+      undoHistory = [];
+      btnSubmit.disabled = true;
+
+      backupCurrentState();
+      loadStage(currentStage);
+    }
+
+    function submitTurn() {
+      if (selectedIndices.length === 0) return;
+
+      const config = dataSets.find(d => d.stage === currentStage);
+      const size = config.size;
+
+      if (config.opponent === 'AI' && currentMask === (1 << (size * size)) - 1) {
+        gameState.attempts[currentStage] = (gameState.attempts[currentStage] || 0) + 1;
+        renderRecordTable();
+        saveLocalStorage();
+      }
+
+      // 비트마스크 연산 이전에 현재의 안전 상태 백업 (되돌아가기 보장)
+      saveToUndoHistory();
+
+      selectedIndices.forEach(idx => {
+        currentMask &= ~(1 << idx);
+        const cell = gameBoard.children[idx];
+        if (cell) {
+          cell.classList.remove('selected');
+          cell.classList.add('empty');
+        }
+      });
+
+      selectedIndices = [];
+      btnSubmit.disabled = true;
+      backupCurrentState();
+
+      if (currentMask === 0) {
+        handleGameFinished(currentTurn); 
+        return;
+      }
+
+      currentTurn = currentTurn === 1 ? 2 : 1;
+      backupCurrentState();
+      updateTurnIndicatorAndBorder();
+
+      if (config.opponent === 'AI' && currentTurn === 2) {
+        executeAITurn();
+      }
+    }
+
+    function executeAITurn() {
+      btnSubmit.disabled = true;
+      btnReset.disabled = true; // AI 작동 중 되돌아가기 임시 홀딩
+
+      setTimeout(() => {
+        const config = dataSets.find(d => d.stage === currentStage);
+        const size = config.size;
+
+        const bestMoveMask = solvePerfectMove(currentMask, size);
+
+        if (bestMoveMask > 0) {
+          currentMask ^= bestMoveMask;
+          for (let i = 0; i < size * size; i++) {
+            if ((bestMoveMask & (1 << i)) !== 0) {
+              const cell = gameBoard.children[i];
+              if (cell) cell.classList.add('empty');
+            }
+          }
+        }
+
+        backupCurrentState();
+
+        if (currentMask === 0) {
+          handleGameFinished(2); 
+          return;
+        }
+
+        currentTurn = 1;
+        backupCurrentState();
+        updateTurnIndicatorAndBorder();
+        updateUndoButtonState();
+      }, 750);
+    }
+
+    function precomputeSizeMoves(size) {
+      let moves = [];
+      for (let i = 0; i < size * size; i++) {
+        moves.push(1 << i);
+      }
+      for (let r = 0; r < size; r++) {
+        let indices = [];
+        for (let c = 0; c < size; c++) {
+          indices.push(r * size + c);
+        }
+        buildMoveCombos(indices, moves);
+      }
+      for (let c = 0; c < size; c++) {
+        let indices = [];
+        for (let r = 0; r < size; r++) {
+          indices.push(r * size + c);
+        }
+        buildMoveCombos(indices, moves);
+      }
+      moveMasks[size] = [...new Set(moves)];
+    }
+
+    function buildMoveCombos(indices, list) {
+      const n = indices.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          list.push((1 << indices[i]) | (1 << indices[j]));
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          for (let k = j + 1; k < n; k++) {
+            list.push((1 << indices[i]) | (1 << indices[j]) | (1 << indices[k]));
+          }
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          for (let k = j + 1; k < n; k++) {
+            for (let l = k + 1; l < n; l++) {
+              list.push((1 << indices[i]) | (1 << indices[j]) | (1 << indices[k]) | (1 << indices[l]));
+            }
+          }
+        }
+      }
+    }
+
+    function lazyBuildSolutionTable(size) {
+      const totalStates = 1 << (size * size);
+      memoizedWins[size] = new Int8Array(totalStates);
+    }
+
+    function canStateWin(mask, size) {
+      if (mask === 0) return false;
+      const memo = memoizedWins[size];
+      if (memo[mask] !== 0) return memo[mask] === 1;
+
+      const moves = moveMasks[size];
+      for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        if ((mask & move) === move) {
+          const nextMask = mask ^ move;
+          if (!canStateWin(nextMask, size)) {
+            memo[mask] = 1;
+            return true;
+          }
+        }
+      }
+
+      memo[mask] = -1;
+      return false;
+    }
+
+    function solvePerfectMove(mask, size) {
+      const moves = moveMasks[size];
+      let winningMoves = [];
+      let losingMoves = [];
+
+      for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        if ((mask & move) === move) {
+          const nextMask = mask ^ move;
+          if (!canStateWin(nextMask, size)) {
+            winningMoves.push(move);
+          } else {
+            losingMoves.push(move);
+          }
+        }
+      }
+
+      if (winningMoves.length > 0) {
+        return winningMoves[Math.floor(Math.random() * winningMoves.length)];
+      }
+      if (losingMoves.length > 0) {
+        return losingMoves[Math.floor(Math.random() * losingMoves.length)];
+      }
+      return 0;
+    }
+
+    // 사람 대 사람 승리 전용 테마 매핑 및 모달 노출
+    function handleGameFinished(winner) {
+      const config = dataSets.find(d => d.stage === currentStage);
+      modalOverlay.classList.add('active');
+
+      if (config.opponent === 'AI') {
+        const status = winner === 1 ? 'SUCCESS' : 'FAIL';
+        const sizeText = `${config.size} × ${config.size}`;
+        const firstTurnText = selectedFirstTurn === 1 ? '플레이어' : 'AI';
+
+        if (!gameState.aiHistory) gameState.aiHistory = [];
+        gameState.aiHistory.push({
+          size: sizeText,
+          firstTurn: firstTurnText,
+          status: status
+        });
+
+        if (winner === 1) {
+          modalCard.className = 'modal-card success';
+          modalTitle.innerText = "🎉 승리!";
+          modalBody.innerText = "초지능 AI의 두뇌 연산 방어벽을 격파했습니다!\n정밀한 판단력이 빛을 발한 한 판이었습니다.";
+          modalBtn.innerText = "다시 하기"; 
+
+          if (!gameState.clearedStages.includes(currentStage)) {
+            gameState.clearedStages.push(currentStage);
+          }
+        } else {
+          modalCard.className = 'modal-card danger';
+          modalTitle.innerText = "❌ 패배";
+          modalBody.innerText = "수학적 최적 경로를 계산한 AI의 방어막에 막혔습니다.\n다시 도전하여 빈틈을 공략해 보세요.";
+          modalBtn.innerText = "다시 시도";
+        }
+
+        gameState.stageHistory[currentStage] = null; 
+        saveLocalStorage();
+        renderStageButtons();
+        renderRecordTable();
+      } else {
+        // [수정사항 1] 사람 대 사람 매치 결과 연출 다변화
+        modalBtn.innerText = "다시 하기"; 
+        
+        if (winner === 1) {
+          modalCard.className = 'modal-card p1-win'; // 블루 전용
+          modalTitle.innerText = "🎉 블루팀 승리";
+          modalBody.innerText = "플레이어 1 (블루 팀)이 마지막 원을 지우며 승리를 쟁취했습니다!";
+          gameState.pvpWins[currentStage].p1 = (gameState.pvpWins[currentStage].p1 || 0) + 1;
+        } else {
+          modalCard.className = 'modal-card p2-win'; // 레드 전용
+          modalTitle.innerText = "🎉 레드팀 승리";
+          modalBody.innerText = "플레이어 2 (레드 팀)가 마지막 원을 지우며 승리를 쟁취했습니다!";
+          gameState.pvpWins[currentStage].p2 = (gameState.pvpWins[currentStage].p2 || 0) + 1;
+        }
+
+        if (!gameState.clearedStages.includes(currentStage)) {
+          gameState.clearedStages.push(currentStage);
+        }
+        gameState.stageHistory[currentStage] = null;
+        saveLocalStorage();
+        renderStageButtons();
+        renderRecordTable();
+      }
+
+      modalBtn.focus();
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+
+    modalBtn.addEventListener('click', () => {
+      closeModal();
+      restartStage();
+    });
+
+    btnSelectP1.addEventListener('click', () => {
+      setFirstTurn(1);
+    });
+
+    btnSelectP2.addEventListener('click', () => {
+      setFirstTurn(2);
+    });
+
+    // 기록 누적 전체 초기화
+    btnClearRecord.addEventListener('click', () => {
+      confirmModalOverlay.classList.add('active');
+    });
+
+    btnConfirmCancel.addEventListener('click', () => {
+      confirmModalOverlay.classList.remove('active');
+    });
+
+    btnConfirmReset.addEventListener('click', () => {
+      confirmModalOverlay.classList.remove('active');
+      gameState = {
+        clearedStages: [],
+        attempts: { 1: 0, 2: 0, 3: 0, 4: 0 },
+        pvpWins: { 
+          3: { p1: 0, p2: 0 }, 
+          4: { p1: 0, p2: 0 } 
+        },
+        stageHistory: {},
+        aiHistory: []
+      };
+      saveLocalStorage();
+      currentStage = 1;
+      renderStageButtons();
+      renderRecordTable();
+      loadStage(currentStage);
+    });
+
+    // [수정사항 2] 되돌아가기 클릭 이벤트 리스너 바인딩 수정
+    btnReset.addEventListener('click', handleUndo);
+    btnSubmit.addEventListener('click', submitTurn);
+
+    function setupGlobalEvents() {
+      window.addEventListener('keydown', (e) => {
+        // 커스텀 초기화 확인 모달 실행 중일 때 키 제어
+        if (confirmModalOverlay.classList.contains('active')) {
+          if (e.key === 'Escape' || e.key === 'Esc') {
+            e.preventDefault();
+            btnConfirmCancel.click();
+          }
+          return;
+        }
+
+        if (modalOverlay.classList.contains('active')) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            modalBtn.click();
+          }
+          return;
+        }
+
+        // [수정사항 2] Backspace키 단축키 바인딩 (이전 턴 Undo 기능)
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          if (!btnReset.disabled) {
+            handleUndo();
+          }
+          return;
+        }
+
+        // Enter/Space - 선택 확정 제출
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (!btnSubmit.disabled) {
+            submitTurn();
+          }
+        }
+      });
+
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      
+      document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', (e) => {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 250) {
+          e.preventDefault(); 
+        }
+        lastTouchEnd = now;
+      }, false);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
