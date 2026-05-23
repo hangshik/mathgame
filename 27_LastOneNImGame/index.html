@@ -273,16 +273,24 @@
       50% { transform: translateY(-6px); }
     }
 
+    /* 수정 후 CSS */
     .game-board {
       display: grid;
       width: 100%;
       height: 100%;
-      gap: 10px;
+      gap: 10px; /* 기본값 */
       background-color: #f8f9fa;
       border-radius: 18px;
       padding: 16px;
     }
 
+    /* 모바일 전용 반응형 레이아웃 추가 */
+    @media (max-width: 420px) {
+      .game-board {
+        gap: 6px; /* 모바일에서 간격 축소 */
+        padding: 12px;
+      }
+    }
     .cell {
       background-color: #ffffff;
       border: 2px solid #e9ecef;
