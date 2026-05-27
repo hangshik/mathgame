@@ -4,514 +4,155 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>메모리 게임</title>
-  <!-- Pretendard 글꼴 로드 -->
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
-    :root {
-      --bg: #f0f2f5;
-      --card-bg: #ffffff;
-      --active: #007bff;
-      --success: #28a745;
-      --danger: #dc3545;
-      --text-main: #222222;
-      --text-sub: #555555;
-      --border: #e9ecef;
-      --btn-base: #f8f9fa;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-      /* 모바일 제스처 및 줌 방지 */
-      touch-action: manipulation;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      padding: 15px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    /* 레이아웃 공통 컨테이너 */
-    .wrapper {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* 카드 형태의 고정 컨테이너 */
-    .container-fixed {
-      background-color: var(--card-bg);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      width: 100%;
-    }
-
-    /* [영역 1-A: 퍼즐 제목 영역] */
-    .title-area {
-      width: 100%;
-      text-align: center;
-      padding: 10px 0;
-    }
-    .title-area h1 {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -1px;
-    }
-
-    /* [영역 1-B: 단계 선택 영역] */
-    .stage-grid {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 8px;
-    }
-    @media (max-width: 600px) {
-      .stage-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-    }
-    .stage-btn {
-      font-size: 14px;
-      font-weight: 600;
-      padding: 10px 0;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background-color: var(--btn-base);
-      color: var(--text-sub);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-    .stage-btn:hover {
-      background-color: var(--border);
-    }
-    .stage-btn.active {
-      background-color: var(--active);
-      color: white;
-      border-color: var(--active);
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-    }
-    .stage-btn.completed {
-      background-color: var(--success);
-      color: white;
-      border-color: var(--success);
-    }
-
-    /* [영역 2: 퍼즐 문제 영역] */
-    .puzzle-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-    }
-    .game-board {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      grid-template-rows: repeat(5, 1fr);
-      gap: 8px; /* 칸 사이 간격을 살짝 넓혀 시원하게 배치 */
-      width: 100%;
-      max-width: 100%; /* 기존 540px 제한을 풀고 상위 컨테이너(800px)에 맞춤 */
-      aspect-ratio: 9 / 5;
-    }
-    .cell {
-      background-color: #e9ecef;
-      color: var(--active);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px; /* 사각형이 커진 만큼 숫자 크기 확대 (기존 18px) */
-      font-weight: 700;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.1s;
-    }
-    .cell:hover {
-      background-color: #dbe2e8;
-    }
-    .cell.hidden {
-      background-color: var(--active);
-      color: var(--active);
-    }
-    .cell.clicked {
-      background-color: #ffffff;
-      border: 2px solid var(--border);
-      color: #adb5bd;
-      cursor: default;
-    }
-    
-    /* 시작 버튼 디자인 (마지막 칸에 배치) */
-    .start-cell {
-      grid-column: 9;
-      grid-row: 5;
-      background-color: var(--success);
-      color: white;
-      border-radius: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 18px; /* 버튼 텍스트 크기 확대 (기존 15px) */
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
-      transition: background-color 0.2s;
-    }
-    .start-cell:hover {
-      background-color: #218838;
-    }
-
-    /* 하단 가이드 공간 스타일 [영역 5] */
-    .guide-box {
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      padding: 18px 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-      font-size: 16px;
-      line-height: 1.6;
-      word-break: keep-all;
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .guide-box h3 {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .guide-box ul {
-      padding-left: 20px;
-      color: var(--text-sub);
-    }
-    .guide-rule { border-left: 6px solid var(--active); }
-
-    /* 결과 알림 팝업창 (모달) */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    .modal-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .modal-card {
-      background-color: var(--card-bg);
-      width: 90%;
-      max-width: 350px;
-      border-radius: 20px;
-      padding: 30px 24px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
-    }
-    .modal-overlay.open .modal-card {
-      transform: scale(1);
-    }
-    
+    :root { --bg: #f0f2f5; --card-bg: #ffffff; --active: #007bff; --success: #28a745; --danger: #dc3545; --text-main: #222222; --text-sub: #555555; --border: #e9ecef; --btn-base: #f8f9fa; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+    body { background-color: var(--bg); padding: 15px 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    .wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+    .title-area { text-align: center; padding: 10px 0; }
+    .container-fixed { background-color: var(--card-bg); border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
+    .stage-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .stage-btn { font-size: 14px; font-weight: 600; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background-color: var(--btn-base); cursor: pointer; }
+    .stage-btn.active { background-color: var(--active); color: white; }
+    .stage-btn.completed { background-color: var(--success); color: white; }
+    .game-board { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; width: 100%; aspect-ratio: 9 / 5; }
+    .cell { background-color: #e9ecef; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--active); }
+    .cell.hidden { background-color: var(--active); color: var(--active); }
+    .cell.clicked { background-color: #ffffff; border: 2px solid var(--border); color: #adb5bd; cursor: default; }
+    .cell.wrong { color: var(--danger) !important; border: 2px solid var(--danger) !important; background-color: #ffeef0; }
+    .start-cell { grid-column: 9; grid-row: 5; background-color: var(--success); color: white; border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: 700; }
+    .guide-box { background-color: var(--card-bg); border-radius: 12px; padding: 18px 30px; border-left: 6px solid var(--active); }
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity:0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay.open { opacity:1; pointer-events: auto; }
+    .modal-card { background: white; width:90%; max-width:350px; padding: 30px; border-radius: 20px; text-align: center; }
     .modal-card.success-type { border-top: 6px solid var(--success); }
     .modal-card.danger-type { border-top: 6px solid var(--danger); }
-
-    .modal-title {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 12px;
-    }
-    .modal-title.success-text { color: var(--success); }
-    .modal-title.danger-text { color: var(--danger); }
-
-    .modal-desc {
-      font-size: 15px;
-      color: var(--text-sub);
-      margin-bottom: 24px;
-      line-height: 1.4;
-    }
-    .modal-action-btn {
-      width: 100%;
-      height: 48px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      color: white;
-    }
-    .modal-action-btn.success-btn { background-color: var(--success); }
-    .modal-action-btn.success-btn:hover { background-color: #218838; }
-    .modal-action-btn.danger-btn { background-color: var(--danger); }
-    .modal-action-btn.danger-btn:hover { background-color: #c82333; }
-
-    @media (max-width: 500px) {
-      .cell { font-size: 16px; border-radius: 4px; } /* 모바일 환경 피드백 반영 */
-      .start-cell { font-size: 14px; }
-      .title-area h1 { font-size: 28px; }
-    }
+    .modal-action-btn { width: 100%; height: 48px; border: none; border-radius: 12px; font-weight: 700; color: white; cursor: pointer; margin-top: 20px; }
+    /* 화면 너비가 600px 이하인 모바일 환경에서만 50%로 축소 */
+@media (max-width: 600px) {
+  .game-board {
+    gap: 4px; /* 수정 후: 4px */
+  }
+}
   </style>
 </head>
 <body>
 
-  <div class="wrapper">
-    <!-- [영역 1-A: 퍼즐 제목 영역] -->
-    <div class="title-area">
-      <h1>메모리 게임</h1>
-    </div>
-
-    <!-- [영역 1-B: 단계 선택 영역] -->
-    <div class="container-fixed">
-      <div class="stage-grid" id="stage-buttons"></div>
-    </div>
-
-    <!-- [영역 2: 퍼즐 문제 영역] -->
-    <div class="container-fixed puzzle-wrapper">
-      <div class="game-board" id="game-board"></div>
-    </div>
-
-    <!-- [영역 5: 퍼즐 규칙 공간] -->
-    <div class="guide-box guide-rule">
-      <h3>💡 게임 규칙</h3>
-      <ul>
-        <li>'Start' 버튼을 누르면 해당 스테이지 수만큼의 숫자가 무작위 칸에 나타납니다.</li>
-        <li><strong>숫자 1을 클릭하는 순간</strong> 모든 숫자가 파란색으로 감춰집니다.</li>
-        <li>기억을 되살려 1부터 마지막 숫자까지 연속으로 정확하게 클릭하면 클리어!</li>
-      </ul>
-    </div>
+<div class="wrapper">
+  <div class="title-area"><h1>메모리 게임</h1></div>
+  <div class="container-fixed"><div class="stage-grid" id="stage-buttons"></div></div>
+  <div class="container-fixed"><div class="game-board" id="game-board"></div></div>
+  <div class="guide-box">
+    <h3>💡 게임 규칙</h3>
+    <ul>
+      <li>'Start' 버튼을 누르면 숫자가 나타납니다.</li>
+      <li>숫자 1을 누르면 가림막이 생깁니다.</li>
+      <li>순서대로 누르세요. 틀리면 오답 이후 숫자는 빨간색으로 표시됩니다.</li>
+    </ul>
   </div>
+</div>
 
-  <!-- 결과 알림 모달 디스플레이 -->
-  <div class="modal-overlay" id="result-modal">
-    <div class="modal-card" id="modal-card">
-      <div class="modal-title" id="modal-title">🎉 성공!</div>
-      <div class="modal-desc" id="modal-desc">단계를 클리어했습니다.</div>
-      <button class="modal-action-btn" id="modal-action-btn">확인</button>
-    </div>
+<div class="modal-overlay" id="result-modal">
+  <div class="modal-card" id="modal-card">
+    <div id="modal-title" style="font-size:24px; font-weight:800; margin-bottom:10px;">🎉 성공!</div>
+    <div id="modal-desc">단계를 클리어했습니다.</div>
+    <button class="modal-action-btn" id="modal-action-btn">확인</button>
   </div>
+</div>
 
-  <script>
-    document.addEventListener('contextmenu', e => e.preventDefault());
+<script>
+  const MIN_STAGE = 5, MAX_STAGE = 22;
+  let currentStage = 5;
+  let completedStages = new Set();
+  let stageHistory = {};
 
+  function initStage(num) {
+    return { isStarted: false, gameStarted: false, sequence: Array.from({length: num}, (_,i) => i+1), userSequence: [], boardCells: Array.from({length: 45}, (_,i) => ({id: i+1, hasNumber: null, isClicked: false, isWrong: false})) };
+  }
+
+  function renderStageButtons() {
+    const container = document.getElementById('stage-buttons');
+    container.innerHTML = '';
+    for (let i = MIN_STAGE; i <= MAX_STAGE; i++) {
+      const btn = document.createElement('button');
+      btn.textContent = `${i}단계`;
+      btn.className = `stage-btn ${i === currentStage ? 'active' : ''} ${completedStages.has(i) ? 'completed' : ''}`;
+      btn.onclick = () => { currentStage = i; if(!stageHistory[i]) stageHistory[i] = initStage(i); stageHistory[i].isStarted = false; renderStageButtons(); drawBoard(); };
+      container.appendChild(btn);
+    }
+  }
+
+  function drawBoard() {
     const gameBoard = document.getElementById('game-board');
-    const stageButtonsContainer = document.getElementById('stage-buttons');
-    
-    const resultModal = document.getElementById('result-modal');
-    const mCard = document.getElementById('modal-card');
-    const mTitle = document.getElementById('modal-title');
-    const mDesc = document.getElementById('modal-desc');
-    const mBtn = document.getElementById('modal-action-btn');
-
-    const MIN_STAGE = 5;
-    const MAX_STAGE = 22;
-    
-    let currentStage = 5;
-    let completedStages = new Set();
-    let stageHistory = {};
-
-    function initStageState(stageNum) {
-      return {
-        isStarted: false,
-        sequence: Array.from({ length: stageNum }, (_, i) => i + 1),
-        userSequence: [],
-        boardCells: []
-      };
-    }
-
-    function setupDefaultHistory() {
-      for (let i = MIN_STAGE; i <= MAX_STAGE; i++) {
-        stageHistory[i] = initStageState(i);
-      }
-    }
-
-    function renderStageButtons() {
-      stageButtonsContainer.innerHTML = '';
-      for (let i = MIN_STAGE; i <= MAX_STAGE; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = `${i}단계`;
-        btn.className = 'stage-btn';
-        
-        if (i === currentStage) btn.classList.add('active');
-        if (completedStages.has(i)) btn.classList.add('completed');
-
-        btn.addEventListener('click', () => {
-          currentStage = i;
-          resetCurrentStage(); 
-          renderStageButtons();
+    gameBoard.innerHTML = '';
+    const state = stageHistory[currentStage];
+    state.boardCells.forEach(cell => {
+      if (cell.id === 45 && !state.isStarted) {
+        const start = document.createElement('div'); start.className = 'start-cell'; start.textContent = 'Start';
+        start.onclick = () => {
+          state.isStarted = true; state.gameStarted = false; state.userSequence = [];
+          state.boardCells.forEach(c => {c.hasNumber = null; c.isClicked = false; c.isWrong = false;});
+          let pos = Array.from({length: 45}, (_,i) => i).sort(() => Math.random() - 0.5);
+          state.sequence.forEach((n, i) => state.boardCells[pos[i]].hasNumber = n);
           drawBoard();
-        });
-        stageButtonsContainer.appendChild(btn);
+        };
+        gameBoard.appendChild(start);
+      } else {
+        const el = document.createElement('div');
+        const isHidden = state.gameStarted && !cell.isClicked && cell.hasNumber;
+        el.className = `cell ${cell.isClicked ? 'clicked' : ''} ${isHidden ? 'hidden' : ''} ${cell.isWrong ? 'wrong' : ''}`;
+        if (cell.isClicked || (!state.gameStarted && cell.hasNumber)) el.textContent = cell.hasNumber || '';
+        el.onclick = () => handleCellClick(cell);
+        gameBoard.appendChild(el);
       }
+    });
+  }
+
+  function handleCellClick(cell) {
+    const state = stageHistory[currentStage];
+    if (!state.isStarted || cell.isClicked || !cell.hasNumber) return;
+    if (cell.hasNumber === 1) state.gameStarted = true;
+    
+    if (cell.hasNumber === state.userSequence.length + 1) {
+      state.userSequence.push(cell.hasNumber);
+      cell.isClicked = true;
+      if (state.userSequence.length === state.sequence.length) {
+        completedStages.add(currentStage);
+        showModal(true);
+      } else { drawBoard(); }
+    } else {
+      state.gameStarted = false;
+      // 틀린 숫자 이후의 모든 숫자들을 wrong 상태로 표시
+      state.boardCells.forEach(c => { if(c.hasNumber > state.userSequence.length) c.isWrong = true; });
+      drawBoard();
+      showModal(false);
     }
+  }
 
-    function drawBoard() {
-      gameBoard.innerHTML = '';
-      const state = stageHistory[currentStage];
-
-      if (state.boardCells.length === 0) {
-        for (let i = 1; i <= 45; i++) {
-          state.boardCells.push({ id: i, hasNumber: null, isClicked: false });
-        }
-      }
-
-      for (let i = 0; i < 45; i++) {
-        const cellData = state.boardCells[i];
-        
-        if (cellData.id === 45 && !state.isStarted) {
-          const startCell = document.createElement('div');
-          startCell.className = 'start-cell';
-          startCell.textContent = 'Start';
-          startCell.addEventListener('click', startCurrentGame);
-          gameBoard.appendChild(startCell);
-          continue;
-        }
-
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        
-        if (state.isStarted && cellData.hasNumber !== null) {
-          cell.dataset.number = cellData.hasNumber;
-          
-          if (cellData.isClicked) {
-            cell.classList.add('clicked');
-            cell.textContent = cellData.hasNumber;
-          } else {
-            if (state.userSequence.length > 0) {
-              cell.classList.add('hidden');
-              cell.textContent = '';
-            } else {
-              cell.textContent = cellData.hasNumber;
-            }
-          }
-          cell.addEventListener('click', handleCellClick);
-        } else {
-          if (cellData.id === 45) cell.style.visibility = 'hidden';
-        }
-
-        gameBoard.appendChild(cell);
-      }
-    }
-
-    function startCurrentGame() {
-      const state = stageHistory[currentStage];
-      state.isStarted = true;
-      state.userSequence = [];
-
-      let indices = Array.from({ length: 45 }, (_, i) => i);
-      for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-      }
-
-      state.boardCells = Array.from({ length: 45 }, (_, i) => ({ id: i + 1, hasNumber: null, isClicked: false }));
-      
-      for (let i = 0; i < state.sequence.length; i++) {
-        const targetIdx = indices[i];
-        state.boardCells[targetIdx].hasNumber = state.sequence[i];
-      }
-
+  function showModal(isSuccess) {
+    const card = document.getElementById('modal-card');
+    const title = document.getElementById('modal-title');
+    const desc = document.getElementById('modal-desc');
+    const btn = document.getElementById('modal-action-btn');
+    card.className = `modal-card ${isSuccess ? 'success-type' : 'danger-type'}`;
+    title.textContent = isSuccess ? '🎉 성공!' : '❌ 틀렸습니다!';
+    title.style.color = isSuccess ? 'var(--success)' : 'var(--danger)';
+    desc.innerHTML = isSuccess ? `${currentStage}단계를 클리어했습니다.` : `순서가 올바르지 않습니다.<br>다시 도전해보세요.`;
+    btn.textContent = isSuccess ? '다음 단계로' : '다시 시도';
+    btn.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
+    btn.onclick = () => {
+      document.getElementById('result-modal').classList.remove('open');
+      if (isSuccess && currentStage < MAX_STAGE) currentStage++;
+      stageHistory[currentStage].isStarted = false;
       renderStageButtons();
       drawBoard();
-    }
+    };
+    document.getElementById('result-modal').classList.add('open');
+  }
 
-    function handleCellClick(e) {
-      const cell = e.currentTarget;
-      const clickedNum = parseInt(cell.dataset.number, 10);
-      const state = stageHistory[currentStage];
-
-      if (cell.classList.contains('clicked')) return;
-
-      const expectedNum = state.userSequence.length + 1;
-
-      if (clickedNum === expectedNum) {
-        state.userSequence.push(clickedNum);
-        
-        const cellObj = state.boardCells.find(c => c.hasNumber === clickedNum);
-        if (cellObj) cellObj.isClicked = true;
-
-        if (clickedNum === 1) {
-          drawBoard();
-          return;
-        }
-
-        cell.className = 'cell clicked';
-        cell.textContent = clickedNum;
-
-        if (state.userSequence.length === state.sequence.length) {
-          showModal(true);
-        }
-      } else {
-        showModal(false);
-      }
-    }
-
-    function showModal(isSuccess) {
-      mCard.className = 'modal-card ' + (isSuccess ? 'success-type' : 'danger-type');
-      mTitle.className = 'modal-title ' + (isSuccess ? 'success-text' : 'danger-text');
-      
-      if (isSuccess) {
-        mTitle.textContent = '🎉 성공!';
-        mDesc.innerHTML = `<strong>${currentStage}단계</strong> 클리어 완료!`;
-        mBtn.className = 'modal-action-btn success-btn';
-        mBtn.textContent = '다음 단계로';
-        
-        completedStages.add(currentStage);
-        
-        mBtn.onclick = () => {
-          closeModal();
-          if (currentStage < MAX_STAGE) {
-            currentStage++;
-          }
-          resetCurrentStage();
-          renderStageButtons();
-          drawBoard();
-        };
-      } else {
-        mTitle.textContent = '❌ 틀렸습니다!';
-        mDesc.innerHTML = `순서가 올바르지 않습니다.<br><strong>${currentStage}단계</strong>를 다시 도전해보세요.`;
-        mBtn.className = 'modal-action-btn danger-btn';
-        mBtn.textContent = '다시 시도';
-        
-        mBtn.onclick = () => {
-          closeModal();
-          resetCurrentStage();
-        };
-      }
-      
-      resultModal.classList.add('open');
-    }
-
-    function closeModal() {
-      resultModal.classList.remove('open');
-    }
-
-    function resetCurrentStage() {
-      stageHistory[currentStage] = initStageState(currentStage);
-      drawBoard();
-    }
-
-    setupDefaultHistory();
-    renderStageButtons();
-    drawBoard();
-  </script>
+  for(let i=MIN_STAGE; i<=MAX_STAGE; i++) stageHistory[i] = initStage(i);
+  renderStageButtons();
+  drawBoard();
+</script>
 </body>
 </html>
