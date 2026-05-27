@@ -12,11 +12,12 @@
     .title-area { text-align: center; padding: 10px 0; }
     .container-fixed { background-color: var(--card-bg); border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
     
-    /* 단계 버튼 레이아웃 */
-    .stage-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-    @media (max-width: 600px) { .stage-grid { grid-template-columns: repeat(4, 1fr); } }
-    @media (max-width: 400px) { .stage-grid { grid-template-columns: repeat(3, 1fr); } }
-    .stage-btn { width: 100%; font-size: 14px; font-weight: 600; padding: 10px 0; border-radius: 12px; border: 1px solid var(--border); background-color: var(--btn-base); cursor: pointer; }
+    /* 단계 버튼 반응형 레이아웃 */
+    .stage-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    @media (max-width: 600px) { .stage-grid { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 450px) { .stage-grid { grid-template-columns: repeat(4, 1fr); } }
+    
+    .stage-btn { width: 100%; font-size: 16px; font-weight: 500; padding: 8px 2px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--btn-base); cursor: pointer; }
     .stage-btn.active { background-color: var(--active); color: white; }
     .stage-btn.completed { background-color: var(--success); color: white; }
     
@@ -78,12 +79,7 @@
       const btn = document.createElement('button');
       btn.textContent = `${i}단계`;
       btn.className = `stage-btn ${i === currentStage ? 'active' : ''} ${completedStages.has(i) ? 'completed' : ''}`;
-      btn.onclick = () => { 
-        currentStage = i; 
-        if(!stageHistory[i]) stageHistory[i] = initStage(i);
-        stageHistory[i].isStarted = false; 
-        renderStageButtons(); drawBoard(); 
-      };
+      btn.onclick = () => { currentStage = i; if(!stageHistory[i]) stageHistory[i] = initStage(i); stageHistory[i].isStarted = false; renderStageButtons(); drawBoard(); };
       container.appendChild(btn);
     }
   }
