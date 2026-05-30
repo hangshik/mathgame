@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"/>
     <title>매지믹서(초급)</title>
-    <!-- 프리텐다드 서체 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
         :root {
@@ -292,6 +291,13 @@
             color: var(--danger) !important;
         }
 
+        .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
+
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -336,6 +342,16 @@
         }
         .modal-btn.success { background-color: var(--success); }
         .modal-btn.danger { background-color: var(--danger); }
+        
+        /* [추가] 초기화 컨펌 전용 가로배정 듀얼 버튼 그룹 및 취소 전용 색상 세팅 */
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        .modal-btn.cancel {
+            background-color: #6c757d;
+        }
 
         /* 모바일 최적화 미디어 쿼리 (가독성 확보를 위한 2줄 배치) */
         @media(max-width: 620px) {
@@ -379,8 +395,7 @@
         <div class="container-fixed puzzle-layout">
             <div style="width: 100%;">
                 <div class="all-cards-line" id="game-cards-container">
-                    <!-- JS에서 동적 주입 -->
-                </div>
+                    </div>
             </div>
 
             <div class="display-panel" id="expr-display">
@@ -399,9 +414,9 @@
                 </div>
                 
                 <div class="controls-row">
-                    <button class="op-btn control-r" onclick="regenerateCurrentStage()">문제 바꾸기</button>
+                    <button class="op-btn control-r" onclick="regenerateCurrentStage()">새 문제</button>
                     <button class="op-btn control-bs" onclick="popExpression()">한 칸 지우기(←)</button>
-                    <button class="op-btn control-c" onclick="clearExpression()">초기화(C)</button>
+                    <button class="op-btn control-c" onclick="clearExpression()">초기화</button>
                     <button class="op-btn control-eval" onclick="evaluateExpression()">정답 확인</button>
                 </div>
             </div>
@@ -410,43 +425,41 @@
         <div class="guide-box solutions-box" id="solutions-box" style="display: none;">
             <h3>✨ 수식 결과</h3>
             <ol class="solutions-list" id="solutions-list">
-                <!-- 발견된 정답 수식이 동적으로 추가됨 -->
-            </ol>
+                </ol>
         </div>
 
-         <!-- 누적 기록 -->
-        <div class="guide-box guide-record">
+         <div class="guide-box guide-record">
             <div class="record-header">
                 <h3>📊 누적 기록</h3>
-                <button class="reset-record-btn" onclick="resetAllScores()">누적 기록 초기화</button>
+                <button class="reset-record-btn" onclick="openResetModal()">누적 기록 초기화</button>
             </div>
             <table class="record-table">
                 <thead>
                     <tr>
                         <th>난이도</th>
-                        <th>성공</th>
-                        <th>실패</th>
-                        <th>문제 바꾸기</th>
+                        <th>성공 횟수</th>
+                        <th>실패 횟수</th>
+                        <th>새 문제 횟수</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>초급</td>
-                        <td id="rec-easy-win" class="stat-num">0</td>
-                        <td id="rec-easy-fail" class="stat-num">0</td>
-                        <td id="rec-easy-new" class="stat-num">0</td>
+                        <td id="rec-easy-win" class="stat-num">0회</td>
+                        <td id="rec-easy-fail" class="stat-num">0회</td>
+                        <td id="rec-easy-new" class="stat-num">0회</td>
                     </tr>
                     <tr>
                         <td>중급</td>
-                        <td id="rec-medium-win" class="stat-num">0</td>
-                        <td id="rec-medium-fail" class="stat-num">0</td>
-                        <td id="rec-medium-new" class="stat-num">0</td>
+                        <td id="rec-medium-win" class="stat-num">0회</td>
+                        <td id="rec-medium-fail" class="stat-num">0회</td>
+                        <td id="rec-medium-new" class="stat-num">0회</td>
                     </tr>
                     <tr>
                         <td>고급</td>
-                        <td id="rec-hard-win" class="stat-num">0</td>
-                        <td id="rec-hard-fail" class="stat-num">0</td>
-                        <td id="rec-hard-new" class="stat-num">0</td>
+                        <td id="rec-hard-win" class="stat-num">0회</td>
+                        <td id="rec-hard-fail" class="stat-num">0회</td>
+                        <td id="rec-hard-new" class="stat-num">0회</td>
                     </tr>
                 </tbody>
             </table>
@@ -461,14 +474,30 @@
                 <li><b>연속 입력 불가:</b> 올바른 연산 유도를 위해 <b>숫자 뒤에 연속으로 숫자가 올 수 없습니다.</b> 숫자를 배치한 후에는 연산 기호를 선택해야 합니다.</li>
                 <li><b>난이도별 조건:</b>
                     <br>• <span style="color:var(--active); font-weight:bold;">초급:</span> 초록색 카드 중 일부 카드만 조합에 활용해도 정답으로 인정됩니다.
-                    <br>• <span style="color:var(--success); font-weight:bold;">중급/고급:</span> 주어진 초록색 카드 <b>5개를 전부 빠짐없이 한 번씩 사용</b>하여 식을 설계해야 합니다.
+                    <br>• <span style="color:var(--success); font-weight:bold;">중급/고급:</span> 주어진 초록색 카드 <b>5개를 전부 빠짐없이 한 번씩 사용</b>하여 식을 설계해야 합니다. 고급은 9까지 숫자를 사용합니다.
                 </li>
             </ul>
         </div>
 
         <div class="guide-box guide-key">
             <h3>⌨️ 키보드 단축키</h3>
-            <p>숫자 및 연산자 기호 입력 가능 / <b>[Backspace]</b>: 한 칸 지우기 / <b>[C], [Esc]</b>: 초기화 / <b>[Enter], [Space]</b>: 정답 확인 / <b>[R]</b>: 문제 바꾸기</p>
+            <div class="shortcut-grid">
+                <div class="shortcut-item">
+                숫자 및 연산자 기호 입력 가능
+                </div>
+                <div class="shortcut-item">
+                <kbd>R</kbd> 새 문제
+                </div>
+                <div class="shortcut-item">
+                <kbd>Backspace</kbd> 한 칸 지우기
+                </div>
+                <div class="shortcut-item">
+                <kbd>C</kbd> / <kbd>Esc</kbd> 초기화
+                </div>
+                <div class="shortcut-item">
+                <kbd>Enter</kbd> / <kbd>Space</kbd> 정답 확인
+                </div>
+            </div>
         </div>
     </div>
 
@@ -476,7 +505,13 @@
         <div class="modal-card" id="modal-card">
             <div class="modal-title" id="modal-title">결과</div>
             <div class="modal-body" id="modal-body">내용</div>
+            
             <button class="modal-btn" id="modal-action-btn">확인</button>
+            
+            <div class="modal-btn-group" id="modal-reset-group" style="display: none;">
+                <button class="modal-btn cancel" onclick="closeModal()">취소</button>
+                <button class="modal-btn danger" onclick="confirmResetScores()">초기화</button>
+            </div>
         </div>
     </div>
 
@@ -755,22 +790,54 @@
             }
         }
 
+        // ★★ 이 부분만 수정 (숫자 + '회' 붙이기) ★★
         function updateScoreTable() {
-            document.getElementById('rec-easy-win').innerText = scoreBoard.easy.win;
-            document.getElementById('rec-easy-fail').innerText = scoreBoard.easy.fail;
-            document.getElementById('rec-easy-new').innerText = scoreBoard.easy.new;
+            document.getElementById('rec-easy-win').innerText = scoreBoard.easy.win + "회";
+            document.getElementById('rec-easy-fail').innerText = scoreBoard.easy.fail + "회";
+            document.getElementById('rec-easy-new').innerText = scoreBoard.easy.new + "회";
             
-            document.getElementById('rec-medium-win').innerText = scoreBoard.medium.win;
-            document.getElementById('rec-medium-fail').innerText = scoreBoard.medium.fail;
-            document.getElementById('rec-medium-new').innerText = scoreBoard.medium.new;
+            document.getElementById('rec-medium-win').innerText = scoreBoard.medium.win + "회";
+            document.getElementById('rec-medium-fail').innerText = scoreBoard.medium.fail + "회";
+            document.getElementById('rec-medium-new').innerText = scoreBoard.medium.new + "회";
             
-            document.getElementById('rec-hard-win').innerText = scoreBoard.hard.win;
-            document.getElementById('rec-hard-fail').innerText = scoreBoard.hard.fail;
-            document.getElementById('rec-hard-new').innerText = scoreBoard.hard.new;
+            document.getElementById('rec-hard-win').innerText = scoreBoard.hard.win + "회";
+            document.getElementById('rec-hard-fail').innerText = scoreBoard.hard.fail + "회";
+            document.getElementById('rec-hard-new').innerText = scoreBoard.hard.new + "회";
         }
 
-        // 모든 난이도의 누적 기록판 데이터를 완전 초기화 및 스토리지 비우기
-        function resetAllScores() {
+        /* ==========================================================================
+           [수정 및 추가] 기존 모달 하드웨어를 공유하는 동적 인터페이스 처리 시스템
+           ========================================================================== */
+        
+        // 1. 누적 기록 초기화 버튼 클릭 시 호출되는 컨펌 모달 트리거
+        function openResetModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const card = document.getElementById('modal-card');
+            const titleDiv = document.getElementById('modal-title');
+            const bodyDiv = document.getElementById('modal-body');
+            const singleBtn = document.getElementById('modal-action-btn');
+            const resetGroup = document.getElementById('modal-reset-group');
+
+            // 테두리 상단선 및 텍스트를 위험(danger - 빨간색) 모드로 매핑
+            card.className = "modal-card danger";
+            titleDiv.className = "modal-title danger";
+            titleDiv.innerText = "기록 초기화";
+            bodyDiv.innerHTML = "누적 기록을 모두 삭제하시겠습니까?";
+            
+            // 기존 단일 버튼 숨기고, 취소/초기화 전용 버튼 그룹 표출
+            singleBtn.style.display = "none";
+            resetGroup.style.display = "flex";
+
+            overlay.classList.add('open');
+        }
+
+        // 2. 모달 창 닫기 공통 인터페이스
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('open');
+        }
+
+        // 3. 모달 내부의 빨간색 "초기화" 버튼 확정 클릭 핸들러
+        function confirmResetScores() {
             for (let lvl in scoreBoard) {
                 scoreBoard[lvl].win = 0;
                 scoreBoard[lvl].fail = 0;
@@ -783,14 +850,17 @@
             }
             updateScoreTable();
             saveScoresToStorage();
+            closeModal();
         }
 
+        // 기존 단일 알림용 모달 래퍼 함수 (구조 변경에 맞춰 보완 유지)
         function showModal(type, title, message, callback = null) {
             const overlay = document.getElementById('modal-overlay');
             const card = document.getElementById('modal-card');
             const titleDiv = document.getElementById('modal-title');
             const bodyDiv = document.getElementById('modal-body');
             const actionBtn = document.getElementById('modal-action-btn');
+            const resetGroup = document.getElementById('modal-reset-group');
 
             card.className = `modal-card ${type}`;
             titleDiv.className = `modal-title ${type}`;
@@ -799,6 +869,10 @@
             
             actionBtn.className = `modal-btn ${type}`;
             actionBtn.innerText = type === 'success' ? '계속 도전하기' : '다시 시도';
+
+            // 단일 알림 상태이므로 듀얼 버튼 감추고 단일 버튼 활성화
+            resetGroup.style.display = "none";
+            actionBtn.style.display = "block";
 
             overlay.classList.add('open');
             actionBtn.focus();
