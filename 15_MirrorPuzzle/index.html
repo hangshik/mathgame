@@ -455,19 +455,19 @@ kbd {
     let isModalOpen = false;
     let modalType = '';
 
-    // --- localStorage 기반 상태 로드 및 복원 ---
-    let currentStage = parseInt(localStorage.getItem('mp_currentStage')) || 1;
-    const completedStages = new Set(JSON.parse(localStorage.getItem('mp_completedStages')) || []);
-    const stageHistory = JSON.parse(localStorage.getItem('mp_stageHistory')) || {};
-    const stageFailCounts = JSON.parse(localStorage.getItem('mp_stageFailCounts')) || {};
+// 상태 로드
+let currentStage = parseInt(sessionStorage.getItem('mp_currentStage')) || 1;
+const completedStages = new Set(JSON.parse(sessionStorage.getItem('mp_completedStages')) || []);
+const stageHistory = JSON.parse(sessionStorage.getItem('mp_stageHistory')) || {};
+const stageFailCounts = JSON.parse(sessionStorage.getItem('mp_stageFailCounts')) || {};
 
-    // 로컬 스토리지에 모든 상태를 저장하는 함수
-    function saveToStorage() {
-      localStorage.setItem('mp_currentStage', currentStage);
-      localStorage.setItem('mp_completedStages', JSON.stringify([...completedStages]));
-      localStorage.setItem('mp_stageHistory', JSON.stringify(stageHistory));
-      localStorage.setItem('mp_stageFailCounts', JSON.stringify(stageFailCounts));
-    }
+// 상태 저장 함수
+function saveToStorage() {
+  sessionStorage.setItem('mp_currentStage', currentStage);
+  sessionStorage.setItem('mp_completedStages', JSON.stringify([...completedStages]));
+  sessionStorage.setItem('mp_stageHistory', JSON.stringify(stageHistory));
+  sessionStorage.setItem('mp_stageFailCounts', JSON.stringify(stageFailCounts));
+}
 
     const dataSets = [
       [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
