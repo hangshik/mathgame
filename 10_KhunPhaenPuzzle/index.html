@@ -214,7 +214,7 @@
 
     .action-btn {
       flex: 1;
-      max-width: 200px;
+      max-width: 800px;
       height: 54px;
       font-size: 16px;
       font-weight: 700;
@@ -230,6 +230,16 @@
     .action-btn:hover {
       background-color: #f1f3f5;
       border-color: #adb5bd;
+    }
+
+    /* 처음으로 버튼 스타일 지정 */
+    .action-btn.reset-btn {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .action-btn.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
     }
 
     .guide-box {
@@ -273,6 +283,14 @@
     .guide-shortcuts h3 {
       color: var(--success);
     }
+
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
     .modal-overlay {
       position: fixed;
@@ -375,7 +393,7 @@
   <div class="section-fluid">
     <div class="control-actions">
       <button class="action-btn" onclick="undoMove()">되돌리기</button>
-      <button class="action-btn" onclick="resetPuzzle()">처음으로</button>
+      <button class="action-btn reset-btn" onclick="resetPuzzle()">🔄 처음으로</button>
     </div>
   </div>
 
@@ -391,12 +409,14 @@
   <!-- [영역 6: 키보드 단축키 안내 공간] -->
   <div class="guide-box guide-shortcuts">
     <h3>⌨ 키보드 단축키</h3>
-    <ul>
-      <li>• <b>[Z]</b> : 이전에 움직인 동작을 직전 상태로 <strong>되돌리기</strong> 합니다.</li>
-      <li>• <b>[R]</b> : 현재 퍼즐 상태를 초기 배치인 <strong>처음으로</strong> 되돌립니다.</li>
-    </ul>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+          <kbd>Z</kbd> <span>되돌리기</span>
+      </div>
+      <div class="shortcut-item">
+          <kbd>R</kbd> <span>처음으로</span>
+      </div>
   </div>
-
 </div>
 
 <!-- [영역 4: 결과 알림 팝업창 모달 시스템] -->
@@ -598,10 +618,13 @@
       let isDragging = false;
       let lastValidX = block.x;
       let lastValidY = block.y;
+      let dragStartX = block.x;
+      let dragStartY = block.y;
       let lastMoveTime = 0;
       let ghostDiv = null;
       const moveThreshold = 40;
       const timeThreshold = 40;
+      let madeMove = false; // 이동 시도 여부
 
       function handleStart(e) {
         e.preventDefault();
@@ -614,7 +637,10 @@
         originY = clientY;
         lastValidX = block.x;
         lastValidY = block.y;
+        dragStartX = block.x;
+        dragStartY = block.y;
         lastMoveTime = Date.now();
+        madeMove = false;
         
         div.style.transition = 'none';
         div.style.zIndex = '1000';
@@ -644,54 +670,93 @@
 
         if (Math.abs(movedX) < moveThreshold && Math.abs(movedY) < moveThreshold) return;
 
+        // 몇 칸 이동할지 결정
         let tempX = lastValidX;
         let tempY = lastValidY;
+        let steps = 1;
 
         if (Math.abs(movedX) > Math.abs(movedY)) {
-          tempX = lastValidX + (movedX > 0 ? 1 : -1);
+          // x축 이동
+          steps = Math.abs(movedX) > moveThreshold * 1.5 ? 2 : 1;
+          tempX = lastValidX + (movedX > 0 ? steps : -steps);
           tempY = lastValidY;
         } else {
+          // y축 이동
+          steps = Math.abs(movedY) > moveThreshold * 1.5 ? 2 : 1;
           tempX = lastValidX;
-          tempY = lastValidY + (movedY > 0 ? 1 : -1);
+          tempY = lastValidY + (movedY > 0 ? steps : -steps);
         }
 
-        if (canMove(block, tempX, tempY)) {
-          pushUndoStack();
-          lastValidX = tempX;
-          lastValidY = tempY;
-          div.style.left = `${tempX * cellSize + 2}px`;
-          div.style.top = `${tempY * cellSize + 2}px`;
-          ghostDiv.style.left = `${tempX * cellSize + 2}px`;
-          ghostDiv.style.top = `${tempY * cellSize + 2}px`;
-          
-          moveCount++;
-          updateMoveCountDisplay();
-          saveCurrentStateToHistory(currentStage);
-          
-          lastMoveTime = currentTime;
-          originX = clientX;
-          originY = clientY;
+        // 2칸 연속 이동이 불가능하다면 1칸만 이동
+        if (steps === 2) {
+          let intermediateX = lastValidX, intermediateY = lastValidY;
+          if (Math.abs(movedX) > Math.abs(movedY)) {
+            intermediateX = lastValidX + (movedX > 0 ? 1 : -1);
+          } else {
+            intermediateY = lastValidY + (movedY > 0 ? 1 : -1);
+          }
+          // 중간 칸과 최종 칸 모두 이동 가능해야 함
+          if (!canMove(block, intermediateX, intermediateY) || !canMove(block, tempX, tempY)) {
+            // 만약 중간 칸도 불가하거나 2칸 모두 불가능하면 1칸만 시도
+            steps = 1;
+            if (Math.abs(movedX) > Math.abs(movedY)) {
+              tempX = lastValidX + (movedX > 0 ? 1 : -1);
+              tempY = lastValidY;
+            } else {
+              tempX = lastValidX;
+              tempY = lastValidY + (movedY > 0 ? 1 : -1);
+            }
+            if (!canMove(block, tempX, tempY)) return;
+          }
         }
+        else {
+          if (!canMove(block, tempX, tempY)) return;
+        }
+
+        pushUndoStack();
+        lastValidX = tempX;
+        lastValidY = tempY;
+        div.style.left = `${tempX * cellSize + 2}px`;
+        div.style.top = `${tempY * cellSize + 2}px`;
+        ghostDiv.style.left = `${tempX * cellSize + 2}px`;
+        ghostDiv.style.top = `${tempY * cellSize + 2}px`;
+
+        madeMove = true;
+
+        // 이동 횟수 증가 논리: 한 번의 "드래그 동작 내"에서는 한 번만 증가
+        // - 여러 번 handleMove가 발생해도 handleEnd에서 1만 올림
+        // - 단, 연속 드래그 중 여러 번 이동시키려면 handleEnd에서 드래그 전후 위치 차이로 1회만 반영
+
+        lastMoveTime = currentTime;
+        originX = clientX;
+        originY = clientY;
       }
 
       function handleEnd() {
         if (!isDragging) return;
         isDragging = false;
-        
+
         if (ghostDiv) {
           ghostDiv.remove();
           ghostDiv = null;
         }
-        
+
+        // 드래그 시작/끝 좌표로 실제 이동 거리 계산
+        if ((lastValidX !== dragStartX || lastValidY !== dragStartY) && madeMove) {
+          // 실제로 이동한 경우에만 이동 횟수 1 증가
+          moveCount++;
+          updateMoveCountDisplay();
+          saveCurrentStateToHistory(currentStage);
+        }
+
         block.x = lastValidX;
         block.y = lastValidY;
 
         div.style.zIndex = '';
         div.style.transition = 'all 0.2s ease-out';
-        
-        // 블록 데이터 동기화 완료 후 성공 판정 체크 연동
+
         renderBlocks();
-        checkWin(); 
+        checkWin();
       }
 
       div.addEventListener("mousedown", handleStart);
