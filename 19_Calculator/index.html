@@ -242,6 +242,15 @@ button.calc-btn:disabled {
 .btn-util:hover { 
   background-color: #f8f9fa; 
 }
+    /* 처음으로 버튼 스타일 지정 */
+    .btn-util.reset-btn {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .btn-util.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
 
 /* [영역 5, 6: 하단 가이드 공간] */
 .guide-box {
@@ -277,6 +286,13 @@ button.calc-btn:disabled {
 .guide-rules h3 { color: var(--active); }
 .guide-keys { border-left: 6px solid var(--success); }
 .guide-keys h3 { color: var(--success); }
+
+.shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
 /* [모달 시스템] */
 .modal-overlay {
@@ -388,7 +404,7 @@ button.calc-btn:disabled {
   <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="container-fluid">
     <div class="control-row">
-      <button class="btn-util" onclick="clearValue()">초기화 (C)</button>
+      <button class="btn-util reset-btn" onclick="clearValue()">🔄 처음으로 </button>
       <button class="btn-util" onclick="undo()">뒤로가기 (←)</button>
     </div>
   </div>
@@ -406,11 +422,19 @@ button.calc-btn:disabled {
   <!-- [영역 6: 키보드 단축키] -->
   <div class="guide-box guide-keys">
     <h3>⌨ 키보드 단축키</h3>
-    <ul>
-      <li>• <strong>[1]</strong> : +7 | <strong>[2]</strong> : ×3 | <strong>[3]</strong> : −11 | <strong>[4]</strong> : ÷2</li>
-      <li>• <strong>[C] / [Esc]</strong> : 초기화 | <strong>[Backspace]</strong> : 뒤로가기</li>
-      <li>• <strong>[Space] / [Enter]</strong> : 팝업창 닫기 및 다음 단계 진행</li>
-    </ul>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+          <kbd>1</kbd> ~ <kbd>4</kbd> <span>순서대로 +7, ×3, -11, ÷2</span>
+      </div>
+      <div class="shortcut-item">
+        <kbd>Esc</kbd> / <kbd>C</kbd> <span>처음으로</span>
+      </div>
+      <div class="shortcut-item">
+          <kbd>Backspace</kbd> <span>되돌리기</span>
+      </div>
+      <div class="shortcut-item">
+          <kbd>Enter</kbd> / <kbd>Space</kbd> <span>팝업창 닫기</span>
+      </div>
   </div>
 </div>
 
