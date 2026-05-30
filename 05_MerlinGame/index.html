@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <!-- 모바일 줌 방지 및 최적화 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>멀린게임</title>
   
-  <!-- Pretendard 서체 로드 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   
   <style>
@@ -189,7 +187,7 @@
       clear: both;
     }
 
-    /* 사각형 스타일 규칙 (1.2배 상향) */
+    /* 사각형 스타일 규칙 */
     .cell {
       flex: 1 1 0%;
       max-width: 72px; 
@@ -343,16 +341,104 @@
       pointer-events: none;
       opacity: 0.6;
     }
+
+    /* ==========================================================================
+       기존의 디자인 레이아웃을 그대로 유지한 통합형 모달창 스타일
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background-color: var(--card-bg);
+      width: 90%;
+      max-width: 350px;
+      border-radius: 20px;
+      padding: 30px 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s ease, border-top 0.1s ease;
+      border-top: 6px solid var(--success); /* 기본 상태는 초록색 */
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--success);
+    }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      color: #ffffff;
+      transition: opacity 0.2s;
+    }
+    .modal-btn:hover { opacity: 0.9; }
+
+    /* 성공 확인 버튼 전용색상 (초록색) */
+    .modal-btn.btn-success {
+      background-color: var(--success);
+    }
+
+    /* 초기화용 하단 조작계 가로 정렬 그룹 */
+    .modal-btn-group {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    /* 회색 바탕의 취소 버튼 */
+    .modal-btn.btn-cancel {
+      background-color: #6c757d;
+    }
+    /* 빨간색 바탕의 초기화 버튼 */
+    .modal-btn.btn-danger {
+      background-color: var(--danger);
+    }
   </style>
 </head>
 <body>
 
-  <!-- [영역 1-A: 퍼즐 제목 영역] -->
   <div class="section-wrapper">
     <h1>멀린게임</h1>
   </div>
 
-  <!-- [영역 1-B: 설정 및 Turn 수 배치 영역] -->
   <div class="section-wrapper container-fixed">
     <div class="setup-container">
       <div class="input-control-box">
@@ -368,19 +454,15 @@
     </div>
   </div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
-  <!-- puzzleCardEl 매핑을 위해 id="puzzleCard" 추가 및 기존 container-fixed 클래스 유지 -->
   <div id="puzzleCard" class="section-wrapper container-fixed puzzle-card">
     <div id="puzzleGridWrapper" class="puzzle-grid-wrapper">
-      <!-- 자바스크립트에서 동적 생성 -->
-    </div>
+      </div>
   </div>
 
-  <!-- [영역 4: 누적 기록 공간 (새로고침 유지 반영)] -->
   <div class="section-wrapper guide-box record-box">
     <div class="guide-title-row">
       <h2>📊 누적 기록</h2>
-      <button class="record-clear-btn" onclick="clearRecords()">누적 기록 초기화</button>
+      <button class="record-clear-btn" onclick="openClearModal()">누적 기록 초기화</button>
     </div>
     <div class="record-content">
       <div id="winCount" style="margin-bottom: 4px;">성공 횟수 : 0회</div>
@@ -404,7 +486,6 @@
     </div>
   </div>
 
-  <!-- [영역 5: 퍼즐 규칙 공간] -->
   <div class="section-wrapper guide-box rules-box">
     <div class="guide-title-row">
       <h2>◈ 멀린게임(Merlin Game) 방법</h2>
@@ -413,7 +494,22 @@
       <li>• 타일을 클릭하면 해당 타일과 상하좌우 인접한 타일들의 숫자가 반전됩니다.</li>
       <li>• 숫자 0은 회색, 숫자 1은 빨간색으로 표시됩니다.</li>
       <li>• 모든 타일을 하나의 색상(전부 0 또는 전부 1)으로 통일하면 스테이지 클리어!</li>
+      <li>• 게임을 다시 시작할려면 "시작" 버튼을 다시 클릭하세요.</li>
     </ul>
+  </div>
+
+  <div class="modal-overlay" id="gameModalOverlay">
+    <div class="modal-card" id="gameModalCard">
+      <div class="modal-title" id="gameModalTitle">🎉 성공!</div>
+      <div class="modal-body" id="gameModalBody"></div>
+      
+      <button class="modal-btn btn-success" id="modalConfirmBtn" onclick="closeModal()">확인</button>
+      
+      <div class="modal-btn-group" id="modalResetButtonGroup" style="display: none;">
+        <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
+        <button class="modal-btn btn-danger" onclick="confirmClearRecords()">초기화</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -435,6 +531,14 @@
     const statusDisplay = document.getElementById("statusDisplay");
     const winCountEl = document.getElementById("winCount");
     const recordTableBody = document.getElementById("recordTableBody");
+
+    // 통합형 모달 요소 매핑
+    const gameModalOverlay = document.getElementById("gameModalOverlay");
+    const gameModalCard = document.getElementById("gameModalCard");
+    const gameModalTitle = document.getElementById("gameModalTitle");
+    const gameModalBody = document.getElementById("gameModalBody");
+    const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+    const modalResetButtonGroup = document.getElementById("modalResetButtonGroup");
 
     // 로컬 스토리지에서 데이터 불러오기 함수
     function loadSavedRecords() {
@@ -537,7 +641,7 @@
       if (checkSuccessCondition()) {
         statusDisplay.innerHTML = `<span style="color:var(--success)">성공! (${count}턴)</span>`;
         
-        // ★ 성공 시 퍼즐 영역 판넬에 녹색 테두리 스타일 적용 클래스 추가
+        // 성공 시 퍼즐 영역 판넬에 녹색 테두리 스타일 적용 클래스 추가
         puzzleCardEl.classList.add("game-success");
 
         wincount++;
@@ -552,6 +656,16 @@
         
         isGameClear = true;
         puzzleGridWrapper.classList.add("grid-locked");
+
+        // [기존 성공 디자인 적용 모달 출력]
+        gameModalCard.style.borderTop = "6px solid var(--success)";
+        gameModalTitle.style.color = "var(--success)";
+        gameModalTitle.textContent = "🎉 성공!";
+        gameModalBody.innerHTML = `<b>${b1}x${b2} 단계</b>를 ${count}턴 만에 통일했습니다!`;
+        
+        modalConfirmBtn.style.display = "block";
+        modalResetButtonGroup.style.display = "none";
+        gameModalOverlay.classList.add("active");
       } else {
         if (currentTurnCountEl) {
           currentTurnCountEl.textContent = count;
@@ -617,16 +731,36 @@
       success();
     }
 
-    // 초기화 시 로컬 스토리지 데이터도 삭제
-    function clearRecords() {
-      if(confirm("모든 누적 기록을 초기화하시겠습니까?")) {
-        wincount = 0;
-        historyList = [];
-        winCountEl.textContent = "성공 횟수 : 0회";
-        localStorage.removeItem("merlin_wincount");
-        localStorage.removeItem("merlin_history");
-        renderTableRecords();
-      }
+    /* ==========================================================================
+       동적 모달창 제어 로직 인터페이스
+       ========================================================================== */
+    
+    // 기록 초기화 버튼 클릭 시 실행 (디자인 스위칭 후 로드)
+    function openClearModal() {
+      gameModalCard.style.borderTop = "6px solid var(--danger)";
+      gameModalTitle.style.color = "var(--danger)";
+      gameModalTitle.textContent = "기록 초기화";
+      gameModalBody.innerHTML = "누적 기록을 모두 삭제하시겠습니까?";
+      
+      modalConfirmBtn.style.display = "none";
+      modalResetButtonGroup.style.display = "flex";
+      gameModalOverlay.classList.add("active");
+    }
+
+    // 모달창 닫기 인터페이스
+    function closeModal() {
+      gameModalOverlay.classList.remove("active");
+    }
+
+    // 모달 내 빨간색 '초기화' 최종 확정 핸들러
+    function confirmClearRecords() {
+      wincount = 0;
+      historyList = [];
+      winCountEl.textContent = "성공 횟수 : 0회";
+      localStorage.removeItem("merlin_wincount");
+      localStorage.removeItem("merlin_history");
+      renderTableRecords();
+      closeModal();
     }
 
     window.onload = () => {
