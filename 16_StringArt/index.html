@@ -131,7 +131,7 @@
   .action-btn {
     flex: 1;
     min-width: 120px;
-    max-width: 200px;
+    max-width: 800px;
     height: 54px;
     font-size: 16px;
     font-weight: 700;
@@ -148,8 +148,10 @@
   .btn-one:hover { background-color: #0056b3; }
   .btn-all { background-color: var(--success); }
   .btn-all:hover { background-color: #1e7e34; }
-  .btn-reset { background-color: #6c757d; }
-  .btn-reset:hover { background-color: #5a6268; }
+  .btn-reset { color: var(--danger); background-color: #ffffff;
+    border: 1.5px solid var(--danger);}
+  .btn-reset:hover {  background-color: var(--danger);
+    color: white; }
 
   /* [영역 6: 키보드 단축키 안내 공간] */
   .guide-box {
@@ -169,7 +171,8 @@
     display: flex;
     align-items: center;
   }
-  .key-box {
+
+    .key-box {
     border-left: 6px solid var(--success);
   }
   .key-box h3 {
@@ -184,6 +187,13 @@
     font-weight: bold;
     color: var(--text-main);
   }
+
+  .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
   @media (max-width: 600px) {
     .control-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -255,15 +265,22 @@
   <div class="action-area">
     <button class="action-btn btn-one" id="drawOne">하나씩 그리기</button>
     <button class="action-btn btn-all" id="drawAll">전체 그리기</button>
-    <button class="action-btn btn-reset" id="reset">초기화</button>
+    <button class="action-btn btn-reset" id="reset">🔄 처음으로</button>
   </div>
 
   <!-- [영역 6: 키보드 단축키 안내 공간] -->
   <div class="guide-box key-box">
     <h3>⌨ 키보드 단축키</h3>
-    <p>하나씩 그리기: <span class="key-badge">Space</span></p>
-    <p>전체 그리기: <span class="key-badge">Enter</span></p>
-    <p>초기화: <span class="key-badge">Esc</span></p>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+          <kbd>Space</kbd> <span>하나씩 그리기</span>
+      </div>
+      <div class="shortcut-item">
+          <kbd>Enter</kbd> <span>전체 그리기</span>
+      </div>
+      <div class="shortcut-item">
+          <kbd>Esc</kbd> <span>처음으로</span>
+      </div> 
   </div>
 
 </div>
