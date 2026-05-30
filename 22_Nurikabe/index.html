@@ -16,6 +16,7 @@
             --grid-line-color: #444444; /* 짙은 회색 테두리 */
             --active: #007bff;
             --success: #28a745;
+            --danger: #dc3545;
 
         }
 
@@ -237,13 +238,13 @@
         .btn-check { background-color: var(--color-active); }
         .btn-check:hover { background-color: #0056b3; }
         .btn-reset { 
-    background-color: #ffffff; /* 흰색 바탕 */
-    color: #212529;            /* 진한 검은색 글씨 */
-    border: 1px solid #ced4da; /* 전체 배경이 밝은 편이므로 깔끔하게 테두리 추가 */
+            color: var(--danger);
+            background-color: #fff;
+            border: 1.5px solid var(--danger);
 }
 .btn-reset:hover { 
-    background-color: #f1f3f5; /* 마우스 올렸을 때 연한 회색으로 변하게 설정 */
-    color: #212529;            /* 글씨 색상 유지 */
+    background-color: var(--danger);
+    color: white;    /* 글씨 색상 유지 */
 }
 
         .modal-overlay {
@@ -293,6 +294,13 @@
     color: var(--success);
 }
 
+.shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
+
 .close-modal-btn {
     background: var(--success);
     color: white;
@@ -328,6 +336,7 @@
         .guide-box {
     width: 100%;
     max-width: 800px;
+    line-height: 1.6;
     box-sizing: border-box;
     background: white;
     border-radius: 14px;
@@ -391,10 +400,10 @@
 
     <div class="controls">
         <button class="btn-ctrl btn-reset" onclick="resetBoard()">
-            초기화
+            🔄 처음으로
         </button>
         <button class="btn-ctrl btn-check" onclick="checkSolution()">
-            확인
+            정답 확인
         </button>
     </div>
     <br>
@@ -409,9 +418,16 @@
 
 <section class="guide-box guide-success">
     <div class="guide-title">⌨ 키보드 단축키</div>
-        <b>[Space] / [Enter]</b> : 정답 확인<br>
-        <b>[C] / [R] / [ESC]</b> : 보드 초기화<br>
-        드래그 : 여러 칸 한 번에 칠하기
+    <div class="shortcut-grid">
+        <div class="shortcut-item">
+            <kbd>Space</kbd> / <kbd>Enter</kbd> <span>정답 확인인</span>
+        </div>
+        <div class="shortcut-item">
+            <kbd>C</kbd> / <kbd>R</kbd> / <kbd>Esc</kbd> <span>처음으로로</span>
+        </div>
+        <div class="shortcut-item">
+            <kbd>드래그</kbd> <span>여러 칸 한 번에 칠하기</span>
+        </div>
 </section>
 
 
