@@ -18,6 +18,7 @@
             --color-bg-solved: #e8f5e9;
             --color-dot: #b0b8c0;
             --color-hint-active: #e3f2fd; /* 힌트 강조색 (연한 파랑) */
+            --danger: #dc3545;
             --bg-color: #f0f2f5;
         }
 
@@ -273,6 +274,22 @@
             box-shadow: none !important;
         }
 
+            /* 처음으로 버튼 스타일 지정 */
+    .btn-ctrl.reset-btn {
+      color: var(--danger);
+      background-color: #fff;
+      border: 1.5px solid var(--danger);
+      box-shadow: 0 4px 0 #cc2535; /* 짙은 파란 그림자 */
+
+      /* --danger: #dc3545; */
+    }
+    .btn-ctrl.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
+       
+
         /* Color 버튼 활성화(체크) 상태 스타일 */
         .btn-color.active {
             background-color: #0056b3 !important; /* 더 진한 파란색 */
@@ -432,8 +449,8 @@
             힌트
         </button>
 
-        <button class="btn-ctrl btn-reset" onclick="resetBoard()">
-            초기화
+        <button class="btn-ctrl reset-btn" onclick="resetBoard()">
+            🔄 처음으로
         </button>
 
         <!-- [수정] class에 "active" 추가, aria-pressed="true"로 변경 -->
@@ -445,8 +462,11 @@
 
     <div class="rules">
         <div class="rules-header">◈ 게임 규칙</div>
-        1. 각 가로줄(행), 세로줄(열), 그리고 굵은 선으로 구분된 구역에 별(★) 1개 또는 2개가 들어간다.<br>
-        2. 별끼리는 상하좌우 및 대각선으로 인접할 수 없습니다.
+        1. 각 가로줄(행), 세로줄(열), 그리고 굵은 선으로 구분된 구역에 별(<span style="color: #FFD600; font-weight: bold;">★</span>) 1개 또는 2개가 들어갑니다.<br>
+        2. 별끼리는 상하좌우 및 대각선으로 인접할 수 없습니다.<br>
+        3. "확인"을 클릭하면 현재 상태를 확인할 수 있습니다.<br>
+        4. 1번 클릭하면 <span style="color: #f44336; font-weight: bold;">x</span>, 2번 클릭하면 별(<span style="color: #FFD600; font-weight: bold;">★</span>), 3번 클릭하면 다시 빈칸이 됩니다.
+   
     </div>
 
 
