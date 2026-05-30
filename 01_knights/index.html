@@ -191,7 +191,7 @@
       justify-content: center;
       gap: 12px;
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;
     }
 
     .action-btn {
@@ -302,6 +302,14 @@
       color: var(--text-main);
     }
 
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
+
     /* 결과 알림 팝업창 */
     .modal-overlay {
       position: fixed;
@@ -410,6 +418,7 @@
     </div>
   </div>
 
+
   <!-- 상태 안내 및 타이머 메시지 표시 영역 -->
   <div class="container-fixed" style="padding: 15px; margin-bottom: 20px;">
     <div id="result" class="status-text">시작할 칸을 선택하세요.</div>
@@ -419,7 +428,7 @@
   <!-- 하단 조작 버튼 영역 -->
   <div class="full-width" style="margin-bottom: 25px;">
     <div class="control-area">
-      <button class="action-btn btn-reset" onclick="resetCurrentStage()">현재 단계 초기화</button>
+      <button class="action-btn btn-reset" onclick="resetCurrentStage()">🔄 처음으로</button>
     </div>
   </div>
 
@@ -451,9 +460,9 @@
   <div class="full-width">
     <div class="guide-box success-style">
       <div class="guide-header success-text">⌨ 키보드 단축키</div>
-      <ul class="guide-content">
-        <li>• <b style="color:var(--text-main);">[Esc], [C]</b> : 현재 플레이 중인 맵을 초기화합니다.</li>
-      </ul>
+      <div class="shortcut-item">
+        <kbd>Esc</kbd> / <kbd>C</kbd> <span>처음으로</span>
+      </div>
     </div>
   </div>
 
@@ -789,14 +798,24 @@
       wrapper.innerHTML = tableTag;
     }
 
-    function clearGlobalHistory() {
-      if(confirm("기록 판의 모든 데이터가 소멸됩니다. 초기화하시겠습니까?")) {
-        clearedRecords = [];
-        localStorage.removeItem("knight_tour_records");
-        updateRecordTable();
-        initNewBoard();
-      }
-    }
+// 1. 초기화 버튼 클릭 시 실행 (모달 띄우기)
+function clearGlobalHistory() {
+    document.getElementById("confirmModalOverlay").classList.add("show");
+}
+
+// 2. 모달 닫기
+function closeConfirmModal() {
+    document.getElementById("confirmModalOverlay").classList.remove("show");
+}
+
+// 3. 실제 데이터 삭제 실행 (초기화 버튼 클릭 시)
+function executeClearHistory() {
+    clearedRecords = [];
+    localStorage.removeItem("knight_tour_records");
+    updateRecordTable();
+    initNewBoard();
+    closeConfirmModal(); // 모달 닫기
+}
 
     const modalOverlay = document.getElementById("modalOverlay");
     const modalCard = document.getElementById("modalCard");
@@ -864,5 +883,17 @@
       }
     });
   </script>
+
+  <div class="modal-overlay" id="confirmModalOverlay">
+    <div class="modal-card danger-mode" id="confirmModalCard">
+        <div class="modal-title">데이터 초기화</div>
+        <div class="modal-body">누적 기록을 모두 삭제하시겠습니까?</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="modal-btn" style="background-color: var(--text-sub);" onclick="closeConfirmModal()">취소</button>
+            <button class="modal-btn" style="background-color: var(--danger);" onclick="executeClearHistory()">초기화</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
