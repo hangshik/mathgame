@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=0.90, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
   <title>좌회전 금지 미로</title>
-  <!-- Pretendard 서체 로드 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root {
@@ -177,7 +176,7 @@
       color: var(--text-main);
     }
 
-    /* 하단 조작 버튼 영역 - 처음부터(1fr)와 우회전(2fr)의 비율 조정을 위해 grid 구조 변경 */
+    /* 하단 조작 버튼 영역 */
     .controls {
       display: grid;
       grid-template-columns: 1fr 2fr 2fr;
@@ -201,11 +200,15 @@
       transform: scale(0.98);
     }
 
-    /* 처음부터 버튼 스타일 수정 (배경 흰색, 글자 검은색, 테두리 추가) */
+    /* 처음으로 버튼 스타일 수정 (배경 흰색, 글자 검은색, 테두리 추가) */
     .controls button#btnRestart {
-      background: #ffffff;
-      color: var(--text-main);
-      border: 1px solid var(--border-light);
+      background-color: #fff;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .controls button#btnRestart:hover {
+      background-color: var(--danger);
+      color: white;
     }
 
     .controls button:disabled {
@@ -291,6 +294,13 @@
       background-color: #fff0f0;
     }
 
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
+
     /* 결과 알림 팝업 모달 시스템 */
     .modal-overlay {
       position: fixed;
@@ -359,6 +369,25 @@
     .success-popup .modal-btn { background: var(--success); }
     .danger-popup .modal-btn { background: var(--danger); }
 
+    /* 초기화 전용 모달 디자인 정의 */
+    .modal-card.reset-popup { border-top: 6px solid var(--danger); }
+    .modal-card.reset-popup .modal-title { color: var(--danger); }
+    
+    /* 초기화 모달용 가로 버튼 컨테이너 */
+    .modal-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modal-btn-cancel {
+      background: #cbd5e1;
+      color: #334155;
+    }
+    .modal-btn-confirm {
+      background: var(--danger);
+      color: white;
+    }
+
     .guide-box ul {
       list-style: none;
     }
@@ -366,12 +395,10 @@
 </head>
 <body>
 
-  <!-- [영역 1-A: 퍼즐 제목 영역] -->
   <div class="row-wrapper">
     <h1>좌회전 금지 미로</h1>
   </div>
 
-  <!-- [영역 1-B: 단계 선택 영역] -->
   <div class="row-wrapper container-fixed">
     <div class="stage-buttons" id="stageBtnContainer">
       <button id="sbtn1" onclick="handleStageButtonClick(1)">1단계</button>
@@ -380,7 +407,6 @@
     </div>
   </div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
   <div class="row-wrapper container-fixed">
     <div class="status-bar">
       <span id="stageLabel">STAGE 1</span>
@@ -391,25 +417,22 @@
     </div>
   </div>
 
-  <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="row-wrapper">
     <div class="controls">
-      <button id="btnRestart" onclick="restartStage()">처음부터</button>
+      <button id="btnRestart" onclick="restartStage()">🔄 처음으로</button>
       <button id="btnForward" onclick="moveForward()">앞으로</button>
       <button id="btnTurn" onclick="rotateRight()">우회전</button>
     </div>
   </div>
 
-  <!-- [영역 4: 누적 기록 공간] -->
   <div class="row-wrapper guide-box guide-record">
     <div class="guide-title">
       <span>📊 누적 기록</span>
-      <button class="btn-reset-record" onclick="resetGlobalRecords()">누적 기록 초기화</button>
+      <button class="btn-reset-record" onclick="confirmResetRecords()">누적 기록 초기화</button>
     </div>
     <div id="recordHistory">클리어 한 기록이 없습니다. 미로를 탈출해 보세요!</div>
   </div>
 
-  <!-- [영역 5: 퍼즐 규칙 공간] -->
   <div class="row-wrapper guide-box guide-rules">
     <div class="guide-title">🧩 게임 규칙</div>
     <ul>
@@ -418,22 +441,28 @@
     </ul>
   </div>
 
-  <!-- [영역 6: 키보드 단축키 공간] -->
   <div class="row-wrapper guide-box guide-shortcuts">
     <div class="guide-title">⌨ 키보드 단축키</div>
-    <ul>
-      <li><b>[상단 화살표 (↑)]</b>: 전진 / 
-      <b>[우측 화살표 (→)]</b>: 우회전 / 
-      <b>[R]</b>: 현재 단계 재시작</li>
-    </ul>
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+      <kbd>↑ (상단 화살표)</kbd> <span>앞으로</span>
+      </div>
+      <div class="shortcut-item">
+      <kbd>→ (우측 화살표)</kbd> <span>우회전</span>
+      </div>
+      <div class="shortcut-item">
+      <kbd>R</kbd> <span>처음부터</span>
+      </div>
+    </div>
   </div>
 
-  <!-- 결과 알림 팝업창 모달 시스템 -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-card" id="modalCard">
       <div class="modal-title" id="modalTitle">🎉 성공!</div>
       <div class="modal-body" id="modalBody">도착 지점에 성공적으로 도달했습니다.</div>
-      <button class="modal-btn" id="modalBtn" onclick="closeModal()">확인</button>
+      <div id="modalBtnContainer">
+        <button class="modal-btn" id="modalBtn" onclick="closeModal()">확인</button>
+      </div>
     </div>
   </div>
 
@@ -451,6 +480,7 @@ const modalOverlay = document.getElementById('modalOverlay');
 const modalCard = document.getElementById('modalCard');
 const modalTitle = document.getElementById('modalTitle');
 const modalBody = document.getElementById('modalBody');
+const modalBtnContainer = document.getElementById('modalBtnContainer');
 const modalBtn = document.getElementById('modalBtn');
 
 const delta = { up: [-1, 0], right: [0, 1], down: [1, 0], left: [0, -1] };
@@ -679,22 +709,49 @@ function showResultPopup(isSuccess) {
   isPopupOpen = true;
   modalOverlay.className = "modal-overlay show";
   
+  // 단일 버튼 형태로 마크업 초기화
+  modalBtnContainer.innerHTML = '<button class="modal-btn" id="modalBtn" onclick="closeModal()">확인</button>';
+  const activeBtn = document.getElementById('modalBtn');
+  
   if (isSuccess) {
     cardClass = "modal-card success-popup";
     modalTitle.textContent = "🎉 성공!";
     modalBody.innerHTML = `축하합니다! 스테이지를 탈출했습니다.<br><b>기록: ${timeSec.toFixed(2)}초</b>`;
-    modalBtn.textContent = currentStage < 3 ? "다음 단계로" : "처음으로 가기";
+    activeBtn.textContent = currentStage < 3 ? "다음 단계로" : "처음으로 가기";
     nextActionType = "NEXT";
   } else {
     cardClass = "modal-card danger-popup";
     modalTitle.textContent = "❌ 틀렸습니다!";
     modalBody.textContent = "더 이상 이동할 수 있는 통로가 없습니다.";
-    modalBtn.textContent = "다시 시도";
+    activeBtn.textContent = "다시 시도";
     nextActionType = "RETRY";
   }
   cardClass = isSuccess ? "modal-card success-popup" : "modal-card danger-popup";
   modalCard.className = cardClass;
-  modalBtn.focus();
+  activeBtn.focus();
+}
+
+/* 기록 초기화용 확인 모달창 호출 함수 */
+function confirmResetRecords() {
+  isPopupOpen = true;
+  modalOverlay.className = "modal-overlay show";
+  modalCard.className = "modal-card reset-popup";
+  
+  modalTitle.textContent = "기록 초기화";
+  modalBody.textContent = "누적 기록을 모두 삭제하시겠습니까?";
+  
+  // 회색 바탕의 취소 버튼과 빨간색 바탕의 초기화 버튼 생성 및 이벤트 부여
+  modalBtnContainer.innerHTML = `
+    <div class="modal-btn-group">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">취소</button>
+      <button class="modal-btn modal-btn-confirm" id="modalResetConfirmBtn">초기화</button>
+    </div>
+  `;
+  
+  document.getElementById('modalResetConfirmBtn').onclick = function() {
+    executeResetGlobalRecords();
+    closeModal();
+  };
 }
 
 function closeModal() {
@@ -710,6 +767,7 @@ function closeModal() {
   } else if (nextActionType === "RETRY") {
     restartStage();
   }
+  nextActionType = ""; // 액션 타입 초기화
 }
 
 function renderRecords() {
@@ -742,7 +800,8 @@ function renderRecords() {
   recordHistoryEl.innerHTML = html;
 }
 
-function resetGlobalRecords() {
+/* 실제 초기화 내부 비즈니스 로직 분리 */
+function executeResetGlobalRecords() {
   allRecordsList = [];
   clearedStages.clear();
   stageStates = {};
@@ -753,6 +812,9 @@ function resetGlobalRecords() {
 document.addEventListener('keydown', e => {
   if (isPopupOpen) {
     if (e.key === 'Enter' || e.key === ' ') {
+      // 그룹화된 버튼 컨텍스트(초기화 모달)에서는 키보드 기본 이벤트를 막지 않고 포커스 처리 유도
+      if(document.getElementById('modalResetConfirmBtn')) return;
+      
       e.preventDefault();
       closeModal();
     }
