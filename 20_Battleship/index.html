@@ -393,8 +393,8 @@
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
 
-    if(localStorage.getItem('battleship_cleared')) {
-      try { clearedStages = JSON.parse(localStorage.getItem('battleship_cleared')); } catch(e){}
+    if(sessionStorage.getItem('battleship_cleared')) {
+      try { clearedStages = JSON.parse(sessionStorage.getItem('battleship_cleared')); } catch(e){}
     }
 
     for(let i=1; i<=TOTAL_STAGES; i++){
@@ -527,7 +527,7 @@
     const win = ships.length===5 && rowOk && colOk;
     if(win && !clearedStages[currentStage]) {
       clearedStages[currentStage] = true;
-      localStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
+      sessionStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
       renderStageButtons();
       updateHintButtonUI();
       showModal(true, "🎉 성공!", `스테이지 ${currentStage} 클리어 정답입니다!`, currentStage < TOTAL_STAGES ? "다음 단계로" : "게임 완료");
@@ -870,7 +870,7 @@
   function resetCurrentStage(){
   // 1. 성공 상태 초기화
   clearedStages[currentStage] = false;
-  localStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
+  sessionStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
   
   // 2. 힌트 상태도 초기화
   stageHintStatus[currentStage] = { count: 0, revealedIds: new Set() };
