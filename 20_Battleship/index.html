@@ -214,6 +214,16 @@
     .action-btn:active { transform: scale(0.98); background-color: #e9ecef; }
     .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border-color: #dee2e6; }
 
+        /* 처음으로 버튼 스타일 지정 */
+        .action-btn.reset-btn {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .action-btn.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
     /* 가이드 공간 기본 공통 레이아웃 */
     .guide-box {
       background: var(--card-bg);
@@ -224,10 +234,19 @@
       font-size: 15px;
       line-height: 1.6;
     }
-    .guide-box h3 { margin: 0 0 10px 0; font-size: 17px; font-weight: 800; }
+    .guide-box h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: 800; }
     .guide-active { border-left: 6px solid var(--active); }
     .rule-list { margin: 0; padding-left: 0; list-style: none; color: var(--text-sub); }
     .rule-list li { margin-bottom: 6px; position: relative; }
+    .guide-box.shortcuts { border-left: 6px solid var(--success); }
+    .guide-box.shortcuts .guide-title {  font-size: 18px;color: var(--success); }
+
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+    .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+  kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
     /* 모달 시스템 */
     .modal-overlay {
@@ -300,8 +319,8 @@
 
   <!-- [영역 3] 하단 조작 버튼 영역 -->
   <div class="container-fluid controls-row">
-    <button id="btnHint" class="action-btn" onclick="useHint()">힌트 (H)</button>
-    <button class="action-btn" onclick="resetCurrentStage()">초기화 (R)</button>
+    <button id="btnHint" class="action-btn" onclick="useHint()">힌트</button>
+    <button class="action-btn reset-btn" onclick="resetCurrentStage()">처음으로</button>
   </div>
 
   <!-- [영역 5] 퍼즐 규칙 공간 (누적 기록, 키보드 단축키 공간 완전히 삭제) -->
@@ -314,6 +333,21 @@
       <li>• 격자판 밖으로 드래그하면 배가 회수되어 다시 배치창(독)으로 돌아갑니다.</li>
     </ul>
   </div>
+
+  <div class="container-fixed guide-box shortcuts">
+    <div class="guide-header">
+        <h2 class="guide-title">⌨ 키보드 단축키</h2>
+    </div>
+
+    <div class="shortcut-grid">
+        <div class="shortcut-item">
+            <kbd>H</kbd> <span>힌트</span>
+        </div>
+        <div class="shortcut-item">
+            <kbd>R</kbd> <span>처음으로</span>
+        </div>
+    </div>
+</div>
 
   <!-- 결과 알림 팝업창 (모달 디스플레이) -->
   <div id="modalOverlay" class="modal-overlay">
@@ -447,10 +481,10 @@
 
     if (canUse) {
       btn.disabled = false;
-      btn.innerText = `힌트 (${MAX_HINTS - status.count}) (H)`;
+      btn.innerText = `힌트 (${MAX_HINTS - status.count})`;
     } else {
       btn.disabled = true;
-      btn.innerText = status.count >= MAX_HINTS ? "힌트 소진" : "힌트 (H)";
+      btn.innerText = status.count >= MAX_HINTS ? "힌트 소진" : "힌트";
     }
   }
 
@@ -834,14 +868,23 @@
   }
 
   function resetCurrentStage(){
-    allStagesData[currentStage] = [];
-    stageHistory[currentStage] = [];
-    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
-    renderStageButtons();
-    renderBoard(); 
-    renderDock();
-    updateHintButtonUI(); 
-  }
+  // 1. 성공 상태 초기화
+  clearedStages[currentStage] = false;
+  localStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
+  
+  // 2. 힌트 상태도 초기화
+  stageHintStatus[currentStage] = { count: 0, revealedIds: new Set() };
+
+  // 3. 기존 데이터 초기화 로직
+  allStagesData[currentStage] = [];
+  stageHistory[currentStage] = [];
+  dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+  
+  renderStageButtons();
+  renderBoard(); 
+  renderDock();
+  updateHintButtonUI(); 
+}
 
   function showModal(isSuccess, title, bodyMessage, buttonText) {
     const overlay = document.getElementById('modalOverlay');
