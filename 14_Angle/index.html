@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>각도 맞추기</title>
-  <!-- 프리텐다드 폰트 로드 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root {
@@ -113,14 +112,13 @@
       margin-bottom: 20px;
     }
     
-    /* 2. 다시 시작 버튼 스타일 수정 (흰색 바탕에 검은색 글씨) */
     .btn-main {
       width: 100%;
-      max-width: 400px;
+      max-width: 800px;
       height: 54px;
       background-color: #ffffff;
-      color: #222222;
-      border: 2px solid #222222;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
       border-radius: 14px;
       font-size: 18px;
       font-weight: 700;
@@ -132,7 +130,8 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .btn-main:hover {
-      background-color: #f8f9fa;
+      background-color: var(--danger);
+      color: white;
     }
     .btn-main:active {
       transform: scale(0.98);
@@ -225,6 +224,92 @@
       color: var(--active);
     }
 
+    /* 결과 알림 및 확인 모달 팝업 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 90%;
+      max-width: 350px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      border-top: 6px solid var(--danger);
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--danger);
+    }
+
+    .modal-body {
+      font-size: 16px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .modal-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      height: 48px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+
+    .modal-btn-cancel {
+      background: #cbd5e1;
+      color: #334155;
+    }
+    .modal-btn-cancel:hover {
+      background: #b4f2f4; /* 마우스 오버 시 미세한 피드백 효과 */
+      background-color: #cbd5e1;
+    }
+
+    .modal-btn-confirm {
+      background: var(--danger);
+      color: white;
+    }
+    .modal-btn-confirm:hover {
+      background: #bd2130;
+    }
+
     @media (max-width: 480px) {
       .title-area h1 { font-size: 28px; }
     }
@@ -232,27 +317,22 @@
 </head>
 <body>
 
-  <!-- [영역 1-A: 퍼즐 제목 영역] -->
   <div class="title-area w-full">
     <h1>각도 맞추기</h1>
   </div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
   <div class="container-fixed w-full game-display">
     <div class="target-info" id="targetAngleDisplay">목표 각도: --°</div>
     <div class="canvas-container">
       <canvas id="circleCanvas" width="360" height="360"></canvas>
     </div>
-    <!-- 정답 및 오답 여부를 화면 아래에 표시 -->
     <div class="result-message" id="resultMessage"></div>
   </div>
 
-  <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="control-area w-full">
     <button class="btn-main" id="btnRestart">🔄 다시 시작</button>
   </div>
 
-  <!-- [영역 4: 누적 기록] -->
   <div class="guide-box w-full guide-danger">
     <div class="guide-title">
       <span>📊 누적 기록</span>
@@ -263,22 +343,30 @@
         <thead>
           <tr>
             <th>성공한 각도</th>
-            <!-- 1. 해당 각도를 맞추기 위해 시도한 횟수로 텍스트 변경 -->
             <th>해당 각도 시도 횟수</th>
           </tr>
         </thead>
         <tbody id="statsTableBody">
-          <!-- 스크립트에서 데이터 행이 한 줄씩 추가됩니다. -->
-        </tbody>
+          </tbody>
       </table>
     </div>
   </div>
 
-  <!-- [영역 5: 퍼즐 규칙] -->
   <div class="guide-box w-full guide-active">
     <div class="guide-title">📐 게임 규칙</div>
     <div style="font-size: 15px; color: var(--text-sub);">
       • 원 안에 고정된 <b>파란색 기준선</b>이 주어집니다. <b>빨간색 제어선</b>을 드래그하여 목표 각도를 맞춘 후 마우스를 떼거나 터치를 끝내면 즉시 정답을 판정합니다.
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="resetModalOverlay">
+    <div class="modal-card">
+      <div class="modal-title">기록 초기화</div>
+      <div class="modal-body">누적 기록을 모두 삭제하시겠습니까?</div>
+      <div class="modal-btn-group">
+        <button class="modal-btn modal-btn-cancel" id="btnModalCancel">취소</button>
+        <button class="modal-btn modal-btn-confirm" id="btnModalConfirm">초기화</button>
+      </div>
     </div>
   </div>
 
@@ -291,6 +379,7 @@
     let targetAngle = 0;
     let isDragging = false;
     let isCleared = false; 
+    let isModalOpen = false; // 모달 활성화 여부 제어용 필터
     
     // 현재 출제된 단일 문제에 대한 시도 횟수 카운터
     let currentQuestionAttempts = 0;
@@ -308,6 +397,11 @@
     const btnRestart = document.getElementById('btnRestart');
     const btnResetHistory = document.getElementById('btnResetHistory');
     const statsTableBody = document.getElementById('statsTableBody');
+
+    // 모달창 제어 인스턴스 정보 로드
+    const resetModalOverlay = document.getElementById('resetModalOverlay');
+    const btnModalCancel = document.getElementById('btnModalCancel');
+    const btnModalConfirm = document.getElementById('btnModalConfirm');
 
     const size = 360;
     const centerX = size / 2;
@@ -364,7 +458,7 @@
       targetAngle = Math.round(30 + Math.random() * 150); 
       isCleared = false;
       
-      // 1. 문제 전환 시 개별 각도 시도 횟수 초기화
+      // 문제 전환 시 개별 각도 시도 횟수 초기화
       currentQuestionAttempts = 0;
 
       targetAngleDisplay.textContent = `목표 각도: ${targetAngle}°`;
@@ -444,13 +538,13 @@
     }
 
     function startDrag(clientX, clientY) {
-      if (isCleared) return; 
+      if (isCleared || isModalOpen) return; 
       isDragging = true;
       handleDragMove(clientX, clientY);
     }
 
     function handleDragMove(clientX, clientY) {
-      if (!isDragging || isCleared) return;
+      if (!isDragging || isCleared || isModalOpen) return;
       const angleValue = getAngleFromCoordinate(clientX, clientY);
       
       currentAngle = Math.round(angleValue); 
@@ -468,9 +562,9 @@
        5. 결과 판정 시스템
        ========================================================================== */
     function checkAnswer() {
-      if (isCleared) return;
+      if (isCleared || isModalOpen) return;
       
-      // 1. 전체 누적이 아닌 해당 개별 문제의 시도 횟수를 증가시킴
+      // 전체 누적이 아닌 해당 개별 문제의 시도 횟수를 증가시킴
       currentQuestionAttempts++;
 
       let diff = Math.abs(currentAngle - originalAngle);
@@ -483,7 +577,7 @@
         resultMessage.textContent = `🎉 맞습니다! 정확한 각도입니다. (${currentQuestionAttempts}번째 시도에 성공)`;
         resultMessage.style.color = 'var(--success)';
         
-        // 1. 해당 각도와 그 각도를 맞추기 위해 시도한 개별 횟수를 매핑하여 기록 장부로 푸시
+        // 해당 각도와 그 각도를 맞추기 위해 시도한 개별 횟수를 매핑하여 기록 장부로 푸시
         stats.historyLog.push({
           clearedAngle: targetAngle,
           attemptsForThisAngle: currentQuestionAttempts
@@ -498,7 +592,28 @@
     }
 
     /* ==========================================================================
-       6. 인터랙션 이벤트 바인딩
+       6. 커스텀 모달 제어 핸들러 시스템
+       ========================================================================== */
+    function openResetModal() {
+      isModalOpen = true;
+      resetModalOverlay.classList.add('show');
+      btnModalCancel.focus(); // 팝업 시 취소 버튼에 포커스 처리 유도
+    }
+
+    function closeResetModal() {
+      isModalOpen = false;
+      resetModalOverlay.classList.remove('show');
+    }
+
+    function executeResetHistory() {
+      stats = { historyLog: [] };
+      saveStorage();
+      renderStatsTable();
+      generateQuestion();
+    }
+
+    /* ==========================================================================
+       7. 인터랙션 이벤트 바인딩
        ========================================================================== */
     canvas.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
     window.addEventListener('mousemove', (e) => handleDragMove(e.clientX, e.clientY));
@@ -520,12 +635,20 @@
 
     btnRestart.addEventListener('click', generateQuestion);
     
-    btnResetHistory.addEventListener('click', () => {
-      if (confirm('테이블의 모든 성공 기록 행과 시도 정보를 초기화하시겠습니까?')) {
-        stats = { historyLog: [] };
-        saveStorage();
-        renderStatsTable();
-        generateQuestion();
+    // 모달 호출 이벤트 연결
+    btnResetHistory.addEventListener('click', openResetModal);
+    btnModalCancel.addEventListener('click', closeResetModal);
+    btnModalConfirm.addEventListener('click', () => {
+      executeResetHistory();
+      closeResetModal();
+    });
+
+    // 팝업 오픈 중 스페이스 및 엔터 키 입력 편의 바인딩
+    document.addEventListener('keydown', e => {
+      if (isModalOpen) {
+        if (e.key === 'Escape') {
+          closeResetModal();
+        }
       }
     });
 
@@ -534,7 +657,7 @@
     });
 
     /* ==========================================================================
-       7. 앱 실행
+       8. 앱 실행
        ========================================================================== */
     loadStorage();
     generateQuestion();
