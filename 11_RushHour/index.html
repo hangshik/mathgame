@@ -220,7 +220,7 @@
     /* 하단 조작 버튼 영역 (흰색 바탕, 검은색 글씨) */
     .control-actions {
       width: 100%;
-      max-width: 400px;
+      max-width: 800px;
       display: flex;
       gap: 12px;
       justify-content: center;
@@ -243,6 +243,16 @@
     .btn-action:hover {
       background-color: #f1f3f5;
       border-color: #adb5bd;
+    }
+
+        /* 처음으로 버튼 스타일 지정 */
+        .btn-action.reset-btn {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .btn-action.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
     }
 
     /* 하단 가이드 공간 (포인트 바 가미) */
@@ -282,6 +292,13 @@
 
     .guide-rule h3 { color: var(--active); }
     .guide-key h3 { color: var(--success); }
+
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
     /* 모달 시스템 */
     .modal-overlay {
@@ -375,8 +392,8 @@
     <!-- [영역 3: 하단 조작 버튼 영역] -->
     <div class="section-fluid">
       <div class="control-actions">
-        <button class="btn-action" onclick="resetPuzzle()">처음으로</button>
         <button class="btn-action" onclick="undoMove()">되돌리기</button>
+        <button class="btn-action reset-btn" onclick="resetPuzzle()">🔄 처음으로</button>
       </div>
     </div>
 
@@ -389,10 +406,14 @@
     <!-- [영역 5: 키보드 단축키] -->
     <div class="guide-box guide-key">
       <h3>⌨ 키보드 단축키</h3>
-      <ul>
-        <li><strong>[R]</strong> : 현재 스테이지 처음부터 다시 시작</li>
-        <li><strong>[Z]</strong> : 직전 이동 상태로 되돌리기</li>
-      </ul>
+      <div class="shortcut-grid">
+        <div class="shortcut-item">
+        <kbd>Z</kbd> <span>되돌리기</span>
+        </div>
+        <div class="shortcut-item">
+        <kbd>R</kbd> <span>처음부터</span>
+        </div>
+      </div>
     </div>
   </div>
 
