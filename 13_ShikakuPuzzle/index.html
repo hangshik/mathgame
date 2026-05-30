@@ -697,37 +697,36 @@ document.addEventListener("mouseup", e => {
     e.preventDefault();
   }, { passive: false });
 
-// [수정 후] document 수준에서 처리하여 영역 이탈 대응
+// [수정된 Touchend 이벤트 리스너]
 document.addEventListener("touchend", function(e) {
   if (interactionLocked) return;
 
   const touch = e.changedTouches[0];
-  if (!touch || !mouseDownPos) {
-    mouseDownPos = null;
-    isDragging = false;
-    return;
-  }
+  if (!touch) return;
 
-  // 화면 전체 좌표에서 해당 셀을 찾아냄 (영역 밖이라도 감지)
+  // 손을 뗀 위치의 요소를 찾습니다 (보드 밖이라도 감지 가능)
   const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
   const cell = elementAtPoint?.closest(".cell");
 
-  const dx = touch.clientX - mouseDownPos.x;
-  const dy = touch.clientY - mouseDownPos.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  if (dist <= 5) {
-    if (cell) handleCellClick(cell);
-  } else {
-    // 영역 밖에서 떼더라도 마지막 위치의 셀을 endCell로 인정
+  if (isDragging) {
+    // 드래그 중이었다면: 마지막 위치가 유효한 셀이면 그곳을 끝점으로 설정
     if (cell) {
       endCell = cell;
+    }
+    
+    // 만약 드래그가 진행되어 startCell과 endCell이 모두 존재하면 확정
+    if (startCell && endCell) {
       if (startCell) startCell.classList.remove("start-cell");
       updateCellStyles();
       tryConfirmRectangle();
     }
+  } else {
+    // 드래그가 아닌 클릭이었다면: 클릭한 셀을 토글 처리
+    if (cell) {
+      handleCellClick(cell);
+    }
   }
-  
+
   mouseDownPos = null;
   isDragging = false;
 }, { passive: false });
