@@ -486,16 +486,16 @@ function loadGameData() {
 
   // 2. 로컬스토리지 복구 시도
   try {
-    const savedCurrentStage = localStorage.getItem('weird_calc_currentStage');
+    const savedCurrentStage = sessionStorage.getItem('weird_calc_currentStage');
     if (savedCurrentStage) currentStage = parseInt(savedCurrentStage, 10);
 
-    const savedSuccess = localStorage.getItem('weird_calc_successStages');
+    const savedSuccess = sessionStorage.getItem('weird_calc_successStages');
     if (savedSuccess) successStages = new Set(JSON.parse(savedSuccess));
 
-    const savedFailCounts = localStorage.getItem('weird_calc_stageFailCounts');
+    const savedFailCounts = sessionStorage.getItem('weird_calc_stageFailCounts');
     if (savedFailCounts) stageFailCounts = JSON.parse(savedFailCounts);
 
-    const savedHistory = localStorage.getItem('weird_calc_stageHistory');
+    const savedHistory = sessionStorage.getItem('weird_calc_stageHistory');
     if (savedHistory) stageHistory = JSON.parse(savedHistory);
   } catch (e) {
     console.error("로컬스토리지 데이터를 가져오는 데 실패했습니다.", e);
@@ -505,10 +505,10 @@ function loadGameData() {
 // 데이터를 저장하는 함수
 function saveGameData() {
   try {
-    localStorage.setItem('weird_calc_currentStage', currentStage);
-    localStorage.setItem('weird_calc_successStages', JSON.stringify([...successStages]));
-    localStorage.setItem('weird_calc_stageFailCounts', JSON.stringify(stageFailCounts));
-    localStorage.setItem('weird_calc_stageHistory', JSON.stringify(stageHistory));
+    sessionStorage.setItem('weird_calc_currentStage', currentStage);
+    sessionStorage.setItem('weird_calc_successStages', JSON.stringify([...successStages]));
+    sessionStorage.setItem('weird_calc_stageFailCounts', JSON.stringify(stageFailCounts));
+    sessionStorage.setItem('weird_calc_stageHistory', JSON.stringify(stageHistory));
   } catch (e) {
     console.error("로컬스토리지 데이터 저장 실패", e);
   }
