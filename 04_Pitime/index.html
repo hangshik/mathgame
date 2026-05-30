@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>3.14초 맞추기</title>
-  <!-- Pretendard 고딕 서체 로드 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
   <style>
     :root {
@@ -73,7 +72,7 @@
       border: 1px solid var(--gray-border);
       background-color: var(--gray-light);
       color: var(--text-sub);
-      border-radius: 12px; /* 단계 버튼 라운드: 12px */
+      border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
       outline: none;
@@ -142,14 +141,14 @@
 
     .action-btn {
       flex: 1;
-      max-width: 240px;
+      max-width: 800px;
       height: 54px;
       font-size: 18px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      border-radius: 12px; /* 단계 버튼과 동일하게 12px로 수정 */
+      border-radius: 12px;
     }
 
     /* 기본 비활성화 상태: 흰색 바탕에 검은색 글자 */
@@ -205,6 +204,12 @@
       justify-content: space-between;
     }
 
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
     /* 영역 4: 누적 기록 (표 레이아웃) */
     .guide-record {
       border-left: 6px solid var(--danger);
@@ -287,7 +292,7 @@
       color: var(--success);
     }
 
-    /* 결과 알림 팝업창 */
+    /* 결과 알림 및 확인용 공통 모달 팝업창 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -320,8 +325,8 @@
       text-align: center;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
       transform: scale(0.9);
-      transition: transform 0.3s ease;
-      border-top: 6px solid var(--success);
+      transition: transform 0.3s ease, border-top 0.1s ease;
+      border-top: 6px solid var(--success); /* 기본 성공 색상 상단 라인 */
     }
 
     .modal-overlay.active .modal-card {
@@ -352,19 +357,34 @@
       cursor: pointer;
       color: #ffffff;
       transition: opacity 0.2s;
-      background-color: var(--success);
     }
     .modal-btn:hover { opacity: 0.9; }
+
+    /* 성공 확인 버튼 (기존 유지) */
+    .modal-btn.btn-success {
+      background-color: var(--success);
+    }
+
+    /* 초기화 팝업 그룹 전용 버튼 스타일 */
+    .modal-btn-group {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    .modal-btn.btn-cancel {
+      background-color: #6c757d; /* 회색 바탕의 취소 버튼 */
+    }
+    .modal-btn.btn-danger {
+      background-color: var(--danger); /* 빨간색 바탕의 초기화 버튼 */
+    }
   </style>
 </head>
 <body>
 
-  <!-- [영역 1-A: 퍼즐 제목 영역] -->
   <div class="row-wrapper">
     <h1 class="game-title">🥧 3.14초 맞추기</h1>
   </div>
 
-  <!-- [영역 1-B: 단계 선택 영역] -->
   <div class="row-wrapper container-fixed">
     <div class="level-grid" id="levelGrid">
       <button class="level-btn" data-level="easy" id="btn-easy">초급</button>
@@ -373,7 +393,6 @@
     </div>
   </div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
   <div class="row-wrapper container-fixed">
     <div class="puzzle-box">
       <div class="timer-display" id="timerDisplay">0.00</div>
@@ -382,25 +401,21 @@
     </div>
   </div>
 
-  <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="row-wrapper control-box">
     <button class="action-btn" id="startBtn">시작</button>
     <button class="action-btn" id="stopBtn" disabled>멈춤</button>
     <button class="action-btn playable" id="resetBtn" style="display: none;">다시 시작</button>
   </div>
 
-  <!-- [영역 4: 누적 기록 영역] -->
   <div class="row-wrapper guide-card guide-record">
     <h3>
       <span>📊 누적 기록</span>
       <button class="clear-history-btn" id="clearHistoryBtn">누적 기록 초기화</button>
     </h3>
     <div id="recordTableContainer">
-      <!-- 스크립트가 동적으로 테이블 렌더링 -->
-    </div>
+      </div>
   </div>
 
-  <!-- [영역 5: 퍼즐 규칙 영역] -->
   <div class="row-wrapper guide-card guide-rules">
     <h3>◈ 게임 방법</h3>
     <ul>
@@ -409,20 +424,30 @@
     </ul>
   </div>
 
-  <!-- [영역 6: 키보드 단축키 영역] -->
   <div class="row-wrapper guide-card guide-keys">
     <h3>⌨ 키보드 단축키</h3>
-    <div>
-      <b>Space</b> : 시작, 멈춤 / <b>Esc</b> : 다시 시작
+    <div class="shortcut-grid">
+      <div class="shortcut-item">
+      <kbd>Space</kbd> 시작, 멈춤
+      </div> 
+      <div class="shortcut-item">
+      <kbd>Esc</kbd> 다시 시작
+      </div>
+    </div>
     </div>
   </div>
 
-  <!-- 결과 알림 팝업창 -->
   <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-card">
-      <div class="modal-title">🎉 성공!</div>
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공!</div>
       <div class="modal-body" id="modalBody"></div>
-      <button class="modal-btn" id="modalConfirmBtn">확인</button>
+      
+      <button class="modal-btn btn-success" id="modalConfirmBtn">확인</button>
+      
+      <div class="modal-btn-group" id="modalResetButtonGroup" style="display: none;">
+        <button class="modal-btn btn-cancel" id="modalCancelBtn">취소</button>
+        <button class="modal-btn btn-danger" id="modalResetConfirmBtn">초기화</button>
+      </div>
     </div>
   </div>
 
@@ -459,9 +484,18 @@
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const levelGrid = document.getElementById('levelGrid');
 
+    // 모달 DOM 참조 분리 및 확장
     const modalOverlay = document.getElementById('modalOverlay');
+    const modalCard = document.getElementById('modalCard');
+    const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    const modalResetButtonGroup = document.getElementById('modalResetButtonGroup');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalResetConfirmBtn = document.getElementById('modalResetConfirmBtn');
+
+    // 모달 상태 추적용 변수 (초기화 모달이 떠있을 때는 단축키 오작동 방지용)
+    let isResetModalActive = false;
 
     function init() {
       loadLocalStorage();
@@ -581,7 +615,15 @@
         gameResultMsg.textContent = `성공 - ${count}번째`;
         gameResultMsg.className = 'game-result-msg success';
         
+        // 모달을 '성공 스타일'로 전환 후 로드
+        isResetModalActive = false;
+        modalCard.style.borderTop = "6px solid var(--success)";
+        modalTitle.style.color = "var(--success)";
+        modalTitle.textContent = "🎉 성공!";
         modalBody.innerHTML = `<b>${count}번째 도전</b>만에 성공하셨습니다!`;
+        modalConfirmBtn.style.display = "block";
+        modalResetButtonGroup.style.display = "none";
+
         modalOverlay.classList.add('active');
         modalConfirmBtn.focus();
       } else {
@@ -649,6 +691,7 @@
 
     function closeModal() {
       modalOverlay.classList.remove('active');
+      isResetModalActive = false;
       renderState();
     }
 
@@ -683,32 +726,54 @@
     startBtn.addEventListener('click', startTimer);
     stopBtn.addEventListener('click', stopTimer);
     resetBtn.addEventListener('click', resetLevelState);
+    
+    // 모달 제어 버튼 바인딩
     modalConfirmBtn.addEventListener('click', closeModal);
+    modalCancelBtn.addEventListener('click', closeModal);
 
+    // 기록 초기화 확인 버튼 클릭 시 (브라우저 confirm 대신 커스텀 모달 출력)
     clearHistoryBtn.addEventListener('click', () => {
-      if(confirm("모든 단계의 누적 기록을 완전히 초기화하시겠습니까?")) {
-        localStorage.removeItem('pie_game_history_2026_v10');
-        currentFailureCounts = { easy: 1, medium: 1, hard: 1 };
-        successHistoryList = [];
-        levelVisualState = {
-          easy: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
-          medium: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
-          hard: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false }
-        };
-        currentLevel = 'medium';
-        isStageClearedScreen = false;
-        timerDisplay.textContent = "0.00";
-        gameResultMsg.textContent = '';
-        gameResultMsg.className = 'game-result-msg';
-        updateLevelButtons();
-        renderState();
-        renderRecordsTable();
-      }
+      isResetModalActive = true;
+      modalCard.style.borderTop = "6px solid var(--danger)";
+      modalTitle.style.color = "var(--danger)";
+      modalTitle.textContent = "기록 초기화";
+      modalBody.innerHTML = "누적 기록을 모두 삭제하시겠습니까?";
+      modalConfirmBtn.style.display = "none";
+      modalResetButtonGroup.style.display = "flex";
+      
+      modalOverlay.classList.add('active');
+    });
+
+    // 커스텀 모달 내의 '초기화(빨간색)' 확정 실행 버튼 클릭 시
+    modalResetConfirmBtn.addEventListener('click', () => {
+      localStorage.removeItem('pie_game_history_2026_v10');
+      currentFailureCounts = { easy: 1, medium: 1, hard: 1 };
+      successHistoryList = [];
+      levelVisualState = {
+        easy: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+        medium: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false },
+        hard: { timerText: "0.00", resultText: "", resultClass: "game-result-msg", isCleared: false }
+      };
+      currentLevel = 'medium';
+      isStageClearedScreen = false;
+      timerDisplay.textContent = "0.00";
+      gameResultMsg.textContent = '';
+      gameResultMsg.className = 'game-result-msg';
+      updateLevelButtons();
+      renderState();
+      renderRecordsTable();
+      closeModal();
     });
 
     document.addEventListener('keydown', (e) => {
       if (modalOverlay.classList.contains('active')) {
         if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          // 기록 초기화 컨펌 창 상태가 아닐 때만 스페이스/엔터로 패스 허용
+          if (!isResetModalActive) {
+            closeModal();
+          }
+        } else if (e.code === 'Escape') {
           e.preventDefault();
           closeModal();
         }
@@ -730,4 +795,4 @@
     init();
   </script>
 </body>
-</html> 
+</html>
