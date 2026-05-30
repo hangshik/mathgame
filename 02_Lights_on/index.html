@@ -80,21 +80,20 @@
       height: 100%;
     }
 
+    /* 원의 크기는 JS에서 동적으로 정해집니다. */
     .circle {
       position: absolute;
-      width: 60px;
-      height: 60px;
       background-color: var(--active); /* 기본 상태: 파란색 */
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
       color: white;
-      font-size: 18px;
       font-weight: 700;
       cursor: pointer;
       transition: background-color 0.25s ease, transform 0.1s ease;
       box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+      /* width, height, font-size는 JS에서 설정 */
     }
 
     .circle:active {
@@ -303,26 +302,42 @@
     let radius = 0; 
     let isGameWon = false;
 
-    // 동적 서클 배치 함수
+    // 동적 서클 배치 함수 (원의 크기도 자동 조절)
     function deployCircles() {
       container.innerHTML = "";
-      const rect = container.getBoundingClientRect();
-      const size = rect.width;
-      radius = size * 0.36; 
-      const center = size / 2;
-      const circleRadius = 30; 
 
+      const rect = container.getBoundingClientRect();
+      const size = Math.min(rect.width, rect.height);
+      // 원 간 간격을 고려해 반지름, 원 크기를 산정
+      radius = size * 0.38;
+
+      // 원이 서로 겹치지 않도록 최대한 크게 배치 (원의 중심 간 간격 이상으로)
+      const maxCircleDiameter = (
+        2 * Math.PI * radius
+      ) / numCircles * 0.85; // 약간 여유(간격) 포함
+      // 최소/최대 크기 제한
+      const circleDiameter = Math.max(36, Math.min(86, maxCircleDiameter));
+      const circleRadius = circleDiameter / 2;
+
+      // 텍스트 크기는 원의 크기에 맞춤
+      const fontSize = Math.max(14, Math.min(32, circleDiameter * 0.32));
+
+      const centerX = size / 2;
+      const centerY = size / 2;
       const startAngle = -Math.PI / 2; 
 
       for (let i = 0; i < numCircles; i++) {
         const angle = startAngle + (i / numCircles) * 2 * Math.PI;
-        const x = center + Math.cos(angle) * radius - circleRadius;
-        const y = center + Math.sin(angle) * radius - circleRadius;
+        const x = centerX + Math.cos(angle) * radius - circleRadius;
+        const y = centerY + Math.sin(angle) * radius - circleRadius;
 
         const circle = document.createElement("div");
         circle.className = "circle";
         circle.style.left = `${x}px`;
         circle.style.top = `${y}px`;
+        circle.style.width = `${circleDiameter}px`;
+        circle.style.height = `${circleDiameter}px`;
+        circle.style.fontSize = `${fontSize}px`;
         circle.textContent = i + 1;
         circle.dataset.index = i;
         container.appendChild(circle);
