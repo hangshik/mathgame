@@ -224,8 +224,12 @@
         }
         .btn-reset {
             grid-row: 2;
-            background-color: #e2e8f0;
-            color: #334155;
+            color: var(--danger);
+      border: 1.5px solid var(--danger);
+        }
+        .btn-reset:hover {
+            background-color: var(--danger);
+      color: white;
         }
 
         /* 가이드 및 기록 보드 스타일 */
@@ -308,17 +312,16 @@
 
         .box-shortcuts { border-left: 6px solid var(--success); }
         .box-shortcuts h3 { color: var(--success); }
-        .key-badge {
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-weight: bold;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-        }
 
-        /* 결과 알림 팝업창 */
+
+        .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
+
+        /* 결과 알림 팝업창 및 공통 모달 스타일 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -345,17 +348,37 @@
         }
         .modal-card.success { border-top: 6px solid var(--success); }
         .modal-card.fail { border-top: 6px solid var(--danger); }
+        .modal-card.confirm { border-top: 6px solid  var(--danger); } /* 확인 창 전용 상단 테두리 */
 
         .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
         .modal-card.success .modal-title { color: var(--success); }
         .modal-card.fail .modal-title { color: var(--danger); }
-        .modal-msg { color: var(--text-sub); font-size: 15px; margin-bottom: 24px; }
+        .modal-card.confirm .modal-title { color:  var(--danger); }
+        
+        .modal-msg { color: var(--text-sub); font-size: 15px; margin-bottom: 24px; line-height: 1.5; word-break: keep-all; }
+        
         .modal-btn {
             width: 100%; height: 48px; border: none; border-radius: 12px;
             font-size: 16px; font-weight: 700; cursor: pointer; color: #ffffff;
         }
         .modal-card.success .modal-btn { background-color: var(--success); }
         .modal-card.fail .modal-btn { background-color: var(--danger); }
+
+        /* 누적 기록 초기화 모달용 2버튼 가로 배치 스타일 */
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-btn-cancel {
+            background-color: #94a3b8;
+            color: #ffffff;
+        }
+        .modal-btn-cancel:hover { background-color: #64748b; }
+        .modal-btn-confirm {
+            background-color: var(--danger);
+            color: #ffffff;
+        }
+        .modal-btn-confirm:hover { background-color: #b91c1c; }
     </style>
 </head>
 <body>
@@ -379,13 +402,11 @@
         </div>
     </div>
 
-    <!-- 1. 리셋 및 되돌리기 버튼이 화살표 왼쪽 위/아래로 통합 배치된 그리드 조작 패널 -->
     <div class="full-width control-panel">
         <div class="combined-grid">
             <button class="d-btn side-btn btn-undo" onclick="undo()">되돌리기</button>
-            <button class="d-btn side-btn btn-reset" onclick="resetCurrentLevel()">초기화</button>
+            <button class="d-btn side-btn btn-reset" onclick="resetCurrentLevel()">🔄 처음으로</button>
             
-            <!-- 공백용 더미 그리드 구분 패널 -->
             <div></div> 
 
             <button class="d-btn btn-up" onclick="handleMove(0, -1)">↑</button>
@@ -397,7 +418,7 @@
     </div>
 
     <div class="full-width guide-box box-records">
-        <h3>📊 누적 기록 <button class="clear-record-btn" onclick="clearStats()">누적 기록 초기화</button></h3>
+        <h3>📊 누적 기록 <button class="clear-record-btn" onclick="openClearStatsModal()">누적 기록 초기화</button></h3>
         <table class="record-table">
             <thead>
                 <tr>
@@ -427,12 +448,19 @@
 
     <div class="full-width guide-box box-shortcuts">
         <h3>⌨ 키보드 단축키</h3>
-        <ul>
-            <li>• <span class="key-badge">↑</span> <span class="key-badge">↓</span> <span class="key-badge">←</span> <span class="key-badge">→</span> : 원 이동 조작</li>
-            <li>• <span class="key-badge">Space</span> : 조작할 활성 원 전환 (테두리 표시됨)</li>
-            <li>• <span class="key-badge">Z</span> : 되돌리기</li>
-            <li>• <span class="key-badge">R</span> 또는 <span class="key-badge">Esc</span> : 현재 스테이지 처음부터 재시작</li>
-        </ul>
+        <div class="shortcut-grid">
+            <div class="shortcut-item">
+                <kbd>↑</kbd>  <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <span>원 이동 조작</span>
+            </div>
+            <div class="shortcut-item">
+                <kbd>Space<</kbd> <span>조작할 활성 원 전환 (테두리 표시됨)</span>
+            </div>
+            <div class="shortcut-item">
+                <kbd>Z</kbd> <span>되돌리기</span>
+            </div>
+            <div class="shortcut-item">
+                <kbd>R</kbd> / <kbd>Esc</kbd> <span>처음으로</span>
+            </div>
     </div>
 
     <div class="modal-overlay" id="game-modal">
@@ -440,6 +468,17 @@
             <div class="modal-title" id="modal-title">🎉 성공!</div>
             <div class="modal-msg" id="modal-msg">완벽합니다!</div>
             <button class="modal-btn" id="modal-action-btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="clear-stats-modal">
+        <div class="modal-card confirm">
+            <div class="modal-title">기록 초기화</div>
+            <div class="modal-msg">누적 기록을 모두 삭제하시겠습니까?</div>
+            <div class="modal-btn-group">
+                <button class="modal-btn modal-btn-cancel" onclick="closeClearStatsModal()">취소</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmClearStats()">초기화</button>
+            </div>
         </div>
     </div>
 
@@ -571,13 +610,24 @@ function renderRecordTable() {
     });
 }
 
-function clearStats() {
+/* --- 누적 기록 초기화 모달 제어 로직 --- */
+function openClearStatsModal() {
+    document.getElementById('clear-stats-modal').style.display = 'flex';
+}
+
+function closeClearStatsModal() {
+    document.getElementById('clear-stats-modal').style.display = 'none';
+}
+
+function confirmClearStats() {
     completedStages.clear();
     latestClearedLevel = null;
     for (let key in clearedRecords) delete clearedRecords[key];
     for (let key in stageHistory) delete stageHistory[key];
+    closeClearStatsModal();
     resetCurrentLevel();
 }
+/* -------------------------------------- */
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -637,6 +687,7 @@ function varColor(name) {
 
 function handleMove(dx, dy) {
     if (document.getElementById('game-modal').style.display === 'flex') return;
+    if (document.getElementById('clear-stats-modal').style.display === 'flex') return; // 초기화 모달 중 이동 방지
     const p = players.find(p => p.active);
     if (!p || p.done) return;
 
@@ -758,6 +809,21 @@ document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
 
 window.addEventListener('keydown', (e) => {
     const modal = document.getElementById('game-modal');
+    const clearModal = document.getElementById('clear-stats-modal');
+
+    // 초기화 모달창이 열려있을 때의 단축키 처리
+    if (clearModal.style.display === 'flex') {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            closeClearStatsModal();
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmClearStats();
+        }
+        return; // 모달 활성화 중에는 게임 플레이 키 차단
+    }
+
     if (modal.style.display === 'flex') {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
