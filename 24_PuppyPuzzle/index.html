@@ -147,6 +147,8 @@
     .btn {
       font-family: inherit;
       font-size: 16px;
+      width: 100%;
+      max-width: 800px;
       padding: 14px 28px;
       border: 1px solid #dee2e6; 
       border-radius: 12px;
@@ -159,6 +161,32 @@
     }
 
     .btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* 처음으로 버튼 스타일 지정 */
+        .btn.reset {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+      box-shadow: 0 4px 0 #cc2535; 
+    }
+    .btn.reset:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-reset {
+      background-color: var(--card-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+
+      transition: 0.2s;
+    }
+    .btn-reset:active { background-color: #f8d7da; }
 
     /* 하단 가이드 공간 */
     .guides-section {
@@ -209,19 +237,7 @@
       font-weight: 700;
       font-size: 18px;
     }
-    .btn-reset {
-      background-color: var(--card-bg);
-      color: var(--danger);
-      border: 1px solid var(--danger);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: 0.2s;
-    }
-    .btn-reset:active { background-color: #f8d7da; }
+
 
     .record-container {
       max-height: 150px;
@@ -229,6 +245,13 @@
       background: #f8f9fa;
       border-radius: 12px;
       padding: 5px 12px;
+    }
+    .record-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .record-container::-webkit-scrollbar-thumb {
+      background: #ced4da;
+      border-radius: 3px;
     }
     .record-item {
       font-size: 15px;
@@ -246,19 +269,109 @@
       font-size: 15px;
     }
 
-    /* 결과 알림 팝업창 (모달) */
+    /* 커스텀 공통 모달 레이아웃 구조 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
     }
 
-    .modal-content {
+    .custom-modal-content {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 20px; /* 고유 카드 UI 곡률 */
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      width: 90%;
+      max-width: 380px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden; /* 내부 데코레이션 바 마스킹 처리를 통해 곡선 테두리 보존 */
+    }
+
+    /* 위쪽 빨간색 바의 양 끝 곡선 디자인 최적화 */
+    .custom-modal-content::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 6px;
+      background-color: var(--danger);
+    }
+
+    /* 모달창의 제목: 빨간색 글씨 및 가운데 정렬 */
+    .custom-modal-title {
+      margin: 8px 0 16px 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--danger);
+      text-align: center;
+      letter-spacing: -0.5px;
+    }
+
+    .custom-modal-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      word-break: keep-all;
+      text-align: center;
+    }
+
+    .custom-modal-actions {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .c-modal-btn {
+      flex: 1;
+      height: 48px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.15s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+    }
+
+    .c-modal-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* 회색 바탕의 취소 버튼 */
+    .c-modal-btn-cancel {
+      background-color: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+    }
+    .c-modal-btn-cancel:hover {
+      background-color: #dee2e6;
+    }
+
+    /* 빨간색 바탕의 초기화 버튼 */
+    .c-modal-btn-confirm {
+      background-color: var(--danger);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+    }
+    .c-modal-btn-confirm:hover {
+      background-color: #bd2130;
+    }
+
+    /* 결과 알림 팝업창 (기존 성공 모달 스타일 유지) */
+    .success-modal-content {
       background: var(--card-bg);
       padding: 30px 25px;
       border-radius: 20px;
@@ -270,7 +383,7 @@
       box-sizing: border-box;
     }
 
-    .modal-content h2 {
+    .success-modal-content h2 {
       color: var(--success);
       margin-top: 0;
       font-size: 26px;
@@ -278,7 +391,7 @@
       margin-bottom: 15px;
     }
 
-    .modal-content p {
+    .success-modal-content p {
       font-size: 17px;
       color: var(--text-main);
       margin-bottom: 20px;
@@ -297,12 +410,10 @@
 </head>
 <body>
 
-  <!-- 영역 1-A: 퍼즐 제목 영역 -->
   <div class="flow-area">
     <h1 class="title">강아지 퍼즐</h1>
   </div>
   
-  <!-- 카드 형태 강조 영역 (퍼즐 판) -->
   <div class="container-fixed">
     <div class="status-bar">
       <div class="info-box">이동: <span id="moveCount">0</span></div>
@@ -311,15 +422,12 @@
     <div class="puzzle-container" id="puzzle"></div>
   </div>
 
-  <!-- 하단 조작 버튼 영역 -->
   <div class="flow-area controls">
     <button class="btn" onclick="undoMove()">되돌리기</button>
-    <button class="btn" onclick="resetPuzzle()">다시 시작</button>
+    <button class="btn reset" onclick="resetPuzzle()">🔄 처음으로</button>
   </div>
 
-  <!-- 선택 영역 4, 5: 하단 가이드 공간 -->
   <div class="guides-section">
-    <!-- 영역 4: 퍼즐 목표 -->
     <div class="guide-box guide-goal">
       <div class="guide-title">◈ 퍼즐 목표</div>
       <div>
@@ -328,11 +436,10 @@
       </div>
     </div>
 
-    <!-- 영역 5: 누적 기록 -->
     <div class="guide-box guide-record">
       <div class="guide-record-header">
         <div class="guide-title">📊 누적 기록</div>
-        <button class="btn-reset" onclick="clearRecords()">누적 기록 초기화</button>
+        <button class="btn-reset" onclick="openClearModal()">누적 기록 초기화</button>
       </div>
       <div class="record-container" id="recordList">
         <div class="empty-record">기록이 없습니다.</div>
@@ -340,12 +447,24 @@
     </div>
   </div>
 
-  <!-- 결과 알림 팝업창 -->
   <div class="modal-overlay" id="successModal">
-    <div class="modal-content">
+    <div class="success-modal-content">
       <h2>🎉 정답!</h2>
       <p>기록: <strong>이동 <span id="finalMoves">0</span>회 / <span id="finalTime">00:00</span></strong></p>
       <button class="btn btn-success" onclick="closeModal()">확인</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="clearRecordModal">
+    <div class="custom-modal-content">
+      <h3 class="custom-modal-title">기록 초기화</h3>
+      <div class="custom-modal-body">
+        누적 기록을 모두 삭제하시겠습니까?
+      </div>
+      <div class="custom-modal-actions">
+        <button class="c-modal-btn c-modal-btn-cancel" onclick="closeClearModal()">취소</button>
+        <button class="c-modal-btn c-modal-btn-confirm" onclick="confirmClearRecords()">초기화</button>
+      </div>
     </div>
   </div>
 
@@ -362,6 +481,7 @@
     const moveCountEl = document.getElementById("moveCount");
     const timerEl = document.getElementById("timerDisplay");
     const successModal = document.getElementById("successModal");
+    const clearRecordModal = document.getElementById("clearRecordModal");
     const recordListEl = document.getElementById("recordList");
     
     const cellSize = 58; 
@@ -517,9 +637,19 @@
       displayRecords();
     }
 
-    function clearRecords() {
+    /* 초기화 확인 커스텀 모달 제어 함수군 */
+    function openClearModal() {
+      clearRecordModal.classList.add("show");
+    }
+
+    function closeClearModal() {
+      clearRecordModal.classList.remove("show");
+    }
+
+    function confirmClearRecords() {
       sessionRecords = [];
       displayRecords();
+      closeClearModal();
     }
 
     function displayRecords() {
@@ -556,6 +686,11 @@
       }
     });
 
+    // 배경 클릭 시 모달창이 유연하게 닫히도록 바인딩
+    clearRecordModal.addEventListener('click', (e) => {
+      if (e.target === clearRecordModal) closeClearModal();
+    });
+
     function startTimer() {
       if (gameStarted) return;
       gameStarted = true;
@@ -580,7 +715,6 @@
       if (history.length > 100) history.shift();
     }
     
-    /* 되돌리기 시 이동횟수 차감 처리 (-1) */
     function undoMove() {
       if (history.length <= 1) return;
       history.pop();
@@ -589,7 +723,7 @@
         const block = blocks.find(b => b.id === saved.id);
         block.x = saved.x; block.y = saved.y;
       });
-      if (moveCount > 0) moveCount--; /* 이동 횟수 감소 */
+      if (moveCount > 0) moveCount--;
       updateMoveCount(); 
       updateBlockStyles();
     }
