@@ -233,7 +233,38 @@
       outline: none;
     }
 
+    /* 처음으로 버튼 스타일 지정 */
+    .reset-btn {
+      color: var(--danger) !important;
+      border: 1.5px solid var(--danger) !important;
+      background: var(--card-bg);
+      transition: background 0.2s, color 0.2s;
+    }
+    .reset-btn:hover {
+      background-color: var(--danger) !important;
+      color: white !important;
+    }
+
     /* 영역 5: 하단 가이드 공간 */
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      font-size: 17px;
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+        
+        .guide-active {
+      border-left: 6px solid var(--active);
+    }
+    .guide-active .guide-title {
+      color: var(--active);
+      font-weight: 700;
+    }
+
     .keyboard-info {
       background: var(--card-bg);
       padding: 12px 16px; 
@@ -257,6 +288,13 @@
     .keyboard-info p {
       margin: 0;
     }
+
+    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+kbd {
+  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+}
 
     /* 결과 알림 팝업창 */
     .modal-overlay {
@@ -351,16 +389,36 @@
     <!-- 영역 3: 하단 조작 버튼 -->
     <div class="buttons-wrapper">
       <div class="buttons">
-        <a href="example.html" class="btn-desc">문제 설명</a>
-        <button id="resetBtn">처음으로</button>
+        <!-- <a href="example.html" class="btn-desc">문제 설명</a> -->
+        <button id="resetBtn" class="reset-btn">🔄 처음으로</button>
         <button id="checkBtn">정답확인</button>        
       </div>
     </div>
 
     <!-- 영역 5: 하단 가이드 공간 -->
+    <div class="guide-box w-full guide-active">
+      <div class="guide-title">◈ 퍼즐 규칙</div>
+      <div style="font-size: 15px; color: var(--text-sub);">
+        <ul>
+          <li>녹색 원을 클릭하면 <strong>빨간색 거울(대각선)</strong>이 순서대로 나타납니다. 더 클릭하면 다시 녹색 원이 됩니다.</li>
+          <li>외곽의 숫자는 해당 위치에서 수평 또는 수직으로 레이저를 쏘아 바라볼 때 <strong>시야에 걸리는 녹색 원의 총 개수</strong>를 나타냅니다. (빨간색 거울에 반사되어 꺾이는 경로에 있는 것도 모두 포함됩니다.)</li>
+          <li>숫자 1과 숫자 4에 대한 것은 아래 그림을 참고하세요. 경로를 따라가다 보면 동일한 녹색 원을 두 번 이상 지나치며 중복으로 셀 수도 있습니다.</li>
+        </ul>
+        <img src="e2.png" class="desc-img small" style="margin-top: 20px; width:100%; max-width: 400px;">
+  
+    </div>
+  </div>
+
     <div class="keyboard-info">
       <h3>⌨️ 키보드 단축키</h3>
-      <p><b>[Space]</b> 또는 <b>[Enter]</b> : 정답 확인 및 결과 팝업 확인 / <b>[R]</b> : 현재 단계 초기화</p>
+      <div class="shortcut-grid">
+        <div class="shortcut-item">
+            <kbd>Space</kbd> / <kbd>Enter</kbd> <span>정답 확인</span>
+        </div>
+        <div class="shortcut-item">
+            <kbd>R</kbd> <span>처음으로</span>
+        </div>
+      </div>
     </div>
   </div>
 
