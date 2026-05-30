@@ -164,7 +164,7 @@
       flex-direction: column;
       align-items: center;
       margin-top: 10px;
-      overflow-x: auto; /* 모바일 극단적 상황 방어 */
+      overflow-x: auto;
     }
     #answerArea {
       display: flex;
@@ -216,7 +216,7 @@
       background: linear-gradient(90deg, var(--pivot-color), var(--beam-color), var(--pivot-color));
       border-radius: 4px;
       margin: 0 auto;
-      max-width: 100%; /* 화면 밖으로 탈출 방지 */
+      max-width: 100%;
       transition: width 0.2s;
     }
     .fulcrum-pivot {
@@ -279,6 +279,16 @@
       border: 1px solid #dee2e6 !important;
     }
 
+        /* 처음으로 버튼 스타일 지정 */
+        .action-btn.reset-btn {
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .action-btn.reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
     #checkBtn:not(:disabled) {
       background-color: var(--active) !important;
       color: #ffffff !important;
@@ -328,6 +338,33 @@
     .guide-box.info-point { border-left: 6px solid var(--active); }
     .guide-box.info-point h3 { color: var(--active); }
 
+    .history-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .history-header-flex h3 {
+      margin: 0 !important;
+    }
+
+    .clear-history-btn {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--danger);
+      background-color: #ffffff;
+      border: 1px solid var(--danger);
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(220, 53, 69, 0.05);
+      transition: all 0.15s ease;
+    }
+    .clear-history-btn:hover {
+      background-color: #fff5f5;
+      box-shadow: 0 4px 10px rgba(220, 53, 69, 0.12);
+    }
+
     .guide-box h3 {
       margin: 0 0 12px 0;
       font-size: 19px;
@@ -371,11 +408,111 @@
       padding: 20px;
     }
 
+    /* 커스텀 모달 레이아웃 (둥근 상단 빨간색 바 형태 고도화) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background-color: var(--card-bg);
+      width: 90%;
+      max-width: 400px;
+      border-radius: 20px; /* 기존 파일과 일치하는 카드 곡률 */
+      padding: 24px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      transform: scale(0.9);
+      transition: transform 0.2s;
+      overflow: hidden; /* 추가: 내부 바가 바깥 곡률에 맞게 깎이도록 마스킹 처리 */
+      position: relative;
+    }
+    /* 변경: 상단 바 양 끝이 모달창의 테두리 곡선을 따라 둥글게 채워지도록 수정 */
+    .modal-content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background-color: var(--danger);
+    }
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+    /* 변경: 제목 색상을 빨간색으로 변경하고 가운데 정렬 적용 */
+    .modal-title {
+      margin: 8px 0 16px 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--danger); /* 변경: 빨간색 글씨 */
+      text-align: center;    /* 변경: 가운데 정렬 */
+      letter-spacing: -0.5px;
+    }
+    .modal-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      word-break: keep-all;
+      text-align: center; /* 텍스트 밸런스를 위한 중앙 맞춤 */
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    .modal-btn {
+      flex: 1;
+      height: 48px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.15s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-btn:active {
+      transform: scale(0.98);
+    }
+    .modal-btn-cancel {
+      background-color: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+    }
+    .modal-btn-cancel:hover {
+      background-color: #dee2e6;
+    }
+    .modal-btn-confirm {
+      background-color: var(--danger);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.15);
+    }
+    .modal-btn-confirm:hover {
+      background-color: #bd2130;
+    }
+
     @media (max-width: 720px) {
       .title-area h1 { font-size: 28px; }
       .control-actions { grid-template-columns: repeat(2, 1fr); gap: 8px; }
       #answerArea { gap: 4px; }
-      .slot { width: 38px; height: 65px; padding: 4px 0; } /* 슬롯 폭 축소 */
+      .slot { width: 38px; height: 65px; padding: 4px 0; }
       .slot-label { font-size: 10px; padding: 0 4px; }
       .block-wrapper { width: 34px; height: 34px; }
       .block { width: 32px; height: 32px; font-size: 12px; border-radius: 6px; }
@@ -383,6 +520,8 @@
       .fulcrum-pivot { border-left-width: 16px; border-right-width: 16px; border-bottom-width: 24px; }
       .action-btn { height: 48px; font-size: 15px; }
       .stats-table th, .stats-table td { padding: 8px; font-size: 13px; }
+      .history-header-flex { align-items: center; }
+      .clear-history-btn { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
     }
   </style>
 </head>
@@ -428,14 +567,17 @@
 
   <div class="section-fluid control-actions">
     <button id="newBtn" class="action-btn">새 퍼즐</button>
-    <button id="resetBtn" class="action-btn">초기화</button>
+    <button id="resetBtn" class="action-btn reset-btn">🔄 처음으로</button>
     <button id="hintBtn" class="action-btn">힌트</button>
     <button id="checkBtn" class="action-btn" disabled>정답 확인</button>
   </div>
 
   <div class="section-fluid">
     <div class="guide-box danger-point">
-      <h3>📊 누적 기록</h3>
+      <div class="history-header-flex">
+        <h3>📊 누적 기록</h3>
+        <button id="clearHistoryBtn" class="clear-history-btn">누적기록 초기화</button>
+      </div>
       <div class="table-container">
         <table class="stats-table">
           <thead>
@@ -464,6 +606,19 @@
     </div>
   </div>
 
+  <div id="clearModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="modal-title">기록 초기화</h3>
+      <div class="modal-body">
+        누적 기록을 모두 삭제하시겠습니까?
+      </div>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="modal-btn modal-btn-cancel">취소</button>
+        <button id="modalConfirmBtn" class="modal-btn modal-btn-confirm">초기화</button>
+      </div>
+    </div>
+  </div>
+
 <script>
     let currentWeights = [];
     let solution = [];
@@ -476,7 +631,7 @@
     let totalBlocksCount = 3; 
     
     let puzzleHistoryMap = {};
-    let statsHistoryList = []; // 누적 기록 저장을 위한 배열
+    let statsHistoryList = []; 
 
     const U = {
         slotCount: document.getElementById('slotCount'),
@@ -490,12 +645,15 @@
         message: document.getElementById('message'),
         statsHistoryBody: document.getElementById('statsHistoryBody'),
         fulcrumLine: document.querySelector('.fulcrum-line'),
+        clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+        clearModal: document.getElementById('clearModal'),
+        modalCancelBtn: document.getElementById('modalCancelBtn'),
+        modalConfirmBtn: document.getElementById('modalConfirmBtn'),
     };
 
     document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
 
-    // LocalStorage 저장 함수
     function saveStateToLocalStorage() {
         const boardState = [];
         document.querySelectorAll('.slot').forEach(slot => {
@@ -542,7 +700,6 @@
         localStorage.setItem('scale_puzzle_state', JSON.stringify(gameState));
     }
 
-    // LocalStorage 복구 함수
     function loadStateFromLocalStorage() {
         const saved = localStorage.getItem('scale_puzzle_state');
         if (!saved) return false;
@@ -563,13 +720,9 @@
             updateBlockOptions(true);
             U.blockCount.value = gameState.blockCount;
 
-            // 누적 기록 테이블 렌더링
             renderStatsTable();
-
-            // 슬롯 생성 및 채우기 준비
             createSlots();
             
-            // 보관소 초기화
             U.blocks.innerHTML = '';
             currentWeights.forEach((_, i) => {
                 const wrapper = document.createElement('div');
@@ -578,7 +731,6 @@
                 U.blocks.appendChild(wrapper);
             });
 
-            // 보관소 블록 복원
             gameState.poolState.forEach(p => {
                 const wrappers = U.blocks.querySelectorAll('.block-wrapper');
                 if (wrappers[p.wrapperIndex]) {
@@ -587,7 +739,6 @@
                 }
             });
 
-            // 저울 위 블록 복원
             gameState.boardState.forEach(b => {
                 const targetSlot = U.answerArea.querySelector(`.slot[data-side='${b.side}'][data-index='${b.index}']`);
                 if (targetSlot) {
@@ -696,12 +847,12 @@
         const slotCount = parseInt(U.slotCount.value, 10);
         let slotW = 58, gap = 8, sepW = 32;
         if (window.innerWidth <= 720) {
-            slotW = 38; gap = 4; sepW = 14; /* 미디어쿼리 축소값 동기화 */
+            slotW = 38; gap = 4; sepW = 14;
         }
         const totalSlots = slotCount * 2;
         const totalGap = (totalSlots - 1) * gap;
         const totalWidth = (slotW * totalSlots) + totalGap + sepW + 8;
-        U.fulcrumLine.style.width = `calc(min(100%, ${totalWidth}px))`; /* 화면 밖 탈출 원천 차단 */
+        U.fulcrumLine.style.width = `calc(min(100%, ${totalWidth}px))`;
     }
 
     function createSlots() {
@@ -881,6 +1032,14 @@
             U.hintBtn.disabled = true;
         } else if (!isCorrect) {
             U.hintBtn.disabled = false;
+        }
+    }
+
+    function setModalVisibility(visible) {
+        if (visible) {
+            U.clearModal.classList.add('show');
+        } else {
+            U.clearModal.classList.remove('show');
         }
     }
 
@@ -1089,7 +1248,6 @@
     }
 
     function addRecordToTable(slots, blocks, attempts, hints) {
-        // 리스트 데이터 쌓기
         statsHistoryList.unshift({ slots, blocks, attempts, hints });
         renderStatsTable();
     }
@@ -1178,7 +1336,27 @@
     U.hintBtn.addEventListener('click', showHint);
     U.checkBtn.addEventListener('click', manualCheckAnswer);
 
-    // 초기화 및 복구 체인 구조화
+    U.clearHistoryBtn.addEventListener('click', () => {
+        setModalVisibility(true);
+    });
+
+    U.modalCancelBtn.addEventListener('click', () => {
+        setModalVisibility(false);
+    });
+
+    U.modalConfirmBtn.addEventListener('click', () => {
+        statsHistoryList = [];
+        puzzleHistoryMap = {};
+        renderStatsTable();
+        resetBoard();
+        setModalVisibility(false);
+        setMessage('⚙️ 모든 누적 기록이 삭제되었습니다.');
+    });
+
+    U.clearModal.addEventListener('click', (e) => {
+        if (e.target === U.clearModal) setModalVisibility(false);
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
         const restored = loadStateFromLocalStorage();
         if (!restored) {
