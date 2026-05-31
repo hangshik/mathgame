@@ -197,6 +197,10 @@
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       letter-spacing: -0.5px;
       border: 1px solid transparent;
+
+      /* 가운데 정렬 추가 */
+      display: flex;
+      justify-content: center; /* 가로 가운데 정렬 */
     }
     .turn-indicator.p1-turn {
       color: var(--color-p1);
@@ -381,7 +385,7 @@
       user-select: none;
     }
 
-    /* ↩ 되돌아가기 버튼 디자인 */
+    /* ↩ 되돌리기 버튼 디자인 */
     .btn-reset {
       flex: 1;
       background-color: #f8f9fa;
@@ -663,9 +667,9 @@ kbd {
       </div>
     </div>
 
-    <!-- 영역 3: 하단 조작 버튼 영역 (되돌아가기 - 백스페이스 및 선택확정) -->
+    <!-- 영역 3: 하단 조작 버튼 영역 (되돌리기 - 백스페이스 및 선택확정) -->
     <div class="action-container">
-      <button class="action-btn btn-reset" id="btnReset" title="단축키: Backspace" disabled>↶ 되돌아가기</button>
+      <button class="action-btn btn-reset" id="btnReset" title="단축키: Backspace" disabled>↶ 되돌리기</button>
       <button class="action-btn btn-submit" id="btnSubmit" title="단축키: Enter" disabled>✓ 선택 확정</button>
     </div>
 
@@ -774,7 +778,7 @@ kbd {
     let currentTurn = 0;       // 1: 블루팀 (P1), 2: 레드팀 (P2 / AI), 0: 대기 상태
     let selectedFirstTurn = null; // 선공 결정 전까지 null로 설정하여 강제 잠금 구현
 
-    // 타임머신 무제한 되돌아가기 스택
+    // 타임머신 무제한 되돌리기 스택
     let undoHistory = [];
 
     // 로컬 스토리지 상태 기억 저장소
@@ -1201,7 +1205,7 @@ kbd {
       updateUndoButtonState();
     }
 
-    // ↩ "되돌아가기" 기능 - 선택 확정 전 상태로 역추적
+    // ↩ "되돌리기" 기능 - 선택 확정 전 상태로 역추적
     function handleUndo() {
       if (undoHistory.length === 0) return;
 
@@ -1255,7 +1259,7 @@ kbd {
         saveLocalStorage();
       }
 
-      // 비트마스크 연산 이전에 현재의 안전 상태 백업 (되돌아가기 보장)
+      // 비트마스크 연산 이전에 현재의 안전 상태 백업 (되돌리기 보장)
       saveToUndoHistory();
 
       selectedIndices.forEach(idx => {
@@ -1287,7 +1291,7 @@ kbd {
 
     function executeAITurn() {
       btnSubmit.disabled = true;
-      btnReset.disabled = true; // AI 작동 중 되돌아가기 임시 홀딩
+      btnReset.disabled = true; // AI 작동 중 되돌리기 임시 홀딩
 
       setTimeout(() => {
         const config = dataSets.find(d => d.stage === currentStage);
@@ -1528,7 +1532,7 @@ kbd {
       loadStage(currentStage);
     });
 
-    // [수정사항 2] 되돌아가기 클릭 이벤트 리스너 바인딩 수정
+    // [수정사항 2] 되돌리기 클릭 이벤트 리스너 바인딩 수정
     btnReset.addEventListener('click', handleUndo);
     btnSubmit.addEventListener('click', submitTurn);
 
