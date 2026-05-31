@@ -540,10 +540,11 @@ kbd {
       clearedStages = new Set(savedCleared);
     }
 
-    function initApp() {
-      createStageButtons();
-      loadStage(1);
-    }
+function initApp() {
+  clearedStages = new Set(); // 항상 빈 세트로 시작
+  createStageButtons();
+  loadStage(1);
+}
 
     function createStageButtons() {
       const grid = document.getElementById("stageGrid");
@@ -747,7 +748,6 @@ kbd {
       const hero = blocks.find(b => b.type === "hero-car");
       if (hero && hero.x + hero.w === 6 && hero.y === 2) {
         clearedStages.add(currentStage);
-        localStorage.setItem("rushHourCleared", JSON.stringify([...clearedStages]));
         updateStageButtonsStyle();
         
         setTimeout(() => {
