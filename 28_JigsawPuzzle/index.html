@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>직소 퍼즐</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+    <style>
+        /* =========================================================
+           1. 디자인 시스템 및 전역 변수
+           ========================================================= */
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --border-color: #e9ecef;
+            --on: #222222;
+            
+            /* 디지털 숫자 비율을 위한 유동 변수 (화면 크기에 따라 0.65px ~ 1px 사이로 자연스럽게 변함) */
+            --unit: clamp(0.65px, 0.2vw, 1px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            font-family: 'Pretendard', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px 40px;
+            min-height: 100vh;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* [영역 1: 퍼즐 제목 & 단계 선택] */
+        .title-area { text-align: center; padding: 10px 0; }
+        /* 제목 폰트 크기 유동 적용 */
+        .title-area h1 { font-size: clamp(26px, 6vw, 36px); font-weight: 800; color: var(--text-main); }
+
+        .container-fixed {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: clamp(15px, 3vw, 20px);
+            width: 100%;
+        }
+
+        .stage-select-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .stage-btn {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: clamp(10px, 2.5vw, 12px) 0;
+            font-size: clamp(14px, 3.5vw, 16px);
+            font-weight: 700;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .stage-btn:hover:not(.active):not(.cleared) { background-color: var(--border-color); }
+        .stage-btn.active {
+            background-color: var(--active);
+            color: #fff;
+            border-color: var(--active);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+        .stage-btn.cleared {
+            background-color: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        /* 조작 횟수 영역 */
+        .move-counter-wrapper {
+            text-align: center;
+            margin-top: 15px;
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 700;
+            color: var(--active);
+        }
+
+        /* [영역 2: 퍼즐 문제 영역] */
+        .puzzle-board-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            padding: 10px;
+            min-height: 320px;
+        }
+        /* 간격 유동 적용 */
+        #puzzleBoard { display: flex; gap: clamp(3px, 1.2vw, 6px); }
+        
+        .card {
+            /* 카드 크기 유동 적용 (최소 48px ~ 최대 70px) */
+            width: clamp(48px, 13vw, 70px);
+            background: var(--card-bg);
+            border: 2px solid #ccc;
+            border-radius: clamp(8px, 2.5vw, 12px);
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+            padding: clamp(3px, 1vw, 5px);
+            gap: clamp(3px, 1vw, 5px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s;
+        }
+        .card.dragging { opacity: 0.5; cursor: grabbing; }
+        
+        .cell {
+            /* 빈칸(셀) 크기 유동 적용 (최소 38px ~ 최대 56px) */
+            width: clamp(38px, 10.5vw, 56px);
+            height: clamp(38px, 10.5vw, 56px);
+            border: 1px dashed #ddd;
+            border-radius: clamp(4px, 1.5vw, 6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fcfcfc;
+            transition: background-color 0.3s;
+        }
+        .cell.correct-row {
+            background-color: #d4edda;
+            border-color: var(--success);
+        }
+
+        .operator-text {
+            /* 연산자 폰트 유동 적용 */
+            font-size: clamp(18px, 5vw, 26px);
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* 디지털 숫자 (7-세그먼트) 스타일 (유동 변수 적용) */
+        .digit { position: relative; width: calc(22 * var(--unit)); height: calc(38 * var(--unit)); }
+        .seg { position: absolute; border-radius: calc(2 * var(--unit)); }
+        .on { background-color: var(--on); }
+        .h { width: calc(14 * var(--unit)); height: calc(3 * var(--unit)); left: calc(4 * var(--unit)); }
+        .v { width: calc(3 * var(--unit)); height: calc(16 * var(--unit)); }
+        .s1 { top: 0; } 
+        .s2 { top: calc(17 * var(--unit)); } 
+        .s3 { top: calc(35 * var(--unit)); }
+        .s4 { top: calc(2 * var(--unit)); left: 0; } 
+        .s5 { top: calc(2 * var(--unit)); left: calc(19 * var(--unit)); }
+        .s6 { top: calc(20 * var(--unit)); left: 0; } 
+        .s7 { top: calc(20 * var(--unit)); left: calc(19 * var(--unit)); }
+        .digit-1 .s5, .digit-1 .s7 { left: calc(9 * var(--unit)); }
+
+        /* [영역 3: 하단 조작 버튼] */
+        .control-group { display: flex; width: 100%; }
+        .control-btn {
+            height: clamp(48px, 10vw, 54px);
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        
+        .btn-reset {
+            background-color: #ffffff;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        .btn-reset:hover { background-color:var(--danger); color:#fff }
+
+        /* [하단 가이드 공간] */
+        .guide-box {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            padding: clamp(15px, 4vw, 20px);
+            word-break: keep-all;
+            position: relative;
+        }
+        .guide-box h2 { font-size: clamp(16px, 4vw, 18px); font-weight: 700; margin-bottom: 15px; }
+        .guide-content { font-size: clamp(14px, 3.5vw, 15px); color: var(--text-sub); line-height: 1.6; }
+        .guide-rules { border-left: 6px solid var(--active); }
+        .guide-rules h2 { color: var(--active); }
+        .guide-rules ul { list-style: none; margin-left: 5px; }
+        .guide-rules li { margin-bottom: 5px; }
+        .guide-rules li::before { content: "• "; font-weight: bold; }
+
+        /* =========================================================
+           결과 알림 팝업창 (Modal)
+           ========================================================= */
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 350px;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 6px solid var(--success);
+        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-title { font-size: 28px; font-weight: 800; margin-bottom: 15px; color: var(--success); }
+        .modal-desc { font-size: 16px; color: var(--text-sub); margin-bottom: 25px; }
+        .modal-btn {
+            width: 100%; height: 50px; font-size: 18px; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer; color: white;
+            background-color: var(--success); transition: 0.2s;
+        }
+        .modal-btn:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="title-area">
+        <h1>직소 퍼즐</h1>
+    </div>
+
+    <div class="container-fixed">
+        <div class="stage-select-grid" id="stageGrid"></div>
+        <div class="move-counter-wrapper" id="moveCounter">조작 횟수: 0회</div>
+    </div>
+
+    <div class="container-fixed puzzle-board-wrapper">
+        <div id="puzzleBoard"></div>
+    </div>
+
+    <div class="control-group">
+        <button class="control-btn btn-reset" onclick="resetCurrentStage()">🔄 처음으로</button>
+    </div>
+
+    <div class="guide-box guide-rules">
+        <h2>◈ 퍼즐 규칙</h2>
+        <div class="guide-content">
+            <ul>
+                <li>카드를 한 번 클릭(터치)하면 180도 회전하며, 6은 9로, 9는 6으로 바뀝니다.</li>
+                <li>카드를 드래그하여 다른 카드 사이로 자연스럽게 이동해 순서를 변경하세요.</li>
+                <li>카드의 세로 배치가 완료되었을 때, 가로로 읽은 모든 줄의 수식이 올바르면 정답 처리됩니다.</li>
+                <li>올바르게 맞춰진 가로줄은 연한 녹색으로 자동 하이라이트 됩니다.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div id="resultModal">
+    <div class="modal-card" id="modalContent">
+        <div class="modal-title" id="modalTitle">🎉 성공!</div>
+        <div class="modal-desc" id="modalDesc">정답입니다!</div>
+        <button class="modal-btn" id="modalBtn" onclick="closeModal()">확인</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    
+    // 데이터 셋 (1~3단계)
+    const dataSets = [
+        { stage: 1, cards: [['=','+','=','+'], ['=','-','=','+'], ['8','2','5','9'], ['8','6','2','1'], ['2','1','0','9']] },
+        { stage: 2, cards: [['8','+','=','1'], ['-','1','9','='], ['2','=','0','5'], ['9','5','2','6'], ['*','1','/','='], ['1','5','6','1']] },
+        { stage: 3, cards: [['1','=','-','+'], ['0','2','6','9'], ['=','1','/','5'], ['2','1','9','1'], ['=','8','5','9'], ['8','=','9','*']] }
+    ];
+
+    const patterns = [
+        [1,0,1,1,1,1,1], [0,0,0,0,1,0,1], [1,1,1,0,1,1,0], [1,1,1,0,1,0,1], [0,1,0,1,1,0,1],
+        [1,1,1,1,0,0,1], [1,1,1,1,0,1,1], [1,0,0,0,1,0,1], [1,1,1,1,1,1,1], [1,1,1,1,1,0,1]
+    ];
+
+    function createDigit(val) {
+        if (isNaN(val)) {
+            let displayVal = val;
+            if (val === '*') displayVal = '×';
+            if (val === '/') displayVal = '÷';
+            return `<div class="operator-text">${displayVal}</div>`;
+        }
+        return `<div class="digit ${val==1?'digit-1':''}">` + patterns[val].map((on, i) => 
+            `<div class="seg ${i < 3 ? 'h' : 'v'} s${i+1} ${on ? 'on' : ''}"></div>`).join('') + `</div>`;
+    }
+
+    let currentStage = 1;
+    let stageFinished = false; 
+    
+    // 새로고침 시 날아가도록 in-memory 변수로만 관리
+    let stageHistory = {}; 
+    let records = {};
+
+    dataSets.forEach((d, idx) => {
+        const s = idx + 1;
+        records[s] = { cleared: false, moves: 0 };
+    });
+
+    function updateMoveCounter() {
+        document.getElementById('moveCounter').textContent = `조작 횟수: ${records[currentStage].moves}회`;
+    }
+
+    function saveState() {
+        const board = document.getElementById('puzzleBoard');
+        const cards = [...board.querySelectorAll('.card')];
+        const state = cards.map(c => ({
+            id: c.dataset.id,
+            rotated: c.dataset.rotated === 'true'
+        }));
+        stageHistory[currentStage] = state;
+        updateMoveCounter();
+    }
+
+    function initApp() {
+        renderStageButtons();
+        loadStage(currentStage);
+    }
+
+    function renderStageButtons() {
+        const grid = document.getElementById('stageGrid');
+        grid.innerHTML = '';
+        dataSets.forEach((d, idx) => {
+            const s = idx + 1;
+            const btn = document.createElement('button');
+            btn.className = `stage-btn ${s === currentStage ? 'active' : ''} ${records[s].cleared ? 'cleared' : ''}`;
+            btn.textContent = `${s}단계`;
+            btn.onclick = () => switchStage(s);
+            grid.appendChild(btn);
+        });
+    }
+
+    function switchStage(stageNum) {
+        saveState(); 
+        loadStage(stageNum);
+    }
+
+    function loadStage(stageNum) {
+        currentStage = stageNum;
+        stageFinished = false; 
+        updateMoveCounter();
+        renderStageButtons();
+        
+        const board = document.getElementById('puzzleBoard');
+        board.innerHTML = '';
+        
+        const data = dataSets[stageNum - 1];
+        const savedState = stageHistory[stageNum];
+        let cardElements = [];
+        
+        data.cards.forEach((colArray, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.draggable = true;
+            card.dataset.id = index;
+            card.dataset.rotated = 'false';
+            
+            colArray.forEach(val => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.val = val;
+                cell.innerHTML = createDigit(val);
+                card.appendChild(cell);
+            });
+            
+            attachCardEvents(card);
+            cardElements.push(card);
+        });
+
+        if (savedState && savedState.length === cardElements.length) {
+            savedState.forEach(st => {
+                const targetCard = cardElements.find(c => c.dataset.id == st.id);
+                if(targetCard) {
+                    targetCard.dataset.rotated = st.rotated;
+                    targetCard.style.transform = st.rotated ? 'rotate(180deg)' : 'rotate(0deg)';
+                    board.appendChild(targetCard);
+                }
+            });
+        } else {
+            cardElements.forEach(c => board.appendChild(c));
+        }
+
+        checkRealtimeLines(false); 
+    }
+
+    function resetCurrentStage() {
+        delete stageHistory[currentStage];
+        records[currentStage].moves = 0;
+        records[currentStage].cleared = false;
+        loadStage(currentStage);
+    }
+
+    function attachCardEvents(card) {
+        const board = document.getElementById('puzzleBoard');
+        
+        card.ondragstart = (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            card.classList.add('dragging');
+        };
+        card.ondragend = () => {
+            card.classList.remove('dragging');
+            records[currentStage].moves++;
+            saveState();
+            checkRealtimeLines(true); 
+        };
+
+        let wasDragged = false;
+        card.addEventListener('touchmove', (e) => {
+            wasDragged = true;
+            e.preventDefault(); 
+            card.classList.add('dragging');
+            const touch = e.touches[0];
+            const siblings = [...board.querySelectorAll('.card:not(.dragging)')];
+            const next = siblings.find(s => {
+                const rect = s.getBoundingClientRect();
+                return touch.clientX <= rect.left + rect.width / 2;
+            });
+            board.insertBefore(card, next);
+            checkRealtimeLines(false);
+        }, { passive: false });
+
+        card.addEventListener('touchend', (e) => {
+            if (wasDragged) {
+                card.classList.remove('dragging');
+                records[currentStage].moves++;
+                saveState();
+                checkRealtimeLines(true);
+                setTimeout(() => wasDragged = false, 50);
+            }
+        });
+
+        card.onclick = (e) => {
+            if (wasDragged) return;
+            
+            const isRotated = card.dataset.rotated === 'true';
+            card.dataset.rotated = !isRotated;
+            card.style.transform = !isRotated ? 'rotate(180deg)' : 'rotate(0deg)';
+            
+            records[currentStage].moves++;
+            saveState();
+            checkRealtimeLines(true);
+        };
+    }
+
+    const board = document.getElementById('puzzleBoard');
+    board.ondragover = (e) => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging');
+        if (!dragging) return;
+        const siblings = [...board.querySelectorAll('.card:not(.dragging)')];
+        const next = siblings.find(s => e.clientX <= s.getBoundingClientRect().left + s.offsetWidth / 2);
+        board.insertBefore(dragging, next);
+        checkRealtimeLines(false); 
+    };
+
+    const invertMap = { '0':'0', '1':'1', '2':'2', '5':'5', '8':'8', '6':'9', '9':'6', '+':'+', '-':'-', '=':'=', '*':'*', '/':'/' };
+
+    function checkRealtimeLines(isUserInput = false) {
+        const cards = [...board.querySelectorAll('.card')];
+        if(cards.length === 0) return;
+        const rows = cards[0].children.length;
+
+        cards.forEach(card => [...card.children].forEach(cell => cell.classList.remove('correct-row')));
+
+        let correctCount = 0;
+
+        for (let r = 0; r < rows; r++) {
+            let eqStr = "";
+            let rowCells = [];
+
+            cards.forEach(card => {
+                const isRotated = card.dataset.rotated === 'true';
+                const cellIndex = isRotated ? (rows - 1) - r : r;
+                const cell = card.children[cellIndex];
+                let val = cell.dataset.val;
+                if (isRotated) val = invertMap[val] || val;
+                eqStr += val;
+                rowCells.push(cell);
+            });
+
+            if (isValidEquation(eqStr)) {
+                rowCells.forEach(cell => cell.classList.add('correct-row'));
+                correctCount++;
+            }
+        }
+
+        if (correctCount === rows && isUserInput) {
+            if (stageFinished) return; 
+            stageFinished = true;
+
+            records[currentStage].cleared = true;
+            saveState();
+            renderStageButtons();
+            
+            setTimeout(() => {
+                showModal(() => {
+                    // 아무 동작 없이 현재 단계 유지
+                });
+            }, 300);
+        }
+    }
+
+    function isValidEquation(str) {
+        let parts = str.split('=');
+        if (parts.length !== 2) return false;
+        
+        let left = parts[0], right = parts[1];
+        if (!left || !right || /[^0-9\+\-\*\/]/.test(left) || /[^0-9\+\-\*\/]/.test(right)) return false;
+
+        try {
+            const cleanLeft = left.replace(/(^|[\+\-\*\/])0+(?=\d)/g, '$1');
+            const cleanRight = right.replace(/(^|[\+\-\*\/])0+(?=\d)/g, '$1');
+            
+            let leftEval = new Function('return ' + cleanLeft)();
+            let rightEval = new Function('return ' + cleanRight)();
+            
+            return Math.abs(leftEval - rightEval) < Number.EPSILON && leftEval !== undefined && !isNaN(leftEval);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    const modal = document.getElementById('resultModal');
+    const modalBtn = document.getElementById('modalBtn');
+    let modalAction = null;
+
+    function showModal(action) {
+        modal.style.display = 'flex';
+        modalAction = action;
+        setTimeout(() => modalBtn.focus(), 100);
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        if (modalAction) {
+            let tempAction = modalAction;
+            modalAction = null;
+            tempAction();
+        }
+    }
+
+    initApp();
+</script>
+</body>
+</html>
