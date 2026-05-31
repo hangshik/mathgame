@@ -303,6 +303,9 @@
     }
 
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
+@media (max-width: 600px) {
+.shortcut-grid {    grid-template-columns: 1fr;  }}
 .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 
 kbd {
@@ -572,7 +575,7 @@ kbd {
       
       const gapSize = 2; 
       let maxAvailableWidth = size.width - 50; 
-      let defaultCellSize = 60;
+      let defaultCellSize = 100;
       let totalNeededWidth = (defaultCellSize * b2) + (gapSize * (b2 - 1));
       let finalCellSize = defaultCellSize;
 
