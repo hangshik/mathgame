@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>태국 탈출 퍼즐</title>
-  <!-- 프리텐다드 서체 로드 -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
     :root {
@@ -17,6 +16,7 @@
       --text-sub: #555555;
       --border-light: #e9ecef;
       --btn-default: #f8f9fa;
+      --cell-size: 100px; /* 셀 기본 크기 변수 추가 */
     }
 
     * {
@@ -136,19 +136,17 @@
       width: 100%;
     }
 
-/* 퍼즐 컨테이너를 화면 너비에 맞게 조정 */
-.puzzle-container {
-  display: grid;
-  /* 화면 가로폭에서 여백을 뺀 값을 4등분 */
-  --cell-size: min(20vw, 85px); 
-  grid-template-columns: repeat(4, var(--cell-size));
-  grid-template-rows: repeat(5, var(--cell-size));
-  gap: 0;
-  position: relative;
-  border: 12px solid #8b8b8b;
-  border-radius: 8px;
-  background-color: #ffffff;
-}
+    .puzzle-container {
+      display: grid;
+      /* CSS 변수를 사용하여 유동적 크기 반영 */
+      grid-template-columns: repeat(4, var(--cell-size));
+      grid-template-rows: repeat(5, var(--cell-size));
+      gap: 0;
+      position: relative;
+      border: 12px solid #8b8b8b;
+      border-radius: 8px;
+      background-color: #ffffff;
+    }
 
     .puzzle-container::after {
       content: "";
@@ -176,7 +174,7 @@
       font-size: 14px;
       color: #ffffff;
     }
-    
+
     .block:active {
       cursor: grabbing;
     }
@@ -184,17 +182,17 @@
     .one-one { background-color: #ffd93d; color: #333; }
     .one-two { background-color: #4dabf7; }
     .two-one { background-color: #4dabf7; }
-    .two-two { background-color: #ff6b6b; font-size: 16px; }
+    .two-two { background-color: #ff6b6b; }
 
-/* 크기 클래스도 변수 기반으로 조정 */
-.one-one { width: var(--cell-size); height: var(--cell-size); }
-.one-two { width: var(--cell-size); height: calc(var(--cell-size) * 2); }
-.two-one { width: calc(var(--cell-size) * 2); height: var(--cell-size); }
-.two-two { width: calc(var(--cell-size) * 2); height: calc(var(--cell-size) * 2); }
+    /* CSS 변수를 이용해 클래스별 기본 크기 설정 */
+    .one-one { width: var(--cell-size); height: var(--cell-size); }
+    .one-two { width: var(--cell-size); height: calc(var(--cell-size) * 2); }
+    .two-one { width: calc(var(--cell-size) * 2); height: var(--cell-size); }
+    .two-two { width: calc(var(--cell-size) * 2); height: calc(var(--cell-size) * 2); font-size: calc(var(--cell-size) * 0.2); } 
 
     .hole {
-      width: 60px;
-      height: 60px;
+      width: calc(var(--cell-size) * 0.6);
+      height: calc(var(--cell-size) * 0.6);
       background-color: transparent;
       position: absolute;
       z-index: 0;
@@ -236,11 +234,11 @@
       border-color: #adb5bd;
     }
 
-    /* 처음으로 버튼 스타일 지정 */
     .action-btn.reset-btn {
       color: var(--danger);
       border: 1.5px solid var(--danger);
     }
+    
     .action-btn.reset-btn:hover {
       background-color: var(--danger);
       color: white;
@@ -272,7 +270,6 @@
       word-break: keep-all;
     }
 
-    /* 영역 5: 게임 규칙 (파란색 테두리 및 타이틀 수정) */
     .guide-rules {
       border-left: 6px solid var(--active);
     }
@@ -280,7 +277,6 @@
       color: var(--active);
     }
 
-    /* 영역 6: 키보드 단축키 (녹색) */
     .guide-shortcuts {
       border-left: 6px solid var(--success);
     }
@@ -289,12 +285,12 @@
     }
 
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+    .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+    kbd {
+      background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+      color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+    }
 
     .modal-overlay {
       position: fixed;
@@ -372,12 +368,10 @@ kbd {
 
 <div class="wrapper">
   
-  <!-- [영역 1-A: 퍼즐 제목 영역] -->
   <div class="section-fluid">
     <h1>태국 탈출 퍼즐</h1>
   </div>
 
-  <!-- [영역 1-B: 단계 선택 및 이동 횟수 우측 배치 영역] -->
   <div class="container-fixed">
     <div class="stage-grid" id="stageGrid"></div>
     <div class="stage-sub-bar">
@@ -385,7 +379,6 @@ kbd {
     </div>
   </div>
 
-  <!-- [영역 2: 퍼즐 문제 영역] -->
   <div class="container-fixed">
     <div class="puzzle-outer">
       <div class="puzzle-container" id="puzzle"></div>
@@ -393,7 +386,6 @@ kbd {
     </div>
   </div>
 
-  <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="section-fluid">
     <div class="control-actions">
       <button class="action-btn" onclick="undoMove()">되돌리기</button>
@@ -401,7 +393,6 @@ kbd {
     </div>
   </div>
 
-  <!-- [영역 5: 퍼즐 규칙 공간 (파란색 테마 반영)] -->
   <div class="guide-box guide-rules">
     <h3>🎮 게임 규칙</h3>
     <ul>
@@ -410,7 +401,6 @@ kbd {
     </ul>
   </div>
 
-  <!-- [영역 6: 키보드 단축키 안내 공간] -->
   <div class="guide-box guide-shortcuts">
     <h3>⌨ 키보드 단축키</h3>
     <div class="shortcut-grid">
@@ -423,7 +413,6 @@ kbd {
   </div>
 </div>
 
-<!-- [영역 4: 결과 알림 팝업창 모달 시스템] -->
 <div class="modal-overlay" id="successModal">
   <div class="modal-card">
     <div class="modal-title">🎉 성공!</div>
@@ -445,11 +434,14 @@ kbd {
   const gridCols = 4;
   const gridRows = 5;
   
+  // const에서 let으로 변경하여 유동적으로 조절되게 함
+  let cellSize = 100;
+
   let currentStage = 1;
   let moveCount = 0;
   let blocks = [];
   
-  let stageHistory = {}; 
+  let stageHistory = {};
   let clearedStages = new Set();
 
   const stageData = {
@@ -527,14 +519,33 @@ kbd {
     ]
   };
 
+  // 화면 크기에 맞게 Cell 크기 조절 함수
+  function adjustCellSize() {
+    const screenWidth = window.innerWidth;
+    // 여백(padding, margin, border)을 제외한 가용 너비 계산 (대략 100px로 잡음)
+    if (screenWidth < 500) {
+      cellSize = Math.floor((screenWidth - 100) / 4);
+    } else {
+      cellSize = 100; // 최대 크기 유지
+    }
+    
+    // CSS 변수 업데이트
+    document.documentElement.style.setProperty('--cell-size', `${cellSize}px`);
+
+    // 퍼즐이 그려진 상태라면 새로 렌더링
+    if (document.getElementById('puzzle').innerHTML !== '') {
+      renderBlocks();
+    }
+  }
+
+  // 창 크기 조절 시 이벤트 리스너 추가
+  window.addEventListener('resize', adjustCellSize);
+
   function initGame() {
+    adjustCellSize(); // 게임 초기화 시 사이즈 한 번 조정
     buildStageButtons();
     loadStage(1);
   }
-
-  function getCellSize() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell-size')) || 85;
-}
 
   function buildStageButtons() {
     stageGrid.innerHTML = "";
@@ -600,7 +611,6 @@ kbd {
   }
 
   function renderBlocks() {
-    const cellSize = getCellSize(); // 실시간 셀 크기 계산
     puzzle.innerHTML = "";
 
     for (let i = 1; i <= 2; i++) {
@@ -630,7 +640,9 @@ kbd {
       let dragStartY = block.y;
       let lastMoveTime = 0;
       let ghostDiv = null;
-      const moveThreshold = 70; // 이동 감지 임계값 (기존 40 -> 약 70~80으로 조정 권장)
+      
+      // 이동 감지 임계값을 cellSize에 비례하도록 동적 변경 (기존 70px)
+      const moveThreshold = cellSize * 0.7; 
       const timeThreshold = 40;
       let madeMove = false; // 이동 시도 여부
 
@@ -748,13 +760,13 @@ kbd {
           ghostDiv = null;
         }
 
-// 실제 이동이 발생했을 경우에만 스택 저장 및 카운트 증가
-  if ((lastValidX !== dragStartX || lastValidY !== dragStartY) && madeMove) {
-    pushUndoStack(); // <--- 여기서 한 번만 저장
-    moveCount++;
-    updateMoveCountDisplay();
-    saveCurrentStateToHistory(currentStage);
-  }
+        // 실제 이동이 발생했을 경우에만 스택 저장 및 카운트 증가
+        if ((lastValidX !== dragStartX || lastValidY !== dragStartY) && madeMove) {
+          pushUndoStack(); // <--- 여기서 한 번만 저장
+          moveCount++;
+          updateMoveCountDisplay();
+          saveCurrentStateToHistory(currentStage);
+        }
         block.x = lastValidX;
         block.y = lastValidY;
 
@@ -872,5 +884,6 @@ kbd {
 
   window.onload = initGame;
 </script>
+
 </body>
 </html>
