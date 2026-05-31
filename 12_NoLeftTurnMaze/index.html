@@ -104,6 +104,10 @@
     }
 
     .map {
+      --map-col-count: 8; /* JS에서 스테이지 너비에 따라 유동적으로 업데이트 */
+      /* 50px의 1.5배인 75px을 기본으로 하되, 모바일에서는 여백을 제외한 화면 너비에 맞춰 자동 축소 */
+      --cell-size: min(75px, calc((100vw - 80px) / var(--map-col-count)));
+      
       display: grid;
       gap: 0;
       position: relative;
@@ -117,8 +121,8 @@
       position: relative;
       background: white;
       box-sizing: border-box;
-      width: 50px;
-      height: 50px;
+      width: var(--cell-size);
+      height: var(--cell-size);
     }
 
     /* 길 찾기 통로 표시선 */
@@ -127,18 +131,18 @@
       background: #333;
     }
 
-    .cell .up { top: 0; left: 50%; width: 8px; height: 28px; transform: translateX(-50%); }
-    .cell .down { bottom: 0; left: 50%; width: 8px; height: 28px; transform: translateX(-50%); }
-    .cell .left { left: 0; top: 50%; width: 28px; height: 8px; transform: translateY(-50%); }
-    .cell .right { right: 0; top: 50%; width: 28px; height: 8px; transform: translateY(-50%); }
+    .cell .up { top: 0; left: 50%; width: calc(var(--cell-size) * 0.16); height: calc(var(--cell-size) * 0.56); transform: translateX(-50%); }
+    .cell .down { bottom: 0; left: 50%; width: calc(var(--cell-size) * 0.16); height: calc(var(--cell-size) * 0.56); transform: translateX(-50%); }
+    .cell .left { left: 0; top: 50%; width: calc(var(--cell-size) * 0.56); height: calc(var(--cell-size) * 0.16); transform: translateY(-50%); }
+    .cell .right { right: 0; top: 50%; width: calc(var(--cell-size) * 0.56); height: calc(var(--cell-size) * 0.16); transform: translateY(-50%); }
 
     /* 출발/도착 바깥 라벨 */
     .label {
       position: absolute;
-      bottom: -28px;
+      bottom: calc(var(--cell-size) * -0.56);
       left: 50%;
       transform: translateX(-50%);
-      font-size: 18px;
+      font-size: clamp(12px, calc(var(--cell-size) * 0.3), 20px);
       font-weight: bold;
       color: #444;
       white-space: nowrap;
@@ -148,10 +152,10 @@
     /* 플레이어 유닛 */
     .unit {
       position: absolute;
-      top: 13px;
-      left: 13px;
-      width: 24px;
-      height: 24px;
+      top: calc(var(--cell-size) * 0.26);
+      left: calc(var(--cell-size) * 0.26);
+      width: calc(var(--cell-size) * 0.48);
+      height: calc(var(--cell-size) * 0.48);
       z-index: 10;
       pointer-events: none;
     }
@@ -159,9 +163,9 @@
     .triangle {
       width: 0;
       height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-bottom: 24px solid var(--active);
+      border-left: calc(var(--cell-size) * 0.24) solid transparent;
+      border-right: calc(var(--cell-size) * 0.24) solid transparent;
+      border-bottom: calc(var(--cell-size) * 0.48) solid var(--active);
       transition: transform 0.3s;
     }
 
@@ -295,6 +299,9 @@
     }
 
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
+@media (max-width: 600px) {
+.shortcut-grid {    grid-template-columns: 1fr;  }}
 .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 kbd {
   background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
@@ -553,8 +560,10 @@ function loadStage(stageNum) {
   mapEl.innerHTML = '';
   stopTimer();
 
-  mapEl.style.gridTemplateColumns = `repeat(${width}, 50px)`;
-  mapEl.style.gridTemplateRows = `repeat(${height}, 50px)`;
+  // 모바일 반응형 대응을 위해 map 너비(col 개수)를 CSS 변수로 전달
+  mapEl.style.setProperty('--map-col-count', width);
+  mapEl.style.gridTemplateColumns = `repeat(${width}, var(--cell-size))`;
+  mapEl.style.gridTemplateRows = `repeat(${height}, var(--cell-size))`;
   cellDirs = Array.from({ length: height }, () => Array(width).fill([]));
 
   for (let y = 0; y < height; y++) {
@@ -727,7 +736,7 @@ function showResultPopup(isSuccess) {
     nextActionType = "RETRY";
   }
   cardClass = isSuccess ? "modal-card success-popup" : "modal-card danger-popup";
-  modalCard.className = cardClass;
+  cardCard.className = cardClass;
   activeBtn.focus();
 }
 
