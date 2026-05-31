@@ -352,6 +352,9 @@
         .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 
         .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
+@media (max-width: 600px) {
+.shortcut-grid {    grid-template-columns: 1fr;  }}
 .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 kbd {
   background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
