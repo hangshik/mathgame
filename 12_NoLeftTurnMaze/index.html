@@ -722,6 +722,8 @@ function showResultPopup(isSuccess) {
   modalBtnContainer.innerHTML = '<button class="modal-btn" id="modalBtn" onclick="closeModal()">확인</button>';
   const activeBtn = document.getElementById('modalBtn');
   
+  let cardClass = ""; 
+  
   if (isSuccess) {
     cardClass = "modal-card success-popup";
     modalTitle.textContent = "🎉 성공!";
@@ -735,8 +737,9 @@ function showResultPopup(isSuccess) {
     activeBtn.textContent = "다시 시도";
     nextActionType = "RETRY";
   }
-  cardClass = isSuccess ? "modal-card success-popup" : "modal-card danger-popup";
-  cardCard.className = cardClass;
+  
+  // ✅ 올바른 DOM 요소인 modalCard에 클래스 적용
+  modalCard.className = cardClass; 
   activeBtn.focus();
 }
 
