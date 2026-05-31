@@ -138,8 +138,8 @@
 
     .puzzle-container {
       display: grid;
-      grid-template-columns: repeat(4, 60px);
-      grid-template-rows: repeat(5, 60px);
+      grid-template-columns: repeat(4, 100px);
+      grid-template-rows: repeat(5, 100px);
       gap: 0;
       position: relative;
       border: 12px solid #8b8b8b;
@@ -183,10 +183,10 @@
     .two-one { background-color: #4dabf7; }
     .two-two { background-color: #ff6b6b; font-size: 16px; }
 
-    .one-one { width: 60px; height: 60px; }
-    .one-two { width: 60px; height: 120px; }
-    .two-one { width: 120px; height: 60px; }
-    .two-two { width: 120px; height: 120px; }
+.one-one { width: 100px; height: 100px; }
+.one-two { width: 100px; height: 200px; }
+.two-one { width: 200px; height: 100px; }
+.two-two { width: 200px; height: 200px; font-size: 20px; } /* 폰트도 키우는 것이 좋습니다 */
 
     .hole {
       width: 60px;
@@ -440,7 +440,7 @@ kbd {
 
   const gridCols = 4;
   const gridRows = 5;
-  const cellSize = 60;
+  const cellSize = 100;
 
   let currentStage = 1;
   let moveCount = 0;
@@ -622,7 +622,7 @@ kbd {
       let dragStartY = block.y;
       let lastMoveTime = 0;
       let ghostDiv = null;
-      const moveThreshold = 40;
+      const moveThreshold = 70; // 이동 감지 임계값 (기존 40 -> 약 70~80으로 조정 권장)
       const timeThreshold = 40;
       let madeMove = false; // 이동 시도 여부
 
@@ -713,7 +713,6 @@ kbd {
           if (!canMove(block, tempX, tempY)) return;
         }
 
-        pushUndoStack();
         lastValidX = tempX;
         lastValidY = tempY;
         div.style.left = `${tempX * cellSize + 2}px`;
@@ -741,14 +740,13 @@ kbd {
           ghostDiv = null;
         }
 
-        // 드래그 시작/끝 좌표로 실제 이동 거리 계산
-        if ((lastValidX !== dragStartX || lastValidY !== dragStartY) && madeMove) {
-          // 실제로 이동한 경우에만 이동 횟수 1 증가
-          moveCount++;
-          updateMoveCountDisplay();
-          saveCurrentStateToHistory(currentStage);
-        }
-
+// 실제 이동이 발생했을 경우에만 스택 저장 및 카운트 증가
+  if ((lastValidX !== dragStartX || lastValidY !== dragStartY) && madeMove) {
+    pushUndoStack(); // <--- 여기서 한 번만 저장
+    moveCount++;
+    updateMoveCountDisplay();
+    saveCurrentStateToHistory(currentStage);
+  }
         block.x = lastValidX;
         block.y = lastValidY;
 
