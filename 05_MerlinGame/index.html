@@ -15,7 +15,7 @@
       --active: #007bff;
       --success: #28a745;
       --danger: #dc3545;
-      --danger-light: #fff5f5; /* 마지막 기록 행을 위한 연한 빨간색 */
+      --danger-light: #fff5f5;
       --text-main: #222222;
       --text-sub: #555555;
       --border: #e9ecef;
@@ -38,30 +38,27 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      touch-action: manipulation; /* 더블클릭 줌 방지 */
-      user-select: none; /* 텍스트 선택 방지 */
+      touch-action: manipulation;
+      user-select: none;
       -webkit-user-select: none;
     }
 
-    /* 공통 레이아웃 컨테이너 - 가로 최대 크기 800px 제한 */
     .section-wrapper {
       width: 100%;
       max-width: 800px;
       margin-bottom: 20px;
     }
 
-    /* 카드 형태의 고정 컨테이너 */
     .container-fixed {
       background-color: var(--card-bg);
       border-radius: 20px;
       padding: 24px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       width: 100%;
-      border: 3px solid transparent; /* 테두리 변화 시 레이아웃 흔들림 방지 */
+      border: 3px solid transparent;
       transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* [영역 1-A: 퍼즐 제목] */
     h1 {
       font-size: 32px;
       font-weight: 800;
@@ -70,16 +67,14 @@
       margin: 10px 0 5px 0;
     }
 
-    /* [영역 1-B: 크기 입력 및 시작 / Turn 표시 영역] */
     .setup-container {
       display: flex;
-      justify-content: space-between; /* 양 끝 배치 */
+      justify-content: space-between;
       align-items: center;
       gap: 16px;
       flex-wrap: wrap;
     }
 
-    /* 입력 박스와 버튼이 포함된 컨트롤 그룹을 조금 더 오른쪽(가운데 쪽)으로 밀어주는 세팅 */
     .input-control-box {
       display: flex;
       align-items: center;
@@ -121,7 +116,6 @@
       border-color: var(--active);
     }
 
-    /* 시작 버튼 */
     .start-btn {
       height: 40px;
       padding: 0 20px;
@@ -139,7 +133,6 @@
       background-color: #0056b3;
     }
 
-    /* 턴 수 출력 메인보드 */
     .status-inline {
       font-size: 18px;
       font-weight: 800;
@@ -157,7 +150,6 @@
       color: var(--active);
     }
 
-    /* [영역 2: 퍼즐 문제 영역] */
     .puzzle-card {
       display: flex;
       justify-content: center; 
@@ -165,7 +157,6 @@
       padding: 24px;
     }
 
-    /* ★ 게임 성공 시 붙을 녹색 테두리 클래스 */
     .puzzle-card.game-success {
       border-color: var(--success);
       box-shadow: 0 10px 25px rgba(40, 167, 69, 0.15);
@@ -187,7 +178,6 @@
       clear: both;
     }
 
-    /* 사각형 스타일 규칙 */
     .cell {
       flex: 1 1 0%;
       max-width: 72px; 
@@ -209,7 +199,6 @@
       background-color: #dddddd; 
     }
 
-    /* 반응형 글자 크기 유동 다운사이징 */
     @media (max-width: 580px) {
       .cell {
         font-size: 22px;
@@ -233,7 +222,6 @@
       background-color: var(--danger);
     }
 
-    /* [영역 4, 5: 하단 가이드 공간] */
     .guide-box {
       background-color: var(--card-bg);
       border-radius: 12px;
@@ -254,7 +242,6 @@
       font-weight: 800;
     }
 
-    /* 영역 4: 누적 기록 (빨간색 강조) */
     .record-box {
       border-left: 6px solid var(--danger);
     }
@@ -282,6 +269,17 @@
       color: var(--text-sub);
       font-weight: 600;
       line-height: 1.5;
+    }
+
+    /* 크기별 성공 횟수 합계를 상단에 표시하기 위한 스타일 */
+    #summaryContainer {
+      margin-bottom: 12px;
+    }
+    .summary-item {
+      font-size: 15px;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 6px;
     }
 
     .record-table-wrapper {
@@ -313,34 +311,12 @@
       border-bottom: none;
     }
 
-    /* 마지막 기록된 행 커스텀 타겟 스타일 (연한 빨간색) */
     .record-table tr.latest-row td {
       background-color: var(--danger-light) !important;
       color: var(--danger);
       font-weight: 700;
     }
-    
-    /* 합계 요약 셀 스타일 */
-    .summary-cell {
-      background-color: #fdfdfd !important;
-      text-align: left !important;
-      padding: 16px 20px !important;
-      line-height: 1.6;
-      border-top: 2px solid var(--border) !important;
-    }
-    .summary-title {
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-    .summary-item {
-      font-size: 14px;
-      color: var(--text-sub);
-      font-weight: 600;
-    }
 
-    /* 영역 5: 퍼즐 규칙 (파란색 강조) */
     .rules-box {
       border-left: 6px solid var(--active);
     }
@@ -357,15 +333,11 @@
       font-weight: 500;
     }
 
-    /* 게임 보드 비활성화 잠금 */
     .grid-locked {
       pointer-events: none;
       opacity: 0.6;
     }
 
-    /* ==========================================================================
-       기존의 디자인 레이아웃을 그대로 유지한 통합형 모달창 스타일
-       ========================================================================== */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -399,7 +371,7 @@
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
       transform: scale(0.9);
       transition: transform 0.3s ease, border-top 0.1s ease;
-      border-top: 6px solid var(--success); /* 기본 상태는 초록색 */
+      border-top: 6px solid var(--success);
     }
 
     .modal-overlay.active .modal-card {
@@ -433,22 +405,18 @@
     }
     .modal-btn:hover { opacity: 0.9; }
 
-    /* 성공 확인 버튼 전용색상 (초록색) */
     .modal-btn.btn-success {
       background-color: var(--success);
     }
 
-    /* 초기화용 하단 조작계 가로 정렬 그룹 */
     .modal-btn-group {
       display: flex;
       gap: 10px;
       width: 100%;
     }
-    /* 회색 바탕의 취소 버튼 */
     .modal-btn.btn-cancel {
       background-color: #6c757d;
     }
-    /* 빨간색 바탕의 초기화 버튼 */
     .modal-btn.btn-danger {
       background-color: var(--danger);
     }
@@ -486,7 +454,7 @@
       <button class="record-clear-btn" onclick="openClearModal()">누적 기록 초기화</button>
     </div>
     <div class="record-content">
-      <div id="winCount" style="margin-bottom: 4px;">성공 횟수 : 0회</div>
+      <div id="summaryContainer"></div>
       
       <div class="record-table-wrapper">
         <table class="record-table">
@@ -534,7 +502,6 @@
   </div>
 
   <script>
-    // 마우스 오른쪽 버튼 클릭 및 컨텍스트 메뉴 금지
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
     });
@@ -550,7 +517,9 @@
     const puzzleGridWrapper = document.getElementById("puzzleGridWrapper");
     const turnCountEl = document.getElementById("turnCount");
     const statusDisplay = document.getElementById("statusDisplay");
-    const winCountEl = document.getElementById("winCount");
+    
+    // summaryContainer 요소 가져오기
+    const summaryContainer = document.getElementById("summaryContainer");
     const recordTableBody = document.getElementById("recordTableBody");
 
     const gameModalOverlay = document.getElementById("gameModalOverlay");
@@ -560,14 +529,12 @@
     const modalConfirmBtn = document.getElementById("modalConfirmBtn");
     const modalResetButtonGroup = document.getElementById("modalResetButtonGroup");
 
-    // 로컬 스토리지에서 데이터 불러오기 함수
     function loadSavedRecords() {
       const savedWinCount = localStorage.getItem("merlin_wincount");
       const savedHistory = localStorage.getItem("merlin_history");
 
       if (savedWinCount) {
         wincount = parseInt(savedWinCount);
-        winCountEl.textContent = "성공 횟수 : " + wincount + "회";
       }
       
       if (savedHistory) {
@@ -576,7 +543,6 @@
       }
     }
 
-    // 로컬 스토리지에 데이터 저장하기 함수
     function saveRecords() {
       localStorage.setItem("merlin_wincount", wincount);
       localStorage.setItem("merlin_history", JSON.stringify(historyList));
@@ -663,8 +629,6 @@
         puzzleCardEl.classList.add("game-success");
 
         wincount++;
-        winCountEl.textContent = "성공 횟수 : " + wincount + "회";
-
         historyList.push({ id: wincount, stage: `${b1}x${b2}`, turns: count });
         
         saveRecords();
@@ -690,10 +654,10 @@
       }
     }
 
-    // ★ 렌더링 테이블 수정 및 합계 요약 기능 추가 
     function renderTableRecords() {
       if (historyList.length === 0) {
         recordTableBody.innerHTML = `<tr><td colspan="3" style="color: #aaa; padding: 20px 0;">성공 기록이 없습니다.</td></tr>`;
+        summaryContainer.innerHTML = "";
         return;
       }
 
@@ -716,7 +680,7 @@
       // 2. 누적 합계 데이터 계산
       let summary = {};
       historyList.forEach(record => {
-        let stage = record.stage; // 예: "3x3"
+        let stage = record.stage; 
         let turns = record.turns;
 
         if (!summary[stage]) {
@@ -733,26 +697,16 @@
         }
       });
 
-      // 3. 누적 합계 영역 렌더링
+      // 3. 누적 합계 영역 렌더링 (요청하신 양식 적용)
       let summaryHtml = "";
       for (let stage in summary) {
         let data = summary[stage];
         let parts = stage.split('x');
-        
-        // 요구하신 "3*3이면 9회 이하: 0회, 10회 이상: 0회" 출력 형식 적용
-        summaryHtml += `<div class="summary-item">▶ ${parts[0]}*${parts[1]} : ${data.sizeCount}회 이하 ${data.under}회, ${data.sizeCount + 1}회 이상 ${data.over}회</div>`;
+        summaryHtml += `<div class="summary-item">▶ ${parts[0]}*${parts[1]} 성공 횟수 : ${data.sizeCount}회 이하 ${data.under}회, ${data.sizeCount + 1}회 이상 ${data.over}회</div>`;
       }
 
-      // 마지막 행에 합계 병합(colspan=3) 추가
-      tableHtml += `
-        <tr>
-          <td colspan="3" class="summary-cell">
-            <div class="summary-title">[ 크기별 성공 횟수 합계 ]</div>
-            ${summaryHtml}
-          </td>
-        </tr>
-      `;
-
+      // 렌더링 업데이트
+      summaryContainer.innerHTML = summaryHtml;
       recordTableBody.innerHTML = tableHtml;
     }
 
@@ -790,9 +744,6 @@
       success();
     }
 
-    /* ==========================================================================
-       동적 모달창 제어 로직 인터페이스
-       ========================================================================== */
     function openClearModal() {
       gameModalCard.style.borderTop = "6px solid var(--danger)";
       gameModalTitle.style.color = "var(--danger)";
@@ -811,7 +762,7 @@
     function confirmClearRecords() {
       wincount = 0;
       historyList = [];
-      winCountEl.textContent = "성공 횟수 : 0회";
+      summaryContainer.innerHTML = "";
       localStorage.removeItem("merlin_wincount");
       localStorage.removeItem("merlin_history");
       renderTableRecords();
