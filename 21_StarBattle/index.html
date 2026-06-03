@@ -239,7 +239,17 @@
             gap: 12px;
             width: 100%;
             max-width: 800px;
+            /* 추가: 줄바꿈 허용 */
+    flex-wrap: wrap;
         }
+
+        /* 추가: 모바일 화면(768px 이하)일 때 설정 */
+@media (max-width: 600px) {
+    .controls button {
+        /* 버튼 2개가 들어가도록 설정 (gap 12px을 고려하여 계산) */
+        flex: 1 1 calc(50% - 6px);
+    }
+}
         /* (1) 버튼 기본 파란색 스타일 적용 */
         .btn-ctrl {
             /* 기존 공통 스타일 유지 */
@@ -442,11 +452,11 @@
 
     <div class="controls">
         <button class="btn-ctrl btn-check" onclick="checkStars()">
-            확인
+            ✓ 확인
         </button>
 
         <button class="btn-ctrl btn-hint" onclick="useHint()">
-            힌트
+            💡 힌트
         </button>
 
         <button class="btn-ctrl reset-btn" onclick="resetBoard()">
