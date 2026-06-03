@@ -186,8 +186,13 @@
         .control-bs { background-color: #fee2e2; color: #b91c1c; }
         .control-bs:active { background-color: #fecaca; }
         
-        .control-c { background-color: #fef3c7; color: #b45309; }
-        .control-c:active { background-color: #fde68a; }
+        .control-c { background-color: #ffffff; border: 1px solid var(--danger); color: var(--danger);
+  font-weight: 700; border-radius: 6px;
+  cursor: pointer; transition: var(--transition-normal); outline: none; }
+          
+ 
+
+        .control-c:hover { background-color: var(--danger); color: #ffffff; }
 
         .control-eval { background-color: var(--active); color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.25); }
         .control-eval:active { opacity: 0.9; }
@@ -417,10 +422,10 @@ kbd {
                 </div>
                 
                 <div class="controls-row">
-                    <button class="op-btn control-r" onclick="regenerateCurrentStage()">새 문제</button>
-                    <button class="op-btn control-bs" onclick="popExpression()">한 칸 지우기(←)</button>
-                    <button class="op-btn control-c" onclick="clearExpression()">초기화</button>
-                    <button class="op-btn control-eval" onclick="evaluateExpression()">정답 확인</button>
+                    <button class="op-btn control-r" onclick="regenerateCurrentStage()">✨ 새 문제</button>
+                    <button class="op-btn control-r" onclick="popExpression()">⌫ 한 칸 지우기</button>
+                    <button class="op-btn control-c" onclick="clearExpression()">🔄 처음으로</button>
+                    <button class="op-btn control-eval" onclick="evaluateExpression()">✓ 정답 확인</button>
                 </div>
             </div>
         </div>
@@ -495,7 +500,7 @@ kbd {
                 <kbd>Backspace</kbd> 한 칸 지우기
                 </div>
                 <div class="shortcut-item">
-                <kbd>C</kbd> / <kbd>Esc</kbd> 초기화
+                <kbd>C</kbd> / <kbd>Esc</kbd> 처음으로
                 </div>
                 <div class="shortcut-item">
                 <kbd>Enter</kbd> / <kbd>Space</kbd> 정답 확인
