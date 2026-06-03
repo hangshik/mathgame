@@ -322,8 +322,8 @@
 
   <!-- [영역 3] 하단 조작 버튼 영역 -->
   <div class="container-fluid controls-row">
-    <button id="btnHint" class="action-btn" onclick="useHint()">힌트</button>
-    <button class="action-btn reset-btn" onclick="resetCurrentStage()">처음으로</button>
+    <button id="btnHint" class="action-btn" onclick="useHint()">💡 힌트</button>
+    <button class="action-btn reset-btn" onclick="resetCurrentStage()">🔄 처음으로</button>
   </div>
 
   <!-- [영역 5] 퍼즐 규칙 공간 (누적 기록, 키보드 단축키 공간 완전히 삭제) -->
@@ -484,10 +484,10 @@
 
     if (canUse) {
       btn.disabled = false;
-      btn.innerText = `힌트 (${MAX_HINTS - status.count})`;
+      btn.innerText = `💡 힌트 (${MAX_HINTS - status.count})`;
     } else {
       btn.disabled = true;
-      btn.innerText = status.count >= MAX_HINTS ? "힌트 소진" : "힌트";
+      btn.innerText = status.count >= MAX_HINTS ? "💡 힌트 소진" : "💡 힌트";
     }
   }
 
