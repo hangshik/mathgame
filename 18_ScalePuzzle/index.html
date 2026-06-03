@@ -791,92 +791,90 @@
         }
     }
 
-    function createBlockElement(id, weight, textContent) {
-        const block = document.createElement('div');
-        block.className = 'block';
-        block.id = id;
-        block.textContent = textContent;
-        block.dataset.weight = weight;
-        block.draggable = true;
+function createBlockElement(id, weight, textContent) {
+    const block = document.createElement('div');
+    block.className = 'block';
+    block.id = id;
+    block.textContent = textContent;
+    block.dataset.weight = weight;
+    block.draggable = true;
 
-        block.addEventListener('dragstart', e => {
-            if(isCorrect) { e.preventDefault(); return; }
-            deselectAllBlocks();
-            e.dataTransfer.setData('text', block.id);
-        });
+    // 데스크톱 드래그 시작 이벤트
+    block.addEventListener('dragstart', e => {
+        if (isCorrect) { e.preventDefault(); return; }
+        deselectAllBlocks();
+        e.dataTransfer.setData('text', block.id);
+    });
 
-        // 드래그 종료 시 고스트 제거
-        block.addEventListener('dragend', () => removePreviewGhost());
+    // 드래그 종료 시 고스트 제거
+    block.addEventListener('dragend', () => removePreviewGhost());
 
-        block.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectBlock(block);
-        });
+    // 클릭/터치 이벤트 (선택 로직)
+    block.addEventListener('touchstart', function(e) {
+        if (isCorrect) return;
+        selectBlock(block);
+        dragBlock = block;
+        // e.preventDefault();를 제거하여 브라우저의 기본 터치 동작을 방해하지 않게 함
+    }, { passive: true });
 
-        block.addEventListener('touchstart', function(e) {
-            selectBlock(block);
-            dragBlock = block;
-            e.preventDefault();
-        }, {passive: false});
+    block.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectBlock(block);
+    });
 
-        block.addEventListener('touchmove', function(e) { 
-            if (!dragBlock) return;
-            e.preventDefault(); 
-            let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-            if (!touch || isCorrect) return;
+    // 터치 이동 시 고스트(미리보기) 표시
+    block.addEventListener('touchmove', function(e) {
+        if (!dragBlock || isCorrect) return;
+        
+        let touch = e.touches[0];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const slot = el ? el.closest('.slot') : null;
+        const wrapper = el ? el.closest('.block-wrapper') : null;
 
-            // 터치 이동 위치 계산하여 고스트 보여주기
-            const x = touch.clientX, y = touch.clientY;
-            const el = document.elementFromPoint(x, y);
-            const slot = el && el.closest && el.closest('.slot');
-            const wrapper = el && el.closest && el.closest('.block-wrapper');
+        if (slot) {
+            const inner = slot.querySelector('.slot-inner');
+            if (getPreviewGhost().parentNode !== inner) inner.appendChild(getPreviewGhost());
+        } else if (wrapper) {
+            if (getPreviewGhost().parentNode !== wrapper) wrapper.appendChild(getPreviewGhost());
+        } else {
+            removePreviewGhost();
+        }
+    }, { passive: true });
 
-            if (slot) {
-                const inner = slot.querySelector('.slot-inner');
-                if (getPreviewGhost().parentNode !== inner) inner.appendChild(getPreviewGhost());
-            } else if (wrapper) {
-                if (getPreviewGhost().parentNode !== wrapper) wrapper.appendChild(getPreviewGhost());
+    // 터치 종료 시 배치 로직
+    block.addEventListener('touchend', function(e) {
+        removePreviewGhost();
+        if (!dragBlock) return;
+        
+        let touch = e.changedTouches[0];
+        dragBlock.classList.remove('selected');
+        selectedBlock = null;
+        
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        const slot = el ? el.closest('.slot') : null;
+        
+        if (slot) {
+            handleBlockPlacement(slot, dragBlock);
+        } else {
+            const wrapper = el ? el.closest('.block-wrapper') : null;
+            if (wrapper) {
+                wrapper.appendChild(dragBlock);
+                setMessage('');
             } else {
-                removePreviewGhost();
-            }
-        }, {passive: false});
-
-        block.addEventListener('touchend', function(e) {
-            removePreviewGhost(); // 터치 종료 시 고스트 삭제
-            if (!dragBlock) return;
-            let touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-            if (!touch) { dragBlock = null; return; }
-            
-            const x = touch.clientX, y = touch.clientY;
-            dragBlock.classList.remove('selected');
-            selectedBlock = null;
-            
-            const el = document.elementFromPoint(x, y);
-            const slot = el && el.closest && el.closest('.slot');
-            if (slot) {
-                handleBlockPlacement(slot, block);
-            } else {
-                const wrapper = el && el.closest && el.closest('.block-wrapper');
-                if (wrapper) { 
-                    wrapper.appendChild(block); 
+                const emptyWrapper = findEmptyWrapper();
+                if (emptyWrapper) {
+                    emptyWrapper.appendChild(dragBlock);
                     setMessage('');
-                } 
-                else {
-                    const emptyWrapper = findEmptyWrapper();
-                    if (emptyWrapper) {
-                        emptyWrapper.appendChild(block);
-                        setMessage('');
-                    }
                 }
             }
-            dragBlock = null;
-            updateInteractiveState();
-            saveStateToLocalStorage();
-            e.preventDefault();
-        }, {passive: false});
+        }
+        dragBlock = null;
+        updateInteractiveState();
+        saveStateToLocalStorage();
+    }, { passive: true });
 
-        return block;
-    }
+    return block;
+}
 
     function updateBlockOptions(isInitial = false) {
         const s = parseInt(U.slotCount.value, 10);
