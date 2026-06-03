@@ -389,7 +389,7 @@ kbd {
   </div>
 
   <div class="section-wrapper control-zone">
-    <button id="reset-btn" class="action-btn btn-reset">현재 단계 초기화</button>
+    <button id="reset-btn" class="action-btn btn-reset">🔄 현재 게임 초기화</button>
   </div>
 
   <div class="section-wrapper guide-box guide-red">
@@ -412,10 +412,10 @@ kbd {
     <h3>⌨️ 키보드 단축키</h3>
     <div class="shortcut-grid">
       <div class="shortcut-item">
-      <kbd>Enter</kbd> 숫자 제출 및 결과 팝업 확인
+      <kbd>Enter</kbd> 숫자 제출
       </div>
       <div class="shortcut-item">
-      <kbd>Esc</kbd> 현재 게임 초기화 및 입력란 포커스
+      <kbd>Esc</kbd> 현재 게임 초기화
       </div>
     </div>
   </div>
@@ -697,7 +697,7 @@ kbd {
             sum += records[k];
           });
           header += '<th>종합</th></tr>';
-          data += `<td><b>${sum}회 완수</b></td></tr>`;
+          data += `<td><b>${sum}회 성공</b></td></tr>`;
 
           html += `<table class="record-table">${header}${data}</table></div>`;
         }
