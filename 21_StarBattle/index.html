@@ -451,8 +451,9 @@
     <div id="messageArea" class="message-area"></div>
 
     <div class="controls">
-        <button class="btn-ctrl btn-check" onclick="checkStars()">
-            ✓ 확인
+        <!-- [수정] class에 "active" 추가, aria-pressed="true"로 변경 -->
+        <button id="btnColor" class="btn-ctrl btn-color active" aria-pressed="true" onclick="toggleColorMode()">
+            <span class="check-box-icon"></span> Color
         </button>
 
         <button class="btn-ctrl btn-hint" onclick="useHint()">
@@ -463,9 +464,8 @@
             🔄 처음으로
         </button>
 
-        <!-- [수정] class에 "active" 추가, aria-pressed="true"로 변경 -->
-        <button id="btnColor" class="btn-ctrl btn-color active" aria-pressed="true" onclick="toggleColorMode()">
-            <span class="check-box-icon"></span> Color
+        <button class="btn-ctrl btn-check" onclick="checkStars()">
+            ✓ 확인
         </button>
 
     </div>
