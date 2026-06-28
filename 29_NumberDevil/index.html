@@ -591,8 +591,8 @@
     // 각 단계별 최고 점수 목표 정의
     const maxScores = {
       1: 40,
-      2: 123,
-      3: 200
+      2: 124,
+      3: 301
     };
 
     // 로컬 스토리지 데이터 복구
@@ -733,7 +733,7 @@
           openResultModal(
             "success-mode", 
             "🎉 성공하였습니다!", 
-            `축하합니다! 나의 합(<b>${mySum}점</b>)이 수학귀신의 합(<b>${aiSum}점</b>)보다 크므로 승리했습니다.<br><br><span style="font-size: 13px; color: var(--text-sub);">💡 팁: 현재 단계의 최고 점수에 다시 한 번 도전해 보세요!</span>`
+            `축하합니다! 나의 합(<b>${mySum}점</b>)이 수학귀신의 합(<b>${aiSum}점</b>)보다 크므로 승리했습니다.<br><br><span style="font-size: 13px; color: var(--danger);">💡 팁: 현재 단계의 최고 점수에 다시 한 번 도전해 보세요!</span>`
             // `축하합니다! 나의 합(<b>${mySum}점</b>)이 수학귀신의 합(<b>${aiSum}점</b>)보다 크므로 승리했습니다.<br><br><span style="font-size: 13px; color: var(--text-sub);">💡 팁: 현재 단계의 최고 점수 <b>${targetMax}점</b>에 다시 한 번 도전해 보세요!</span>`
           );
         }
