@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+  <title>수학 귀신과 약수 게임</title>
+  
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
+  <style>
+    /* 디자인 시스템 변수 정의 */
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --active-hover: #0056b3;
+      --success: #28a745;
+      --danger: #dc3545;
+      --danger-hover: #bd2130;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --gray-light: #f8f9fa;
+      --gray-border: #e9ecef;
+    }
+
+    /* 초기화 및 기본 스타일 */
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 15px 10px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* 레이아웃 컨테이너 */
+    .full-width {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container-fixed {
+      width: 100%;
+      max-width: 800px;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    /* 타이틀 */
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-align: center;
+      margin: 15px 0;
+      word-break: keep-all;
+    }
+
+    /* 단계 버튼 및 다시 시작 레이아웃 (4열 그리드 확장) */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+
+    .stage-btn {
+      height: 52px;
+      font-size: 15px;
+      font-weight: 700;
+      border: 1px solid var(--gray-border);
+      border-radius: 14px;
+      background-color: var(--gray-light);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stage-btn:hover {
+      background-color: var(--gray-border);
+    }
+
+    .stage-btn.active {
+      background-color: var(--active);
+      color: white;
+      border-color: var(--active);
+      box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    /* 다시 시작 버튼 스타일 */
+    .stage-btn.restart-btn {
+      border: 2px solid var(--danger);
+      background-color: #fff5f5;
+      color: var(--danger);
+    }
+    .stage-btn.restart-btn:hover {
+      background-color: var(--danger);
+      color: white;
+      box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    /* 숫자 풀 - 무조건 한 줄에 10개 고정 배치 */
+    .pool-wrapper {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 10px;
+      justify-content: center;
+    }
+
+    /* 숫자 공통 사각형 박스 디자인 */
+    .num-box {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 800;
+      border: 2px solid var(--active);
+      color: var(--active);
+      background-color: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 6px rgba(0, 123, 255, 0.05);
+    }
+
+    .num-box:hover {
+      background-color: var(--active);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .num-box:active {
+      transform: translateY(0);
+    }
+
+    /* 가져간 자리를 비우기 위한 플레이스홀더 스타일 */
+    .num-placeholder {
+      aspect-ratio: 1 / 1;
+      visibility: hidden; /* 보이지 않지만 자리는 정확히 유지 */
+    }
+
+    /* 나와 수학귀신 영역 분할 */
+    .game-split {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    .player-section {
+      flex: 1;
+      border: 2px solid var(--gray-border);
+      border-radius: 16px;
+      padding: 16px;
+      background-color: var(--gray-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 200px;
+    }
+
+    .player-section h3 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    /* 획득한 카드 영역 - 원래 숫자 카드 크기의 80% 정형 비율(6열)로 디자인 설계 및 가로폭 이탈 자동 줄바꿈 보장 */
+    .collected-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-grow: 1;
+      align-content: flex-start;
+    }
+
+    /* 가져간 자식 요소 카드 디자인 복구 및 마우스 효과 제거 (80%에 대응하는 폰트 축소 적용) */
+    .collected-grid .num-box {
+      cursor: default;
+      transition: none;
+      box-shadow: none;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+
+    .collected-grid .num-box:hover {
+      background-color: white;
+      color: var(--active);
+      transform: none;
+    }
+
+    /* 수학귀신 획득 카드는 빨간 테두리 유지 */
+    .collected-grid .num-box.ai-card {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .collected-grid .num-box.ai-card:hover {
+      color: var(--danger);
+    }
+
+    .score-badge {
+      font-size: 16px;
+      font-weight: 800;
+      background-color: white;
+      border: 1px solid var(--gray-border);
+      padding: 6px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    /* 하단 가이드 및 누적 기록 공통 스타일 */
+    .guide-box {
+      width: 100%;
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      word-break: keep-all;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .guide-box.danger-style { border-left: 6px solid var(--danger); }
+    .guide-box.active-style { border-left: 6px solid var(--active); }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .guide-header.danger-text { color: var(--danger); }
+    .guide-header.active-text { color: var(--active); }
+
+    .inline-reset-btn {
+      background: white;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 5px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .inline-reset-btn:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .guide-content {
+      color: var(--text-sub);
+      list-style-type: none;
+    }
+
+    .guide-content li {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    /* 누적 기록 테이블 디자인 */
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+      font-size: 15px;
+    }
+
+    .record-table th, .record-table td {
+      border: 1px solid var(--gray-border);
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .record-table th {
+      background-color: var(--gray-light);
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .record-table td {
+      color: var(--text-sub);
+    }
+
+    /* 결과 알림 팝업 및 오버레이 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease-out;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      width: 350px;
+      max-width: 90%;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      transform: scale(0.85);
+      transition: all 0.25s ease-out;
+    }
+
+    .modal-overlay.show .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-card.success-mode { border-top: 6px solid var(--success); }
+    .modal-card.danger-mode { border-top: 6px solid var(--danger); }
+    .modal-card.active-mode { border-top: 6px solid var(--active); }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .modal-card.success-mode .modal-title { color: var(--success); }
+    .modal-card.danger-mode .modal-title { color: var(--danger); }
+    .modal-card.active-mode .modal-title { color: var(--active); }
+
+    .modal-body {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      word-break: keep-all;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .modal-btn:hover {
+      opacity: 0.9;
+    }
+
+    .modal-card.success-mode .modal-btn { background-color: var(--success); }
+    .modal-card.danger-mode .modal-btn { background-color: var(--danger); }
+    .modal-card.active-mode .modal-btn { background-color: var(--active); }
+
+    /* 취소/확인 분할 버튼 (초기화 전용) */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-half {
+      flex: 1;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-gray {
+      background-color: var(--gray-light);
+      color: var(--text-main);
+      border: 1px solid var(--gray-border);
+    }
+
+    .btn-red {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    /* 모바일 반응형 조절 */
+    @media (max-width: 600px) {
+      h1 { font-size: 28px; }
+      .container-fixed { padding: 16px; }
+      .stage-grid {
+        gap: 6px;
+      }
+      .stage-btn { height: 46px; font-size: 11px; border-radius: 10px; }
+      
+      .pool-wrapper {
+        gap: 4px;
+      }
+      .num-box {
+        font-size: 13px;
+        border-width: 1.5px;
+        border-radius: 6px;
+      }
+
+      /* 모바일 레이아웃(세로 배열 시 가로가 100%이므로) 12열 그리드로 80% 비율 완벽 유지 및 자동 개행 */
+      .collected-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 4px;
+      }
+      .collected-grid .num-box {
+        font-size: 10px;
+        border-width: 1px;
+        border-radius: 4px;
+      }
+
+      .game-split {
+        flex-direction: column;
+        gap: 15px;
+      }
+      .player-section {
+        min-height: 160px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .num-box {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="full-width">
+    <h1>수학 귀신과 약수 게임</h1>
+  </div>
+
+  <!-- 단계 선택 및 조작 영역 -->
+  <div class="container-fixed">
+    <div class="stage-grid">
+      <button id="btnStage1" class="stage-btn active" onclick="changeStage(1)">1단계(1~10)</button>
+      <button id="btnStage2" class="stage-btn" onclick="changeStage(2)">2단계(1~20)</button>
+      <button id="btnStage3" class="stage-btn" onclick="changeStage(3)">3단계(1~30)</button>
+      <button id="btnRestart" class="stage-btn restart-btn" onclick="initGame(currentStage)">다시 시작</button>
+    </div>
+  </div>
+
+  <!-- 메인 보드 게임 영역 -->
+  <div class="container-fixed">
+    <!-- 위쪽: 남은 카드 풀 (한 줄에 10개 고정) -->
+    <div id="poolContainer" class="pool-wrapper"></div>
+
+    <!-- 하단: 나와 수학 귀신의 수집 영역 -->
+    <div class="game-split">
+      <!-- 하단 왼쪽: 나 -->
+      <div class="player-section">
+        <h3>나</h3>
+        <div id="myCollected" class="collected-grid"></div>
+        <div class="score-badge">합계: <span id="mySum" style="color:var(--active);">0</span></div>
+      </div>
+
+      <!-- 하단 오른쪽: 수학 귀신 -->
+      <div class="player-section">
+        <h3>수학 귀신</h3>
+        <div id="aiCollected" class="collected-grid"></div>
+        <div class="score-badge">합계: <span id="aiSum" style="color:var(--danger);">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 누적 기록 표 공간 -->
+  <div class="full-width">
+    <div class="guide-box danger-style">
+      <div class="guide-header danger-text">
+        <span>📊 누적 기록</span>
+        <button class="inline-reset-btn" onclick="openResetConfirmModal()">누적기록 초기화</button>
+      </div>
+      <div id="recordTableWrapper"></div>
+    </div>
+  </div>
+
+  <!-- 게임 규칙 가이드 공간 -->
+  <div class="full-width">
+    <div class="guide-box active-style">
+      <div class="guide-header active-text">◈ 게임 설명 및 규칙</div>
+      <ul class="guide-content">
+        <li>• 1. 내가 숫자를 한 개 가져가면 수학귀신은 내가 가져간 숫자의 약수를 모두 가져간다.</li>
+        <li>• 2. 나는 남아있는 카드 중 약수가 2개 이상인 숫자만 가져갈 수 있다.</li>
+        <li>• 3. 내가 더 이상 가져갈 숫자가 없게 된 경우 나머지 숫자는 모두 수학귀신이 가져간다.</li>
+        <li>• 4. 내가 가져간 수의 합이 수학귀신이 가져간 수의 합보다 크면 이긴다.</li>
+        <li>• 5. 각 단계별 최고 점수 달성에 도전해 보세요! (1단계: <b>40점</b> / 2단계: <b>105점</b> / 3단계: <b>150점</b>)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 결과 알림 팝업창 (모달 디스플레이) -->
+  <div class="modal-overlay" id="resultModal">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">🎉 성공하였습니다.!</div>
+      <div class="modal-body" id="modalBody">성공 축하 메시지가 나타납니다.</div>
+      <button class="modal-btn" id="modalActionBtn" onclick="closeModal()">확인</button>
+    </div>
+  </div>
+
+  <!-- 누적기록 삭제 확인 모달 -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-card danger-mode">
+      <div class="modal-title" style="color: var(--danger)">데이터 초기화</div>
+      <div class="modal-body">모든 누적 기록을 완벽히 초기화하시겠습니까?<br>이 작업은 되돌릴 수 없습니다.</div>
+      <div class="btn-group">
+        <button class="btn-half btn-gray" onclick="closeConfirmModal()">취소</button>
+        <button class="btn-half btn-red" onclick="executeClearRecords()">초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 브라우저 우클릭 차단 및 모바일 제스처 최적화
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 상태 정의
+    let currentStage = 1;
+    let maxNumber = 10;   // 현재 선택한 단계의 최대 숫자 (10, 20, 30)
+    let remaining = [];  // 현재 남아있는 숫자 배열
+    let myNums = [];     // 내가 선택한 숫자 배열
+    let aiNums = [];     // 수학귀신이 가져간 숫자 배열
+
+    // 각 단계별 최고 점수 목표 정의
+    const maxScores = {
+      1: 40,
+      2: 105,
+      3: 150
+    };
+
+    // 로컬 스토리지 데이터 복구
+    let gameHistory = JSON.parse(localStorage.getItem("math_ghost_records")) || [];
+
+    window.onload = () => {
+      initGame(1);
+      renderHistoryTable();
+    };
+
+    // 단계 변경 함수 (클릭 시 새로 게임 시작)
+    function changeStage(stage) {
+      // 액티브 클래스 업데이트
+      document.getElementById("btnStage1").classList.remove("active");
+      document.getElementById("btnStage2").classList.remove("active");
+      document.getElementById("btnStage3").classList.remove("active");
+      document.getElementById(`btnStage${stage}`).classList.add("active");
+
+      initGame(stage);
+    }
+
+    // 게임 시작 및 보드 구축
+    function initGame(stage) {
+      currentStage = stage;
+      maxNumber = stage === 1 ? 10 : stage === 2 ? 20 : 30;
+
+      remaining = [];
+      for(let i = 1; i <= maxNumber; i++) {
+        remaining.push(i);
+      }
+
+      myNums = [];
+      aiNums = [];
+
+      renderGameUI();
+    }
+
+    // 특정 숫자의 모든 약수 구하기
+    function getDivisors(n) {
+      let divisors = [];
+      for(let i = 1; i <= n; i++) {
+        if(n % i === 0) divisors.push(i);
+      }
+      return divisors;
+    }
+
+    // 플레이어가 숫자를 클릭했을 때의 핸들러
+    function selectNumber(num) {
+      // 1. 이미 사용 가능한 카드가 아닌 경우 (오류 방지)
+      if (!remaining.includes(num)) return;
+
+      // 2. 중요 규칙 검사: "남아있는 숫자 중 약수가 2개 이상인 경우만 선택 가능"
+      // 내가 선택하려는 숫자의 약수 중 '현재 풀(remaining)에 실재하는 약수'의 목록을 추출
+      let activeDivisors = getDivisors(num).filter(d => remaining.includes(d));
+
+      if (activeDivisors.length < 2) {
+        // 규칙 위반 시 오류 모달 노출 (파란색 포인트 테두리)
+        openErrorModal("❌ 선택할 수 없는 카드입니다.", "현재 남아있는 숫자 중에서 본인을 제외한 약수가 없거나 이미 사라진 상태입니다.");
+        return;
+      }
+
+      // 3. 적법한 선택인 경우 이동 진행
+      // '나'에게 해당 숫자 누적
+      myNums.push(num);
+      remaining = remaining.filter(n => n !== num);
+
+      // 내가 선택한 숫자의 약수들을 수학귀신이 획득
+      activeDivisors.forEach(d => {
+        if (remaining.includes(d)) {
+          aiNums.push(d);
+          remaining = remaining.filter(n => n !== d);
+        }
+      });
+
+      // 4. 매 선택 이후 플레이어가 선택 가능한 유효한 카드 유무 판단
+      checkMoveOrEnd();
+    }
+
+    // 유효한 행마(가져갈 수 있는 숫자)가 존재하는지 체킹하는 함수
+    function checkMoveOrEnd() {
+      let playableCount = 0;
+
+      for (let i = 0; i < remaining.length; i++) {
+        let testNum = remaining[i];
+        let testDivisors = getDivisors(testNum).filter(d => remaining.includes(d));
+        if (testDivisors.length >= 2) {
+          playableCount++;
+        }
+      }
+
+      // 더 이상 가져갈 수 있는 카드가 존재하지 않는 상태라면 수학 귀신이 잔여 카드를 모두 몰수 수집함
+      if (playableCount === 0 && remaining.length > 0) {
+        aiNums.push(...remaining);
+        remaining = [];
+      }
+
+      renderGameUI();
+
+      // 숫자가 모두 소진되어 게임이 마무리되었는지 체킹
+      if (remaining.length === 0) {
+        evaluateGameResult();
+      }
+    }
+
+    // 승패 연산 및 결과 모달 출력
+    function evaluateGameResult() {
+      let mySum = myNums.reduce((acc, curr) => acc + curr, 0);
+      let aiSum = aiNums.reduce((acc, curr) => acc + curr, 0);
+
+      let isSuccess = mySum > aiSum;
+      let statusString = isSuccess ? "승리" : "패배";
+
+      // 기록 보관
+      let recordObj = {
+        stage: `${currentStage}단계`,
+        myTotal: mySum,
+        aiTotal: aiSum,
+        result: statusString
+      };
+
+      gameHistory.push(recordObj);
+      localStorage.setItem("math_ghost_records", JSON.stringify(gameHistory));
+      renderHistoryTable();
+
+      // 적절한 모달 디스플레이 연결
+      if (isSuccess) {
+        let targetMax = maxScores[currentStage] || 0;
+
+        if (mySum >= targetMax) {
+          // 최고 점수와 같거나 큰 경우 (완벽한 성공)
+          openResultModal(
+            "success-mode", 
+            "🏆 완벽한 승리!", 
+            `소름 돋는 지능입니다! 해당 단계의 이론상 최고 점수인 <b>${targetMax}점</b>을 달성하며 수학 귀신을 완벽히 격파했습니다!`
+          );
+        } else {
+          // 최고 점수 미만으로 이긴 경우 (일반 성공)
+          openResultModal(
+            "success-mode", 
+            "🎉 성공하였습니다!", 
+            `축하합니다! 나의 합(<b>${mySum}점</b>)이 수학귀신의 합(<b>${aiSum}점</b>)보다 크므로 승리했습니다.<br><br><span style="font-size: 13px; color: var(--text-sub);">💡 팁: 현재 단계의 최고 점수 <b>${targetMax}점</b>에 다시 한 번 도전해 보세요!</span>`
+          );
+        }
+      } else {
+        openResultModal(
+          "danger-mode", 
+          "❌ 패배하였습니다.", 
+          `아쉽습니다. 수학귀신의 점수(<b>${aiSum}점</b>)가 나(<b>${mySum}점</b>)보다 높거나 같습니다. 다시 한 번 최적의 전략을 짜보세요.`
+        );
+      }
+    }
+
+    // UI 렌더링 동기화
+    function renderGameUI() {
+      // 1. 풀 영역 그리기 (1부터 maxNumber까지 돌면서 원래 위치에 고정 렌더링)
+      const poolContainer = document.getElementById("poolContainer");
+      let poolHTML = "";
+      for (let i = 1; i <= maxNumber; i++) {
+        if (remaining.includes(i)) {
+          poolHTML += `<div class="num-box" onclick="selectNumber(${i})">${i}</div>`;
+        } else {
+          // 가져간 숫자는 비어있는 상태(레이아웃 보존)를 유지
+          poolHTML += `<div class="num-placeholder"></div>`;
+        }
+      }
+      poolContainer.innerHTML = poolHTML;
+
+      // 2. 내가 모은 카드 영역 (원본 카드 크기 및 정방형 비율 유지)
+      const myCollected = document.getElementById("myCollected");
+      let myHTML = "";
+      myNums.sort((a,b) => a-b).forEach(n => {
+        myHTML += `<div class="num-box">${n}</div>`;
+      });
+      myCollected.innerHTML = myHTML;
+
+      // 3. 수학 귀신 카드 영역 (원본 카드 크기, 정방형 비율, 전용 빨간색 적용)
+      const aiCollected = document.getElementById("aiCollected");
+      let aiHTML = "";
+      aiNums.sort((a,b) => a-b).forEach(n => {
+        aiHTML += `<div class="num-box ai-card">${n}</div>`;
+      });
+      aiCollected.innerHTML = aiHTML;
+
+      // 4. 점수 보드판
+      let mySumVal = myNums.reduce((acc, curr) => acc + curr, 0);
+      let aiSumVal = aiNums.reduce((acc, curr) => acc + curr, 0);
+      document.getElementById("mySum").textContent = mySumVal;
+      document.getElementById("aiSum").textContent = aiSumVal;
+    }
+
+    // 누적 기록 테이블 빌더
+    function renderHistoryTable() {
+      const wrapper = document.getElementById("recordTableWrapper");
+      if(gameHistory.length === 0) {
+        wrapper.innerHTML = `<div style="color:var(--text-sub); font-size:15px; margin-top:5px; text-align:center;">진행된 게임 판수가 없습니다. 새로운 단계에 도전해 보세요!</div>`;
+        return;
+      }
+
+      let tableHTML = `
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>도전 단계</th>
+              <th>내 점수</th>
+              <th>귀신 점수</th>
+              <th>결과</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for(let i = gameHistory.length - 1; i >= 0; i--) {
+        let isLatest = (i === gameHistory.length - 1);
+        let rowStyle = isLatest ? `style="background-color: #fff5f5;"` : "";
+        let resColor = gameHistory[i].result === "승리" ? `style="color:var(--success); font-weight:bold;"` : `style="color:var(--danger); font-weight:bold;"`;
+
+        tableHTML += `
+          <tr ${rowStyle}>
+            <td>${i + 1}</td>
+            <td><b>${gameHistory[i].stage}</b></td>
+            <td style="color:var(--active); font-weight:bold;">${gameHistory[i].myTotal}점</td>
+            <td style="color:var(--danger); font-weight:bold;">${gameHistory[i].aiTotal}점</td>
+            <td ${resColor}>${gameHistory[i].result}</td>
+          </tr>
+        `;
+      }
+
+      tableHTML += `</tbody></table>`;
+      wrapper.innerHTML = tableHTML;
+    }
+
+    // 모달창 오픈 모듈
+    function openResultModal(modeClass, title, bodyText) {
+      const modal = document.getElementById("resultModal");
+      const card = document.getElementById("modalCard");
+      const mTitle = document.getElementById("modalTitle");
+      const mBody = document.getElementById("modalBody");
+      const mBtn = document.getElementById("modalActionBtn");
+
+      card.className = "modal-card " + modeClass;
+      mTitle.innerHTML = title;
+      mBody.innerHTML = bodyText;
+
+      mBtn.textContent = "확인";
+
+      modal.classList.add("show");
+      mBtn.focus();
+    }
+
+    // 규칙 위반 모달 전용
+    function openErrorModal(title, bodyText) {
+      openResultModal("active-mode", title, bodyText);
+    }
+
+    // 모달창 닫기 (요구사항: 게임판을 절대 자동으로 초기화하지 않음)
+    function closeModal() {
+      document.getElementById("resultModal").classList.remove("show");
+    }
+
+    // 초기화 동의 팝업 열기
+    function openResetConfirmModal() {
+      document.getElementById("confirmModal").classList.add("show");
+    }
+
+    // 초기화 동의 팝업 닫기
+    function closeConfirmModal() {
+      document.getElementById("confirmModal").classList.remove("show");
+    }
+
+    // 기록 초기화 실행 단추
+    function executeClearRecords() {
+      gameHistory = [];
+      localStorage.removeItem("math_ghost_records");
+      renderHistoryTable();
+      closeConfirmModal();
+      initGame(currentStage);
+    }
+
+    // 키보드 엔터/스페이스 자동 단축키 연동
+    window.addEventListener("keydown", (e) => {
+      const activeModal = document.querySelector(".modal-overlay.show");
+      if (activeModal) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          // 결과 모달 닫기 연동
+          if (activeModal.id === "resultModal") {
+            closeModal();
+          } 
+          // 컨펌창 확인 연동
+          else if (activeModal.id === "confirmModal") {
+            executeClearRecords();
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
