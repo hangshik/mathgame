@@ -692,7 +692,7 @@ kbd {
           let sum = 0;
 
           keys.forEach(k => {
-            header += `<td>${k}회</td>`;
+            header += `<td style="background-color: var(--btn-gray); font-weight: bold;">${k}회</td>`;
             data += `<td>${records[k]}번</td>`;
             sum += records[k];
           });
