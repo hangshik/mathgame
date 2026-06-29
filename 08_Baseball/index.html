@@ -517,7 +517,7 @@ kbd {
       });
 
       gameInput.maxLength = currentDigits;
-      gameInput.placeholder = `예: ${stageHistory[index].answer.substring(0, currentDigits)}`;
+      gameInput.placeholder = currentDigits === 3 ? "예: 123" : "예: 1234";
       digitIndicator.innerText = `${currentDigits}자리 숫자 야구`;
 
       restoreStageData(index);
