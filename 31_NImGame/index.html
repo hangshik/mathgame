@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nim Game</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
+  <style>
+    /* 디자인 시스템 및 전역 변수 설정 */
+    :root {
+      --bg: #f4f7f6;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --active-hover: #0056b3;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+      --border-light: #e2e8f0;
+      --btn-bg: #f8fafc;
+      --gray-btn: #6c757d;
+      
+      --color-p1: #007bff; /* 플레이어 1 (블루) */
+      --color-p2: #dc3545; /* AI (레드) */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+
+    body { background-color: var(--bg); color: var(--text-main); padding: 20px 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    .wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+
+    .puzzle-header { text-align: center; margin-bottom: 5px; }
+    .puzzle-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; color: #0f172a; }
+    .puzzle-header p { font-size: 15px; color: var(--text-sub); margin-top: 6px; }
+
+    /* 단계 선택 영역 */
+    .container-fixed { background-color: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+    .stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 auto; }
+    .stage-btn { height: 54px; border: 1px solid var(--border-light); background-color: var(--btn-bg); color: var(--text-sub); border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.2s; }
+    .stage-btn .sub-label { font-size: 12px; font-weight: 600; opacity: 0.95; margin-top: 3px; }
+    .stage-btn:hover { background-color: #f1f5f9; }
+    .stage-btn.active { background-color: var(--active); color: #ffffff; border-color: var(--active); box-shadow: 0 4px 12px rgba(0,123,255,0.25); }
+
+    /* 환경 설정 패널 */
+    .config-panel { background-color: var(--btn-bg); border-radius: 16px; padding: 18px; margin-top: 20px; border: 1px solid var(--border-light); }
+    
+    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .setting-card { background-color: var(--card-bg); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border: 1px solid var(--border-light); }
+    .setting-card > span { font-size: 14px; font-weight: 700; color: #334155; }
+    
+    .toggle-group { display: flex; width: 100%; gap: 6px; }
+    .toggle-btn { flex: 1; padding: 8px 0; border-radius: 8px; border: 1px solid var(--border-light); background: var(--btn-bg); cursor: pointer; color: var(--text-sub); font-size: 13px; font-weight: 700; transition: 0.2s; text-align: center; }
+    .toggle-btn:hover:not(:disabled) { background: #e2e8f0; }
+    .toggle-btn.active { background: var(--success); color: #fff; border-color: #475569; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .turn-selector-card { background-color: var(--card-bg); border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 12px; border: 1px solid var(--border-light); }
+    .turn-selector-title { font-size: 15px; font-weight: 800; color: #334155; display: flex; align-items: center; gap: 8px; }
+    .turn-selector-title span { font-size: 13px; font-weight: 600; color: var(--active); background: rgba(0,123,255,0.1); padding: 3px 8px; border-radius: 6px; }
+    
+    .turn-selector-buttons { display: flex; gap: 10px; }
+    .select-btn { padding: 10px 18px; font-size: 13px; font-weight: 800; border-radius: 10px; cursor: pointer; border: 2px solid transparent; background-color: #f1f5f9; color: var(--text-sub); transition: all 0.2s; }
+    .select-btn.p1-btn { background-color: rgba(0, 123, 255, 0.08); color: var(--color-p1); border-color: rgba(0, 123, 255, 0.2); }
+    .select-btn.p1-btn.selected { background-color: var(--color-p1); color: #ffffff; border-color: var(--color-p1); box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); }
+    .select-btn.p2-btn { background-color: rgba(220, 53, 69, 0.08); color: var(--color-p2); border-color: rgba(220, 53, 69, 0.2); }
+    .select-btn.p2-btn.selected { background-color: var(--color-p2); color: #ffffff; border-color: var(--color-p2); box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3); }
+
+    /* 게임 보드 영역 */
+    .game-board-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .turn-indicator { font-size: 16px; font-weight: 700; width: 300px; padding: 10px 20px; border-radius: 10px; text-align: center; display: flex; justify-content: center; letter-spacing: -0.5px; border: 1px solid transparent; transition: all 0.3s; }
+    .turn-indicator.p1-turn { color: var(--color-p1); background-color: rgba(0, 123, 255, 0.08); border-color: rgba(0, 123, 255, 0.15); }
+    .turn-indicator.p2-turn { color: var(--color-p2); background-color: rgba(220, 53, 69, 0.08); border-color: rgba(220, 53, 69, 0.15); }
+    .turn-indicator.warning-turn { color: var(--text-sub); background-color: var(--border-light); }
+
+    .board-wrapper { position: relative; width: 100%; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 24px; padding: 10px; border: 4px solid #e2e8f0; transition: all 0.4s; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); background-color: var(--card-bg); }
+    .board-wrapper.glow-p1 { border-color: var(--color-p1); box-shadow: 0 0 25px rgba(0, 123, 255, 0.2); }
+    .board-wrapper.glow-p2 { border-color: var(--color-p2); box-shadow: 0 0 25px rgba(220, 53, 69, 0.2); }
+    .board-wrapper.game-pending { border-color: #cbd5e1; }
+    .board-wrapper.game-pending .nim-item { cursor: not-allowed; opacity: 0.6; pointer-events: none; }
+
+    .nim-board { display: flex; flex-direction: column; gap: 16px; width: 100%; align-items: center; }
+    
+    .nim-pile-row { 
+      position: relative; 
+      display: flex; 
+      align-items: flex-start; 
+      justify-content: flex-start; 
+      background: #f8fafc; 
+      padding: 42px 24px 20px 24px; 
+      border-radius: 24px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+      width: 100%; 
+      border: 2px solid transparent; 
+      transition: border-color 0.2s, background-color 0.2s; 
+    }
+    .nim-pile-row.active-pile { border-color: var(--color-p1); background-color: rgba(0,123,255,0.04); }
+    
+    .nim-pile-count { 
+      position: absolute; 
+      top: 12px; 
+      left: 24px; 
+      font-size: 13px; 
+      font-weight: 800; 
+      color: #475569; 
+      background-color: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: none; 
+      letter-spacing: -0.5px;
+    }
+    .nim-pile-count.show { display: block; }
+    
+    .nim-marbles-container { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 5px; 
+      width: 100%;
+      max-width: calc(15 * 40px + 14 * 5px); 
+    }
+    
+    .nim-item { 
+      width: clamp(22px, calc(10% - 6px), 40px); 
+      aspect-ratio: 1 / 1; 
+      border-radius: 50%; 
+      background-color: #cbd5e1; 
+      border: 3px solid #94a3b8; 
+      cursor: pointer; 
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+      flex-shrink: 0;
+    }
+    .nim-item:hover { transform: scale(1.1); border-color: #64748b; }
+    .nim-item.selected { transform: scale(0.9); background-color: var(--color-p1); border-color: #0056b3; box-shadow: 0 0 12px rgba(0,123,255,0.4); }
+
+    /* 액션 버튼 */
+    .action-container { display: flex; gap: 8px; margin: 10px 0; }
+    .action-btn { height: 56px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 8px; border: 2px solid transparent; user-select: none; }
+    .btn-surrender { flex: 0.8; background-color: #fef2f2; color: var(--danger); border-color: #fecaca; }
+    .btn-surrender:hover:not(:disabled) { background-color: #fee2e2; border-color: #fca5a5; }
+    .btn-reset { flex: 1; background-color: var(--btn-bg); color: #475569; border-color: var(--border-light); }
+    .btn-reset:hover:not(:disabled) { background-color: #f1f5f9; border-color: #cbd5e1; }
+    .btn-submit { flex: 1.5; background-color: var(--active); color: #ffffff; box-shadow: 0 4px 12px rgba(0,123,255,0.25); }
+    .btn-submit:hover:not(:disabled) { background-color: var(--active-hover); box-shadow: 0 6px 16px rgba(0,123,255,0.35); }
+    .action-btn:active { transform: scale(0.98); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none; }
+
+    /* 가이드 및 기록 */
+    .guide-box { background-color: var(--card-bg); border-radius: 12px; padding: 18px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); font-size: 17px; line-height: 1.6; word-break: keep-all; }
+    .guide-title-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .guide-box h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; }
+    
+    .guide-record { border-left: 6px solid var(--danger); display: block; }
+    .guide-record h2 { color: var(--danger); }
+    .btn-clear-record { background-color: #ffffff; color: var(--danger); border: 1px solid var(--danger); padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-clear-record:hover { background-color: var(--danger); color: #ffffff; }
+    
+    .record-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+    .record-table th, .record-table td { padding: 12px 10px; text-align: center; border-bottom: 1px solid var(--border-light); }
+    .record-table th { font-weight: 700; color: var(--text-sub); background-color: var(--btn-bg); }
+    .record-table tr.last-record-highlight { background-color: #fef2f2; transition: background-color 0.3s; }
+
+    .guide-rules { border-left: 6px solid var(--active); }
+    .guide-rules h2 { color: var(--active); }
+    .guide-rules ul { list-style: none; }
+    .guide-rules li { font-size: 14px; color: var(--text-sub); line-height: 1.6; margin-bottom: 5px; }
+
+    .guide-shortcuts { border-left: 6px solid var(--success); }
+    .guide-shortcuts h2 { color: var(--success); }
+    .guide-shortcuts ul { list-style: none; }
+    .guide-shortcuts li { font-size: 14px; color: var(--text-sub); line-height: 1.6; margin-bottom: 5px; }
+    kbd {
+      background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+      color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+    }
+
+    /* 모달 시스템 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(4px); background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-card { width: 90%; max-width: 350px; background-color: var(--card-bg); border-radius: 20px; padding: 28px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); transform: scale(0.9); transition: all 0.3s; }
+    .modal-overlay.active .modal-card { transform: scale(1); }
+    
+    .modal-card.success { border-top: 6px solid var(--success); }
+    .modal-card.danger { border-top: 6px solid var(--danger); }
+    .modal-card.warning { border-top: 6px solid var(--warning); }
+    
+    .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+    .modal-card.success .modal-title { color: var(--success); }
+    .modal-card.danger .modal-title { color: var(--danger); }
+    .modal-card.warning .modal-title { color: #d39e00; }
+    
+    .modal-body { font-size: 15px; color: var(--text-sub); margin-bottom: 24px; line-height: 1.6; white-space: pre-wrap; }
+    
+    .modal-btn { width: 100%; height: 48px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; color: #ffffff; transition: opacity 0.2s; }
+    .modal-btn:hover { opacity: 0.9; }
+    .modal-card.success .modal-btn { background-color: var(--success); }
+    .modal-card.danger .modal-btn { background-color: var(--danger); }
+    
+    .confirm-btn-group { display: flex; gap: 10px; }
+    .confirm-btn-group .modal-btn { flex: 1; }
+    
+    .modal-btn.btn-cancel { background-color: var(--gray-btn) !important; color: #ffffff !important; }
+    .modal-card.warning .modal-btn:not(.btn-cancel) { background-color: var(--warning); color: #fff; }
+    .modal-card.danger .modal-btn:not(.btn-cancel) { background-color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="puzzle-header">
+      <h1>Nim Game</h1>
+    </div>
+
+    <div class="container-fixed">
+      <div class="stage-grid" id="stageGrid"></div>
+
+      <div class="config-panel" id="settingsContainer">
+        <div class="settings-grid">
+          <div class="setting-card">
+            <span>👀 남은 개수 표시</span>
+            <div class="toggle-group" id="tglCount">
+              <button class="toggle-btn" data-val="false">끄기</button>
+              <button class="toggle-btn active" data-val="true">켜기</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <span>🧱 한 턴 개수 제한</span>
+            <div class="toggle-group" id="tglLimit">
+              <button class="toggle-btn active" data-val="false">무제한</button>
+              <button class="toggle-btn" data-val="true">1~3개</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <span>🏆 마지막을 가져가면</span>
+            <div class="toggle-group" id="tglWinRule">
+              <button class="toggle-btn active" data-val="false">승리</button>
+              <button class="toggle-btn" data-val="true">패배</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="turn-selector-card" id="turnSelectorContainer">
+          <div class="turn-selector-title" id="turnSelectorTitle">🎮 선공 플레이어 선택 <span>선택 시 게임 시작</span></div>
+          <div class="turn-selector-buttons">
+            <button class="select-btn p1-btn" id="btnSelectP1">플레이어 선공</button>
+            <button class="select-btn p2-btn" id="btnSelectP2">AI 선공</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fixed game-board-container">
+      <div class="turn-indicator warning-turn" id="turnIndicator">선공을 결정해 주세요</div>
+      <div class="board-wrapper game-pending" id="boardWrapper">
+        <div class="nim-board" id="gameBoard"></div>
+      </div>
+    </div>
+
+    <div class="action-container">
+      <button class="action-btn btn-surrender" id="btnSurrender" disabled>🏳 포기</button>
+      <button class="action-btn btn-reset" id="btnReset" disabled>↶ 되돌리기</button>
+      <button class="action-btn btn-submit" id="btnSubmit" disabled>✓ 선택 확정</button>
+    </div>
+
+    <div class="guide-box guide-record" id="recordBox">
+      <div class="guide-title-container">
+        <h2 id="aiRecordTitle">📊 누적 기록</h2>
+        <button class="btn-clear-record" id="btnClearRecord">누적 기록 초기화</button>
+      </div>
+      <table class="record-table" id="aiRecordTable">
+        <thead>
+          <tr><th>단계</th><th>개수 제한</th><th>마지막에 가져가면</th><th>선공</th><th>결과</th></tr>
+        </thead>
+        <tbody id="aiRecordTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="guide-box guide-rules">
+      <h2>◈ 님 게임(Nim Game) 규칙</h2>
+      <ul>
+        <li><b>기본 규칙</b>: 자신의 차례에 하나의 더미(가로줄)를 골라 원하는 만큼의 구슬을 가져갑니다.</li>
+        <li><b>더미 제약</b>: 한 번에 여러 더미에서 동시에 가져올 수 없습니다. 오직 하나의 더미에서만 선택 가능합니다.</li>
+        <li><b>조건 설정</b>: 위쪽 옵션 토글을 통해 승리 조건 및 가져가기 제한을 변경할 수 있습니다.</li>
+      </ul>
+    </div>
+
+    <div class="guide-box guide-shortcuts">
+      <h2>⌨️ 키보드 단축키</h2>
+      <ul>
+        <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> : <b>(1단계 전용)</b> 구슬을 각각 1, 2, 3개 즉시 가져옵니다.</li>
+        <li><kbd>Enter</kbd> / <kbd>Space</kbd> : 선택 확정 (또는 알림창 확인)</li>
+        <li><kbd>Backspace</kbd> : 턴 되돌리기</li>
+        <li><kbd>Esc</kbd> : 알림창 취소 및 닫기</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-title" id="modalTitle">결과</div>
+      <div class="modal-body" id="modalBody">내용</div>
+      <button class="modal-btn" id="modalBtn">다시 하기</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="confirmModalOverlay">
+    <div class="modal-card" id="confirmModalCard">
+      <div class="modal-title" id="confirmModalTitle">확인</div>
+      <div class="modal-body" id="confirmModalBody">내용</div>
+      <div class="confirm-btn-group">
+        <button class="modal-btn btn-cancel" id="btnConfirmCancel">취소</button>
+        <button class="modal-btn" id="btnConfirmOk">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const stageData = [
+      { stage: 1, basePiles: [31], label: "1단계", sub: "1개 더미" },
+      { stage: 2, basePiles: [8, 11], label: "2단계", sub: "2개 더미" },
+      { stage: 3, basePiles: [7, 11, 13], label: "3단계", sub: "3개 더미" },
+      { stage: 4, basePiles: [5, 6, 8, 9], label: "4단계", sub: "4개 더미" }
+    ];
+
+    let currentStage = 1;
+    let optShowCount = true; 
+    let optLimitTake = false;
+    let optMisere = false;    
+    
+    let stageStates = {}; 
+
+    let currentPiles = [];
+    let selectedPileIdx = null;
+    let selectedItems = new Set();
+    let currentTurn = 0; 
+    let selectedFirstTurn = null; 
+    let undoHistory = [];
+    let aiMemo = {};
+    
+    let aiHistory = JSON.parse(localStorage.getItem('nim_game_records_2026_v3') || '[]');
+    let aiTimeout = null;
+
+    let confirmActionCallback = null;
+
+    const stageGrid = document.getElementById('stageGrid');
+    const gameBoard = document.getElementById('gameBoard');
+    const boardWrapper = document.getElementById('boardWrapper');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const btnSelectP1 = document.getElementById('btnSelectP1');
+    const btnSelectP2 = document.getElementById('btnSelectP2');
+    const btnReset = document.getElementById('btnReset');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnSurrender = document.getElementById('btnSurrender');
+    const aiRecordTableBody = document.getElementById('aiRecordTableBody');
+    
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCard = document.getElementById('modalCard');
+    const confirmModalOverlay = document.getElementById('confirmModalOverlay');
+    const confirmModalCard = document.getElementById('confirmModalCard');
+    const btnConfirmCancel = document.getElementById('btnConfirmCancel');
+    const btnConfirmOk = document.getElementById('btnConfirmOk');
+
+    function init() {
+      setupToggles();
+      renderRecords();
+      loadStage(1);
+      setupEvents();
+    }
+
+    function showConfirmModal(title, message, themeClass, onConfirm) {
+      document.getElementById('confirmModalTitle').innerText = title;
+      document.getElementById('confirmModalBody').innerText = message;
+      confirmModalCard.className = 'modal-card ' + themeClass;
+      confirmActionCallback = onConfirm;
+      confirmModalOverlay.classList.add('active');
+    }
+
+    btnConfirmCancel.onclick = () => {
+      confirmModalOverlay.classList.remove('active');
+      confirmActionCallback = null;
+    };
+
+    btnConfirmOk.onclick = () => {
+      confirmModalOverlay.classList.remove('active');
+      if (confirmActionCallback) confirmActionCallback();
+      confirmActionCallback = null;
+    };
+
+    function updateToggleUI(groupId, valueStr) {
+      const btns = document.querySelectorAll(`#${groupId} .toggle-btn`);
+      btns.forEach(b => {
+        b.classList.toggle('active', b.dataset.val === valueStr);
+      });
+    }
+
+    function setupToggles() {
+      const toggleGroups = [
+        { id: 'tglCount', setter: val => { optShowCount = (val === 'true'); renderBoard(); } },
+        { id: 'tglLimit', setter: val => { optLimitTake = (val === 'true'); clearSelection(); } },
+        { id: 'tglWinRule', setter: val => { optMisere = (val === 'true'); } }
+      ];
+
+      toggleGroups.forEach(group => {
+        const container = document.getElementById(group.id);
+        const btns = container.querySelectorAll('.toggle-btn');
+        btns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            if (group.id !== 'tglCount' && selectedFirstTurn !== null) return;
+
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            group.setter(btn.dataset.val);
+          });
+        });
+      });
+    }
+
+    function setTogglesLocked(isLocked) {
+      document.querySelectorAll('.toggle-btn').forEach(btn => {
+        const parentId = btn.closest('.toggle-group').id;
+        
+        if (parentId === 'tglCount') {
+          btn.disabled = false; 
+        } else if (currentStage === 1 && parentId === 'tglLimit') {
+          btn.disabled = true; 
+        } else {
+          btn.disabled = isLocked;
+        }
+      });
+    }
+
+    function renderStageButtons() {
+      stageGrid.innerHTML = '';
+      stageData.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = `stage-btn ${d.stage === currentStage ? 'active' : ''}`;
+        btn.innerHTML = `<span>${d.label}</span><span class="sub-label">${d.sub}</span>`;
+        
+        btn.onclick = () => {
+          if (currentStage === d.stage) return;
+          
+          if (selectedFirstTurn !== null) {
+            stageStates[currentStage] = {
+              currentPiles: [...currentPiles],
+              selectedFirstTurn: selectedFirstTurn,
+              currentTurn: currentTurn,
+              undoHistory: JSON.parse(JSON.stringify(undoHistory)),
+              optLimitTake: optLimitTake
+            };
+          }
+          
+          loadStage(d.stage);
+        };
+        stageGrid.appendChild(btn);
+      });
+    }
+
+    function loadStage(stageNum) {
+      if (aiTimeout) clearTimeout(aiTimeout); 
+
+      currentStage = stageNum;
+      
+      if (currentStage === 1) {
+        optLimitTake = true;
+        updateToggleUI('tglLimit', 'true');
+      }
+
+      if (stageStates[stageNum]) {
+        const state = stageStates[stageNum];
+        currentPiles = [...state.currentPiles];
+        selectedFirstTurn = state.selectedFirstTurn;
+        currentTurn = state.currentTurn;
+        undoHistory = state.undoHistory;
+        
+        if (state.optLimitTake !== undefined) {
+          optLimitTake = state.optLimitTake;
+          updateToggleUI('tglLimit', optLimitTake ? 'true' : 'false');
+        }
+        
+        clearSelection();
+        setTogglesLocked(true);
+        btnSelectP1.classList.toggle('selected', selectedFirstTurn === 1);
+        btnSelectP2.classList.toggle('selected', selectedFirstTurn === 2);
+      } else {
+        const stageInfo = stageData.find(s => s.stage === stageNum);
+        currentPiles = [...stageInfo.basePiles];
+        selectedFirstTurn = null;
+        currentTurn = 0;
+        undoHistory = [];
+        
+        if (currentStage !== 1) {
+          optLimitTake = false;
+          updateToggleUI('tglLimit', 'false');
+        }
+
+        clearSelection();
+        setTogglesLocked(false);
+        btnSelectP1.classList.remove('selected');
+        btnSelectP2.classList.remove('selected');
+      }
+      
+      updateTurnIndicator();
+      renderStageButtons();
+      renderBoard(); 
+      
+      if (selectedFirstTurn !== null && currentTurn === 2) {
+         executeAITurn();
+      }
+    }
+
+    function setFirstTurn(turn) {
+      selectedFirstTurn = turn;
+      currentTurn = turn;
+      undoHistory = [];
+      clearSelection();
+      setTogglesLocked(true); 
+      
+      aiMemo = {}; 
+
+      btnSelectP1.classList.toggle('selected', turn === 1);
+      btnSelectP2.classList.toggle('selected', turn === 2);
+      updateTurnIndicator();
+
+      if (turn === 2) executeAITurn();
+    }
+
+    function renderBoard() {
+      gameBoard.innerHTML = '';
+      currentPiles.forEach((count, pileIdx) => {
+        if (count === 0) return;
+
+        const row = document.createElement('div');
+        row.className = `nim-pile-row ${selectedPileIdx === pileIdx ? 'active-pile' : ''}`;
+
+        const cntLabel = document.createElement('div');
+        cntLabel.className = `nim-pile-count ${optShowCount ? 'show' : ''}`;
+        cntLabel.innerText = `남은 개수 : ${count}개`;
+        row.appendChild(cntLabel);
+
+        const marblesContainer = document.createElement('div');
+        marblesContainer.className = 'nim-marbles-container';
+
+        for (let i = 0; i < count; i++) {
+          const item = document.createElement('div');
+          item.className = `nim-item ${selectedPileIdx === pileIdx && selectedItems.has(i) ? 'selected' : ''}`;
+          item.onclick = () => handleItemClick(pileIdx, i);
+          marblesContainer.appendChild(item);
+        }
+        row.appendChild(marblesContainer);
+        gameBoard.appendChild(row);
+      });
+    }
+
+    function handleItemClick(pileIdx, itemIdx) {
+      if (selectedFirstTurn === null || currentTurn !== 1) return;
+
+      if (selectedPileIdx !== null && selectedPileIdx !== pileIdx) {
+        selectedItems.clear(); 
+      }
+      
+      selectedPileIdx = pileIdx;
+
+      if (selectedItems.has(itemIdx)) {
+        selectedItems.delete(itemIdx);
+        if (selectedItems.size === 0) selectedPileIdx = null;
+      } else {
+        if (optLimitTake && selectedItems.size >= 3) return; 
+        selectedItems.add(itemIdx);
+      }
+      
+      btnSubmit.disabled = selectedItems.size === 0;
+      renderBoard();
+    }
+
+    function clearSelection() {
+      selectedPileIdx = null;
+      selectedItems.clear();
+      btnSubmit.disabled = true;
+      renderBoard();
+    }
+
+    function updateTurnIndicator() {
+      boardWrapper.classList.remove('glow-p1', 'glow-p2', 'game-pending');
+      
+      if (selectedFirstTurn === null) {
+        boardWrapper.classList.add('game-pending'); 
+        turnIndicator.innerText = '선공을 결정해 주세요';
+        turnIndicator.className = 'turn-indicator warning-turn';
+        btnSurrender.disabled = true;
+      } else if (currentTurn === 1) {
+        boardWrapper.classList.add('glow-p1');
+        turnIndicator.innerText = '플레이어 차례 (블루)';
+        turnIndicator.className = 'turn-indicator p1-turn';
+        btnSurrender.disabled = false; 
+      } else {
+        boardWrapper.classList.add('glow-p2');
+        turnIndicator.innerText = 'AI 차례 연산중... (레드)';
+        turnIndicator.className = 'turn-indicator p2-turn';
+        btnSurrender.disabled = true;
+      }
+      
+      btnReset.disabled = (undoHistory.length < 2 || currentTurn !== 1);
+    }
+
+    function saveHistory() {
+      undoHistory.push({
+        piles: [...currentPiles],
+        turn: currentTurn
+      });
+    }
+
+    function handleUndo() {
+      if (undoHistory.length >= 2) {
+        undoHistory.pop(); 
+        let prev = undoHistory.pop(); 
+        currentPiles = [...prev.piles];
+        currentTurn = prev.turn; 
+      }
+      clearSelection();
+      updateTurnIndicator();
+    }
+
+    function submitTurn() {
+      if (selectedItems.size === 0) return;
+      saveHistory();
+      
+      currentPiles[selectedPileIdx] -= selectedItems.size;
+      clearSelection();
+      
+      checkGameEndAndProceed();
+    }
+
+    function handleSurrender() {
+      aiHistory.unshift({
+        stage: currentStage,
+        limit: optLimitTake ? '1~3개' : '무제한',
+        winRule: optMisere ? '패배' : '승리',
+        first: selectedFirstTurn === 1 ? '플레이어' : 'AI',
+        result: '포기(패배)'
+      });
+      if (aiHistory.length > 10) aiHistory.pop();
+      localStorage.setItem('nim_game_records_2026_v3', JSON.stringify(aiHistory));
+      renderRecords();
+      
+      delete stageStates[currentStage]; 
+      loadStage(currentStage); 
+    }
+
+    function checkGameEndAndProceed() {
+      const remaining = currentPiles.reduce((a, b) => a + b, 0);
+      
+      if (remaining === 0) {
+        handleGameEnd(currentTurn);
+        return;
+      }
+
+      currentTurn = currentTurn === 1 ? 2 : 1;
+      updateTurnIndicator();
+
+      if (currentTurn === 2) {
+        executeAITurn();
+      }
+    }
+
+    function getBestAiMove(piles, isMisere, maxTakeNum) {
+      let possibleMoves = [];
+      for (let p = 0; p < piles.length; p++) {
+        let limit = Math.min(piles[p], maxTakeNum);
+        for (let take = 1; take <= limit; take++) {
+          let nextState = [...piles];
+          nextState[p] -= take;
+          possibleMoves.push({ p, take, nextState });
+        }
+      }
+      possibleMoves.sort(() => Math.random() - 0.5);
+
+      for (let move of possibleMoves) {
+        if (!isAiWinningState(move.nextState, isMisere, maxTakeNum)) {
+          return move; 
+        }
+      }
+      return possibleMoves[0]; 
+    }
+
+    function isAiWinningState(piles, isMisere, maxTakeNum) {
+      let key = piles.join(',') + '|' + isMisere + '|' + maxTakeNum;
+      if (aiMemo[key] !== undefined) return aiMemo[key];
+
+      let sum = piles.reduce((a, b) => a + b, 0);
+      if (sum === 0) {
+        aiMemo[key] = isMisere ? true : false;
+        return aiMemo[key];
+      }
+
+      for (let p = 0; p < piles.length; p++) {
+        let limit = Math.min(piles[p], maxTakeNum);
+        for (let take = 1; take <= limit; take++) {
+          let nextState = [...piles];
+          nextState[p] -= take;
+          if (!isAiWinningState(nextState, isMisere, maxTakeNum)) {
+            aiMemo[key] = true;
+            return true;
+          }
+        }
+      }
+      aiMemo[key] = false;
+      return false;
+    }
+
+    function executeAITurn() {
+      btnSubmit.disabled = true;
+      btnReset.disabled = true;
+
+      aiTimeout = setTimeout(() => {
+        let maxTakeNum = optLimitTake ? 3 : Infinity;
+        let move = getBestAiMove(currentPiles, optMisere, maxTakeNum);
+
+        saveHistory();
+        currentPiles[move.p] -= move.take;
+        
+        checkGameEndAndProceed();
+        if (currentTurn === 1) renderBoard();
+      }, 800);
+    }
+
+    function handleGameEnd(lastMover) {
+      let winner = optMisere ? (lastMover === 1 ? 2 : 1) : lastMover;
+      let playerWins = (winner === 1);
+
+      if (playerWins) {
+        let currentStageInfo = stageData.find(s => s.stage === currentStage);
+        const randomIncrease = Math.floor(Math.random() * 3) + 1; 
+        currentStageInfo.basePiles = currentStageInfo.basePiles.map(p => p + randomIncrease);
+      }
+
+      aiHistory.unshift({
+        stage: currentStage,
+        limit: optLimitTake ? '1~3개' : '무제한',
+        winRule: optMisere ? '패배' : '승리',
+        first: selectedFirstTurn === 1 ? '플레이어' : 'AI',
+        result: playerWins ? '승리' : '패배'
+      });
+      if (aiHistory.length > 10) aiHistory.pop(); 
+      localStorage.setItem('nim_game_records_2026_v3', JSON.stringify(aiHistory));
+      renderRecords();
+      
+      delete stageStates[currentStage]; 
+
+      modalOverlay.classList.add('active');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+      const btn = document.getElementById('modalBtn');
+
+      if (playerWins) {
+        modalCard.className = 'modal-card success';
+        title.innerText = "🎉 플레이어 승리!";
+        body.innerText = "정밀한 판단으로 AI의 연산 방어벽을 격파했습니다!";
+        btn.innerText = "다음 판 도전";
+      } else {
+        modalCard.className = 'modal-card danger';
+        title.innerText = "❌ 플레이어 패배";
+        body.innerText = "AI의 수학적 최적 경로에 말려들었습니다.\n규칙을 다시 숙지하고 도전하세요!";
+        btn.innerText = "다시 시도";
+      }
+    }
+
+    function renderRecords() {
+      aiRecordTableBody.innerHTML = '';
+      if (aiHistory.length === 0) {
+        aiRecordTableBody.innerHTML = `<tr><td colspan="5" style="color:var(--text-sub); padding:15px;">기록이 없습니다.</td></tr>`;
+        return;
+      }
+      aiHistory.forEach((log, idx) => {
+        const tr = document.createElement('tr');
+        if (idx === 0) tr.classList.add('last-record-highlight');
+        
+        const firstColor = log.first === '플레이어' ? 'var(--color-p1)' : 'var(--color-p2)';
+        const resultColor = log.result === '승리' ? 'var(--success)' : 'var(--danger)';
+        
+        tr.innerHTML = `
+          <td>${log.stage}단계</td>
+          <td>${log.limit}</td>
+          <td>${log.winRule}</td>
+          <td style="color:${firstColor}; font-weight:700;">${log.first}</td>
+          <td style="color:${resultColor}; font-weight:700;">${log.result}</td>
+        `;
+        aiRecordTableBody.appendChild(tr);
+      });
+    }
+
+    function setupEvents() {
+      btnSelectP1.onclick = () => setFirstTurn(1);
+      btnSelectP2.onclick = () => setFirstTurn(2);
+      btnSubmit.onclick = submitTurn;
+      btnReset.onclick = handleUndo;
+      
+      btnSurrender.onclick = () => {
+        showConfirmModal("게임 포기", "정말로 게임을 포기하시겠습니까?\n(패배로 기록됩니다)", "danger", () => {
+          handleSurrender();
+        });
+      };
+      
+      document.getElementById('modalBtn').onclick = () => {
+        modalOverlay.classList.remove('active');
+        loadStage(currentStage); 
+      };
+
+      document.getElementById('btnClearRecord').onclick = () => {
+        showConfirmModal("기록 초기화", "모든 AI 대결 기록을 지우시겠습니까?\n이 작업은 되돌릴 수 없습니다.", "danger", () => {
+          aiHistory = [];
+          localStorage.removeItem('nim_game_records_2026_v3');
+          renderRecords();
+        });
+      };
+
+      window.addEventListener('keydown', (e) => {
+        if (confirmModalOverlay.classList.contains('active')) {
+          if (e.key === 'Escape') {
+            btnConfirmCancel.click();
+            return;
+          }
+          if (e.key === 'Enter' || e.key === ' ') {
+            btnConfirmOk.click();
+            return;
+          }
+          return;
+        }
+        
+        if (modalOverlay.classList.contains('active')) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            document.getElementById('modalBtn').click();
+            return;
+          }
+          return;
+        }
+
+        /* 1단계 전용 단축키 로직 추가 (숫자키 1, 2, 3으로 즉시 가져오기) */
+        if (currentStage === 1 && selectedFirstTurn !== null && currentTurn === 1) {
+          if (e.key === '1' || e.key === '2' || e.key === '3') {
+            const numToTake = parseInt(e.key);
+            const available = currentPiles[0] || 0; // 1단계는 0번 인덱스 더미만 존재
+            
+            if (numToTake <= available) {
+              selectedPileIdx = 0;
+              selectedItems.clear();
+              // 입력한 개수만큼 구슬 선택 후 즉시 제출
+              for (let i = 0; i < numToTake; i++) {
+                selectedItems.add(i);
+              }
+              submitTurn();
+              return;
+            }
+          }
+        }
+
+        if (e.key === 'Backspace' && !btnReset.disabled) handleUndo();
+        if ((e.key === 'Enter' || e.key === ' ') && !btnSubmit.disabled) submitTurn();
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
