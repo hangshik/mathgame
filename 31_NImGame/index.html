@@ -28,7 +28,7 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
 
-    body { background-color: var(--bg); color: var(--text-main); padding: 20px 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    body { background-color: var(--bg); color: var(--text-main); padding: 0px 0px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 
     .wrapper { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -37,7 +37,7 @@
     .puzzle-header p { font-size: 15px; color: var(--text-sub); margin-top: 6px; }
 
     /* 단계 선택 영역 */
-    .container-fixed { background-color: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+    .container-fixed { background-color: var(--card-bg); border-radius: 16px; padding: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
     .stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 auto; }
     .stage-btn { height: 54px; border: 1px solid var(--border-light); background-color: var(--btn-bg); color: var(--text-sub); border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.2s; }
     .stage-btn .sub-label { font-size: 12px; font-weight: 600; opacity: 0.95; margin-top: 3px; }
@@ -48,7 +48,7 @@
     .config-panel { background-color: var(--btn-bg); border-radius: 16px; padding: 18px; margin-top: 20px; border: 1px solid var(--border-light); }
     
     .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
-    .setting-card { background-color: var(--card-bg); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border: 1px solid var(--border-light); }
+    .setting-card { background-color: var(--card-bg); border-radius: 12px; padding: 10px 10px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border: 1px solid var(--border-light); }
     .setting-card > span { font-size: 14px; font-weight: 700; color: #334155; }
     
     .toggle-group { display: flex; width: 100%; gap: 6px; }
@@ -57,9 +57,9 @@
     .toggle-btn.active { background: var(--success); color: #fff; border-color: #475569; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .turn-selector-card { background-color: var(--card-bg); border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 12px; border: 1px solid var(--border-light); }
+    .turn-selector-card { background-color: var(--card-bg); border-radius: 12px; padding: 10px 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 12px; border: 1px solid var(--border-light); }
     .turn-selector-title { font-size: 15px; font-weight: 800; color: #334155; display: flex; align-items: center; gap: 8px; }
-    .turn-selector-title span { font-size: 13px; font-weight: 600; color: var(--active); background: rgba(0,123,255,0.1); padding: 3px 8px; border-radius: 6px; }
+    .turn-selector-title span { font-size: 13px; font-weight: 600; color: var(--active); background: rgba(0,123,255,0.1); padding: 8px 8px; border-radius: 6px; }
     
     .turn-selector-buttons { display: flex; gap: 10px; }
     .select-btn { padding: 10px 18px; font-size: 13px; font-weight: 800; border-radius: 10px; cursor: pointer; border: 2px solid transparent; background-color: #f1f5f9; color: var(--text-sub); transition: all 0.2s; }
@@ -70,12 +70,12 @@
 
     /* 게임 보드 영역 */
     .game-board-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-    .turn-indicator { font-size: 16px; font-weight: 700; width: 300px; padding: 10px 20px; border-radius: 10px; text-align: center; display: flex; justify-content: center; letter-spacing: -0.5px; border: 1px solid transparent; transition: all 0.3s; }
+    .turn-indicator { font-size: 16px; font-weight: 700; width: 100%; padding: 8px 10px; border-radius: 10px; text-align: center; display: flex; justify-content: center; letter-spacing: -0.5px; border: 1px solid transparent; transition: all 0.3s; }
     .turn-indicator.p1-turn { color: var(--color-p1); background-color: rgba(0, 123, 255, 0.08); border-color: rgba(0, 123, 255, 0.15); }
     .turn-indicator.p2-turn { color: var(--color-p2); background-color: rgba(220, 53, 69, 0.08); border-color: rgba(220, 53, 69, 0.15); }
     .turn-indicator.warning-turn { color: var(--text-sub); background-color: var(--border-light); }
 
-    .board-wrapper { position: relative; width: 100%; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 24px; padding: 10px; border: 4px solid #e2e8f0; transition: all 0.4s; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); background-color: var(--card-bg); }
+    .board-wrapper { position: relative; width: 100%; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 14px; padding: 0px; border: 4px solid #e2e8f0; transition: all 0.4s; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); background-color: var(--card-bg); }
     .board-wrapper.glow-p1 { border-color: var(--color-p1); box-shadow: 0 0 25px rgba(0, 123, 255, 0.2); }
     .board-wrapper.glow-p2 { border-color: var(--color-p2); box-shadow: 0 0 25px rgba(220, 53, 69, 0.2); }
     .board-wrapper.game-pending { border-color: #cbd5e1; }
@@ -89,7 +89,7 @@
       align-items: flex-start; 
       justify-content: flex-start; 
       background: #f8fafc; 
-      padding: 42px 24px 20px 24px; 
+      padding: 40px 4px 5px 4px; 
       border-radius: 24px; 
       box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
       width: 100%; 
@@ -118,11 +118,11 @@
       flex-wrap: wrap; 
       gap: 5px; 
       width: 100%;
-      max-width: calc(15 * 40px + 14 * 5px); 
+      max-width: calc(15 * 46px + 14 * 5px); 
     }
     
     .nim-item { 
-      width: clamp(22px, calc(10% - 6px), 40px); 
+      width: clamp(22px, calc(10% - 6px), 46px); 
       aspect-ratio: 1 / 1; 
       border-radius: 50%; 
       background-color: #cbd5e1; 
