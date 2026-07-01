@@ -75,7 +75,7 @@
     .turn-indicator.p2-turn { color: var(--color-p2); background-color: rgba(220, 53, 69, 0.08); border-color: rgba(220, 53, 69, 0.15); }
     .turn-indicator.warning-turn { color: var(--text-sub); background-color: var(--border-light); }
 
-    .board-wrapper { position: relative; width: 100%; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 14px; padding: 0px; border: 4px solid #e2e8f0; transition: all 0.4s; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); background-color: var(--card-bg); }
+    .board-wrapper { position: relative; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 14px; padding: 0px; border: 4px solid #e2e8f0; transition: all 0.4s; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); background-color: var(--card-bg); }
     .board-wrapper.glow-p1 { border-color: var(--color-p1); box-shadow: 0 0 25px rgba(0, 123, 255, 0.2); }
     .board-wrapper.glow-p2 { border-color: var(--color-p2); box-shadow: 0 0 25px rgba(220, 53, 69, 0.2); }
     .board-wrapper.game-pending { border-color: #cbd5e1; }
@@ -113,6 +113,7 @@
     }
     .nim-pile-count.show { display: block; }
     
+    /* 구슬 크기 및 영역 설정 */
     .nim-marbles-container { 
       display: flex; 
       flex-wrap: wrap; 
