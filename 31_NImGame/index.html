@@ -48,7 +48,7 @@
     .config-panel { background-color: var(--btn-bg); border-radius: 16px; padding: 8px; margin-top: 20px; border: 1px solid var(--border-light); }
     
     /* 4개의 설정을 기본적으로 한 줄에 채우고 가로가 좁아지면 유동적으로 변하게 수정 */
-    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; }
     .setting-card { background-color: var(--card-bg); border-radius: 12px; padding: 10px 10px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); border: 1px solid var(--border-light); min-width: 0; }
     .setting-card > span { font-size: 14px; font-weight: 700; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     
@@ -225,34 +225,35 @@
         <!-- 네 개의 옵션 카드를 그리드로 묶어 가로폭에 따라 유동적으로 배치 -->
         <div class="settings-grid">
           <div class="setting-card">
-            <span>👀 남은 개수 표시</span>
+            <span>남은 개수 표시</span>
             <div class="toggle-group" id="tglCount">
               <button class="toggle-btn" data-val="false">끄기</button>
               <button class="toggle-btn active" data-val="true">켜기</button>
             </div>
           </div>
           <div class="setting-card">
-            <span>🧱 한 턴 개수 제한</span>
+            <span>한 턴 개수 제한</span>
             <div class="toggle-group" id="tglLimit">
               <button class="toggle-btn active" data-val="false">무제한</button>
               <button class="toggle-btn" data-val="true">1~3개</button>
             </div>
           </div>
           <div class="setting-card">
-            <span>🏆 마지막을 가져가면</span>
+            <span>마지막을 가져가면</span>
             <div class="toggle-group" id="tglWinRule">
               <button class="toggle-btn active" data-val="false">승리</button>
               <button class="toggle-btn" data-val="true">패배</button>
             </div>
           </div>
           <div class="setting-card">
-            <span>⚔️ 선공 플레이어</span>
+            <span>선공 플레이어</span>
             <div class="toggle-group" id="tglTurnSelector">
               <!-- 토글 버튼 내용을 "선공", "후공"으로 전면 수정 -->
               <button class="toggle-btn active" data-val="1">선공</button>
               <button class="toggle-btn" data-val="2">후공</button>
             </div>
           </div>
+          <!-- 👀 🧱 🏆 ⚔️  -->
         </div>
       </div>
     </div>
