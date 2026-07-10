@@ -1292,22 +1292,35 @@ kbd {
       }
     }
 
-    function executeAITurn() {
+function executeAITurn() {
       btnSubmit.disabled = true;
-      btnReset.disabled = true; // AI 작동 중 되돌리기 임시 홀딩
+      btnReset.disabled = true;
 
+      const config = dataSets.find(d => d.stage === currentStage);
+      const size = config.size;
+      const bestMoveMask = solvePerfectMove(currentMask, size);
+
+      // 1단계: AI가 선택한 구슬을 붉은색으로 강조 (선택 표시)
+      for (let i = 0; i < size * size; i++) {
+        if ((bestMoveMask & (1 << i)) !== 0) {
+          const cell = gameBoard.children[i];
+          if (cell) {
+            cell.classList.add('selected', 'p2-sel'); // AI(P2) 색상 적용
+          }
+        }
+      }
+
+      // 2단계: 800ms 뒤에 실제 데이터를 삭제하고 게임 진행
       setTimeout(() => {
-        const config = dataSets.find(d => d.stage === currentStage);
-        const size = config.size;
-
-        const bestMoveMask = solvePerfectMove(currentMask, size);
-
         if (bestMoveMask > 0) {
           currentMask ^= bestMoveMask;
           for (let i = 0; i < size * size; i++) {
             if ((bestMoveMask & (1 << i)) !== 0) {
               const cell = gameBoard.children[i];
-              if (cell) cell.classList.add('empty');
+              if (cell) {
+                cell.classList.remove('selected', 'p2-sel');
+                cell.classList.add('empty');
+              }
             }
           }
         }
@@ -1323,7 +1336,7 @@ kbd {
         backupCurrentState();
         updateTurnIndicatorAndBorder();
         updateUndoButtonState();
-      }, 750);
+      }, 800);
     }
 
     function precomputeSizeMoves(size) {
