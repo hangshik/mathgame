@@ -209,6 +209,15 @@
       .indicator-action-bar { flex-direction: column; align-items: stretch; gap: 8px; }
       .btn-start-game { width: 100%; }
     }
+
+    .nim-pile-row.ai-selected {
+    border-color: var(--color-p2) !important;
+    background-color: rgba(220, 53, 69, 0.04) !important;
+}
+.nim-item.ai-selected-item {
+    background-color: var(--color-p2) !important;
+    border-color: #a71d2a !important;
+}
   </style>
 </head>
 <body>
@@ -721,21 +730,49 @@
       return false;
     }
 
-    function executeAITurn() {
-      btnSubmit.disabled = true;
-      btnReset.disabled = true;
+function executeAITurn() {
+  btnSubmit.disabled = true;
+  btnReset.disabled = true;
 
-      aiTimeout = setTimeout(() => {
-        let maxTakeNum = optLimitTake ? 3 : Infinity;
-        let move = getBestAiMove(currentPiles, optMisere, maxTakeNum);
+  aiTimeout = setTimeout(() => {
+    let maxTakeNum = optLimitTake ? 3 : Infinity;
+    let move = getBestAiMove(currentPiles, optMisere, maxTakeNum);
+    
+    // 1. AI 선택 데이터 설정
+    selectedPileIdx = move.p;
+    selectedItems.clear();
+    const currentCount = currentPiles[move.p];
+    for(let i = 0; i < move.take; i++) {
+        selectedItems.add(currentCount - 1 - i); // 뒤에서부터 선택
+    }
+    
+    // 2. 보드 렌더링
+    renderBoard();
+    
+    // 3. AI 시각 효과 적용 (CSS 클래스 활용)
+    const rows = document.querySelectorAll('.nim-pile-row');
+    if (rows[move.p]) {
+        rows[move.p].classList.add('ai-selected'); // 행 외곽선/배경 빨간색
+        
+        const items = rows[move.p].querySelectorAll('.nim-item');
+        selectedItems.forEach(idx => {
+            if (items[idx]) {
+                items[idx].classList.add('ai-selected-item'); // 구슬 빨간색
+            }
+        });
+    }
 
+    // 4. 0.8초 뒤 실제 데이터 삭제 및 게임 진행
+    setTimeout(() => {
         saveHistory();
         currentPiles[move.p] -= move.take;
-        
+        clearSelection(); 
         checkGameEndAndProceed();
-        if (currentTurn === 1) renderBoard();
-      }, 800);
-    }
+    }, 800);
+    
+  }, 800);
+}
+
 
     function handleGameEnd(lastMover) {
       let winner = optMisere ? (lastMover === 1 ? 2 : 1) : lastMover;
