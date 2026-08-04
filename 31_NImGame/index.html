@@ -509,16 +509,16 @@
         
         clearSelection();
         setTogglesLocked(true);
-      } else {
+} else {
         const stageInfo = stageData.find(s => s.stage === stageNum);
         currentPiles = [...stageInfo.basePiles];
         selectedFirstTurn = null;
         currentTurn = 0;
         undoHistory = [];
         
+        // 수정된 부분: 옵션을 강제로 끄지 않고, 현재 저장된 선택 상태를 그대로 UI에 반영함[cite: 1]
         if (currentStage !== 1) {
-          optLimitTake = false;
-          updateToggleUI('tglLimit', 'false');
+          updateToggleUI('tglLimit', optLimitTake ? 'true' : 'false');
         }
 
         clearSelection();
@@ -552,8 +552,9 @@
       currentPiles.forEach((count, pileIdx) => {
         if (count === 0) return;
 
-        const row = document.createElement('div');
-        row.className = `nim-pile-row ${selectedPileIdx === pileIdx ? 'active-pile' : ''}`;
+const row = document.createElement('div');
+        // 수정: 플레이어 턴(1)이면 파란색(active-pile), AI 턴(2)이면 빨간색(ai-selected) 적용[cite: 1]
+        row.className = `nim-pile-row ${selectedPileIdx === pileIdx ? (currentTurn === 1 ? 'active-pile' : 'ai-selected') : ''}`;
 
         const cntLabel = document.createElement('div');
         cntLabel.className = `nim-pile-count ${optShowCount ? 'show' : ''}`;
@@ -565,11 +566,11 @@
 
         for (let i = 0; i < count; i++) {
           const item = document.createElement('div');
-          item.className = `nim-item ${selectedPileIdx === pileIdx && selectedItems.has(i) ? 'selected' : ''}`;
+          // 수정: 플레이어 턴(1)이면 파란색(selected), AI 턴(2)이면 빨간색(ai-selected-item) 적용[cite: 1]
+          item.className = `nim-item ${selectedPileIdx === pileIdx && selectedItems.has(i) ? (currentTurn === 1 ? 'selected' : 'ai-selected-item') : ''}`;
           item.onclick = () => handleItemClick(pileIdx, i);
           marblesContainer.appendChild(item);
-        }
-        row.appendChild(marblesContainer);
+        }        row.appendChild(marblesContainer);
         gameBoard.appendChild(row);
       });
     }
