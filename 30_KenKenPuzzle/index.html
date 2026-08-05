@@ -1829,9 +1829,9 @@ kbd {
         let selectedCellIndex = -1;
         let gameActive = false;
 
-        const savedStates = {}; 
-        const records = {};
-        const hintCounts = {}; 
+        let savedStates = JSON.parse(localStorage.getItem('kenken_savedStates')) || {}; 
+        let records = JSON.parse(localStorage.getItem('kenken_records')) || {};
+        let hintCounts = JSON.parse(localStorage.getItem('kenken_hintCounts')) || {};
 
         let isMaybeMode = false;
         let isBeginnerMode = false; // 초급모드 상태 변수 추가
@@ -1847,7 +1847,18 @@ kbd {
         const successModal = document.getElementById('successModal');
         const keypadElement = document.getElementById('keypad');
 
-function init() {
+        // 현재 게임 데이터를 localStorage에 동기화하는 함수
+function saveGameData() {
+    // 현재 진행 중인 게임이 있다면 상태를 최신화
+    if (gameActive && currentLevelData) {
+        saveCurrentState(); 
+    }
+    localStorage.setItem('kenken_savedStates', JSON.stringify(savedStates));
+    localStorage.setItem('kenken_records', JSON.stringify(records));
+    localStorage.setItem('kenken_hintCounts', JSON.stringify(hintCounts));
+}
+
+        function init() {
             createLevelButtons('lvl-5', LEVELS['5'], '5');
             createLevelButtons('lvl-6', LEVELS['6'], '6');
             createLevelButtons('lvl-7', LEVELS['7'], '7');
@@ -1861,11 +1872,13 @@ function init() {
             document.getElementById('lvl-9').classList.add('collapsed');
 
             successModal.onclick = closeModal;
+    document.addEventListener('keydown', handleKeyDown);
 
-            document.addEventListener('keydown', handleKeyDown);
+    // 브라우저 탭을 닫거나 새로고침할 때 데이터 저장
+    window.addEventListener('beforeunload', saveGameData);
 
-            // 최초 로드 시 5x5 격자의 1번 문제 로드
-            loadLevel(LEVELS['5'][0], '5');
+    // 최초 로드 시 5x5 격자의 1번 문제 로드
+    loadLevel(LEVELS['5'][0], '5');
         }
 
         // 상단 격자 크기 버튼을 눌렀을 때 탭 전환을 수행하는 새 함수
@@ -1906,20 +1919,29 @@ function init() {
             }
         }
 
-        function createLevelButtons(containerId, dataList, groupKey) {
-            const container = document.getElementById(containerId);
-            dataList.forEach((level) => {
-                const btn = document.createElement('button');
-                btn.className = 'level-btn';
-                btn.id = `btn-${groupKey}-${level.id}`;
-                btn.innerHTML = `
-                    <span>문제 ${level.id}</span>
-                    <span class="btn-record" id="rec-${groupKey}-${level.id}"></span>
-                `;
-                btn.onclick = () => loadLevel(level, groupKey);
-                container.appendChild(btn);
-            });
-        }
+function createLevelButtons(containerId, dataList, groupKey) {
+    const container = document.getElementById(containerId);
+    dataList.forEach((level) => {
+        const key = `${groupKey}-${level.id}`;
+        
+        // 저장된 기록 및 힌트 정보 불러오기
+        const isCleared = records[key] && records[key].length > 0;
+        const bestTime = isCleared ? records[key][0] : '';
+        const hints = hintCounts[key] || 0;
+        const titleText = hints > 0 ? `문제 ${level.id}(${hints})` : `문제 ${level.id}`;
+
+        const btn = document.createElement('button');
+        // 클리어 여부에 따라 클래스 추가
+        btn.className = 'level-btn' + (isCleared ? ' cleared' : '');
+        btn.id = `btn-${groupKey}-${level.id}`;
+        btn.innerHTML = `
+            <span>${titleText}</span>
+            <span class="btn-record" id="rec-${groupKey}-${level.id}">${bestTime}</span>
+        `;
+        btn.onclick = () => loadLevel(level, groupKey);
+        container.appendChild(btn);
+    });
+}
 
         function saveCurrentState() {
             if (!currentLevelData) return;
