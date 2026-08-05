@@ -110,9 +110,9 @@
       border: 2px solid #ffffff;
       box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
     }
+/* 체크 표시(✓) 제거를 위해 삭제 또는 빈 값 설정 */
     .stage-btn.cleared::after {
-      content: " ✓";
-      font-size: 12px;
+      content: "";
     }
 
     /* 영역 2: 퍼즐 플레이 공간 */
@@ -555,7 +555,7 @@
   <div class="container-fixed">
     <div class="puzzle-container">
       <div class="target-badge">
-        <div>목표: <span id="targetVolume">0</span>L 만들기</div>
+        <div><span id="stageLabel">1단계</span> 목표: <span id="targetVolume">0</span>L 만들기</div>
         <div class="move-count-badge">이동 횟수: <strong id="moveCount">0</strong>회</div>
       </div>
 
@@ -795,6 +795,7 @@ function renderRecordsTable() {
     const ds = dataSets[idx];
     const state = stageHistory[ds.id];
 
+    document.getElementById('stageLabel').innerText = `${ds.id}단계`; // 단계 표기 업데이트
     document.getElementById('targetVolume').innerText = ds.target;
     document.getElementById('moveCount').innerText = state.moves;
     document.getElementById('jugATitle').innerText = `A 물통 (${ds.capA}L)`;
