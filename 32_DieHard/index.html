@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>다이하드 물통 퍼즐</title>
+  <!-- Pretendard 폰트 로드 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-color: #e9ecef;
+      --btn-bg: #f8f9fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 15px 10px;
+      word-break: keep-all;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 카드 공통 구조 */
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .guide-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    }
+
+    /* 영역 1-A: 타이틀 */
+    .title-area {
+      text-align: center;
+      padding: 10px 0 5px 0;
+    }
+    .title-area h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* 영역 1-B: 단계 선택 */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .stage-btn {
+      background-color: var(--btn-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    .stage-btn:hover {
+      background-color: var(--border-color);
+    }
+    .stage-btn.active {
+      background-color: var(--active);
+      color: #ffffff;
+      border-color: var(--active);
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+    }
+    .stage-btn.cleared {
+      background-color: var(--success);
+      color: #ffffff;
+      border-color: var(--success);
+    }
+    .stage-btn.cleared.active {
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
+    }
+    .stage-btn.cleared::after {
+      content: " ✓";
+      font-size: 12px;
+    }
+
+    /* 영역 2: 퍼즐 플레이 공간 */
+    .puzzle-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+    }
+    
+    .target-badge {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      background-color: #eef5ff;
+      border: 1px solid #cce5ff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    .target-badge span {
+      color: var(--active);
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .move-count-badge {
+      color: var(--text-sub);
+      font-size: 15px;
+      border-left: 2px solid #cce5ff;
+      padding-left: 12px;
+    }
+
+    /* 드래그 앤 드롭을 포함한 메인 퍼즐 보드 (가로 100% 확장) */
+    .interactive-board {
+      width: 100%;
+      max-width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 280px;
+      display: flex;
+      position: relative;
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 550px) {
+      .interactive-board {
+        aspect-ratio: 16 / 11;
+      }
+    }
+
+    /* 인터랙션 드롭 영역 */
+    .drop-zone {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 25%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      pointer-events: auto;
+      z-index: 1;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 12px;
+    }
+    .drop-zone.left {
+      left: 0;
+      background: rgba(227, 242, 253, 0.5);
+      color: #1976d2;
+      border-right: 2px dashed #90caf9;
+    }
+    .drop-zone.right {
+      right: 0;
+      background: rgba(255, 235, 238, 0.5);
+      color: #d32f2f;
+      border-left: 2px dashed #ef9a9a;
+    }
+    
+    /* 드래그 접근 시 시각적 커스텀 효과 (크기 확대, 색상 심화, 글로우) */
+    .drop-zone.hovered {
+      transform: scale(1.06);
+      z-index: 5;
+      box-shadow: 0 0 22px rgba(0, 123, 255, 0.35);
+    }
+    .drop-zone.left.hovered {
+      background: #bbdefb;
+      color: #0d47a1;
+      border: 3px solid #1976d2;
+    }
+    .drop-zone.right.hovered {
+      background: #ffcdd2;
+      color: #b71c1c;
+      border: 3px solid #d32f2f;
+    }
+
+    /* 물통 배치 중앙 영역 */
+    .jugs-stage {
+      position: absolute;
+      left: 25%;
+      right: 25%;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      padding: 20px 10px 20px 10px;
+      z-index: 2;
+    }
+
+    .jug-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 44%;
+      height: 100%;
+      justify-content: flex-end;
+      position: relative;
+      border-radius: 16px;
+      padding: 6px;
+      transition: all 0.2s ease;
+    }
+
+    /* 다른 물통 위로 드래그 시 강력한 외곽선 및 뱃지 가이드 효과 */
+    .jug-item.hovered-target {
+      outline: 4px dashed #007bff;
+      outline-offset: 4px;
+      background: rgba(0, 123, 255, 0.12);
+      transform: scale(1.05);
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(0, 123, 255, 0.3);
+    }
+    .jug-item.hovered-target::before {
+      content: "💧 여기에 붓기";
+      position: absolute;
+      top: -14px;
+      background: #007bff;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 20;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .jug-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-sub);
+    }
+
+    /* 물통 외형 (절대적 비율 유지를 위한 프레임 구조) */
+    .jug-vessel-area {
+      width: 100%;
+      height: 65%;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .jug-glass {
+      width: 100%;
+      border: 4px solid #334155;
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      position: relative;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .jug-glass:active {
+      cursor: grabbing;
+      transform: scale(1.03);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .jug-water {
+      width: 100%;
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .jug-water-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      width: 100%;
+      text-align: center;
+    }
+
+    /* 물통 개별 조작 버튼 */
+    .jug-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .action-btn {
+      padding: 6px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-fill { background: #e3f2fd; color: #0d47a1; }
+    .btn-fill:hover { background: #bbdefb; }
+    .btn-empty { background: #ffebee; color: #c62828; }
+    .btn-empty:hover { background: #ffcdd2; }
+    .btn-pour { background: #e8f5e9; color: #1b5e20; }
+    .btn-pour:hover { background: #c8e6c9; }
+
+    /* 영역 3: 하단 메인 조작 버튼 */
+    .main-controls {
+      display: flex;
+      gap: 12px;
+    }
+    .main-btn {
+      flex: 1;
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-reset { background: #6c757d; color: white; }
+    .btn-check { background: var(--active); color: white; }
+    .main-btn:hover { opacity: 0.9; }
+
+    /* 하단 결과 텍스트 안내 */
+    .status-message {
+      min-height: 24px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: -4px;
+    }
+    .status-message.success { color: var(--success); }
+    .status-message.danger { color: var(--danger); }
+
+    /* 가이드 카드 스타일 */
+    .guide-records { border-left: 6px solid var(--danger); }
+    .guide-rules { border-left: 6px solid var(--active); }
+    .guide-keys { border-left: 6px solid var(--success); }
+
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .guide-header h2 { font-size: 18px; font-weight: 700; }
+    .records-title { color: var(--danger); }
+    .rules-title { color: var(--active); }
+    .keys-title { color: var(--success); }
+
+    .btn-clear-records {
+      background: #ffffff;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-clear-records:hover { background: #fff5f5; }
+
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .record-table th, .record-table td {
+      border: 1px solid var(--border-color);
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .record-table th {
+      background-color: #f8f9fa;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .rule-list {
+      list-style: none;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-sub);
+    }
+
+    .key-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .key-item { display: flex; align-items: center; gap: 8px; }
+    .kbd {
+      background: #e9ecef;
+      border: 1px solid #adb5bd;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #333;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    }
+
+    /* 결과 알림 모달 디스플레이 시스템 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      width: 90%;
+      max-width: 350px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .modal-card.success-modal { border-top: 6px solid var(--success); }
+    .modal-card.danger-modal { border-top: 6px solid var(--danger); }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .modal-title.success { color: var(--success); }
+    .modal-title.danger { color: var(--danger); }
+
+    .modal-desc {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+    }
+    .modal-btn.success { background: var(--success); }
+    .modal-btn.danger { background: var(--danger); }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- [영역 1-A] 퍼즐 제목 -->
+  <div class="title-area">
+    <h1>다이하드 물통 퍼즐</h1>
+  </div>
+
+  <!-- [영역 1-B] 단계 선택 -->
+  <div class="container-fixed">
+    <div class="stage-grid" id="stageGrid"></div>
+  </div>
+
+  <!-- [영역 2] 퍼즐 문제 영역 -->
+  <div class="container-fixed">
+    <div class="puzzle-container">
+      <div class="target-badge">
+        <div>목표: <span id="targetVolume">0</span>L 만들기</div>
+        <div class="move-count-badge">이동 횟수: <strong id="moveCount">0</strong>회</div>
+      </div>
+
+      <div class="interactive-board" id="interactiveBoard">
+        <!-- 왼쪽 드롭존: 물 채우기 -->
+        <div class="drop-zone left" id="dropZoneFill">
+          💧 드래그하여<br>물 채우기
+        </div>
+
+        <!-- 중앙 물통 영역 -->
+        <div class="jugs-stage">
+          <!-- A 물통 -->
+          <div class="jug-item" id="jugItemA">
+            <div class="jug-title" id="jugATitle">A 물통</div>
+            <div class="jug-vessel-area">
+              <div class="jug-glass" id="jugAGlass">
+                <div class="jug-water" id="jugAWater">
+                  <div class="jug-water-text" id="jugAText">0L</div>
+                </div>
+              </div>
+            </div>
+            <div class="jug-controls">
+              <button class="action-btn btn-fill" onclick="fillJug('A')">A 채우기 (Q)</button>
+              <button class="action-btn btn-empty" onclick="emptyJug('A')">A 비우기 (A)</button>
+              <button class="action-btn btn-pour" onclick="pourJug('A', 'B')">A ➔ B (Z)</button>
+            </div>
+          </div>
+
+          <!-- B 물통 -->
+          <div class="jug-item" id="jugItemB">
+            <div class="jug-title" id="jugBTitle">B 물통</div>
+            <div class="jug-vessel-area">
+              <div class="jug-glass" id="jugBGlass">
+                <div class="jug-water" id="jugBWater">
+                  <div class="jug-water-text" id="jugBText">0L</div>
+                </div>
+              </div>
+            </div>
+            <div class="jug-controls">
+              <button class="action-btn btn-fill" onclick="fillJug('B')">B 채우기 (E)</button>
+              <button class="action-btn btn-empty" onclick="emptyJug('B')">B 비우기 (D)</button>
+              <button class="action-btn btn-pour" onclick="pourJug('B', 'A')">B ➔ A (C)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 오른쪽 드롭존: 물 비우기 -->
+        <div class="drop-zone right" id="dropZoneEmpty">
+          🗑️ 드래그하여<br>물 비우기
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [영역 3] 하단 조작 버튼 영역 -->
+  <div>
+    <div class="main-controls">
+      <button class="main-btn btn-reset" onclick="resetCurrentStage()">초기화 (R)</button>
+      <button class="main-btn btn-check" onclick="checkAnswer()">정답확인 (Space)</button>
+    </div>
+  </div>
+
+  <!-- 하단 결과 상태 메시지 -->
+  <div class="status-message" id="statusMessage"></div>
+
+  <!-- [영역 4] 누적 기록 -->
+  <div class="guide-card guide-records">
+    <div class="guide-header">
+      <h2 class="records-title">📊 누적 기록</h2>
+      <button class="btn-clear-records" onclick="confirmClearRecords()">누적기록 초기화</button>
+    </div>
+    <table class="record-table">
+      <thead>
+        <tr>
+          <th>단계</th>
+          <th>용량 (A / B)</th>
+          <th>목표</th>
+          <!-- <th>최소 이동</th>
+                  <td>${ds.target}L</td> 최소 이동을 넣을려면 아래줄에 아래부분 추가해야함.
+        <td style="color:var(--active); font-weight:700;">${ds.minMoves}회</td> 
+          -->
+          <th>현재/최소 이동</th>
+          <th>시도 횟수</th>
+          <th>클리어 상태</th>
+        </tr>
+      </thead>
+      <tbody id="recordTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- [영역 5] 퍼즐 규칙 -->
+  <div class="guide-card guide-rules">
+    <div class="guide-header">
+      <h2 class="rules-title">◈ 퍼즐 규칙</h2>
+    </div>
+    <ul class="rule-list">
+      <li>• 물통에는 눈금이 없으므로, 물을 완전히 채우거나 완전히 비우는 조작만 가능합니다.</li>
+      <li>• 한 물통의 물을 다른 물통으로 옮길 때, 받는 물통이 가득 차거나 보내는 물통이 빌 때까지 붓습니다.</li>
+      <li>• 물통을 왼쪽 영역으로 드래그하면 물을 채우고, 오른쪽 영역으로 드래그하면 물을 비웁니다.</li>
+      <li>• 한 물통을 다른 물통 위로 드래그하면 물을 서로 부을 수 있습니다.</li>
+      <li>• 두 물통 중 어느 한 곳이라도 목표 용량과 정확히 일치하는 양이 남으면 성공입니다.</li>
+    </ul>
+  </div>
+
+  <!-- [영역 6] 키보드 단축키 -->
+  <div class="guide-card guide-keys">
+    <div class="guide-header">
+      <h2 class="keys-title">⌨ 키보드 단축키</h2>
+    </div>
+    <div class="key-grid">
+      <div class="key-item"><span class="kbd">Q</span> A 채우기</div>
+      <div class="key-item"><span class="kbd">A</span> A 비우기</div>
+      <div class="key-item"><span class="kbd">Z</span> A ➔ B 옮기기</div>
+      <div class="key-item"><span class="kbd">E</span> B 채우기</div>
+      <div class="key-item"><span class="kbd">D</span> B 비우기</div>
+      <div class="key-item"><span class="kbd">C</span> B ➔ A 옮기기</div>
+      <div class="key-item"><span class="kbd">R</span> 단계 초기화</div>
+      <div class="key-item"><span class="kbd">Space</span> 정답 확인</div>
+      <div class="key-item"><span class="kbd">1</span>~<span class="kbd">0</span> 단계 이동</div>
+    </div>
+  </div>
+</div>
+
+<!-- 결과 알림 모달 디스플레이 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card" id="modalCard">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <button class="modal-btn" id="modalBtn"></button>
+  </div>
+</div>
+
+<script>
+  /*
+   * =========================================================================
+   * [각 단계별 최소 이동 방법 (Optimal Solutions)]
+   * =========================================================================
+   * 
+   * ■ 1단계: A(3L), B(5L) -> 목표 4L (최소 6회)
+   *   1. B 채우기       => A: 0L, B: 5L
+   *   2. B -> A 옮기기  => A: 3L, B: 2L
+   *   3. A 비우기       => A: 0L, B: 2L
+   *   4. B -> A 옮기기  => A: 2L, B: 0L
+   *   5. B 채우기       => A: 2L, B: 5L
+   *   6. B -> A 옮기기  => A: 3L, B: 4L (B물통에 4L 완성!)
+   * 
+   * ■ 2단계: A(2L), B(7L) -> 목표 3L (최소 4회)
+   *   1. B 채우기       => A: 0L, B: 7L
+   *   2. B -> A 옮기기  => A: 2L, B: 5L
+   *   3. A 비우기       => A: 0L, B: 5L
+   *   4. B -> A 옮기기  => A: 2L, B: 3L (B물통에 3L 완성!)
+   * 
+   * ■ 3단계: A(4L), B(9L) -> 목표 6L (최소 8회)
+   *   1. B 채우기       => A: 0L, B: 9L
+   *   2. B -> A 옮기기  => A: 4L, B: 5L
+   *   3. A 비우기       => A: 0L, B: 5L
+   *   4. B -> A 옮기기  => A: 4L, B: 1L
+   *   5. A 비우기       => A: 0L, B: 1L
+   *   6. B -> A 옮기기  => A: 1L, B: 0L
+   *   7. B 채우기       => A: 1L, B: 9L
+   *   8. B -> A 옮기기  => A: 4L, B: 6L (B물통에 6L 완성!)
+   * 
+   * ■ 4단계: A(5L), B(11L) -> 목표 8L (최소 14회)
+   *   1. B 채우기       => A: 0L, B: 11L
+   *   2. B -> A 옮기기  => A: 5L, B: 6L
+   *   3. A 비우기       => A: 0L, B: 6L
+   *   4. B -> A 옮기기  => A: 5L, B: 1L
+   *   5. A 비우기       => A: 0L, B: 1L
+   *   6. B -> A 옮기기  => A: 1L, B: 0L
+   *   7. B 채우기       => A: 1L, B: 11L
+   *   8. B -> A 옮기기  => A: 5L, B: 7L
+   *   9. A 비우기       => A: 0L, B: 7L
+   *  10. B -> A 옮기기  => A: 5L, B: 2L
+   *  11. A 비우기       => A: 0L, B: 2L
+   *  12. B -> A 옮기기  => A: 2L, B: 0L
+   *  13. B 채우기       => A: 2L, B: 11L
+   *  14. B -> A 옮기기  => A: 5L, B: 8L (B물통에 8L 완성!)
+   * 
+   * ■ 5단계: A(7L), B(12L) -> 목표 9L (최소 8회)
+   *   1. A 채우기       => A: 7L, B: 0L
+   *   2. A -> B 옮기기  => A: 0L, B: 7L
+   *   3. A 채우기       => A: 7L, B: 7L
+   *   4. A -> B 옮기기  => A: 2L, B: 12L
+   *   5. B 비우기       => A: 2L, B: 0L
+   *   6. A -> B 옮기기  => A: 0L, B: 2L
+   *   7. A 채우기       => A: 7L, B: 2L
+   *   8. A -> B 옮기기  => A: 0L, B: 9L (B물통에 9L 완성!)
+   * 
+   * ■ 6단계: A(4L), B(7L) -> 목표 5L (최소 8회)
+   *   1. A 채우기       => A: 4L, B: 0L
+   *   2. A -> B 옮기기  => A: 0L, B: 4L
+   *   3. A 채우기       => A: 4L, B: 4L
+   *   4. A -> B 옮기기  => A: 1L, B: 7L
+   *   5. B 비우기       => A: 1L, B: 0L
+   *   6. A -> B 옮기기  => A: 0L, B: 1L
+   *   7. A 채우기       => A: 4L, B: 1L
+   *   8. A -> B 옮기기  => A: 0L, B: 5L (B물통에 5L 완성!)
+   * 
+   * ■ 7단계: A(6L), B(13L) -> 목표 8L (최소 8회)
+   *   1. B 채우기       => A: 0L, B: 13L
+   *   2. B -> A 옮기기  => A: 6L, B: 7L
+   *   3. A 비우기       => A: 0L, B: 7L
+   *   4. B -> A 옮기기  => A: 6L, B: 1L
+   *   5. A 비우기       => A: 0L, B: 1L
+   *   6. B -> A 옮기기  => A: 1L, B: 0L
+   *   7. B 채우기       => A: 1L, B: 13L
+   *   8. B -> A 옮기기  => A: 6L, B: 8L (B물통에 8L 완성!)
+   * 
+   * ■ 8단계: A(8L), B(15L) -> 목표 10L (최소 14회)
+   *   1. A 채우기       => A: 8L, B: 0L
+   *   2. A -> B 옮기기  => A: 0L, B: 8L
+   *   3. A 채우기       => A: 8L, B: 8L
+   *   4. A -> B 옮기기  => A: 1L, B: 15L
+   *   5. B 비우기       => A: 1L, B: 0L
+   *   6. A -> B 옮기기  => A: 0L, B: 1L
+   *   7. A 채우기       => A: 8L, B: 1L
+   *   8. A -> B 옮기기  => A: 0L, B: 9L
+   *   9. A 채우기       => A: 8L, B: 9L
+   *  10. A -> B 옮기기  => A: 2L, B: 15L
+   *  11. B 비우기       => A: 2L, B: 0L
+   *  12. A -> B 옮기기  => A: 0L, B: 2L
+   *  13. A 채우기       => A: 8L, B: 2L
+   *  14. A -> B 옮기기  => A: 0L, B: 10L (B물통에 10L 완성!)
+   * 
+   * ■ 9단계: A(9L), B(19L) -> 목표 14L (최소 26회)
+   *   1. B 채우기 (0,19) -> 2. B->A (9,10) -> 3. A 비우기 (0,10) -> 4. B->A (9,1)
+   *   5. A 비우기 (0,1) -> 6. B->A (1,0) -> 7. B 채우기 (1,19) -> 8. B->A (9,11)
+   *   9. A 비우기 (0,11) -> 10. B->A (9,2) -> 11. A 비우기 (0,2) -> 12. B->A (2,0)
+   *  13. B 채우기 (2,19) -> 14. B->A (9,12) -> 15. A 비우기 (0,12) -> 16. B->A (9,3)
+   *  17. A 비우기 (0,3) -> 18. B->A (3,0) -> 19. B 채우기 (3,19) -> 20. B->A (9,13)
+   *  21. A 비우기 (0,13) -> 22. B->A (9,4) -> 23. A 비우기 (0,4) -> 24. B->A (4,0)
+   *  25. B 채우기 (4,19) -> 26. B->A (9,14) (B물통에 14L 완성!)
+   * 
+   * ■ 10단계: A(11L), B(23L) -> 목표 15L (최소 20회)
+   *   1. B 채우기 (0,23) -> 2. B->A (11,12) -> 3. A 비우기 (0,12) -> 4. B->A (11,1)
+   *   5. A 비우기 (0,1) -> 6. B->A (1,0) -> 7. B 채우기 (1,23) -> 8. B->A (11,13)
+   *   9. A 비우기 (0,13) -> 10. B->A (11,2) -> 11. A 비우기 (0,2) -> 12. B->A (2,0)
+   *  13. B 채우기 (2,23) -> 14. B->A (11,14) -> 15. A 비우기 (0,14) -> 16. B->A (11,3)
+   *  17. A 비우기 (0,3) -> 18. B->A (3,0) -> 19. B 채우기 (3,23) -> 20. B->A (11,15) (B물통에 15L 완성!)
+   */
+  const dataSets = [
+    { id: 1, capA: 3, capB: 5, target: 4, minMoves: 6 },
+    { id: 2, capA: 2, capB: 7, target: 3, minMoves: 4 },  
+    { id: 3, capA: 4, capB: 9, target: 6, minMoves: 8 },  
+    { id: 4, capA: 5, capB: 11, target: 8, minMoves: 14 }, 
+    { id: 5, capA: 7, capB: 12, target: 9, minMoves: 8 }, 
+    { id: 6, capA: 4, capB: 7, target: 5, minMoves: 8 },  
+    { id: 7, capA: 6, capB: 13, target: 8, minMoves: 8 }, 
+    { id: 8, capA: 8, capB: 15, target: 10, minMoves: 14 },
+    { id: 9, capA: 9, capB: 19, target: 14, minMoves: 26 },
+    { id: 10, capA: 11, capB: 23, target: 15, minMoves: 20 }
+  ];
+
+  /* --- 상태 관리 --- */
+  let currentStageIdx = 0;
+  
+  // 각 단계별 진행 상태 추적
+  let stageHistory = {};
+
+  // 영구 저장용 누적 데이터
+  let persistentData = {
+    cleared: {},
+    attempts: {},
+    bestMoves: {}
+  };
+
+  function initApp() {
+    loadLocalStorage();
+    initStageHistory();
+    renderStageButtons();
+    loadStage(currentStageIdx);
+    setupEvents();
+    setupDragAndDrop();
+  }
+
+  function loadLocalStorage() {
+    const saved = localStorage.getItem('diehard_water_puzzle_v2');
+    if (saved) {
+      try {
+        persistentData = JSON.parse(saved);
+      } catch (e) {
+        console.error("저장된 기록 로드 중 오류가 발생했습니다.", e);
+      }
+    }
+  }
+
+  function saveLocalStorage() {
+    localStorage.setItem('diehard_water_puzzle_v2', JSON.stringify(persistentData));
+  }
+
+  function initStageHistory() {
+    dataSets.forEach((ds) => {
+      if (!stageHistory[ds.id]) {
+        stageHistory[ds.id] = { curA: 0, curB: 0, moves: 0 };
+      }
+      if (persistentData.attempts[ds.id] === undefined) {
+        persistentData.attempts[ds.id] = 0;
+      }
+    });
+  }
+
+  function renderStageButtons() {
+    const grid = document.getElementById('stageGrid');
+    grid.innerHTML = '';
+    dataSets.forEach((ds, idx) => {
+      const btn = document.createElement('button');
+      const isCleared = persistentData.cleared[ds.id];
+      const isActive = idx === currentStageIdx;
+      
+      btn.className = `stage-btn ${isActive ? 'active' : ''} ${isCleared ? 'cleared' : ''}`;
+      btn.innerText = `${ds.id}단계`;
+      btn.onclick = () => switchStage(idx);
+      grid.appendChild(btn);
+    });
+  }
+
+  function renderRecordsTable() {
+    const tbody = document.getElementById('recordTableBody');
+    tbody.innerHTML = '';
+    dataSets.forEach((ds) => {
+      const tr = document.createElement('tr');
+      const isCleared = persistentData.cleared[ds.id];
+      const attempts = persistentData.attempts[ds.id] || 0;
+      const best = persistentData.bestMoves[ds.id] !== undefined ? `${persistentData.bestMoves[ds.id]}회` : '-';
+      const curMoves = stageHistory[ds.id].moves;
+
+      tr.innerHTML = `
+        <td>${ds.id}단계</td>
+        <td>${ds.capA}L / ${ds.capB}L</td>
+        <td>${ds.target}L</td>
+        
+        <td>${curMoves}회 / ${best}</td>
+        <td>${attempts}회</td>
+        <td style="color: ${isCleared ? 'var(--success)' : 'var(--text-sub)'}; font-weight: 700;">
+          ${isCleared ? '완료' : '미완료'}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function loadStage(idx) {
+    currentStageIdx = idx;
+    const ds = dataSets[idx];
+    const state = stageHistory[ds.id];
+
+    document.getElementById('targetVolume').innerText = ds.target;
+    document.getElementById('moveCount').innerText = state.moves;
+    document.getElementById('jugATitle').innerText = `A 물통 (${ds.capA}L)`;
+    document.getElementById('jugBTitle').innerText = `B 물통 (${ds.capB}L)`;
+
+    const maxCapacity = Math.max(ds.capA, ds.capB);
+    const jugAGlass = document.getElementById('jugAGlass');
+    const jugBGlass = document.getElementById('jugBGlass');
+
+    jugAGlass.style.height = `${(ds.capA / maxCapacity) * 100}%`;
+    jugBGlass.style.height = `${(ds.capB / maxCapacity) * 100}%`;
+
+    updateJugUI();
+    renderStageButtons();
+    renderRecordsTable();
+    clearStatusMessage();
+  }
+
+  function updateJugUI() {
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+
+    const pctA = (state.curA / ds.capA) * 100;
+    const pctB = (state.curB / ds.capB) * 100;
+
+    document.getElementById('jugAWater').style.height = `${pctA}%`;
+    document.getElementById('jugAText').innerText = `${state.curA}L`;
+
+    document.getElementById('jugBWater').style.height = `${pctB}%`;
+    document.getElementById('jugBText').innerText = `${state.curB}L`;
+
+    document.getElementById('moveCount').innerText = state.moves;
+  }
+
+  function switchStage(idx) {
+    if (idx < 0 || idx >= dataSets.length) return;
+    loadStage(idx);
+  }
+
+  function incrementMove() {
+    const ds = dataSets[currentStageIdx];
+    stageHistory[ds.id].moves += 1;
+  }
+
+  function fillJug(jug) {
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+    if (jug === 'A' && state.curA !== ds.capA) {
+      state.curA = ds.capA;
+      incrementMove();
+    } else if (jug === 'B' && state.curB !== ds.capB) {
+      state.curB = ds.capB;
+      incrementMove();
+    }
+    updateJugUI();
+    renderRecordsTable();
+  }
+
+  function emptyJug(jug) {
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+    if (jug === 'A' && state.curA !== 0) {
+      state.curA = 0;
+      incrementMove();
+    } else if (jug === 'B' && state.curB !== 0) {
+      state.curB = 0;
+      incrementMove();
+    }
+    updateJugUI();
+    renderRecordsTable();
+  }
+
+  function pourJug(from, to) {
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+
+    if (from === 'A' && to === 'B' && state.curA > 0 && state.curB < ds.capB) {
+      const spaceB = ds.capB - state.curB;
+      const amount = Math.min(state.curA, spaceB);
+      state.curA -= amount;
+      state.curB += amount;
+      incrementMove();
+    } else if (from === 'B' && to === 'A' && state.curB > 0 && state.curA < ds.capA) {
+      const spaceA = ds.capA - state.curA;
+      const amount = Math.min(state.curB, spaceA);
+      state.curB -= amount;
+      state.curA += amount;
+      incrementMove();
+    }
+    updateJugUI();
+    renderRecordsTable();
+  }
+
+  function resetCurrentStage() {
+    const ds = dataSets[currentStageIdx];
+    stageHistory[ds.id] = { curA: 0, curB: 0, moves: 0 };
+    updateJugUI();
+    renderRecordsTable();
+    clearStatusMessage();
+  }
+
+  function checkAnswer() {
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+    
+    persistentData.attempts[ds.id] = (persistentData.attempts[ds.id] || 0) + 1;
+
+    const isSuccess = (state.curA === ds.target || state.curB === ds.target);
+
+    if (isSuccess) {
+      persistentData.cleared[ds.id] = true;
+      const currentBest = persistentData.bestMoves[ds.id];
+      if (currentBest === undefined || state.moves < currentBest) {
+        persistentData.bestMoves[ds.id] = state.moves;
+      }
+      saveLocalStorage();
+      showStatusMessage("정답입니다! 성공하셨습니다.", true);
+      showModal(true);
+    } else {
+      saveLocalStorage();
+      showStatusMessage("틀렸습니다. 목표 용량을 맞춰보세요!", false);
+      showModal(false);
+    }
+    renderRecordsTable();
+    renderStageButtons();
+  }
+
+  function showStatusMessage(msg, isSuccess) {
+    const el = document.getElementById('statusMessage');
+    el.innerText = msg;
+    el.className = `status-message ${isSuccess ? 'success' : 'danger'}`;
+  }
+
+  function clearStatusMessage() {
+    const el = document.getElementById('statusMessage');
+    el.innerText = '';
+    el.className = 'status-message';
+  }
+
+  function confirmClearRecords() {
+    showDangerModal("누적 기록 초기화", "모든 단계의 클리어 상태와 시도 기록을 초기화하시겠습니까?", "초기화", () => {
+      persistentData = { cleared: {}, attempts: {}, bestMoves: {} };
+      saveLocalStorage();
+      initStageHistory();
+      resetCurrentStage();
+      renderStageButtons();
+      renderRecordsTable();
+    });
+  }
+
+  function showModal(isSuccess) {
+    const overlay = document.getElementById('modalOverlay');
+    const card = document.getElementById('modalCard');
+    const title = document.getElementById('modalTitle');
+    const desc = document.getElementById('modalDesc');
+    const btn = document.getElementById('modalBtn');
+
+    const ds = dataSets[currentStageIdx];
+    const state = stageHistory[ds.id];
+
+    if (isSuccess) {
+      card.className = 'modal-card success-modal';
+      title.className = 'modal-title success';
+      title.innerText = '🎉 성공!';
+      desc.innerHTML = `축하합니다! <strong>${ds.target}L</strong>를 완성했습니다.<br>(이동 횟수: ${state.moves}회)`;
+      // desc.innerHTML = `축하합니다! <strong>${ds.target}L</strong>를 완성했습니다.<br>(이동 횟수: ${state.moves}회 / 최소 이동: ${ds.minMoves}회)`;
+      btn.className = 'modal-btn success';
+      btn.innerText = currentStageIdx < dataSets.length - 1 ? '다음 단계로' : '확인';
+      btn.onclick = () => {
+        hideModal();
+        if (currentStageIdx < dataSets.length - 1) {
+          switchStage(currentStageIdx + 1);
+        }
+      };
+    } else {
+      card.className = 'modal-card danger-modal';
+      title.className = 'modal-title danger';
+      title.innerText = '❌ 틀렸습니다!';
+      desc.innerText = '현재 물통의 용량이 목표와 일치하지 않습니다. 다시 시도해 보세요.';
+      btn.className = 'modal-btn danger';
+      btn.innerText = '다시 시도';
+      btn.onclick = hideModal;
+    }
+
+    overlay.classList.add('active');
+    btn.focus();
+  }
+
+  function showDangerModal(titleText, descText, btnText, onConfirm) {
+    const overlay = document.getElementById('modalOverlay');
+    const card = document.getElementById('modalCard');
+    const title = document.getElementById('modalTitle');
+    const desc = document.getElementById('modalDesc');
+    const btn = document.getElementById('modalBtn');
+
+    card.className = 'modal-card danger-modal';
+    title.className = 'modal-title danger';
+    title.innerText = titleText;
+    desc.innerText = descText;
+    btn.className = 'modal-btn danger';
+    btn.innerText = btnText;
+    btn.onclick = () => {
+      hideModal();
+      if (onConfirm) onConfirm();
+    };
+
+    overlay.classList.add('active');
+    btn.focus();
+  }
+
+  function hideModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+  }
+
+  function setupDragAndDrop() {
+    const jugAGlass = document.getElementById('jugAGlass');
+    const jugBGlass = document.getElementById('jugBGlass');
+
+    let activeJug = null;
+    let cloneEl = null;
+
+    function handlePointerDown(e, jugType) {
+      activeJug = jugType;
+      const targetGlass = jugType === 'A' ? jugAGlass : jugBGlass;
+
+      cloneEl = targetGlass.cloneNode(true);
+      cloneEl.style.position = 'fixed';
+      cloneEl.style.width = `${targetGlass.offsetWidth}px`;
+      cloneEl.style.height = `${targetGlass.offsetHeight}px`;
+      cloneEl.style.pointerEvents = 'none';
+      cloneEl.style.opacity = '0.88';
+      cloneEl.style.zIndex = '9999';
+      cloneEl.style.left = `${e.clientX - targetGlass.offsetWidth / 2}px`;
+      cloneEl.style.top = `${e.clientY - targetGlass.offsetHeight / 2}px`;
+      document.body.appendChild(cloneEl);
+
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+    }
+
+    function handlePointerMove(e) {
+      if (!cloneEl) return;
+      cloneEl.style.left = `${e.clientX - cloneEl.offsetWidth / 2}px`;
+      cloneEl.style.top = `${e.clientY - cloneEl.offsetHeight / 2}px`;
+
+      const dropFill = document.getElementById('dropZoneFill');
+      const dropEmpty = document.getElementById('dropZoneEmpty');
+      const targetJugItem = activeJug === 'A' ? document.getElementById('jugItemB') : document.getElementById('jugItemA');
+
+      const fillRect = dropFill.getBoundingClientRect();
+      const emptyRect = dropEmpty.getBoundingClientRect();
+      const targetRect = targetJugItem.getBoundingClientRect();
+
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // 이전 감지 효과 초기화
+      dropFill.classList.remove('hovered');
+      dropEmpty.classList.remove('hovered');
+      document.getElementById('jugItemA').classList.remove('hovered-target');
+      document.getElementById('jugItemB').classList.remove('hovered-target');
+
+      // 마우스/터치 위치에 따른 영역 강조
+      if (x >= fillRect.left && x <= fillRect.right && y >= fillRect.top && y <= fillRect.bottom) {
+        dropFill.classList.add('hovered');
+      } else if (x >= emptyRect.left && x <= emptyRect.right && y >= emptyRect.top && y <= emptyRect.bottom) {
+        dropEmpty.classList.add('hovered');
+      } else if (x >= targetRect.left && x <= targetRect.right && y >= targetRect.top && y <= targetRect.bottom) {
+        targetJugItem.classList.add('hovered-target');
+      }
+    }
+
+    function handlePointerUp(e) {
+      if (!cloneEl) return;
+      document.body.removeChild(cloneEl);
+      cloneEl = null;
+
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+
+      const dropFill = document.getElementById('dropZoneFill');
+      const dropEmpty = document.getElementById('dropZoneEmpty');
+      const jugItemA = document.getElementById('jugItemA');
+      const jugItemB = document.getElementById('jugItemB');
+
+      const dropFillRect = dropFill.getBoundingClientRect();
+      const dropEmptyRect = dropEmpty.getBoundingClientRect();
+      const jugTargetRect = (activeJug === 'A' ? document.getElementById('jugBGlass') : document.getElementById('jugAGlass')).getBoundingClientRect();
+
+      const x = e.clientX;
+      const y = e.clientY;
+
+      // 상태 클래스 해제
+      dropFill.classList.remove('hovered');
+      dropEmpty.classList.remove('hovered');
+      jugItemA.classList.remove('hovered-target');
+      jugItemB.classList.remove('hovered-target');
+
+      if (x >= dropFillRect.left && x <= dropFillRect.right && y >= dropFillRect.top && y <= dropFillRect.bottom) {
+        fillJug(activeJug);
+      } else if (x >= dropEmptyRect.left && x <= dropEmptyRect.right && y >= dropEmptyRect.top && y <= dropEmptyRect.bottom) {
+        emptyJug(activeJug);
+      } else if (x >= jugTargetRect.left && x <= jugTargetRect.right && y >= jugTargetRect.top && y <= jugTargetRect.bottom) {
+        if (activeJug === 'A') pourJug('A', 'B');
+        else pourJug('B', 'A');
+      }
+
+      activeJug = null;
+    }
+
+    jugAGlass.addEventListener('pointerdown', (e) => handlePointerDown(e, 'A'));
+    jugBGlass.addEventListener('pointerdown', (e) => handlePointerDown(e, 'B'));
+  }
+
+  function setupEvents() {
+    window.addEventListener('keydown', (e) => {
+      const modalActive = document.getElementById('modalOverlay').classList.contains('active');
+      if (modalActive) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          document.getElementById('modalBtn').click();
+        }
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      if (key === 'q') fillJug('A');
+      else if (key === 'a') emptyJug('A');
+      else if (key === 'z') pourJug('A', 'B');
+      else if (key === 'e') fillJug('B');
+      else if (key === 'd') emptyJug('B');
+      else if (key === 'c') pourJug('B', 'A');
+      else if (key === 'r') resetCurrentStage();
+      else if (e.code === 'Space') {
+        e.preventDefault();
+        checkAnswer();
+      } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(key)) {
+        switchStage(parseInt(key) - 1);
+      } else if (key === '0') {
+        switchStage(9);
+      }
+    });
+
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+  }
+
+  window.onload = initApp;
+</script>
+
+</body>
+</html>
