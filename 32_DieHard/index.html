@@ -503,7 +503,7 @@
     }
 
     .modal-btn {
-      width: 100%;
+      flex: 1;
       height: 48px;
       border: none;
       border-radius: 12px;
@@ -684,7 +684,11 @@
   <div class="modal-card" id="modalCard">
     <div class="modal-title" id="modalTitle"></div>
     <div class="modal-desc" id="modalDesc"></div>
-    <button class="modal-btn" id="modalBtn"></button>
+    <!-- 버튼 영역 (취소 및 확인/초기화 버튼) -->
+    <div id="modalBtnContainer" style="display: flex; gap: 8px;">
+      <button class="modal-btn" id="modalCancelBtn" style="background: #6c757d; display: none;" onclick="hideModal()">취소</button>
+      <button class="modal-btn" id="modalBtn" style="flex: 1;"></button>
+    </div>
   </div>
 </div>
 
@@ -951,6 +955,9 @@ function renderRecordsTable() {
     const ds = dataSets[currentStageIdx];
     const state = stageHistory[ds.id];
 
+    // 성공/실패 일반 모달에서는 취소 버튼 숨기기
+    document.getElementById('modalCancelBtn').style.display = 'none';
+
     if (isSuccess) {
       card.className = 'modal-card success-modal';
       title.className = 'modal-title success';
@@ -978,17 +985,22 @@ function renderRecordsTable() {
     btn.focus();
   }
 
-  function showDangerModal(titleText, descText, btnText, onConfirm) {
+function showDangerModal(titleText, descText, btnText, onConfirm) {
     const overlay = document.getElementById('modalOverlay');
     const card = document.getElementById('modalCard');
     const title = document.getElementById('modalTitle');
     const desc = document.getElementById('modalDesc');
     const btn = document.getElementById('modalBtn');
+    const cancelBtn = document.getElementById('modalCancelBtn');
 
     card.className = 'modal-card danger-modal';
     title.className = 'modal-title danger';
     title.innerText = titleText;
     desc.innerText = descText;
+    
+    // 취소 버튼 활성화 (회색 버튼)
+    cancelBtn.style.display = 'block';
+    
     btn.className = 'modal-btn danger';
     btn.innerText = btnText;
     btn.onclick = () => {
@@ -1000,8 +1012,9 @@ function renderRecordsTable() {
     btn.focus();
   }
 
-  function hideModal() {
+function hideModal() {
     document.getElementById('modalOverlay').classList.remove('active');
+    document.getElementById('modalCancelBtn').style.display = 'none'; // 모달 닫힐 때 취소 버튼 숨김 초기화
   }
 
  function setupDragAndDrop() {
