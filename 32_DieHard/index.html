@@ -635,7 +635,8 @@
             <th>단계</th>
             <th>용량 (A / B)</th>
             <th>목표</th>
-            <th>현재/최소 이동</th>
+            <th>최소 횟수</th>
+            <th>현재/최고 기록</th>
             <th>시도 횟수</th>
             <th>클리어 상태</th>
           </tr>
@@ -760,7 +761,7 @@
     });
   }
 
-  function renderRecordsTable() {
+function renderRecordsTable() {
     const tbody = document.getElementById('recordTableBody');
     tbody.innerHTML = '';
     dataSets.forEach((ds) => {
@@ -774,6 +775,7 @@
         <td>${ds.id}단계</td>
         <td>${ds.capA}L / ${ds.capB}L</td>
         <td>${ds.target}L</td>
+        <td style="font-weight: 700; color: var(--active);">${ds.minMoves}회</td>
         <td>${curMoves}회 / ${best}</td>
         <td>${attempts}회</td>
         <td style="color: ${isCleared ? 'var(--success)' : 'var(--text-sub)'}; font-weight: 700;">
@@ -1002,7 +1004,9 @@
     document.getElementById('modalOverlay').classList.remove('active');
   }
 
-  function setupDragAndDrop() {
+ function setupDragAndDrop() {
+    const jugItemA = document.getElementById('jugItemA');
+    const jugItemB = document.getElementById('jugItemB');
     const jugAGlass = document.getElementById('jugAGlass');
     const jugBGlass = document.getElementById('jugBGlass');
 
@@ -1011,6 +1015,8 @@
 
     function handlePointerDown(e, jugType) {
       activeJug = jugType;
+      // 물통 유리 영역뿐만 아니라 사각형 영역(jugItem) 전체를 기준으로 크기 설정
+      const targetItem = jugType === 'A' ? jugItemA : jugItemB;
       const targetGlass = jugType === 'A' ? jugAGlass : jugBGlass;
 
       cloneEl = targetGlass.cloneNode(true);
@@ -1026,7 +1032,7 @@
 
       window.addEventListener('pointermove', handlePointerMove);
       window.addEventListener('pointerup', handlePointerUp);
-      window.addEventListener('pointercancel', handlePointerCancel); // 모바일 터치 끊김 방지
+      window.addEventListener('pointercancel', handlePointerCancel);
     }
 
     function handlePointerMove(e) {
@@ -1045,13 +1051,11 @@
       const x = e.clientX;
       const y = e.clientY;
 
-      // 이전 감지 효과 초기화
       dropFill.classList.remove('hovered');
       dropEmpty.classList.remove('hovered');
       document.getElementById('jugItemA').classList.remove('hovered-target');
       document.getElementById('jugItemB').classList.remove('hovered-target');
 
-      // 마우스/터치 위치에 따른 영역 강조
       if (x >= fillRect.left && x <= fillRect.right && y >= fillRect.top && y <= fillRect.bottom) {
         dropFill.classList.add('hovered');
       } else if (x >= emptyRect.left && x <= emptyRect.right && y >= emptyRect.top && y <= emptyRect.bottom) {
@@ -1086,7 +1090,8 @@
 
       const dropFill = document.getElementById('dropZoneFill');
       const dropEmpty = document.getElementById('dropZoneEmpty');
-      const jugTargetRect = (activeJug === 'A' ? document.getElementById('jugBGlass') : document.getElementById('jugAGlass')).getBoundingClientRect();
+      // 다른 물통의 전체 사각형 영역(jugItem)을 기준으로 드롭 판정
+      const jugTargetRect = (activeJug === 'A' ? document.getElementById('jugItemB') : document.getElementById('jugItemA')).getBoundingClientRect();
 
       const dropFillRect = dropFill.getBoundingClientRect();
       const dropEmptyRect = dropEmpty.getBoundingClientRect();
@@ -1108,8 +1113,9 @@
       activeJug = null;
     }
 
-    jugAGlass.addEventListener('pointerdown', (e) => handlePointerDown(e, 'A'));
-    jugBGlass.addEventListener('pointerdown', (e) => handlePointerDown(e, 'B'));
+    // 물통 전체를 감싸는 사각형 영역(jugItem)에 포인터 이벤트 연결
+    jugItemA.addEventListener('pointerdown', (e) => handlePointerDown(e, 'A'));
+    jugItemB.addEventListener('pointerdown', (e) => handlePointerDown(e, 'B'));
   }
 
   function setupEvents() {
