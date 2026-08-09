@@ -267,6 +267,58 @@
         .modal-desc { font-size: 16px; color: var(--text-sub); margin-bottom: 25px; word-break: keep-all; }
         .modal-btn { width: 100%; height: 50px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; }
         
+        .win-count-badge {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-sub);
+            background-color: #f1f3f5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        /* 시작 버튼 스타일 및 차례 비활성화 상태 예외 처리 */
+        .start-btn {
+            background-color: var(--active);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.25);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .start-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+
+        .start-btn.active {
+            background-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+        }
+
+        /* 상대방 차례일 때도 시작 버튼은 언제든지 클릭 가능하도록 설정 */
+        .input-section.disabled .start-btn {
+            pointer-events: auto;
+            opacity: 1;
+            filter: none;
+        }
+
         #btnExit2P {
             position: fixed; top: 15px; right: 15px; z-index: 999;
             background-color: rgba(0,0,0,0.6); color: #fff;
@@ -344,11 +396,13 @@
             <!-- 2P 전용 180도 뒤집힌 P2 입력 영역 -->
             <div class="input-section" id="inputSectionP2" style="display: none; transform: rotate(180deg);">
                 <div class="formula-row-container">
+                    <button type="button" class="start-btn" id="btnStartP2" onclick="handleStartGame(2)">시작</button>
                     <span class="coord-format-text">(</span>
                     <div class="input-wrapper-inline">
                         <input type="text" id="txtP2" class="txt-input" readonly placeholder="x, y">
                     </div>
                     <span class="coord-format-text">)</span>
+                    <span id="p2WinCountBadge" class="win-count-badge">0승</span>
                 </div>
                 
                 <div class="key-grid">
@@ -381,11 +435,14 @@
             <!-- 기본(P1) 입력 영역 -->
             <div class="input-section" id="inputSectionP1">
                 <div class="formula-row-container">
+                    <button type="button" class="start-btn" id="btnStartP1" onclick="handleStartGame(1)">시작</button>
                     <span class="coord-format-text">(</span>
                     <div class="input-wrapper-inline">
                         <input type="text" id="txtP1" class="txt-input" readonly placeholder="x, y">
                     </div>
+                    
                     <span class="coord-format-text">)</span>
+                    <span id="p1WinCountBadge" class="win-count-badge">0승</span>
                 </div>
                 
                 <div class="key-grid">
@@ -496,7 +553,9 @@
             modalTitle: document.getElementById('modalTitle'),
             modalDesc: document.getElementById('modalDesc'),
             modalBtn: document.getElementById('modalBtn'),
-            resetModal: document.getElementById('resetModal')
+            resetModal: document.getElementById('resetModal'),
+            p1WinCountBadge: document.getElementById('p1WinCountBadge'),
+            p2WinCountBadge: document.getElementById('p2WinCountBadge')
         };
 
         function createEmptyGame(startTurn = PLAYER_BLACK) {
@@ -505,7 +564,8 @@
                 currentPlayer: startTurn,
                 lastMove: null,
                 moveHistory: [],
-                isGameOver: false
+                isGameOver: false,
+                isStarted: false
             };
         }
 
@@ -646,6 +706,13 @@
             DOM.p2WinCount.textContent = gameState.p2Win;
             DOM.p2LoseCount.textContent = gameState.p2Lose;
 
+            if (gameState.mode === MODE_AI) {
+                DOM.p1WinCountBadge.textContent = `${gameState.aiWin}승`;
+            } else {
+                DOM.p1WinCountBadge.textContent = `${gameState.p2Win}승`;
+                DOM.p2WinCountBadge.textContent = `${gameState.p2Lose}승`;
+            }
+
             const currentData = gameState.history[gameState.mode];
 
             // 2P 모드 UI 및 차례별 키패드 활성화 처리
@@ -653,20 +720,51 @@
                 document.body.classList.add('mode-2p');
                 DOM.inputSectionP2.style.display = 'flex';
 
-                if (currentData.currentPlayer === PLAYER_BLACK) {
+                const btnStartP1 = document.getElementById('btnStartP1');
+                const btnStartP2 = document.getElementById('btnStartP2');
+
+                if (!currentData.isStarted) {
+                    // 시작 버튼 클릭 전: 위/아래 입력 영역 모두 활성화 및 시작 버튼 표시
                     DOM.inputSectionP1.classList.remove('disabled');
-                    DOM.inputSectionP2.classList.add('disabled');
-                    DOM.boardContainer.classList.remove('rotated-axis');
-                } else {
                     DOM.inputSectionP2.classList.remove('disabled');
-                    DOM.inputSectionP1.classList.add('disabled');
-                    DOM.boardContainer.classList.add('rotated-axis');
+                    DOM.boardContainer.classList.remove('rotated-axis');
+                    if (btnStartP1 && btnStartP2) {
+                        btnStartP1.classList.remove('active');
+                        btnStartP2.classList.remove('active');
+                        btnStartP1.style.display = 'inline-block';
+                        btnStartP2.style.display = 'inline-block';
+                    }
+                } else {
+                    // 시작 버튼 클릭 후: 위, 아래 '시작' 버튼 모두 숨김 처리
+                    if (btnStartP1 && btnStartP2) {
+                        btnStartP1.style.display = 'none';
+                        btnStartP2.style.display = 'none';
+                    }
+
+                    if (currentData.currentPlayer === PLAYER_BLACK) {
+                        DOM.inputSectionP1.classList.remove('disabled');
+                        DOM.inputSectionP2.classList.add('disabled');
+                        DOM.boardContainer.classList.remove('rotated-axis');
+                    } else {
+                        DOM.inputSectionP2.classList.remove('disabled');
+                        DOM.inputSectionP1.classList.add('disabled');
+                        DOM.boardContainer.classList.add('rotated-axis');
+                    }
                 }
+
+                // 둘이하기 모드에서는 승수 뱃지 표시
+                if (DOM.p1WinCountBadge) DOM.p1WinCountBadge.style.display = 'inline-flex';
+                if (DOM.p2WinCountBadge) DOM.p2WinCountBadge.style.display = 'inline-flex';
             } else {
                 document.body.classList.remove('mode-2p');
                 DOM.inputSectionP2.style.display = 'none';
                 DOM.inputSectionP1.classList.remove('disabled');
                 DOM.boardContainer.classList.remove('rotated-axis');
+
+                // 혼자하기 모드에서는 '시작' 버튼 및 '승수' 표시 숨김
+                const btnStartP1 = document.getElementById('btnStartP1');
+                if (btnStartP1) btnStartP1.style.display = 'none';
+                if (DOM.p1WinCountBadge) DOM.p1WinCountBadge.style.display = 'none';
             }
 
             // 승률 계산 및 표시 (0:0 형식 및 90도 회전 적용)
@@ -682,6 +780,10 @@
                 DOM.turnIndicator.textContent = "게임 종료";
                 DOM.turnIndicator.style.color = "var(--text-sub)";
                 DOM.turnIndicator.style.borderColor = "var(--border-color)";
+            } else if (gameState.mode === MODE_2P && !currentData.isStarted) {
+                DOM.turnIndicator.textContent = "시작 버튼을 눌러주세요";
+                DOM.turnIndicator.style.color = "var(--active)";
+                DOM.turnIndicator.style.borderColor = "var(--active)";
             } else {
                 if (currentData.currentPlayer === PLAYER_BLACK) {
                     DOM.turnIndicator.textContent = gameState.mode === MODE_AI && gameState.startTurn === PLAYER_WHITE ? "● 흑돌 (AI) 차례" : "● 흑돌 차례";
@@ -737,11 +839,28 @@
             updateUI();
         }
 
+        function handleStartGame(player) {
+            if (gameState.mode === MODE_2P) {
+                const turn = (player === 1) ? PLAYER_BLACK : PLAYER_WHITE;
+                gameState.history[gameState.mode] = createEmptyGame(turn);
+                gameState.history[gameState.mode].isStarted = true;
+                const playerLabel = (player === 1) ? "아래쪽(흑돌)" : "위쪽(백돌)";
+                showMessage(`${playerLabel} 플레이어 선공으로 게임을 시작합니다!`, "success");
+            } else {
+                setStartTurn(PLAYER_BLACK);
+                gameState.history[gameState.mode].isStarted = true;
+                showMessage("게임을 시작합니다!", "success");
+            }
+            saveData();
+            clearInput();
+            updateUI();
+        }
+
         function resetBoardOnly() {
             gameState.history[gameState.mode] = createEmptyGame(gameState.startTurn);
             saveData();
             clearInput();
-            showMessage("보드가 초기화되었습니다.", "success");
+            showMessage("보드가 초기화되었습니다. '시작' 버튼을 누르면 시작합니다.", "success");
             updateUI();
         }
 
@@ -819,6 +938,12 @@
         function handlePlaceStone(player = null) {
             const currentData = gameState.history[gameState.mode];
             if (currentData.isGameOver) return;
+
+            if (gameState.mode === MODE_2P && !currentData.isStarted) {
+                showMessage("먼저 '시작' 버튼을 눌러 선공을 선택해 주세요.", "error");
+                return;
+            }
+
             if (gameState.mode === MODE_AI && currentData.currentPlayer !== gameState.startTurn) return;
 
             if (gameState.mode === MODE_2P && player !== null) {
