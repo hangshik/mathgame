@@ -76,6 +76,14 @@
             padding: 0 10px;
         }
 
+        body.mode-2p #inputSectionP2 {
+            margin-bottom: 15px !important;
+        }
+
+        body.mode-2p .board-section-wrapper {
+            margin-bottom: 15px;
+        }
+
         /* 보드 및 승률 패널 레이아웃 */
         .board-section-wrapper {
             display: flex;
@@ -231,10 +239,9 @@
         .key-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
         .key-btn { height: 54px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: 700; color: var(--text-main); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; }
         .key-btn:active { background-color: #f0f0f0; transform: scale(0.95); }
-        .confirm-btn-style { grid-column: span 3; background-color: var(--active) !important; color: #ffffff !important; border: none !important; border-radius: 8px !important; font-size: 18px !important; font-weight: 800 !important; cursor: pointer; box-shadow: 0 3px 6px rgba(0, 123, 255, 0.2) !important; }
+        .backspace-btn-style { }
+        .confirm-btn-style { background-color: var(--active) !important; color: #ffffff !important; border: none !important; border-radius: 8px !important; font-size: 15px !important; font-weight: 800 !important; cursor: pointer; box-shadow: 0 3px 6px rgba(0, 123, 255, 0.2) !important; white-space: nowrap; }
         .confirm-btn-style:active { transform: scale(0.95); }
-        .undo-btn-style { grid-column: span 3; background-color: #6c757d !important; color: #ffffff !important; border: none !important; border-radius: 8px !important; font-size: 18px !important; font-weight: 800 !important; cursor: pointer; box-shadow: 0 3px 6px rgba(108, 117, 125, 0.2) !important; }
-        .undo-btn-style:active { transform: scale(0.95); }
 
         .msg-box { width: 100%; text-align: center; font-size: 16px; font-weight: 700; padding: 15px; border-radius: 12px; background-color: #f8f9fa; color: var(--text-sub); min-height: 52px; }
         .msg-error { background-color: #f8d7da !important; color: var(--danger) !important; }
@@ -276,6 +283,8 @@
             .key-btn { height: 50px; font-size: 18px; }
             
             /* 2P 모드 시 모바일에서 상하단 키패드가 꽉 차게 조절 */
+            body.mode-2p #inputSectionP2 { margin-bottom: 10px !important; }
+            body.mode-2p .board-section-wrapper { margin-bottom: 10px; }
             body.mode-2p .txt-input { height: 46px; font-size: 20px; }
             body.mode-2p .key-btn { height: 42px; font-size: 16px; }
             body.mode-2p .msg-box { min-height: 40px; padding: 10px; font-size: 14px; }
@@ -333,7 +342,7 @@
             </div>
             
             <!-- 2P 전용 180도 뒤집힌 P2 입력 영역 -->
-            <div class="input-section" id="inputSectionP2" style="display: none; transform: rotate(180deg); margin-bottom: 20px;">
+            <div class="input-section" id="inputSectionP2" style="display: none; transform: rotate(180deg);">
                 <div class="formula-row-container">
                     <span class="coord-format-text">(</span>
                     <div class="input-wrapper-inline">
@@ -354,10 +363,7 @@
                     <button class="key-btn" onclick="appendInput('7', 2)">7</button>
                     <button class="key-btn" style="font-weight: 900;" onclick="appendInput('-', 2)">-</button>
                     <button class="key-btn" style="font-weight: 900;" onclick="appendInput(',', 2)">,</button>
-                    
-                    <button class="key-btn" onclick="backspaceInput(2)">←</button>
-                    <button class="key-btn" onclick="clearInput(2)">C</button>
-                    <button class="key-btn undo-btn-style" onclick="handleUndo(2)">↩ 되돌리기</button>
+                    <button class="key-btn backspace-btn-style" onclick="backspaceInput(2)">←</button>
                     <button class="key-btn confirm-btn-style" onclick="handlePlaceStone(2)">✓ 착수</button>
                 </div>
                 <div id="msgBoxP2" class="msg-box">x축과 y축 좌표를 입력하고 착수를 눌러주세요.</div>
@@ -369,12 +375,6 @@
                     <div id="boardContainer" class="board-wrapper">
                         <!-- 오목판 그리드 및 스톤 렌더링 위치 -->
                     </div>
-                </div>
-
-                <div class="win-rate-panel" id="winRatePanel">
-                    <div class="win-rate-title">📊 승률</div>
-                    <div class="win-rate-value" id="winRateValue">0%</div>
-                    <div class="win-rate-detail" id="winRateDetail">0승 0패</div>
                 </div>
             </div>
 
@@ -400,10 +400,7 @@
                     <button class="key-btn" onclick="appendInput('7', 1)">7</button>
                     <button class="key-btn" style="font-weight: 900;" onclick="appendInput('-', 1)">-</button>
                     <button class="key-btn" style="font-weight: 900;" onclick="appendInput(',', 1)">,</button>
-                    
-                    <button class="key-btn" onclick="backspaceInput(1)">←</button>
-                    <button class="key-btn" onclick="clearInput(1)">C</button>
-                    <button class="key-btn undo-btn-style" onclick="handleUndo(1)">↩ 되돌리기</button>
+                    <button class="key-btn backspace-btn-style" onclick="backspaceInput(1)">←</button>
                     <button class="key-btn confirm-btn-style" onclick="handlePlaceStone(1)">✓ 착수</button>
                 </div>
                 <div id="msgBoxP1" class="msg-box">x축과 y축 좌표를 입력하고 착수를 눌러주세요.</div>
@@ -673,10 +670,12 @@
             }
 
             // 승률 계산 및 표시 (0:0 형식 및 90도 회전 적용)
-            if (gameState.mode === MODE_AI) {
-                DOM.winRateValue.textContent = `${gameState.aiWin}:${gameState.aiLose}`;
-            } else {
-                DOM.winRateValue.textContent = `${gameState.p2Win}:${gameState.p2Lose}`;
+            if (DOM.winRateValue) {
+                if (gameState.mode === MODE_AI) {
+                    DOM.winRateValue.textContent = `${gameState.aiWin}:${gameState.aiLose}`;
+                } else {
+                    DOM.winRateValue.textContent = `${gameState.p2Win}:${gameState.p2Lose}`;
+                }
             }
 
             if (currentData.isGameOver) {
