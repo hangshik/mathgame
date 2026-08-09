@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>좌표 오목게임</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --border-color: #e9ecef;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px 10px;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .main-title {
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
+            margin: 10px 0;
+            color: var(--text-main);
+        }
+
+        .container-fixed {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .mode-btn {
+            height: 50px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            background-color: #e9ecef;
+        }
+
+        .mode-btn.active {
+            background-color: var(--active);
+            color: #ffffff;
+            border-color: var(--active);
+            box-shadow: 0 4px 10px rgba(0,123,255,0.2);
+        }
+
+        .turn-selector-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .turn-selector-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-align: center;
+        }
+
+        .turn-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .turn-choice-btn {
+            height: 44px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .turn-choice-btn.black-choice {
+            background-color: #f1f3f5;
+            color: #000;
+            border-color: #adb5bd;
+        }
+        .turn-choice-btn.black-choice.active {
+            background-color: #343a40;
+            color: #fff;
+            border-color: #212529;
+        }
+
+        .turn-choice-btn.white-choice {
+            background-color: #f8f9fa;
+            color: #495057;
+            border-color: #ced4da;
+        }
+        .turn-choice-btn.white-choice.active {
+            background-color: #e9ecef;
+            color: #212529;
+            border: 2px solid var(--active);
+        }
+
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .turn-badge {
+            font-size: 16px;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background-color: #f8f9fa;
+            border: 2px solid var(--text-main);
+        }
+
+        .board-outer {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .board-wrapper {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: #ffffff;
+            border: 6px solid #4a3525;
+            position: relative;
+            border-radius: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .grid-line {
+            position: absolute;
+            background-color: #e0e0e0;
+        }
+        .grid-line.horizontal {
+            left: 0; right: 0; height: 1px; transform: translateY(-50%);
+        }
+        .grid-line.vertical {
+            top: 0; bottom: 0; width: 1px; transform: translateX(-50%);
+        }
+
+        .grid-line.axis {
+            background-color: #000000;
+            z-index: 1;
+        }
+        .grid-line.axis.horizontal { height: 2px; }
+        .grid-line.axis.vertical { width: 2px; }
+
+        .axis-arrow-x, .axis-arrow-y {
+            position: absolute;
+            width: 0; height: 0;
+            z-index: 2;
+        }
+        .axis-arrow-x {
+            right: -6px; top: 50%;
+            transform: translateY(-50%);
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            border-left: 8px solid #000;
+        }
+        .axis-arrow-y {
+            top: -6px; left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid #000;
+        }
+
+        /* 좌표축 근처에 명확하게 배치될 수 있도록 라벨 스타일 개선 */
+        .coord-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 800;
+            color: #444;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+
+        .stone {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 3;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .stone.black {
+            background: radial-gradient(circle at 30% 30%, #555, #000);
+        }
+        .stone.white {
+            background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+            border: 1px solid #aaa;
+        }
+        .stone.highlight {
+            border: 2px solid var(--danger);
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 10px var(--danger); }
+        }
+
+        .input-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .formula-row-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .coord-format-text {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .input-wrapper-inline {
+            flex: 1;
+            max-width: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #txt { 
+            width: 100%;
+            height: 64px;
+            font-size: 28px; 
+            font-weight: 700; 
+            text-align: center; 
+            border: 2px solid var(--active); 
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); 
+            border-radius: 12px; 
+            background-color: #ffffff;
+            outline: none;
+            cursor: default;
+        }
+
+        .key-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .key-btn {
+            height: 54px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .key-btn:active {
+            background-color: #f0f0f0;
+            transform: scale(0.95);
+        }
+
+        .confirm-btn-style {
+            grid-column: span 3;
+            background-color: var(--active) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 123, 255, 0.2) !important;
+        }
+        .confirm-btn-style:active {
+            transform: scale(0.95);
+        }
+
+        .undo-btn-style {
+            grid-column: span 3;
+            background-color: #6c757d !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(108, 117, 125, 0.2) !important;
+        }
+        .undo-btn-style:active {
+            transform: scale(0.95);
+        }
+
+        #msgBox {
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            color: var(--text-sub);
+            min-height: 52px;
+        }
+        .msg-error { background-color: #f8d7da !important; color: var(--danger) !important; }
+        .msg-success { background-color: #d4edda !important; color: var(--success) !important; }
+
+        .guide-box {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            word-break: keep-all;
+        }
+
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .guide-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .guide-rules { border-left: 6px solid var(--active); }
+        .guide-rules .guide-title { color: var(--active); }
+        .guide-rules ul { margin: 0; padding-left: 20px; font-size: 15px; color: var(--text-sub); line-height: 1.6; }
+        .guide-rules li::marker { content: '• '; font-weight: bold; }
+
+        .guide-record { border-left: 6px solid var(--danger); }
+        .guide-record .guide-title { color: var(--danger); }
+        
+        .guide-keys { border-left: 6px solid var(--success); }
+        .guide-keys .guide-title { color: var(--success); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 15px;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+        }
+        th { background-color: #f8f9fa; font-weight: 700; color: var(--text-main); }
+        td { font-weight: 800; color: var(--text-sub); }
+        
+        .reset-btn {
+            background-color: #fff;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover { background-color: var(--danger); color: #fff; }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+        kbd {
+            background-color: #f1f3f5;
+            border: 1px solid #adb5bd;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            color: #333;
+            margin-right: 10px;
+            box-shadow: 0 2px 0 #adb5bd;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        
+        .modal-box {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 350px;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+        
+        .modal-title { font-size: 26px; font-weight: 800; margin: 0 0 10px 0; }
+        .modal-desc { font-size: 16px; color: var(--text-sub); margin-bottom: 25px; word-break: keep-all; }
+        
+        .modal-btn {
+            width: 100%;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            .coord-format-text { font-size: 24px; }
+            #txt { height: 54px; font-size: 24px; }
+            .key-btn { height: 50px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 결과 모달 -->
+    <div id="resultModal" class="modal-overlay">
+        <div id="modalBox" class="modal-box">
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <p id="modalDesc" class="modal-desc"></p>
+            <button id="modalBtn" class="modal-btn"></button>
+        </div>
+    </div>
+
+    <!-- 리셋 확인 모달 -->
+    <div id="resetModal" class="modal-overlay">
+        <div class="modal-box" style="border-top: 6px solid var(--danger);">
+            <h2 class="modal-title" style="color: var(--danger);">누적 기록 초기화</h2>
+            <p class="modal-desc">모든 승/패 기록과 진행 상태가 삭제됩니다.<br>계속하시겠습니까?</p>
+            <div style="display: flex; gap: 10px;">
+                <button class="modal-btn" style="background: #f1f3f5; color: var(--text-sub);" onclick="closeResetModal()">취소</button>
+                <button class="modal-btn" style="background: var(--danger); color: #fff;" onclick="confirmReset()">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <h1 class="main-title">좌표 오목게임</h1>
+
+        <div class="container-fixed">
+            <div class="mode-selector">
+                <button type="button" class="mode-btn active" id="btnModeAi" onclick="setMode(1)">🤖 혼자하기 (vs AI)</button>
+                <button type="button" class="mode-btn" id="btnMode2P" onclick="setMode(2)">🧑‍🤝‍🧑 둘이하기 (2인용)</button>
+            </div>
+
+            <div class="turn-selector-box">
+                <div class="turn-selector-title" id="turnSelectorLabel">선공 플레이어 선택</div>
+                <div class="turn-btn-group">
+                    <button type="button" class="turn-choice-btn black-choice active" id="btnStartBlack" onclick="setStartTurn(1)">● 흑돌 (선공)</button>
+                    <button type="button" class="turn-choice-btn white-choice" id="btnStartWhite" onclick="setStartTurn(2)">○ 백돌 (후공)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fixed">
+            <div class="board-header">
+                <div class="turn-badge" id="turnIndicator">흑돌(Player) 차례</div>
+                <button class="reset-btn" onclick="resetBoardOnly()">현재판 다시시작</button>
+            </div>
+            
+            <div class="board-outer">
+                <div id="boardContainer" class="board-wrapper">
+                    <!-- 오목판 그리드 및 스톤 -->
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="formula-row-container">
+                    <span class="coord-format-text">(</span>
+                    <div class="input-wrapper-inline">
+                        <input type="text" id="txt" readonly placeholder="x, y">
+                    </div>
+                    <span class="coord-format-text">)</span>
+                </div>
+                
+                <div class="key-grid">
+                    <button class="key-btn" onclick="appendInput('0')">0</button>
+                    <button class="key-btn" onclick="appendInput('1')">1</button>
+                    <button class="key-btn" onclick="appendInput('2')">2</button>
+                    <button class="key-btn" onclick="appendInput('3')">3</button>
+                    <button class="key-btn" onclick="appendInput('4')">4</button>
+                    <button class="key-btn" onclick="appendInput('5')">5</button>
+                    
+                    <button class="key-btn" onclick="appendInput('6')">6</button>
+                    <button class="key-btn" onclick="appendInput('7')">7</button>
+                    <button class="key-btn" style="font-weight: 900;" onclick="appendInput('-')">-</button>
+                    <button class="key-btn" style="font-weight: 900;" onclick="appendInput(',')">,</button>
+                    
+                    <button class="key-btn" onclick="backspaceInput()">←</button>
+                    <button class="key-btn" onclick="clearInput()">C</button>
+                    <button class="key-btn undo-btn-style" onclick="handleUndo()">↩ 되돌리기</button>
+                    <button class="key-btn confirm-btn-style" onclick="handlePlaceStone()">✓ 착수</button>
+                </div>
+                
+                <div id="msgBox">x축과 y축 좌표를 입력하고 착수를 눌러주세요.</div>
+            </div>
+        </div>
+
+        <div class="guide-box guide-record">
+            <div class="guide-header">
+                <h2 class="guide-title">📊 누적 기록</h2>
+                <button class="reset-btn" onclick="openResetModal()">누적기록 초기화</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>모드</th>
+                        <th>승리 (흑돌)</th>
+                        <th>패배 (백돌)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>혼자하기 (vs AI)</td>
+                        <td id="aiWinCount">0</td>
+                        <td id="aiLoseCount">0</td>
+                    </tr>
+                    <tr>
+                        <td>둘이하기 (2인용)</td>
+                        <td id="p2WinCount">0</td>
+                        <td id="p2LoseCount">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="guide-box guide-rules">
+            <div class="guide-header"><h2 class="guide-title">◈ 퍼즐 규칙</h2></div>
+            <ul>
+                <li>가로, 세로, 대각선 방향으로 같은 색 돌 5개를 연속으로 놓으면 승리합니다.</li>
+                <li>오목판은 <b>원점(0,0)을 중심</b>으로 하는 수학 좌표평면을 사용합니다.</li>
+                <li>가로축(x축)과 세로축(y축)은 모두 -7 ~ 7 까지의 범위를 가집니다.</li>
+                <li>반드시 <b>x축(가로)을 먼저</b> 입력하고 쉼표(,)를 입력한 후 y축을 입력하세요. (예: <b>3, -4</b>)</li>
+                <li>흑돌이 먼저 시작하며, 혼자하기 모드에서 플레이어는 항상 선택한 선공 진영입니다.</li>
+            </ul>
+        </div>
+
+        <div class="guide-box guide-keys">
+            <div class="guide-header"><h2 class="guide-title">⌨ 키보드 단축키</h2></div>
+            <div class="shortcut-grid">
+                <div class="shortcut-item"><kbd>0</kbd>~<kbd>9</kbd> <span>숫자 입력</span></div>
+                <div class="shortcut-item"><kbd>-</kbd> <kbd>,</kbd> <span>부호 및 쉼표</span></div>
+                <div class="shortcut-item"><kbd>Backspace</kbd> <span>한 글자 지우기</span></div>
+                <div class="shortcut-item"><kbd>Esc</kbd> <span>전체 삭제 / 모달 닫기</span></div>
+                <div class="shortcut-item"><kbd>Enter</kbd> <span>착수 / 모달 확인</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        const BOARD_SIZE = 15;
+        const PLAYER_BLACK = 1;
+        const PLAYER_WHITE = 2;
+        const MODE_AI = 1;
+        const MODE_2P = 2;
+
+        const defaultState = {
+            aiWin: 0, aiLose: 0, p2Win: 0, p2Lose: 0,
+            mode: MODE_AI,
+            startTurn: PLAYER_BLACK,
+            history: {}
+        };
+
+        let gameState = JSON.parse(localStorage.getItem('mathGomokuDataV2'));
+        if (!gameState) {
+            gameState = defaultState;
+        }
+        if (gameState.startTurn === undefined) gameState.startTurn = PLAYER_BLACK;
+
+        if (!gameState.history[MODE_AI]) gameState.history[MODE_AI] = createEmptyGame(gameState.startTurn);
+        if (!gameState.history[MODE_2P]) gameState.history[MODE_2P] = createEmptyGame(gameState.startTurn);
+
+        let isMessageErrorState = false;
+
+        const DOM = {
+            boardContainer: document.getElementById('boardContainer'),
+            txtInput: document.getElementById('txt'),
+            msgBox: document.getElementById('msgBox'),
+            turnIndicator: document.getElementById('turnIndicator'),
+            btnModeAi: document.getElementById('btnModeAi'),
+            btnMode2P: document.getElementById('btnMode2P'),
+            btnStartBlack: document.getElementById('btnStartBlack'),
+            btnStartWhite: document.getElementById('btnStartWhite'),
+            turnSelectorLabel: document.getElementById('turnSelectorLabel'),
+            aiWinCount: document.getElementById('aiWinCount'),
+            aiLoseCount: document.getElementById('aiLoseCount'),
+            p2WinCount: document.getElementById('p2WinCount'),
+            p2LoseCount: document.getElementById('p2LoseCount'),
+            resultModal: document.getElementById('resultModal'),
+            resetModal: document.getElementById('resetModal'),
+            modalBox: document.getElementById('modalBox'),
+            modalTitle: document.getElementById('modalTitle'),
+            modalDesc: document.getElementById('modalDesc'),
+            modalBtn: document.getElementById('modalBtn')
+        };
+
+        function createEmptyGame(firstTurn = PLAYER_BLACK) {
+            return {
+                board: Array.from({length: BOARD_SIZE}, () => Array(BOARD_SIZE).fill(0)),
+                currentPlayer: firstTurn,
+                isGameOver: false,
+                lastMove: null,
+                moveHistory: []
+            };
+        }
+
+        function saveData() {
+            localStorage.setItem('mathGomokuDataV2', JSON.stringify(gameState));
+        }
+
+        function renderBoard() {
+            DOM.boardContainer.innerHTML = '';
+            const cellSize = 100 / BOARD_SIZE;
+
+            for (let i = 0; i < BOARD_SIZE; i++) {
+                const pos = (i + 0.5) * cellSize + "%";
+                
+                const hLine = document.createElement('div');
+                hLine.className = 'grid-line horizontal';
+                hLine.style.top = pos;
+                
+                const vLine = document.createElement('div');
+                vLine.className = 'grid-line vertical';
+                vLine.style.left = pos;
+
+                if (i === 7) {
+                    hLine.classList.add('axis');
+                    const arrowX = document.createElement('div');
+                    arrowX.className = 'axis-arrow-x';
+                    hLine.appendChild(arrowX);
+
+                    vLine.classList.add('axis');
+                    const arrowY = document.createElement('div');
+                    arrowY.className = 'axis-arrow-y';
+                    vLine.appendChild(arrowY);
+                }
+
+                DOM.boardContainer.appendChild(hLine);
+                DOM.boardContainer.appendChild(vLine);
+
+                // x축 좌표 숫자 표시 (y축 선(세로선) 위치에서 하단 좌표축 근처에 배치)
+                const logicX = i - 7;
+                if (logicX !== 0) {
+                    const labelX = document.createElement('div');
+                    labelX.className = 'coord-label';
+                    labelX.textContent = logicX;
+                    labelX.style.left = pos;
+                    labelX.style.top = '53.5%'; // x축(y=0) 바로 아래에 위치
+                    DOM.boardContainer.appendChild(labelX);
+                }
+
+                // y축 좌표 숫자 표시 (x축 선(가로선) 위치에서 우측 좌표축 근처에 배치)
+                const logicY = 7 - i;
+                if (logicY !== 0) {
+                    const labelY = document.createElement('div');
+                    labelY.className = 'coord-label';
+                    labelY.textContent = logicY;
+                    labelY.style.top = pos;
+                    labelY.style.left = '53.5%'; // y축(x=0) 바로 오른쪽에 위치
+                    DOM.boardContainer.appendChild(labelY);
+                }
+            }
+
+            // 원점(0,0) 라벨
+            const originLabel = document.createElement('div');
+            originLabel.className = 'coord-label';
+            originLabel.textContent = '0';
+            originLabel.style.left = '48%';
+            originLabel.style.top = '53%';
+            DOM.boardContainer.appendChild(originLabel);
+
+            const currentData = gameState.history[gameState.mode];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const stoneVal = currentData.board[r][c];
+                    if (stoneVal !== 0) {
+                        drawStone(r, c, stoneVal, currentData.lastMove && currentData.lastMove.r === r && currentData.lastMove.c === c);
+                    }
+                }
+            }
+        }
+
+        function drawStone(r, c, player, isLast = false) {
+            const cellSize = 100 / BOARD_SIZE;
+            const stone = document.createElement('div');
+            stone.className = `stone ${player === PLAYER_BLACK ? 'black' : 'white'}`;
+            if (isLast) stone.classList.add('highlight');
+            
+            stone.style.top = `${(r + 0.5) * cellSize}%`;
+            stone.style.left = `${(c + 0.5) * cellSize}%`;
+            stone.style.width = `calc(${cellSize}% * 0.8)`;
+            stone.style.height = `calc(${cellSize}% * 0.8)`;
+            
+            DOM.boardContainer.appendChild(stone);
+        }
+
+        function updateUI() {
+            renderBoard();
+            
+            DOM.btnModeAi.classList.toggle('active', gameState.mode === MODE_AI);
+            DOM.btnMode2P.classList.toggle('active', gameState.mode === MODE_2P);
+
+            DOM.btnStartBlack.classList.toggle('active', gameState.startTurn === PLAYER_BLACK);
+            DOM.btnStartWhite.classList.toggle('active', gameState.startTurn === PLAYER_WHITE);
+
+            DOM.aiWinCount.textContent = gameState.aiWin;
+            DOM.aiLoseCount.textContent = gameState.aiLose;
+            DOM.p2WinCount.textContent = gameState.p2Win;
+            DOM.p2LoseCount.textContent = gameState.p2Lose;
+
+            const currentData = gameState.history[gameState.mode];
+            if (currentData.isGameOver) {
+                DOM.turnIndicator.textContent = "게임 종료";
+                DOM.turnIndicator.style.color = "var(--text-sub)";
+                DOM.turnIndicator.style.borderColor = "var(--border-color)";
+            } else {
+                if (currentData.currentPlayer === PLAYER_BLACK) {
+                    DOM.turnIndicator.textContent = gameState.mode === MODE_AI && gameState.startTurn === PLAYER_WHITE ? "● 흑돌 (AI) 차례" : "● 흑돌 차례";
+                    DOM.turnIndicator.style.color = "#000";
+                    DOM.turnIndicator.style.borderColor = "#000";
+                } else {
+                    DOM.turnIndicator.textContent = gameState.mode === MODE_AI && gameState.startTurn === PLAYER_WHITE ? "○ 백돌 (Player) 차례" : "○ 백돌 차례";
+                    DOM.turnIndicator.style.color = "#666";
+                    DOM.turnIndicator.style.borderColor = "#666";
+                }
+            }
+
+            if (gameState.mode === MODE_AI && gameState.startTurn === PLAYER_WHITE && isBoardEmpty(currentData.board) && !currentData.isGameOver) {
+                setTimeout(() => {
+                    const centerR = 7;
+                    const centerC = 7;
+                    if (currentData.board[centerR][centerC] === 0) {
+                        currentData.board[centerR][centerC] = PLAYER_BLACK;
+                        currentData.lastMove = { r: centerR, c: centerC };
+                        currentData.currentPlayer = PLAYER_WHITE;
+                        saveData();
+                        showMessage("AI(흑돌)가 (0, 0) 중앙에 첫돌을 놓았습니다. 이제 백돌(플레이어) 차례입니다.", "success");
+                        updateUI();
+                    }
+                }, 400);
+            }
+        }
+
+        function isBoardEmpty(board) {
+            for(let r=0; r<BOARD_SIZE; r++) {
+                for(let c=0; c<BOARD_SIZE; c++) {
+                    if(board[r][c] !== 0) return false;
+                }
+            }
+            return true;
+        }
+
+        function setMode(mode) {
+            gameState.mode = mode;
+            if (!gameState.history[mode]) {
+                gameState.history[mode] = createEmptyGame(gameState.startTurn);
+            }
+            saveData();
+            clearInput();
+            updateUI();
+        }
+
+        function setStartTurn(turn) {
+            gameState.startTurn = turn;
+            gameState.history[gameState.mode] = createEmptyGame(turn);
+            saveData();
+            clearInput();
+            updateUI();
+        }
+
+        function resetBoardOnly() {
+            gameState.history[gameState.mode] = createEmptyGame(gameState.startTurn);
+            saveData();
+            clearInput();
+            showMessage("보드가 초기화되었습니다.", "success");
+            updateUI();
+        }
+
+        function showMessage(msg, type = '') {
+            DOM.msgBox.textContent = msg;
+            DOM.msgBox.className = type === 'error' ? 'msg-error' : (type === 'success' ? 'msg-success' : '');
+            isMessageErrorState = (type === 'error');
+        }
+
+        function appendInput(char) {
+            const currentData = gameState.history[gameState.mode];
+            if (currentData.isGameOver) return;
+            
+            if (gameState.mode === MODE_AI && currentData.currentPlayer !== gameState.startTurn) {
+                showMessage("AI가 생각중입니다...", "error");
+                return;
+            }
+
+            if (isMessageErrorState) {
+                DOM.txtInput.value = '';
+                showMessage("x축과 y축 좌표를 입력하고 착수를 눌러주세요.");
+            }
+
+            if (char === ',') {
+                if(!DOM.txtInput.value.includes(',')) DOM.txtInput.value += ', ';
+            } else {
+                DOM.txtInput.value += char;
+            }
+        }
+
+        function backspaceInput() {
+            if (isMessageErrorState) clearInput();
+            else DOM.txtInput.value = DOM.txtInput.value.slice(0, -1);
+        }
+
+        function clearInput() {
+            DOM.txtInput.value = '';
+            showMessage("x축과 y축 좌표를 입력하고 착수를 눌러주세요.");
+        }
+
+        function handlePlaceStone() {
+            const currentData = gameState.history[gameState.mode];
+            if (currentData.isGameOver) return;
+            if (gameState.mode === MODE_AI && currentData.currentPlayer !== gameState.startTurn) return;
+
+            const val = DOM.txtInput.value.trim();
+            if (!val) return;
+
+            const match = val.match(/^\s*(-?\d+)\s*,\s*(-?\d+)\s*$/);
+            if (!match) {
+                showMessage("형식에 맞지 않습니다. (예: 3, -4)", "error");
+                return;
+            }
+
+            const logicX = parseInt(match[1]);
+            const logicY = parseInt(match[2]);
+
+            if (logicX < -7 || logicX > 7 || logicY < -7 || logicY > 7) {
+                showMessage("좌표는 -7에서 7 사이여야 합니다.", "error");
+                return;
+            }
+
+            const c = logicX + 7;
+            const r = 7 - logicY;
+
+            if (currentData.board[r][c] !== 0) {
+                showMessage("이미 돌이 있는 자리입니다.", "error");
+                return;
+            }
+
+            executeMove(r, c);
+        }
+
+        function executeMove(r, c) {
+            const currentData = gameState.history[gameState.mode];
+            const player = currentData.currentPlayer;
+            
+            // 현재 상태 백업 (되돌리기 기능용)
+            const boardSnapshot = currentData.board.map(row => [...row]);
+            currentData.moveHistory.push({
+                board: boardSnapshot,
+                currentPlayer: player,
+                lastMove: currentData.lastMove ? { ...currentData.lastMove } : null
+            });
+
+            currentData.board[r][c] = player;
+            currentData.lastMove = { r, c };
+            
+            const logicX = c - 7;
+            const logicY = 7 - r;
+            showMessage(`(${logicX}, ${logicY}) 에 착수했습니다.`, "success");
+            DOM.txtInput.value = '';
+            
+            updateUI();
+            
+            if (checkWin(r, c, player)) {
+                handleWin(player);
+                return;
+            }
+
+            currentData.currentPlayer = player === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
+            saveData();
+            updateUI();
+
+            if (gameState.mode === MODE_AI && currentData.currentPlayer !== gameState.startTurn && !currentData.isGameOver) {
+                setTimeout(aiCalculateMove, 600);
+            }
+        }
+
+        function handleUndo() {
+            const currentData = gameState.history[gameState.mode];
+            if (currentData.isGameOver) {
+                showMessage("게임이 종료되어 되돌릴 수 없습니다.", "error");
+                return;
+            }
+
+            if (currentData.moveHistory.length === 0) {
+                showMessage("되돌릴 착수 기록이 없습니다.", "error");
+                return;
+            }
+
+            // 혼자하기 모드(vs AI)일 때는 플레이어와 AI의 턴을 모두 한 번에 되돌리기 위해 2수 이전으로 복구 (AI가 방금 뒀으므로 플레이어 턴으로 복원)
+            let stepsToUndo = 1;
+            if (gameState.mode === MODE_AI) {
+                // 만약 플레이어 턴이고 기록이 2개 이상 있다면 AI 턴 + 플레이어 턴 두 개를 되돌림
+                if (currentData.currentPlayer === gameState.startTurn && currentData.moveHistory.length >= 2) {
+                    stepsToUndo = 2;
+                }
+            }
+
+            let previousState = null;
+            for (let i = 0; i < stepsToUndo; i++) {
+                previousState = currentData.moveHistory.pop();
+            }
+
+            if (previousState) {
+                currentData.board = previousState.board;
+                currentData.currentPlayer = previousState.currentPlayer;
+                currentData.lastMove = previousState.lastMove;
+                currentData.isGameOver = false;
+                saveData();
+                clearInput();
+                showMessage("이전 수로 되돌렸습니다.", "success");
+                updateUI();
+            }
+        }
+
+        function checkWin(r, c, player) {
+            const currentData = gameState.history[gameState.mode];
+            const board = currentData.board;
+            const directions = [[0,1], [1,0], [1,1], [1,-1]];
+            
+            for (let [dr, dc] of directions) {
+                let count = 1;
+                let i = r + dr, j = c + dc;
+                while (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === player) { count++; i += dr; j += dc; }
+                i = r - dr; j = c - dc;
+                while (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === player) { count++; i -= dr; j -= dc; }
+                
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        function handleWin(player) {
+            const currentData = gameState.history[gameState.mode];
+            currentData.isGameOver = true;
+
+            let title = "", desc = "", btnText = "새 게임 시작", isSuccess = true;
+
+            if (gameState.mode === MODE_AI) {
+                const isPlayerWinner = (player === gameState.startTurn);
+                if (isPlayerWinner) {
+                    gameState.aiWin++;
+                    title = "🎉 승리했습니다!";
+                    desc = "AI를 상대로 멋진 승리를 거두셨습니다.";
+                    isSuccess = true;
+                } else {
+                    gameState.aiLose++;
+                    title = "❌ 패배했습니다!";
+                    desc = "AI에게 지고 말았습니다. 다시 도전해보세요!";
+                    isSuccess = false;
+                    btnText = "다시 시도";
+                }
+            } else {
+                if (player === PLAYER_BLACK) {
+                    gameState.p2Win++;
+                    title = "🎉 흑돌 승리!";
+                    desc = "흑돌 플레이어가 오목을 완성했습니다.";
+                } else {
+                    gameState.p2Lose++;
+                    title = "🎉 백돌 승리!";
+                    desc = "백돌 플레이어가 오목을 완성했습니다.";
+                }
+            }
+
+            saveData();
+            updateUI();
+            showResultModal(title, desc, btnText, isSuccess);
+        }
+
+        function aiCalculateMove() {
+            const currentData = gameState.history[gameState.mode];
+            if (currentData.isGameOver) return;
+            const board = currentData.board;
+            const aiPlayer = currentData.currentPlayer;
+            const humanPlayer = aiPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
+
+            let bestScore = -1;
+            let bestMoves = [];
+
+            function evaluatePos(r, c, playerType) {
+                let score = 0;
+                const directions = [[0,1], [1,0], [1,1], [1,-1]];
+                
+                for (let [dr, dc] of directions) {
+                    let count = 1, openEnds = 0;
+                    
+                    let i = r + dr, j = c + dc;
+                    while (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === playerType) { count++; i += dr; j += dc; }
+                    if (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === 0) openEnds++;
+                    
+                    i = r - dr; j = c - dc;
+                    while (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === playerType) { count++; i -= dr; j -= dc; }
+                    if (i >= 0 && i < BOARD_SIZE && j >= 0 && j < BOARD_SIZE && board[i][j] === 0) openEnds++;
+
+                    if (count >= 5) score += 100000;
+                    else if (count === 4 && openEnds > 0) score += 10000;
+                    else if (count === 3 && openEnds === 2) score += 1000;
+                    else if (count === 3 && openEnds === 1) score += 100;
+                    else if (count === 2 && openEnds === 2) score += 10;
+                }
+                return score;
+            }
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] !== 0) continue;
+                    
+                    const attackScore = evaluatePos(r, c, aiPlayer);
+                    const defenseScore = evaluatePos(r, c, humanPlayer);
+                    const totalScore = attackScore + defenseScore * 1.2;
+
+                    if (totalScore > bestScore) {
+                        bestScore = totalScore;
+                        bestMoves = [{r, c}];
+                    } else if (totalScore === bestScore) {
+                        bestMoves.push({r, c});
+                    }
+                }
+            }
+
+            let move;
+            if (bestMoves.length > 0) {
+                move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            } else {
+                move = {r: 7, c: 7};
+            }
+
+            executeMove(move.r, move.c);
+        }
+
+        function showResultModal(title, desc, btnText, isSuccess) {
+            DOM.modalTitle.textContent = title;
+            DOM.modalDesc.innerHTML = desc;
+            DOM.modalBtn.textContent = btnText;
+            
+            DOM.modalBox.style.borderTop = `6px solid ${isSuccess ? 'var(--success)' : 'var(--danger)'}`;
+            DOM.modalBtn.style.backgroundColor = isSuccess ? 'var(--success)' : 'var(--danger)';
+            DOM.modalBtn.style.color = '#fff';
+            
+            DOM.modalBtn.onclick = () => {
+                closeResultModal();
+                resetBoardOnly();
+            };
+            
+            DOM.resultModal.classList.add('show');
+        }
+
+        function closeResultModal() {
+            DOM.resultModal.classList.remove('show');
+        }
+
+        function openResetModal() {
+            DOM.resetModal.classList.add('show');
+        }
+
+        function closeResetModal() {
+            DOM.resetModal.classList.remove('show');
+        }
+
+        function confirmReset() {
+            gameState = defaultState;
+            gameState.history[MODE_AI] = createEmptyGame(gameState.startTurn);
+            gameState.history[MODE_2P] = createEmptyGame(gameState.startTurn);
+            saveData();
+            closeResetModal();
+            clearInput();
+            updateUI();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (DOM.resultModal.classList.contains('show')) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); DOM.modalBtn.click(); }
+                if (e.key === 'Escape') { e.preventDefault(); closeResultModal(); resetBoardOnly(); }
+                return;
+            }
+            if (DOM.resetModal.classList.contains('show')) {
+                if (e.key === 'Escape') { e.preventDefault(); closeResetModal(); }
+                return;
+            }
+
+            if (e.key >= '0' && e.key <= '9') appendInput(e.key);
+            else if (e.key === '-') appendInput('-');
+            else if (e.key === ',' || e.key === '.') appendInput(',');
+            else if (e.key === 'Backspace') backspaceInput();
+            else if (e.key === 'Escape') clearInput();
+            else if (e.key === 'Enter') { e.preventDefault(); handlePlaceStone(); }
+            else if (e.key === 'u' || e.key === 'U') { e.preventDefault(); handleUndo(); }
+        });
+
+        window.addEventListener('DOMContentLoaded', updateUI);
+    </script>
+</body>
+</html>
