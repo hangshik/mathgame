@@ -190,7 +190,6 @@
             margin-bottom: 20px;
         }
         
-        /* 2P 모드 백돌(상단 플레이어) 차례일 때 좌표축 및 숫자만 180도 회전 */
         .coord-layer {
             position: absolute;
             top: 0;
@@ -207,7 +206,7 @@
             transform: rotate(180deg);
         }
         
-        body.mode-2p .board-wrapper { margin-bottom: 0; } /* 2P 모드일 때 마진 제거 */
+        body.mode-2p .board-wrapper { margin-bottom: 0; }
 
         .grid-line { position: absolute; background-color: #e0e0e0; }
         .grid-line.horizontal { left: 0; right: 0; height: 1px; transform: translateY(-50%); }
@@ -230,7 +229,10 @@
         @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 10px var(--danger); } }
 
         .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        
         .formula-row-container { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; }
+        .formula-row-container .player-stone-label { display: none; }
+        body.mode-2p .formula-row-container .player-stone-label { display: inline-block; }
         .coord-format-text { font-size: 32px; font-weight: 800; color: var(--text-main); }
         .input-wrapper-inline { flex: 1; max-width: 250px; display: flex; justify-content: center; align-items: center; }
         
@@ -239,7 +241,6 @@
         .key-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
         .key-btn { height: 54px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-size: 18px; font-weight: 700; color: var(--text-main); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; }
         .key-btn:active { background-color: #f0f0f0; transform: scale(0.95); }
-        .backspace-btn-style { }
         .confirm-btn-style { background-color: var(--active) !important; color: #ffffff !important; border: none !important; border-radius: 8px !important; font-size: 15px !important; font-weight: 800 !important; cursor: pointer; box-shadow: 0 3px 6px rgba(0, 123, 255, 0.2) !important; white-space: nowrap; }
         .confirm-btn-style:active { transform: scale(0.95); }
 
@@ -270,10 +271,10 @@
         .win-count-badge {
             font-size: 15px;
             font-weight: 800;
-            color: var(--text-sub);
-            background-color: #f1f3f5;
+            color: var(--bg);
+            background-color: var(--success);
             padding: 6px 14px;
-            border-radius: 20px;
+            border-radius: 10px;
             margin-left: 5px;
             display: inline-flex;
             align-items: center;
@@ -282,7 +283,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* 시작 버튼 스타일 및 차례 비활성화 상태 예외 처리 */
         .start-btn {
             background-color: var(--active);
             color: #ffffff;
@@ -312,29 +312,40 @@
             box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
         }
 
-        /* 상대방 차례일 때도 시작 버튼은 언제든지 클릭 가능하도록 설정 */
         .input-section.disabled .start-btn {
             pointer-events: auto;
             opacity: 1;
             filter: none;
         }
 
-        #btnExit2P {
-            position: fixed; top: 15px; right: 15px; z-index: 999;
-            background-color: rgba(0,0,0,0.6); color: #fff;
-            border: none; border-radius: 8px; padding: 8px 16px;
-            font-size: 14px; font-weight: 700; cursor: pointer;
+        .exit-btn {
+            background-color: var(--danger);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(220, 53, 69, 0.25);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
             display: none;
-            backdrop-filter: blur(4px);
         }
-        body.mode-2p #btnExit2P { display: block; }
+        .exit-btn:hover {
+            background-color: #bd2130;
+            transform: translateY(-1px);
+        }
+        .exit-btn:active {
+            transform: scale(0.95);
+        }
 
         @media (max-width: 480px) {
             .coord-format-text { font-size: 24px; }
             .txt-input { height: 54px; font-size: 24px; }
             .key-btn { height: 50px; font-size: 18px; }
             
-            /* 2P 모드 시 모바일에서 상하단 키패드가 꽉 차게 조절 */
             body.mode-2p #inputSectionP2 { margin-bottom: 10px !important; }
             body.mode-2p .board-section-wrapper { margin-bottom: 10px; }
             body.mode-2p .txt-input { height: 46px; font-size: 20px; }
@@ -344,9 +355,6 @@
     </style>
 </head>
 <body>
-
-    <!-- 2P 탈출용 버튼 (혼자하기로 복귀) -->
-    <button id="btnExit2P" onclick="setMode(1)">⨉ 나가기</button>
 
     <div id="resultModal" class="modal-overlay">
         <div id="modalBox" class="modal-box">
@@ -395,8 +403,11 @@
             
             <!-- 2P 전용 180도 뒤집힌 P2 입력 영역 -->
             <div class="input-section" id="inputSectionP2" style="display: none; transform: rotate(180deg);">
+
                 <div class="formula-row-container">
+                    <span class="player-stone-label">○ 백돌</span>
                     <button type="button" class="start-btn" id="btnStartP2" onclick="handleStartGame(2)">시작</button>
+                    <button type="button" class="exit-btn" id="btnExitP2" onclick="setMode(1)">나가기</button>
                     <span class="coord-format-text">(</span>
                     <div class="input-wrapper-inline">
                         <input type="text" id="txtP2" class="txt-input" readonly placeholder="x, y">
@@ -426,21 +437,20 @@
             <!-- 오목판 및 승률 표시 영역 -->
             <div class="board-section-wrapper">
                 <div class="board-outer">
-                    <div id="boardContainer" class="board-wrapper">
-                        <!-- 오목판 그리드 및 스톤 렌더링 위치 -->
-                    </div>
+                    <div id="boardContainer" class="board-wrapper"></div>
                 </div>
             </div>
 
             <!-- 기본(P1) 입력 영역 -->
             <div class="input-section" id="inputSectionP1">
                 <div class="formula-row-container">
+                    <span class="player-stone-label">● 흑돌</span>
                     <button type="button" class="start-btn" id="btnStartP1" onclick="handleStartGame(1)">시작</button>
+                    <button type="button" class="exit-btn" id="btnExitP1" onclick="setMode(1)">나가기</button>
                     <span class="coord-format-text">(</span>
                     <div class="input-wrapper-inline">
                         <input type="text" id="txtP1" class="txt-input" readonly placeholder="x, y">
                     </div>
-                    
                     <span class="coord-format-text">)</span>
                     <span id="p1WinCountBadge" class="win-count-badge">0승</span>
                 </div>
@@ -518,7 +528,6 @@
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // Game constants
         const BOARD_SIZE = 15;
         const PLAYER_BLACK = 1;
         const PLAYER_WHITE = 2;
@@ -527,7 +536,6 @@
 
         let isMessageErrorState = false;
 
-        // DOM elements cache
         const DOM = {
             boardContainer: document.getElementById('boardContainer'),
             btnModeAi: document.getElementById('btnModeAi'),
@@ -544,9 +552,6 @@
             txtP2: document.getElementById('txtP2'),
             msgBoxP1: document.getElementById('msgBoxP1'),
             msgBoxP2: document.getElementById('msgBoxP2'),
-            winRatePanel: document.getElementById('winRatePanel'),
-            winRateValue: document.getElementById('winRateValue'),
-            winRateDetail: document.getElementById('winRateDetail'),
             turnIndicator: document.getElementById('turnIndicator'),
             resultModal: document.getElementById('resultModal'),
             modalBox: document.getElementById('modalBox'),
@@ -555,7 +560,11 @@
             modalBtn: document.getElementById('modalBtn'),
             resetModal: document.getElementById('resetModal'),
             p1WinCountBadge: document.getElementById('p1WinCountBadge'),
-            p2WinCountBadge: document.getElementById('p2WinCountBadge')
+            p2WinCountBadge: document.getElementById('p2WinCountBadge'),
+            btnStartP1: document.getElementById('btnStartP1'),
+            btnStartP2: document.getElementById('btnStartP2'),
+            btnExitP1: document.getElementById('btnExitP1'),
+            btnExitP2: document.getElementById('btnExitP2')
         };
 
         function createEmptyGame(startTurn = PLAYER_BLACK) {
@@ -715,31 +724,27 @@
 
             const currentData = gameState.history[gameState.mode];
 
-            // 2P 모드 UI 및 차례별 키패드 활성화 처리
             if (gameState.mode === MODE_2P) {
                 document.body.classList.add('mode-2p');
                 DOM.inputSectionP2.style.display = 'flex';
 
-                const btnStartP1 = document.getElementById('btnStartP1');
-                const btnStartP2 = document.getElementById('btnStartP2');
-
                 if (!currentData.isStarted) {
-                    // 시작 버튼 클릭 전: 위/아래 입력 영역 모두 활성화 및 시작 버튼 표시
                     DOM.inputSectionP1.classList.remove('disabled');
                     DOM.inputSectionP2.classList.remove('disabled');
                     DOM.boardContainer.classList.remove('rotated-axis');
-                    if (btnStartP1 && btnStartP2) {
-                        btnStartP1.classList.remove('active');
-                        btnStartP2.classList.remove('active');
-                        btnStartP1.style.display = 'inline-block';
-                        btnStartP2.style.display = 'inline-block';
-                    }
+                    
+                    DOM.btnStartP1.classList.remove('active');
+                    DOM.btnStartP2.classList.remove('active');
+                    DOM.btnStartP1.style.display = 'inline-block';
+                    DOM.btnStartP2.style.display = 'inline-block';
+                    
+                    DOM.btnExitP1.style.display = 'none';
+                    DOM.btnExitP2.style.display = 'none';
                 } else {
-                    // 시작 버튼 클릭 후: 위, 아래 '시작' 버튼 모두 숨김 처리
-                    if (btnStartP1 && btnStartP2) {
-                        btnStartP1.style.display = 'none';
-                        btnStartP2.style.display = 'none';
-                    }
+                    DOM.btnStartP1.style.display = 'none';
+                    DOM.btnStartP2.style.display = 'none';
+                    DOM.btnExitP1.style.display = 'inline-block';
+                    DOM.btnExitP2.style.display = 'inline-block';
 
                     if (currentData.currentPlayer === PLAYER_BLACK) {
                         DOM.inputSectionP1.classList.remove('disabled');
@@ -752,7 +757,6 @@
                     }
                 }
 
-                // 둘이하기 모드에서는 승수 뱃지 표시
                 if (DOM.p1WinCountBadge) DOM.p1WinCountBadge.style.display = 'inline-flex';
                 if (DOM.p2WinCountBadge) DOM.p2WinCountBadge.style.display = 'inline-flex';
             } else {
@@ -761,19 +765,9 @@
                 DOM.inputSectionP1.classList.remove('disabled');
                 DOM.boardContainer.classList.remove('rotated-axis');
 
-                // 혼자하기 모드에서는 '시작' 버튼 및 '승수' 표시 숨김
-                const btnStartP1 = document.getElementById('btnStartP1');
-                if (btnStartP1) btnStartP1.style.display = 'none';
+                DOM.btnStartP1.style.display = 'none';
+                DOM.btnExitP1.style.display = 'none';
                 if (DOM.p1WinCountBadge) DOM.p1WinCountBadge.style.display = 'none';
-            }
-
-            // 승률 계산 및 표시 (0:0 형식 및 90도 회전 적용)
-            if (DOM.winRateValue) {
-                if (gameState.mode === MODE_AI) {
-                    DOM.winRateValue.textContent = `${gameState.aiWin}:${gameState.aiLose}`;
-                } else {
-                    DOM.winRateValue.textContent = `${gameState.p2Win}:${gameState.p2Lose}`;
-                }
             }
 
             if (currentData.isGameOver) {
@@ -821,9 +815,12 @@
             return true;
         }
 
+        // [수정] 둘이하기 모드 진입 시 보드를 항상 초기화하여 재진입 시 시작 버튼이 표시되도록 처리
         function setMode(mode) {
             gameState.mode = mode;
-            if (!gameState.history[mode]) {
+            if (mode === MODE_2P) {
+                gameState.history[MODE_2P] = createEmptyGame(gameState.startTurn);
+            } else if (!gameState.history[mode]) {
                 gameState.history[mode] = createEmptyGame(gameState.startTurn);
             }
             saveData();
@@ -860,7 +857,7 @@
             gameState.history[gameState.mode] = createEmptyGame(gameState.startTurn);
             saveData();
             clearInput();
-            showMessage("보드가 초기화되었습니다. '시작' 버튼을 누르면 시작합니다.", "success");
+            showMessage("보드가 초기화되었습니다. '시작' 버튼을 눌러주세요.", "success");
             updateUI();
         }
 
@@ -963,7 +960,6 @@
             let logicX = parseInt(match[1]);
             let logicY = parseInt(match[2]);
 
-            // 상단 키패드(P2 / 백돌) 입력 시 180도 회전된 시점이므로 좌표도 180도 뒤집음 (원점 대칭: x -> -x, y -> -y)
             const isP2Turn = gameState.mode === MODE_2P && (player === 2 || (player === null && currentData.currentPlayer === PLAYER_WHITE));
             if (isP2Turn) {
                 logicX = -logicX;
@@ -990,25 +986,21 @@
             const currentData = gameState.history[gameState.mode];
             if (currentData.isGameOver) return;
 
-            // Save snapshot for undo functionality
             currentData.moveHistory.push({
                 board: currentData.board.map(row => [...row]),
                 currentPlayer: currentData.currentPlayer,
                 lastMove: currentData.lastMove ? { ...currentData.lastMove } : null
             });
 
-            // Place stone on board
             const player = currentData.currentPlayer;
             currentData.board[r][c] = player;
             currentData.lastMove = { r, c };
 
-            // Check if this move wins the game
             if (checkWin(r, c, player)) {
                 handleWin(player);
                 return;
             }
 
-            // Check for draw condition (full board)
             let isFull = true;
             for (let i = 0; i < BOARD_SIZE; i++) {
                 for (let j = 0; j < BOARD_SIZE; j++) {
@@ -1028,13 +1020,11 @@
                 return;
             }
 
-            // Switch active player turn
             currentData.currentPlayer = (player === PLAYER_BLACK) ? PLAYER_WHITE : PLAYER_BLACK;
             saveData();
             clearInput();
             updateUI();
 
-            // Trigger AI response if playing vs AI
             if (gameState.mode === MODE_AI && !currentData.isGameOver) {
                 const aiPlayer = (gameState.startTurn === PLAYER_BLACK) ? PLAYER_WHITE : PLAYER_BLACK;
                 if (currentData.currentPlayer === aiPlayer) {
@@ -1042,42 +1032,6 @@
                         aiCalculateMove();
                     }, 300);
                 }
-            }
-        }
-
-        function handleUndo() {
-            const currentData = gameState.history[gameState.mode];
-            if (currentData.isGameOver) {
-                showMessage("게임이 종료되어 되돌릴 수 없습니다.", "error");
-                return;
-            }
-
-            if (currentData.moveHistory.length === 0) {
-                showMessage("되돌릴 착수 기록이 없습니다.", "error");
-                return;
-            }
-
-            let stepsToUndo = 1;
-            if (gameState.mode === MODE_AI) {
-                if (currentData.currentPlayer === gameState.startTurn && currentData.moveHistory.length >= 2) {
-                    stepsToUndo = 2;
-                }
-            }
-
-            let previousState = null;
-            for (let i = 0; i < stepsToUndo; i++) {
-                previousState = currentData.moveHistory.pop();
-            }
-
-            if (previousState) {
-                currentData.board = previousState.board;
-                currentData.currentPlayer = previousState.currentPlayer;
-                currentData.lastMove = previousState.lastMove;
-                currentData.isGameOver = false;
-                saveData();
-                clearInput();
-                showMessage("이전 수로 되돌렸습니다.", "success");
-                updateUI();
             }
         }
 
