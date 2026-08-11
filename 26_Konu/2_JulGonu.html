@@ -104,10 +104,10 @@
       <div class="toggle-group" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
         <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
           <label class="switch">
-            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()" checked>
-            <span class="slider"></span>
-          </label>
-          <span id="color-label" style="font-size: 14px; font-weight: 700; color: var(--danger); width: 65px; text-align: left;">🔴 빨강</span>
+            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()">
+<span class="slider"></span>
+</label>
+<span id="color-label" style="font-size: 14px; font-weight: 700; color: var(--active); width: 65px; text-align: left;">🔵 파랑</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
           <label class="switch">
@@ -119,7 +119,7 @@
         <button class="control-btn" id="btn-reset">새로 시작</button>
         <button class="control-btn" id="btn-start" style="background-color: var(--active);">게임 시작</button>
       </div>
-      <div id="turn-badge" class="status-badge">🔴 빨간팀 차례 (시작 대기)</div>
+      <div id="turn-badge" class="status-badge">🔵 파랑<팀 차례 (시작 대기)</div>
     </div>
 
     <div class="board-container" id="board-container">
@@ -177,7 +177,7 @@
   document.addEventListener('contextmenu', e => e.preventDefault());
 
   const activeGame = 'jul';
-  let userColor = 'red';
+  let userColor = 'blue';
   let userGoesFirst = true;
   let currentGameFirstPlayer = 'user';
   let jState = { started: false };

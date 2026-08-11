@@ -76,10 +76,10 @@
       <div class="flex flex-wrap items-center justify-center gap-3 w-full">
         <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
           <label class="switch">
-            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()" checked>
-            <span class="slider"></span>
-          </label>
-          <span id="color-label" class="text-sm font-bold text-red-600 w-16 text-left">🔴 빨강</span>
+            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()">
+<span class="slider"></span>
+</label>
+<span id="color-label" style="font-size: 14px; font-weight: 700; color: var(--active); width: 65px; text-align: left;">🔵 파랑</span>
         </div>
         
         <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
@@ -94,7 +94,7 @@
         <button id="btn-start" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all">게임 시작</button>
       </div>
 
-      <div id="turn-badge" class="status-badge">🔴 빨간팀 차례 (시작 대기)</div>
+      <div id="turn-badge" class="status-badge">🔵 파랑<팀 차례 (시작 대기)</div>
     </div>
 
     <div class="board-container" id="board-container">
@@ -172,7 +172,7 @@
     document.addEventListener('contextmenu', e => e.preventDefault());
 
     const activeGame = 'bike_gonu';
-    let userColor = 'red';
+    let userColor = 'blue';
     let userGoesFirst = true;
     let currentGameFirstPlayer = 'user';
     let aiTimer = null;
