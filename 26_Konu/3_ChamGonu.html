@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>참고누</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.css" />
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text: #222222;
+      --sub: #555555;
+      --border: #e9ecef;
+      --board-bg: #fffdf9;
+    }
+    * { box-sizing: border-box; touch-action: manipulation; font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 15px 10px; user-select: none; -webkit-user-select: none; }
+    h1 { font-size: 36px; font-weight: 800; text-align: center; margin: 20px 0 30px; color: var(--text); }
+    h2 { font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+    .container-fixed { background-color: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; }
+    .game-area { display: flex; flex-direction: column; align-items: center; }
+    .game-toolbar { width: 100%; margin-bottom: 15px; text-align: center; }
+    .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--sub); transition: .3s; border-radius: 26px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+    input#color-toggle:checked + .slider { background-color: var(--danger); }
+    input#color-toggle:not(:checked) + .slider { background-color: var(--active); }
+    input#turn-toggle:checked + .slider { background-color: var(--text); }
+    input#turn-toggle:not(:checked) + .slider { background-color: var(--sub); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    .status-badge { padding: 8px 20px; border-radius: 25px; font-weight: 800; font-size: 18px; text-align: center; width: 100%; max-width: 450px; margin: 10px auto 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+    .red-turn { background-color: #fdf2f2; color: var(--danger); border: 2px solid var(--danger); }
+    .blue-turn { background-color: #f0f7ff; color: var(--active); border: 2px solid var(--active); }
+    .board-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 1 / 1; background-color: var(--board-bg); border-radius: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.03); border: 5px solid var(--border); touch-action: none; overflow: hidden; transition: border-color 0.3s ease; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    .piece-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+    .node { position: absolute; width: 11%; height: 11%; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s; z-index: 5; border: 3px solid #ddd; box-sizing: border-box; }
+    .node.empty { background-color: rgba(255, 255, 255, 0.85); border-color: var(--sub); }
+    .node.red { background-color: var(--danger); border-color: #b02a37; box-shadow: 0 4px 0 #b02a37; }
+    .node.blue { background-color: var(--active); border-color: #0a58ca; box-shadow: 0 4px 0 #0a58ca; }
+    .node.selected { transform: translate(-50%, -50%) scale(1.2); outline: 4px solid #ffd700; z-index: 10; }
+    .node.hint { border: 3px dashed var(--success); background-color: rgba(40, 167, 69, 0.2); }
+    .node.blocked::before, .node.blocked::after { content: ''; position: absolute; width: 80%; height: 3px; background-color: #333; }
+    .node.blocked::before { transform: rotate(45deg); }
+    .node.blocked::after { transform: rotate(-45deg); }
+    .control-btn { height: 46px; padding: 0 18px; font-size: 15px; font-weight: 700; border-radius: 12px; border: none; cursor: pointer; color: #ffffff; transition: opacity 0.2s; background-color: var(--sub); }
+    .control-btn:active { opacity: 0.8; }
+    .control-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .guide-box { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); padding: 20px; margin-bottom: 15px; word-break: keep-all; font-size: 15px; line-height: 1.6; color: var(--sub); }
+    .guide-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .guide-box h2 { margin-bottom: 0; }
+    .box-stats { border-left: 6px solid var(--danger); }
+    .box-stats h2 { color: var(--danger); }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+    th, td { border: 1px solid var(--border); padding: 10px; }
+    th { background-color: #f8f9fa; font-weight: 700; color: var(--text); }
+    .btn-reset-stats { background-color: #ffffff; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .box-rules { border-left: 6px solid var(--active); }
+    .box-rules h2 { color: var(--active); }
+    .box-rules ul { list-style-type: none; }
+    .box-rules li::before { content: "• "; font-weight: bold; }
+    .box-keys { border-left: 6px solid var(--success); }
+    .box-keys h2 { color: var(--success); }
+    .key-badge { display: inline-block; background-color: #f0f2f5; border: 1px solid #ccc; border-radius: 6px; padding: 2px 8px; font-size: 14px; font-weight: 700; color: var(--text); box-shadow: 0 2px 0 #ccc; margin: 0 4px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s; }
+    .modal-overlay.show { visibility: visible; opacity: 1; }
+    .modal-card { background-color: var(--card-bg); width: 90%; max-width: 350px; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: translateY(-20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .modal-overlay.show .modal-card { transform: translateY(0); }
+    .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; word-break: keep-all; }
+    .modal-success .modal-card { border-top: 6px solid var(--success); }
+    .modal-success .modal-title { color: var(--success); }
+    .modal-danger .modal-card { border-top: 6px solid var(--danger); }
+    .modal-danger .modal-title { color: var(--danger); }
+    .modal-info .modal-card { border-top: 6px solid var(--active); }
+    .modal-info .modal-title { color: var(--active); }
+    .modal-btn { flex: 1; height: 48px; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; color: #fff; }
+    .modal-success .modal-btn { background-color: var(--success); }
+    .modal-danger .modal-btn { background-color: var(--danger); }
+    .modal-info .modal-btn { background-color: var(--active); }
+  </style>
+</head>
+<body>
+  <h1>참고누</h1>
+
+  <div class="container-fixed game-area">
+    <div class="game-toolbar">
+      <div class="toggle-group" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
+          <label class="switch">
+            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()" checked>
+            <span class="slider"></span>
+          </label>
+          <span id="color-label" style="font-size: 14px; font-weight: 700; color: var(--danger); width: 65px; text-align: left;">🔴 빨강</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
+          <label class="switch">
+            <input type="checkbox" id="turn-toggle" onchange="toggleTurnOrder()" checked>
+            <span class="slider"></span>
+          </label>
+          <span id="turn-label" style="font-size: 14px; font-weight: 700; color: var(--text); width: 85px; text-align: left;">🎯 내가 선공</span>
+        </div>
+        <button class="control-btn" id="btn-reset">새로 시작</button>
+        <button class="control-btn" id="btn-start" style="background-color: var(--active);">게임 시작</button>
+      </div>
+      <div id="turn-badge" class="status-badge">🔴 빨간팀 차례 (시작 대기)</div>
+    </div>
+
+    <div class="board-container" id="board-container">
+      <canvas id="game-canvas"></canvas>
+      <div id="piece-layer" class="piece-layer"></div>
+    </div>
+  </div>
+
+  <div class="guide-box box-stats">
+    <div class="guide-header">
+      <h2>📊 누적 기록</h2>
+      <button class="btn-reset-stats" onclick="resetStatsModal()">누적기록 초기화</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>종목</th>
+          <th style="color: var(--success);">👤 사용자 승</th>
+          <th style="color: var(--danger);">🤖 AI 승</th>
+          <th>🎯 사용자 선공 승</th>
+          <th>🤖 AI 선공 승</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body"></tbody>
+    </table>
+  </div>
+
+  <div class="guide-box box-rules">
+    <h2>◈ 놀이 규칙</h2>
+    <ul>
+      <li>놓기 단계: 빈 자리에 번갈아 말을 둡니다. 3개가 나란히 '곤'이 되면 상대 말을 하나 제거합니다. (단 한 번도 '곤' 없이 판이 가득 찬 경우, 서로 상대 말을 1개씩 지운 뒤 이동 단계를 시작합니다.)</li>
+      <li>이동 단계: 말을 다 놓은 후 인접한 곳으로 1칸씩 이동시킵니다.</li>
+      <li>이동 불가: 자신의 차례에 이동할 수 있는 말이 없다면 차례가 상대방에게 자동으로 넘어갑니다.</li>
+      <li>상대 말이 2개 이하가 되면 승리합니다!</li>
+    </ul>
+  </div>
+
+  <!-- <div class="guide-box box-keys">
+    <h2>⌨ 키보드 단축키</h2>
+    <p>
+      <span class="key-badge">S</span> : 게임 시작<br>
+      <span class="key-badge">R</span> : 새로 시작<br>
+      <span class="key-badge">Enter</span> : 결과 팝업 닫기
+    </p>
+  </div> -->
+
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-title">알림</div>
+      <div id="modal-buttons" style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="modal-btn" id="modal-btn" onclick="closeModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  const activeGame = 'cham';
+  let userColor = 'red';
+  let userGoesFirst = true;
+  let currentGameFirstPlayer = 'user';
+
+  const cNodes = [
+    {x:10,y:10}, {x:50,y:10}, {x:90,y:10}, {x:90,y:50}, {x:90,y:90}, {x:50,y:90}, {x:10,y:90}, {x:10,y:50},
+    {x:25,y:25}, {x:50,y:25}, {x:75,y:25}, {x:75,y:50}, {x:75,y:75}, {x:50,y:75}, {x:25,y:75}, {x:25,y:50},
+    {x:37,y:37}, {x:50,y:37}, {x:63,y:37}, {x:63,y:50}, {x:63,y:63}, {x:50,y:63}, {x:37,y:63}, {x:37,y:50}
+  ];
+  const cAdj = [[1,7,8], [0,2,9], [1,3,10], [2,4,11], [3,5,12], [4,6,13], [5,7,14], [0,6,15], [9,15,0,16], [1,8,10,17], [9,11,2,18], [3,10,12,19], [11,13,4,20], [5,12,14,21], [13,15,6,22], [7,8,14,23], [17,23,8], [9,16,18], [17,19,10], [11,18,20], [19,21,12], [13,20,22], [21,23,14], [15,16,22]];
+  const cLines = [[0,1,2],[2,3,4],[4,5,6],[6,7,0],[8,9,10],[10,11,12],[12,13,14],[14,15,8],[16,17,18],[18,19,20],[20,21,22],[22,23,16],[1,9,17],[3,11,19],[5,13,21],[7,15,23],[0,8,16],[2,10,18],[4,12,20],[6,14,22]];
+  let cState = { started: false };
+
+  function toggleUserColor() {
+    const isRed = document.getElementById('color-toggle').checked;
+    userColor = isRed ? 'red' : 'blue';
+    const label = document.getElementById('color-label');
+    label.textContent = isRed ? '🔴 빨강' : '🔵 파랑';
+    label.style.color = isRed ? 'var(--danger)' : 'var(--active)';
+    resetCurrentGame();
+  }
+
+  function toggleTurnOrder() {
+    const isUserFirst = document.getElementById('turn-toggle').checked;
+    userGoesFirst = isUserFirst;
+    const label = document.getElementById('turn-label');
+    label.textContent = isUserFirst ? '🎯 내가 선공' : '🤖 AI 선공';
+    resetCurrentGame();
+  }
+
+  function initUI() {
+    document.getElementById('btn-start').addEventListener('click', startGameFlow);
+    document.getElementById('btn-reset').addEventListener('click', confirmResetGame);
+    window.addEventListener('resize', redrawBoard);
+    window.addEventListener('keydown', handleKeyboard);
+    renderStats();
+    resetCurrentGame();
+  }
+
+  function startGameFlow() { startCham(); }
+
+  function resetCurrentGame() {
+    resetCham();
+    updateTurnBorder(null);
+    const badge = document.getElementById('turn-badge');
+    badge.className = 'status-badge';
+    badge.style.backgroundColor = '#f8f9fa';
+    badge.style.color = 'var(--sub)';
+    badge.style.borderColor = 'var(--border)';
+    const startColorName = userGoesFirst ? (userColor === 'red' ? '🔴 빨간팀' : '🔵 파란팀') : (userColor === 'red' ? '🔵 파란팀' : '🔴 빨간팀');
+    badge.textContent = `${startColorName} 차례 (시작 대기)`;
+    
+    document.getElementById('btn-start').disabled = false;
+  }
+
+  function confirmResetGame() {
+    showCustomModal(
+      '🔄 새로 시작',
+      '게임을 새로 시작하시겠습니까?',
+      'info',
+      () => { resetCurrentGame(); },
+      { showCancel: true, confirmText: '확인', cancelText: '취소' }
+    );
+  }
+
+  function redrawBoard() { drawCham(); }
+
+  function updateTurnBorder(team) {
+    const container = document.getElementById('board-container');
+    if (team === 'red') container.style.borderColor = 'var(--danger)';
+    else if (team === 'blue') container.style.borderColor = 'var(--active)';
+    else container.style.borderColor = 'var(--border)';
+  }
+
+  function updateBadge(team, isAI, aiColor, extraMsg = '') {
+    updateTurnBorder(team);
+    const badge = document.getElementById('turn-badge');
+    const name = team === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+    const isAiTurn = team === aiColor;
+    const aiText = isAiTurn ? ' (AI 수 읽는 중...)' : '';
+    badge.textContent = `${name} 차례${extraMsg}${aiText}`;
+    badge.className = `status-badge ${team}-turn`;
+  }
+
+  function handleKeyboard(e) {
+    if (document.getElementById('result-modal').classList.contains('show')) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal(); }
+      return;
+    }
+    if (e.key.toLowerCase() === 's') startGameFlow();
+    else if (e.key.toLowerCase() === 'r') confirmResetGame();
+  }
+
+  function getStats(game) {
+    const stats = JSON.parse(localStorage.getItem('gonu_stats_v2')) || {};
+    return stats[game] || { userWins: 0, aiWins: 0, userFirstWins: 0, aiFirstWins: 0 };
+  }
+
+  function addScore(game, winnerTeam) {
+    const stats = JSON.parse(localStorage.getItem('gonu_stats_v2')) || {};
+    if (!stats[game]) stats[game] = { userWins: 0, aiWins: 0, userFirstWins: 0, aiFirstWins: 0 };
+    
+    const isUserWin = (winnerTeam === userColor);
+    if (isUserWin) {
+      stats[game].userWins += 1;
+      if (currentGameFirstPlayer === 'user') stats[game].userFirstWins += 1;
+    } else {
+      stats[game].aiWins += 1;
+      if (currentGameFirstPlayer === 'ai') stats[game].aiFirstWins += 1;
+    }
+    localStorage.setItem('gonu_stats_v2', JSON.stringify(stats));
+    renderStats();
+  }
+
+  function resetStatsModal() {
+    showCustomModal(
+      '📊 누적기록 초기화',
+      '누적된 기록을 초기화하시겠습니까?',
+      'danger',
+      () => {
+        localStorage.removeItem('gonu_stats_v2');
+        renderStats();
+      },
+      {
+        showCancel: true,
+        confirmText: '초기화',
+        cancelText: '취소',
+        confirmColor: 'var(--danger)'
+      }
+    );
+  }
+
+  function renderStats() {
+    const tbody = document.getElementById('stats-body');
+    const st = getStats(activeGame);
+    tbody.innerHTML = `
+      <tr>
+        <td style="font-weight:700;">참고누</td>
+        <td style="color:var(--success); font-weight:700;">${st.userWins}승</td>
+        <td style="color:var(--danger); font-weight:700;">${st.aiWins}승</td>
+        <td>${st.userFirstWins}승</td>
+        <td>${st.aiFirstWins}승</td>
+      </tr>`;
+  }
+
+  function showCustomModal(titleText, bodyHtml, type = 'info', onConfirm = null, options = {}) {
+    const { showCancel = false, confirmText = '확인', cancelText = '취소', confirmColor = null } = options;
+    const modal = document.getElementById('result-modal');
+    const title = document.getElementById('modal-title');
+    const btnContainer = document.getElementById('modal-buttons');
+
+    modal.classList.remove('modal-success', 'modal-danger', 'modal-info');
+    modal.classList.add(`modal-${type}`);
+    title.innerHTML = `<div>${titleText}</div><div style="font-size:15px; font-weight:500; margin-top:12px; color:var(--text);">${bodyHtml || ''}</div>`;
+    
+    btnContainer.innerHTML = '';
+
+    if (showCancel) {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'modal-btn';
+      cancelBtn.style.backgroundColor = 'var(--sub)';
+      cancelBtn.textContent = cancelText;
+      cancelBtn.onclick = closeModal;
+      btnContainer.appendChild(cancelBtn);
+    }
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'modal-btn';
+    if (confirmColor) confirmBtn.style.backgroundColor = confirmColor;
+    confirmBtn.textContent = confirmText;
+    confirmBtn.onclick = () => {
+      closeModal();
+      if (onConfirm) onConfirm();
+    };
+    btnContainer.appendChild(confirmBtn);
+
+    modal.classList.add('show');
+    confirmBtn.focus();
+  }
+
+  function showWinModal(winnerTeam) {
+    const isUserWin = (winnerTeam === userColor);
+    const winnerTitle = isUserWin ? '🎉 사용자 승리!' : '🤖 AI 승리!';
+    const firstPlayerText = currentGameFirstPlayer === 'user' ? '👤 사용자 선공' : '🤖 AI 선공';
+    const colorStr = isUserWin ? 'var(--success)' : 'var(--danger)';
+    showCustomModal(`<span style="color:${colorStr}">${winnerTitle}</span>`, `<b>승자:</b> ${isUserWin ? '사용자' : 'AI'}<br><b>선공:</b> ${firstPlayerText}`, isUserWin ? 'success' : 'danger');
+  }
+
+  function closeModal() { document.getElementById('result-modal').classList.remove('show'); }
+
+  function drawCham() {
+    const cvs = document.getElementById('game-canvas');
+    const ctn = document.getElementById('board-container');
+    cvs.width = ctn.clientWidth; cvs.height = ctn.clientHeight;
+    const ctx = cvs.getContext('2d'), w = cvs.width, h = cvs.height;
+    ctx.clearRect(0,0,w,h); ctx.strokeStyle = '#a68b75'; ctx.lineWidth = w/90;
+    const pos = n => ({ x: cNodes[n].x*w/100, y: cNodes[n].y*h/100 });
+    
+    for (let i=0; i<3; i++) {
+      ctx.beginPath(); ctx.moveTo(pos(i*8).x, pos(i*8).y);
+      for(let j=1; j<8; j++) ctx.lineTo(pos(i*8+j).x, pos(i*8+j).y);
+      ctx.closePath(); ctx.stroke();
+    }
+    [[1,17],[3,19],[5,21],[7,23],[0,16],[2,18],[4,20],[6,22]].forEach(p => {
+      ctx.beginPath(); ctx.moveTo(pos(p[0]).x, pos(p[0]).y); ctx.lineTo(pos(p[1]).x, pos(p[1]).y); ctx.stroke();
+    });
+    renderCham();
+  }
+
+  function resetCham() {
+    cState = { started: false, board: Array(24).fill(null) };
+    drawCham();
+  }
+
+  function startCham() {
+    const aiCol = userColor === 'red' ? 'blue' : 'red';
+    const startTurn = userGoesFirst ? userColor : aiCol;
+    
+    cState = {
+      started: true,
+      phase: 'placing',
+      board: Array(24).fill(null),
+      turn: startTurn,
+      selected: null,
+      isRem: false,
+      isNoGonRem: false,
+      gonCountInPlacing: 0,
+      aiColor: aiCol
+    };
+    currentGameFirstPlayer = userGoesFirst ? 'user' : 'ai';
+    
+    document.getElementById('btn-start').disabled = true;
+
+    updateBadge(cState.turn, true, cState.aiColor, ' (말 놓기)');
+    renderCham();
+    if(cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+  }
+
+  function renderCham() {
+    const layer = document.getElementById('piece-layer');
+    layer.innerHTML = ''; layer.style.display = 'block';
+    if(!cState.board) return;
+    
+    cNodes.forEach((node, i) => {
+      const el = document.createElement('div');
+      const v = cState.board[i];
+      el.className = 'node';
+      if(v === 'red' || v === 'blue') el.classList.add(v);
+      else if(v === 'blocked') el.classList.add('blocked');
+      else {
+        if(cState.phase === 'placing' && !cState.isRem && !cState.isNoGonRem) el.classList.add('empty');
+        if(cState.phase === 'moving' && cState.selected !== null && cAdj[cState.selected].includes(i)) el.classList.add('hint');
+      }
+      if(cState.selected === i) el.classList.add('selected');
+      el.style.left = node.x+'%'; el.style.top = node.y+'%';
+      el.onclick = () => clickCham(i);
+      layer.appendChild(el);
+    });
+  }
+
+  function checkGon(board, i) {
+    const t = board[i];
+    if (!t || t === 'blocked') return false;
+    return cLines.some(l => l.includes(i) && l.every(n => board[n] === t));
+  }
+
+  function getChamMoves(board, color) {
+    const moves = [];
+    board.forEach((v, i) => {
+      if (v === color) {
+        cAdj[i].forEach(n => {
+          if (board[n] === null) moves.push({ from: i, to: n });
+        });
+      }
+    });
+    return moves;
+  }
+
+  function executeNoGonRemoval(idx) {
+    cState.board[idx] = null;
+    if (cState.isNoGonRem === 1) {
+      cState.isNoGonRem = 2;
+      cState.turn = cState.turn === 'red' ? 'blue' : 'red';
+      const teamName = cState.turn === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+      showCustomModal('⚠️ 상대 말 지우기', `${teamName}도 상대방 말을 1개 선택하여 지우세요.`, 'info', () => {
+        updateBadge(cState.turn, true, cState.aiColor, ' (상대 말 지우기)');
+        renderCham();
+        if (cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+      });
+      renderCham();
+    } else if (cState.isNoGonRem === 2) {
+      cState.isNoGonRem = false;
+      cState.turn = cState.turn === 'red' ? 'blue' : 'red';
+      cState.phase = 'moving';
+      showCustomModal('🔄 말 이동 단계 시작', '서로 말을 1개씩 지웠습니다! 이제 말을 1칸씩 이동시킵니다.', 'info', () => {
+        updateBadge(cState.turn, true, cState.aiColor, ' (말 이동)');
+        renderCham();
+        if (cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+      });
+      renderCham();
+    }
+  }
+
+  function clickCham(idx) {
+    if(!cState.started || (cState.turn === cState.aiColor && !cState.isRem && !cState.isNoGonRem)) return;
+
+    if(cState.isNoGonRem) {
+      if(cState.board[idx] === (cState.turn === 'red' ? 'blue' : 'red')) {
+        executeNoGonRemoval(idx);
+      }
+      return;
+    }
+
+    if(cState.isRem) {
+      if(cState.board[idx] === (cState.turn === 'red' ? 'blue' : 'red')) {
+        cState.board[idx] = cState.phase === 'placing' ? 'blocked' : null;
+        cState.isRem = false;
+        endChamTurn();
+      }
+      return;
+    }
+
+    if(cState.phase === 'placing') {
+      if(!cState.board[idx]) {
+        cState.board[idx] = cState.turn;
+        if(checkGon(cState.board, idx)) {
+          cState.gonCountInPlacing = (cState.gonCountInPlacing || 0) + 1;
+          cState.isRem = true;
+          const teamName = cState.turn === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+          showCustomModal('🎉 곤 완성!', `${teamName}이(가) '곤'을 완성했습니다.<br>상대방 말을 1개 선택하여 제거하세요.`, 'info');
+        } else {
+          endChamTurn();
+        }
+      }
+    } else {
+      if(cState.board[idx] === cState.turn) cState.selected = cState.selected === idx ? null : idx;
+      else if(cState.selected !== null && !cState.board[idx] && cAdj[cState.selected].includes(idx)) {
+        cState.board[idx] = cState.turn; cState.board[cState.selected] = null; cState.selected = null;
+        if(checkGon(cState.board, idx)) {
+          cState.isRem = true;
+          const teamName = cState.turn === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+          showCustomModal('🎉 곤 완성!', `${teamName}이(가) '곤'을 완성했습니다.<br>상대방 말을 1개 선택하여 제거하세요.`, 'info');
+        } else {
+          endChamTurn();
+        }
+      }
+    }
+    renderCham();
+    if(cState.isRem) updateBadge(cState.turn, true, cState.aiColor, ' (상대 말 따내기)');
+  }
+
+  function endChamTurn() {
+    if(cState.phase === 'placing' && cState.board.filter(v => v === null).length === 0) {
+      if ((cState.gonCountInPlacing || 0) === 0) {
+        cState.isNoGonRem = 1;
+        const teamName = cState.turn === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+        showCustomModal('⚠️ 곤 미발생 판 차오름', `판이 '곤' 없이 모두 가득 찼습니다!<br>${teamName}부터 상대방 말을 1개 선택하여 지우세요.`, 'info', () => {
+          updateBadge(cState.turn, true, cState.aiColor, ' (상대 말 지우기)');
+          renderCham();
+          if(cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+        });
+        renderCham();
+        return;
+      } else {
+        cState.phase = 'moving';
+        cState.board = cState.board.map(v => v === 'blocked' ? null : v);
+        showCustomModal('🔄 말 이동 단계 시작', '판이 가득 찼습니다! 이제 말을 1칸씩 이동시킵니다.', 'info');
+      }
+    }
+
+    cState.turn = cState.turn === 'red' ? 'blue' : 'red';
+    renderCham();
+    
+    if(!checkChamWin()) {
+      const msg = cState.phase === 'placing' ? ' (말 놓기)' : ' (말 이동)';
+      updateBadge(cState.turn, true, cState.aiColor, msg);
+
+      // 이동 불가 시 상대에게 차례 넘기기 로직
+      if (cState.phase === 'moving') {
+        const currentMoves = getChamMoves(cState.board, cState.turn);
+        if (currentMoves.length === 0) {
+          const currentTeamName = cState.turn === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+          const nextTurn = cState.turn === 'red' ? 'blue' : 'red';
+          const oppMoves = getChamMoves(cState.board, nextTurn);
+
+          if (oppMoves.length > 0) {
+            cState.turn = nextTurn;
+            showCustomModal('⚠️ 이동 불가 패스', `${currentTeamName}은(는) 이동할 수 있는 공간이 없어 차례가 넘어갑니다.`, 'info', () => {
+              updateBadge(cState.turn, true, cState.aiColor, ' (말 이동)');
+              if (cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+            });
+            renderCham();
+            return;
+          }
+        }
+      }
+
+      if(cState.turn === cState.aiColor) setTimeout(aiChamOptimized, 500);
+    }
+  }
+
+  function checkChamWin() {
+    if(cState.phase !== 'moving') return false;
+    const r = cState.board.filter(v => v === 'red').length;
+    const b = cState.board.filter(v => v === 'blue').length;
+    
+    if(r < 3 || b < 3) {
+      const winner = r >= 3 ? 'red' : 'blue';
+      cState.started = false;
+      addScore('cham', winner);
+
+      const badge = document.getElementById('turn-badge');
+      const winnerName = winner === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+      badge.textContent = `🏁 게임 종료 (${winnerName} 승리!)`;
+      badge.className = `status-badge ${winner}-turn`;
+
+      document.getElementById('btn-start').disabled = false;
+
+      showWinModal(winner);
+      return true;
+    }
+    return false;
+  }
+
+  // --- 고성능 AI 엔진 (Minimax + Alpha-Beta Pruning) ---
+
+  function evaluateChamBoard(board, aiColor, oppColor) {
+    let aiCount = 0, oppCount = 0;
+    for (let i = 0; i < 24; i++) {
+      if (board[i] === aiColor) aiCount++;
+      else if (board[i] === oppColor) oppCount++;
+    }
+
+    // 1. 말 개수 차이 (가장 높은 가중치)
+    let score = (aiCount - oppCount) * 2500;
+
+    // 2. '곤' 위협 완성도 평가
+    let aiThreats = 0, oppThreats = 0;
+    cLines.forEach(line => {
+      const aiInLine = line.filter(n => board[n] === aiColor).length;
+      const oppInLine = line.filter(n => board[n] === oppColor).length;
+      const nullInLine = line.filter(n => board[n] === null).length;
+
+      if (aiInLine === 3) score += 600;
+      else if (aiInLine === 2 && nullInLine === 1) aiThreats++;
+
+      if (oppInLine === 3) score -= 600;
+      else if (oppInLine === 2 && nullInLine === 1) oppThreats++;
+    });
+
+    score += (aiThreats - oppThreats) * 150;
+
+    // 3. 기동성 (이동할 수 있는 경우의 수)
+    const aiMoves = getChamMoves(board, aiColor);
+    const oppMoves = getChamMoves(board, oppColor);
+    score += (aiMoves.length - oppMoves.length) * 20;
+
+    // 4. 노드 연결성 요충지 점수
+    for (let i = 0; i < 24; i++) {
+      if (board[i] === aiColor) score += cAdj[i].length * 5;
+      else if (board[i] === oppColor) score -= cAdj[i].length * 5;
+    }
+
+    return score;
+  }
+
+  function minimaxCham(board, depth, alpha, beta, isMaximizing, aiColor, oppColor) {
+    const r = board.filter(v => v === 'red').length;
+    const b = board.filter(v => v === 'blue').length;
+    if (r < 3 || b < 3) {
+      const winner = r >= 3 ? 'red' : 'blue';
+      return { score: winner === aiColor ? (1000000 + depth) : (-1000000 - depth) };
+    }
+
+    if (depth === 0) {
+      return { score: evaluateChamBoard(board, aiColor, oppColor) };
+    }
+
+    const currentColor = isMaximizing ? aiColor : oppColor;
+    const moves = getChamMoves(board, currentColor);
+
+    if (moves.length === 0) {
+      // 이동 불가 시 패스 연산
+      return minimaxCham(board, depth - 1, alpha, beta, !isMaximizing, aiColor, oppColor);
+    }
+
+    // Alphabeta Pruning 성능 극대화를 위한 정렬 (곤 형성 가능 수 우선)
+    moves.sort((m1, m2) => {
+      const b1 = [...board]; b1[m1.to] = currentColor; b1[m1.from] = null;
+      const b2 = [...board]; b2[m2.to] = currentColor; b2[m2.from] = null;
+      const gon1 = checkGon(b1, m1.to) ? 1 : 0;
+      const gon2 = checkGon(b2, m2.to) ? 1 : 0;
+      return gon2 - gon1;
+    });
+
+    let bestMove = moves[0];
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (let m of moves) {
+        const nextBoard = [...board];
+        nextBoard[m.to] = aiColor;
+        nextBoard[m.from] = null;
+        
+        let evalRes = minimaxCham(nextBoard, depth - 1, alpha, beta, false, aiColor, oppColor);
+        if (evalRes.score > maxEval) {
+          maxEval = evalRes.score;
+          bestMove = m;
+        }
+        alpha = Math.max(alpha, maxEval);
+        if (beta <= alpha) break;
+      }
+      return { score: maxEval, move: bestMove };
+    } else {
+      let minEval = Infinity;
+      for (let m of moves) {
+        const nextBoard = [...board];
+        nextBoard[m.to] = oppColor;
+        nextBoard[m.from] = null;
+
+        let evalRes = minimaxCham(nextBoard, depth - 1, alpha, beta, true, aiColor, oppColor);
+        if (evalRes.score < minEval) {
+          minEval = evalRes.score;
+          bestMove = m;
+        }
+        beta = Math.min(beta, minEval);
+        if (beta <= alpha) break;
+      }
+      return { score: minEval, move: bestMove };
+    }
+  }
+
+  function aiChamOptimized() {
+    if (!cState.started) return;
+    const myColor = cState.aiColor, oppColor = myColor === 'red' ? 'blue' : 'red';
+
+    // 1. 말 제거 단계 (곤 발생 제거 또는 곤 미발생 서로 말 지우기)
+    if (cState.isRem || cState.isNoGonRem) {
+      let targets = [];
+      cState.board.forEach((v, i) => { if (v === oppColor) targets.push(i); });
+      let bestRem = targets[0], maxScore = -Infinity;
+
+      for (let t of targets) {
+        // 상대 2-in-a-line 차단 + 요충지 제거 전략
+        let threatScore = cLines.filter(l => l.includes(t) && l.filter(n => cState.board[n] === oppColor).length === 2).length * 100;
+        threatScore += cAdj[t].length * 10;
+        if (threatScore > maxScore) { maxScore = threatScore; bestRem = t; }
+      }
+
+      cState.selected = bestRem;
+      renderCham();
+      setTimeout(() => {
+        if (cState.started) {
+          if (cState.isNoGonRem) {
+            cState.selected = null;
+            executeNoGonRemoval(bestRem);
+          } else {
+            cState.board[bestRem] = cState.phase === 'placing' ? 'blocked' : null;
+            cState.selected = null; cState.isRem = false;
+            endChamTurn();
+          }
+        }
+      }, 500);
+      return;
+    }
+
+    // 2. 말 놓기 단계 (수읽기 및 전략적 결정)
+    if (cState.phase === 'placing') {
+      let emptyIndices = [];
+      cState.board.forEach((v, i) => { if (v === null) emptyIndices.push(i); });
+      let chosen = null;
+
+      // 1순위: 즉시 곤 완성
+      for (let i of emptyIndices) {
+        let testBoard = [...cState.board]; testBoard[i] = myColor;
+        if (checkGon(testBoard, i)) { chosen = { idx: i, makeGon: true }; break; }
+      }
+
+      // 2순위: 상대 곤 완성 방어
+      if (!chosen) {
+        for (let i of emptyIndices) {
+          let testBoard = [...cState.board]; testBoard[i] = oppColor;
+          if (checkGon(testBoard, i)) { chosen = { idx: i, makeGon: false }; break; }
+        }
+      }
+
+      // 3순위: 곤 기회 확장 및 연결성 기반 최적 위치
+      if (!chosen) {
+        emptyIndices.sort((a, b) => {
+          let scoreA = cAdj[a].length * 10;
+          let scoreB = cAdj[b].length * 10;
+          cLines.forEach(l => {
+            if (l.includes(a) && l.some(n => cState.board[n] === myColor)) scoreA += 15;
+            if (l.includes(b) && l.some(n => cState.board[n] === myColor)) scoreB += 15;
+          });
+          return scoreB - scoreA;
+        });
+        chosen = { idx: emptyIndices[0], makeGon: false };
+      }
+
+      cState.selected = chosen.idx;
+      renderCham();
+      setTimeout(() => {
+        if (!cState.started) return;
+        cState.selected = null; cState.board[chosen.idx] = myColor;
+        if (chosen.makeGon) {
+          cState.gonCountInPlacing = (cState.gonCountInPlacing || 0) + 1;
+          cState.isRem = true;
+          showCustomModal('🤖 AI 곤 완성!', `AI가 '곤'을 완성하여 플레이어 말을 제거합니다.`, 'danger', () => { aiChamOptimized(); });
+        } else {
+          endChamTurn();
+        }
+      }, 500);
+    } 
+    // 3. 말 이동 단계 (Minimax 알고리즘 심층 연산)
+    else {
+      const result = minimaxCham(cState.board, 4, -Infinity, Infinity, true, myColor, oppColor);
+      
+      if (result && result.move) {
+        const chosenMove = result.move;
+        cState.selected = chosenMove.from;
+        renderCham();
+        setTimeout(() => {
+          if (!cState.started) return;
+          cState.board[chosenMove.to] = myColor;
+          cState.board[chosenMove.from] = null;
+          cState.selected = null;
+          
+          if (checkGon(cState.board, chosenMove.to)) {
+            cState.isRem = true;
+            showCustomModal('🤖 AI 곤 완성!', `AI가 '곤'을 완성하여 플레이어 말을 제거합니다.`, 'danger', () => { aiChamOptimized(); });
+          } else {
+            endChamTurn();
+          }
+        }, 500);
+      } else {
+        // 이동할 수가 없는 경우 패스
+        endChamTurn();
+      }
+    }
+  }
+
+  window.onload = initUI;
+</script>
+</body>
+</html>

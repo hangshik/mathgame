@@ -29,7 +29,7 @@
       padding: 15px; 
       width: 100%;
       justify-content: center; /* 버튼들을 항상 중앙에 배치 */
-      background-color: #f4f1ea;
+      background-color: #f4f6f8;
       border-bottom: 1px solid #ddd;
       flex-shrink: 0;
       box-sizing: border-box;
@@ -39,8 +39,8 @@
       display: inline-block;
       padding: 10px 20px; 
       text-decoration: none; 
-      color: #5d4037; 
-      background: #e0dcd0; 
+      color:#222222; 
+      background:#e9ecef; 
       border-radius: 8px; 
       font-weight: bold; 
       border: 1px solid #ccc; 
@@ -82,13 +82,13 @@
 <body>
 
   <nav id="game-menu">
-    <a href="1_UmulGonu.html" target="gameView" class="menu-btn active" onclick="setActive(this)">우물고누</a>
-    <a href="2_HobakGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">호박고누</a>
-    <a href="3_JulGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">줄고누</a>
-    <a href="4_ChamGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">참고누</a>
+    <a href="1_HobakGonu.html" target="gameView" class="menu-btn active" onclick="setActive(this)">호박고누</a>
+    <a href="2_JulGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">줄고누</a>
+    <a href="3_ChamGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">참고누</a>
+    <a href="4_WheelGonu.html" target="gameView" class="menu-btn" onclick="setActive(this)">바퀴고누</a>
   </nav>
 
-  <iframe src="1_UmulGonu.html" name="gameView" id="content-frame"></iframe>
+  <iframe src="1_HobakGonu.html" name="gameView" id="content-frame"></iframe>
 
   <script>
     function setActive(element) {

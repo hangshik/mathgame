@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>호박고누</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v3.2.1/dist/web/static/pretendard.css" />
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text: #222222;
+      --sub: #555555;
+      --border: #e9ecef;
+      --board-bg: #fffdf9;
+    }
+    * { box-sizing: border-box; touch-action: manipulation; font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 15px 10px; user-select: none; -webkit-user-select: none; }
+    h1 { font-size: 36px; font-weight: 800; text-align: center; margin: 20px 0 30px; color: var(--text); }
+    h2 { font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+    .container-fixed { background-color: var(--card-bg); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 20px; }
+    .game-area { display: flex; flex-direction: column; align-items: center; }
+    .game-toolbar { width: 100%; margin-bottom: 15px; text-align: center; }
+    .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--sub); transition: .3s; border-radius: 26px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+    input#color-toggle:checked + .slider { background-color: var(--danger); }
+    input#color-toggle:not(:checked) + .slider { background-color: var(--active); }
+    input#turn-toggle:checked + .slider { background-color: var(--text); }
+    input#turn-toggle:not(:checked) + .slider { background-color: var(--sub); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    .status-badge { padding: 8px 20px; border-radius: 25px; font-weight: 800; font-size: 18px; text-align: center; width: 100%; max-width: 350px; margin: 10px auto 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+    .red-turn { background-color: #fdf2f2; color: var(--danger); border: 2px solid var(--danger); }
+    .blue-turn { background-color: #f0f7ff; color: var(--active); border: 2px solid var(--active); }
+    .board-container { position: relative; width: 100%; max-width: 500px; aspect-ratio: 1 / 1.25; background-color: var(--board-bg); border-radius: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.03); border: 5px solid var(--border); touch-action: none; overflow: hidden; transition: border-color 0.3s ease; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    .piece-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+    .node { position: absolute; width: 11%; height: 11%; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s; z-index: 5; border: 3px solid #ddd; box-sizing: border-box; }
+    .node.empty { background-color: rgba(255, 255, 255, 0.85); border-color: var(--sub); }
+    .node.red { background-color: var(--danger); border-color: #b02a37; box-shadow: 0 4px 0 #b02a37; }
+    .node.blue { background-color: var(--active); border-color: #0a58ca; box-shadow: 0 4px 0 #0a58ca; }
+    .node.selected { transform: translate(-50%, -50%) scale(1.2); outline: 4px solid #ffd700; z-index: 10; }
+    .node.hint { border: 3px dashed var(--success); background-color: rgba(40, 167, 69, 0.2); }
+    .control-btn { height: 46px; padding: 0 18px; font-size: 15px; font-weight: 700; border-radius: 12px; border: none; cursor: pointer; color: #ffffff; transition: opacity 0.2s; background-color: var(--sub); }
+    .control-btn:active { opacity: 0.8; }
+    .guide-box { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); padding: 20px; margin-bottom: 15px; word-break: keep-all; font-size: 15px; line-height: 1.6; color: var(--sub); }
+    .guide-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .guide-box h2 { margin-bottom: 0; }
+    .box-stats { border-left: 6px solid var(--danger); }
+    .box-stats h2 { color: var(--danger); }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
+    th, td { border: 1px solid var(--border); padding: 10px; }
+    th { background-color: #f8f9fa; font-weight: 700; color: var(--text); }
+    .btn-reset-stats { background-color: #ffffff; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; padding: 6px 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .box-rules { border-left: 6px solid var(--active); }
+    .box-rules h2 { color: var(--active); }
+    .box-rules ul { list-style-type: none; }
+    .box-rules li::before { content: "• "; font-weight: bold; }
+    .box-keys { border-left: 6px solid var(--success); }
+    .box-keys h2 { color: var(--success); }
+    .key-badge { display: inline-block; background-color: #f0f2f5; border: 1px solid #ccc; border-radius: 6px; padding: 2px 8px; font-size: 14px; font-weight: 700; color: var(--text); box-shadow: 0 2px 0 #ccc; margin: 0 4px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s; }
+    .modal-overlay.show { visibility: visible; opacity: 1; }
+    .modal-card { background-color: var(--card-bg); width: 90%; max-width: 350px; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); transform: translateY(-20px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .modal-overlay.show .modal-card { transform: translateY(0); }
+    .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; word-break: keep-all; }
+    .modal-success .modal-card { border-top: 6px solid var(--success); }
+    .modal-success .modal-title { color: var(--success); }
+    .modal-danger .modal-card { border-top: 6px solid var(--danger); }
+    .modal-danger .modal-title { color: var(--danger); }
+    .modal-info .modal-card { border-top: 6px solid var(--active); }
+    .modal-info .modal-title { color: var(--active); }
+    .modal-btn { flex: 1; height: 48px; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; color: #fff; }
+    .modal-success .modal-btn { background-color: var(--success); }
+    .modal-danger .modal-btn { background-color: var(--danger); }
+    .modal-info .modal-btn { background-color: var(--active); }
+  </style>
+</head>
+<body>
+  <h1>호박고누</h1>
+
+  <div class="container-fixed game-area">
+    <div class="game-toolbar">
+      <div class="toggle-group" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
+          <label class="switch">
+            <input type="checkbox" id="color-toggle" onchange="toggleUserColor()" checked>
+            <span class="slider"></span>
+          </label>
+          <span id="color-label" style="font-size: 14px; font-weight: 700; color: var(--danger); width: 65px; text-align: left;">🔴 빨강</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fa; padding: 10px 15px; border-radius: 12px; border: 1px solid var(--border); height: 46px;">
+          <label class="switch">
+            <input type="checkbox" id="turn-toggle" onchange="toggleTurnOrder()" checked>
+            <span class="slider"></span>
+          </label>
+          <span id="turn-label" style="font-size: 14px; font-weight: 700; color: var(--text); width: 85px; text-align: left;">🎯 내가 선공</span>
+        </div>
+        <button class="control-btn" id="btn-reset">새로 시작</button>
+        <button class="control-btn" id="btn-start" style="background-color: var(--active);">게임 시작</button>
+      </div>
+      <div id="turn-badge" class="status-badge">🔴 빨간팀 차례 (시작 대기)</div>
+    </div>
+
+    <div class="board-container" id="board-container">
+      <canvas id="game-canvas"></canvas>
+      <div id="piece-layer" class="piece-layer"></div>
+    </div>
+  </div>
+
+  <div class="guide-box box-stats">
+    <div class="guide-header">
+      <h2>📊 누적 기록</h2>
+      <button class="btn-reset-stats" onclick="resetStatsModal()">누적기록 초기화</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>종목</th>
+          <th style="color: var(--success);">👤 사용자 승</th>
+          <th style="color: var(--danger);">🤖 AI 승</th>
+          <th>🎯 사용자 선공 승</th>
+          <th>🤖 AI 선공 승</th>
+        </tr>
+      </thead>
+      <tbody id="stats-body"></tbody>
+    </table>
+  </div>
+
+  <div class="guide-box box-rules">
+    <h2>◈ 놀이 규칙</h2>
+    <ul>
+      <li>내 집 양 끝에서 중앙으로만 이동 가능.</li>
+      <li>집에서 중앙 원으로 나가면 돌아올 수 없음.</li>
+      <li>상대방의 집(3칸)은 들어갈 수 없음.</li>
+      <li>상대를 가두어 움직이지 못하게 하면 승리!</li>
+    </ul>
+  </div>
+
+  <!-- <div class="guide-box box-keys">
+    <h2>⌨ 키보드 단축키</h2>
+    <p>
+      <span class="key-badge">S</span> : 게임 시작<br>
+      <span class="key-badge">R</span> : 새로 시작<br>
+      <span class="key-badge">Enter</span> : 결과 팝업 닫기
+    </p>
+  </div> -->
+
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <div class="modal-title" id="modal-title">알림</div>
+      <div id="modal-buttons" style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="modal-btn" id="modal-btn" onclick="closeModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  const activeGame = 'hobak';
+  let userColor = 'red';
+  let userGoesFirst = true;
+  let currentGameFirstPlayer = 'user';
+
+  const hobakNodes = [
+    { x: 25, y: 10, type: 'red-home' }, { x: 50, y: 10, type: 'red-home' }, { x: 75, y: 10, type: 'red-home' },
+    { x: 25, y: 50, type: 'circle' },   { x: 50, y: 30, type: 'circle' },   { x: 50, y: 50, type: 'circle' }, 
+    { x: 75, y: 50, type: 'circle' },   { x: 50, y: 70, type: 'circle' },
+    { x: 25, y: 90, type: 'blue-home' }, { x: 50, y: 90, type: 'blue-home' }, { x: 75, y: 90, type: 'blue-home' }
+  ];
+  const hobakAdj = [[1], [4], [1], [4, 5, 7], [1, 3, 5, 6], [3, 4, 6, 7], [4, 5, 7], [3, 5, 6, 9], [9], [7], [9]];
+  let hState = { started: false };
+
+  function toggleUserColor() {
+    const isRed = document.getElementById('color-toggle').checked;
+    userColor = isRed ? 'red' : 'blue';
+    const label = document.getElementById('color-label');
+    label.textContent = isRed ? '🔴 빨강' : '🔵 파랑';
+    label.style.color = isRed ? 'var(--danger)' : 'var(--active)';
+    resetCurrentGame();
+  }
+
+  function toggleTurnOrder() {
+    const isUserFirst = document.getElementById('turn-toggle').checked;
+    userGoesFirst = isUserFirst;
+    const label = document.getElementById('turn-label');
+    label.textContent = isUserFirst ? '🎯 내가 선공' : '🤖 AI 선공';
+    resetCurrentGame();
+  }
+
+  function initUI() {
+    document.getElementById('btn-start').addEventListener('click', startGameFlow);
+    document.getElementById('btn-reset').addEventListener('click', confirmResetGame);
+    window.addEventListener('resize', redrawBoard);
+    window.addEventListener('keydown', handleKeyboard);
+    renderStats();
+    resetCurrentGame();
+  }
+
+  function startGameFlow() { startHobak(); }
+
+  function resetCurrentGame() {
+    resetHobak();
+    updateTurnBorder(null);
+    const badge = document.getElementById('turn-badge');
+    badge.className = 'status-badge';
+    badge.style.backgroundColor = '#f8f9fa';
+    badge.style.color = 'var(--sub)';
+    badge.style.borderColor = 'var(--border)';
+    const startColorName = userGoesFirst ? (userColor === 'red' ? '🔴 빨간팀' : '🔵 파란팀') : (userColor === 'red' ? '🔵 파란팀' : '🔴 빨간팀');
+    badge.textContent = `${startColorName} 차례 (시작 대기)`;
+  }
+
+  function confirmResetGame() {
+    showCustomModal(
+      '🔄 새로 시작',
+      '게임을 새로 시작하시겠습니까?',
+      'info',
+      () => { resetCurrentGame(); },
+      { showCancel: true, confirmText: '확인', cancelText: '취소' }
+    );
+  }
+
+  function redrawBoard() { drawHobak(); }
+
+  function updateTurnBorder(team) {
+    const container = document.getElementById('board-container');
+    if (team === 'red') container.style.borderColor = 'var(--danger)';
+    else if (team === 'blue') container.style.borderColor = 'var(--active)';
+    else container.style.borderColor = 'var(--border)';
+  }
+
+  function updateBadge(team, isAI, aiColor, extraMsg = '') {
+    updateTurnBorder(team);
+    const badge = document.getElementById('turn-badge');
+    const name = team === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+    const isAiTurn = team === aiColor;
+    const aiText = isAiTurn ? ' (AI 생각 중...)' : '';
+    badge.textContent = `${name} 차례${extraMsg}${aiText}`;
+    badge.className = `status-badge ${team}-turn`;
+  }
+
+  function handleKeyboard(e) {
+    if (document.getElementById('result-modal').classList.contains('show')) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeModal(); }
+      return;
+    }
+    if (e.key.toLowerCase() === 's') startGameFlow();
+    else if (e.key.toLowerCase() === 'r') confirmResetGame();
+  }
+
+  function getStats(game) {
+    const stats = JSON.parse(localStorage.getItem('gonu_stats_v2')) || {};
+    return stats[game] || { userWins: 0, aiWins: 0, userFirstWins: 0, aiFirstWins: 0 };
+  }
+
+  function addScore(game, winnerTeam) {
+    const stats = JSON.parse(localStorage.getItem('gonu_stats_v2')) || {};
+    if (!stats[game]) stats[game] = { userWins: 0, aiWins: 0, userFirstWins: 0, aiFirstWins: 0 };
+    
+    const isUserWin = (winnerTeam === userColor);
+    if (isUserWin) {
+      stats[game].userWins += 1;
+      if (currentGameFirstPlayer === 'user') stats[game].userFirstWins += 1;
+    } else {
+      stats[game].aiWins += 1;
+      if (currentGameFirstPlayer === 'ai') stats[game].aiFirstWins += 1;
+    }
+    localStorage.setItem('gonu_stats_v2', JSON.stringify(stats));
+    renderStats();
+  }
+
+  function resetStatsModal() {
+    showCustomModal(
+      '📊 누적기록 초기화',
+      '누적된 기록을 초기화하시겠습니까?',
+      'danger',
+      () => {
+        localStorage.removeItem('gonu_stats_v2');
+        renderStats();
+      },
+      {
+        showCancel: true,
+        confirmText: '초기화',
+        cancelText: '취소',
+        confirmColor: 'var(--danger)'
+      }
+    );
+  }
+
+  function renderStats() {
+    const tbody = document.getElementById('stats-body');
+    const st = getStats(activeGame);
+    tbody.innerHTML = `
+      <tr>
+        <td style="font-weight:700;">호박고누</td>
+        <td style="color:var(--success); font-weight:700;">${st.userWins}승</td>
+        <td style="color:var(--danger); font-weight:700;">${st.aiWins}승</td>
+        <td>${st.userFirstWins}승</td>
+        <td>${st.aiFirstWins}승</td>
+      </tr>`;
+  }
+
+  function showCustomModal(titleText, bodyHtml, type = 'info', onConfirm = null, options = {}) {
+    const { showCancel = false, confirmText = '확인', cancelText = '취소', confirmColor = null } = options;
+    const modal = document.getElementById('result-modal');
+    const title = document.getElementById('modal-title');
+    const btnContainer = document.getElementById('modal-buttons');
+
+    modal.classList.remove('modal-success', 'modal-danger', 'modal-info');
+    modal.classList.add(`modal-${type}`);
+    title.innerHTML = `<div>${titleText}</div><div style="font-size:15px; font-weight:500; margin-top:12px; color:var(--text);">${bodyHtml || ''}</div>`;
+    
+    btnContainer.innerHTML = '';
+
+    if (showCancel) {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'modal-btn';
+      cancelBtn.style.backgroundColor = 'var(--sub)';
+      cancelBtn.textContent = cancelText;
+      cancelBtn.onclick = closeModal;
+      btnContainer.appendChild(cancelBtn);
+    }
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'modal-btn';
+    if (confirmColor) confirmBtn.style.backgroundColor = confirmColor;
+    confirmBtn.textContent = confirmText;
+    confirmBtn.onclick = () => {
+      closeModal();
+      if (onConfirm) onConfirm();
+    };
+    btnContainer.appendChild(confirmBtn);
+
+    modal.classList.add('show');
+    confirmBtn.focus();
+  }
+
+  function showWinModal(winnerTeam) {
+    const isUserWin = (winnerTeam === userColor);
+    const winnerTitle = isUserWin ? '🎉 사용자 승리!' : '🤖 AI 승리!';
+    const firstPlayerText = currentGameFirstPlayer === 'user' ? '👤 사용자 선공' : '🤖 AI 선공';
+    const colorStr = isUserWin ? 'var(--success)' : 'var(--danger)';
+    showCustomModal(`<span style="color:${colorStr}">${winnerTitle}</span>`, `<b>승자:</b> ${isUserWin ? '사용자' : 'AI'}<br><b>선공:</b> ${firstPlayerText}`, isUserWin ? 'success' : 'danger');
+  }
+
+  function closeModal() { document.getElementById('result-modal').classList.remove('show'); }
+
+  function drawHobak() {
+    const cvs = document.getElementById('game-canvas');
+    const ctn = document.getElementById('board-container');
+    cvs.width = ctn.clientWidth; cvs.height = ctn.clientHeight;
+    const ctx = cvs.getContext('2d'), w = cvs.width, h = cvs.height;
+    const getX = p => (p / 100) * w, getY = p => (p / 100) * h;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = '#a68b75'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(getX(25), getY(10)); ctx.lineTo(getX(75), getY(10));
+    ctx.moveTo(getX(25), getY(90)); ctx.lineTo(getX(75), getY(90));
+    ctx.moveTo(getX(25), getY(50)); ctx.lineTo(getX(75), getY(50));
+    ctx.moveTo(getX(50), getY(30)); ctx.lineTo(getX(50), getY(70));
+    ctx.moveTo(getX(50), getY(10)); ctx.lineTo(getX(50), getY(30));
+    ctx.moveTo(getX(50), getY(90)); ctx.lineTo(getX(50), getY(70));
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(getX(50), getY(50), Math.abs(getY(50) - getY(30)), 0, Math.PI * 2);
+    ctx.stroke();
+    renderHobak();
+  }
+
+  function renderHobak() {
+    const layer = document.getElementById('piece-layer');
+    layer.innerHTML = ''; layer.style.display = 'block';
+    if(!hState.pieces) return;
+    hobakNodes.forEach((node, i) => {
+      const el = document.createElement('div');
+      el.className = `node ${hState.pieces[i]}`;
+      el.style.left = node.x + '%'; el.style.top = node.y + '%';
+      if (hState.selected === i) el.classList.add('selected');
+      if (hState.selected !== null && getHobakMoves(hState.pieces, hState.selected).includes(i)) el.classList.add('hint');
+      el.onclick = () => handleHobakClick(i);
+      layer.appendChild(el);
+    });
+  }
+
+  function resetHobak() {
+    hState = {
+      pieces: ['red', 'red', 'red', 'empty', 'empty', 'empty', 'empty', 'empty', 'blue', 'blue', 'blue'],
+      started: false, turn: 'red', selected: null
+    };
+    drawHobak();
+  }
+
+  function startHobak() {
+    resetHobak();
+    hState.started = true;
+    hState.selected = null;
+    hState.aiColor = userColor === 'red' ? 'blue' : 'red';
+    hState.turn = userGoesFirst ? userColor : hState.aiColor;
+    currentGameFirstPlayer = userGoesFirst ? 'user' : 'ai';
+    updateBadge(hState.turn, true, hState.aiColor);
+    renderHobak();
+    if(hState.turn === hState.aiColor) setTimeout(aiHobakOptimized, 600);
+  }
+
+  function getHobakMoves(board, idx) {
+    const team = board[idx];
+    return hobakAdj[idx].filter(t => {
+      if (board[t] !== 'empty') return false;
+      if (team === 'red' && hobakNodes[t].type === 'blue-home') return false;
+      if (team === 'blue' && hobakNodes[t].type === 'red-home') return false;
+      if (team === 'red' && hobakNodes[idx].type === 'circle' && hobakNodes[t].type === 'red-home') return false;
+      if (team === 'blue' && hobakNodes[idx].type === 'circle' && hobakNodes[t].type === 'blue-home') return false;
+      return true;
+    });
+  }
+
+  function handleHobakClick(idx) {
+    if (!hState.started || hState.turn === hState.aiColor) return;
+    if (hState.pieces[idx] === hState.turn) {
+      hState.selected = idx;
+    } else if (hState.selected !== null && hState.pieces[idx] === 'empty') {
+      if (getHobakMoves(hState.pieces, hState.selected).includes(idx)) moveHobak(hState.selected, idx);
+    }
+    renderHobak();
+  }
+
+  function moveHobak(from, to) {
+    hState.pieces[to] = hState.turn;
+    hState.pieces[from] = 'empty';
+    hState.selected = null;
+    hState.turn = hState.turn === 'red' ? 'blue' : 'red';
+    renderHobak();
+    if(!checkHobakWin()) {
+      updateBadge(hState.turn, true, hState.aiColor);
+      if(hState.turn === hState.aiColor) setTimeout(aiHobakOptimized, 600);
+    }
+  }
+
+  function checkHobakWin() {
+    let canMove = hState.pieces.some((p, i) => p === hState.turn && getHobakMoves(hState.pieces, i).length > 0);
+    if (!canMove) {
+      const winner = hState.turn === 'red' ? 'blue' : 'red';
+      hState.started = false;
+      
+      const badge = document.getElementById('turn-badge');
+      const winnerName = winner === 'red' ? '🔴 빨간팀' : '🔵 파란팀';
+      badge.textContent = `🏁 게임 종료 (${winnerName} 승리!)`;
+      badge.className = `status-badge ${winner}-turn`;
+      updateTurnBorder(winner);
+
+      addScore('hobak', winner);
+      showWinModal(winner);
+      return true;
+    }
+    return false;
+  }
+
+  function aiHobakOptimized() {
+    if (!hState.started) return;
+    const bestMove = getMinimaxMoveHobak(hState.pieces, hState.aiColor, 8);
+    if (bestMove) {
+      hState.selected = bestMove.from;
+      renderHobak();
+      setTimeout(() => { if (hState.started) moveHobak(bestMove.from, bestMove.to); }, 500);
+    }
+  }
+
+  function getMinimaxMoveHobak(board, aiColor, depth) {
+    let bestScore = -Infinity, bestMove = null;
+    const moves = getAllHobakMoves(board, aiColor);
+    for (let m of moves) {
+      let nextBoard = [...board];
+      nextBoard[m.to] = aiColor; nextBoard[m.from] = 'empty';
+      let score = minimaxHobak(nextBoard, depth - 1, false, -Infinity, Infinity, aiColor, aiColor === 'red' ? 'blue' : 'red');
+      if (score > bestScore) { bestScore = score; bestMove = m; }
+    }
+    return bestMove;
+  }
+
+  function getAllHobakMoves(board, color) {
+    const moves = [];
+    board.forEach((p, i) => {
+      if (p === color) getHobakMoves(board, i).forEach(to => moves.push({ from: i, to: to }));
+    });
+    return moves;
+  }
+
+  function minimaxHobak(board, depth, isMax, alpha, beta, aiColor, oppColor) {
+    const currentTurn = isMax ? aiColor : oppColor;
+    const moves = getAllHobakMoves(board, currentTurn);
+    if (moves.length === 0) return isMax ? -10000 : 10000;
+    if (depth === 0) {
+      const myMoves = moves.length;
+      const oppMoves = getAllHobakMoves(board, isMax ? oppColor : aiColor).length;
+      return (isMax ? (myMoves - oppMoves) : (oppMoves - myMoves)) * 10;
+    }
+    if (isMax) {
+      let maxEval = -Infinity;
+      for (let m of moves) {
+        let nextBoard = [...board]; nextBoard[m.to] = aiColor; nextBoard[m.from] = 'empty';
+        let evalVal = minimaxHobak(nextBoard, depth - 1, false, alpha, beta, aiColor, oppColor);
+        maxEval = Math.max(maxEval, evalVal); alpha = Math.max(alpha, evalVal);
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (let m of moves) {
+        let nextBoard = [...board]; nextBoard[m.to] = oppColor; nextBoard[m.from] = 'empty';
+        let evalVal = minimaxHobak(nextBoard, depth - 1, true, alpha, beta, aiColor, oppColor);
+        minEval = Math.min(minEval, evalVal); beta = Math.min(beta, evalVal);
+        if (beta <= alpha) break;
+      }
+      return minEval;
+    }
+  }
+
+  window.onload = initUI;
+</script>
+</body>
+</html>
