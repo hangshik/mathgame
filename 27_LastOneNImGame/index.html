@@ -30,6 +30,8 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
     /* 누적 기록 하이라이트 스타일 추가 */
     .record-table tr.last-record-highlight {
       background-color: #fff0f0; /* 연한 빨간색 */
@@ -44,6 +46,7 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      font-family: 'Pretendard', sans-serif;
     }
 
     /* 전체 레이아웃 컨테이너 */
@@ -295,11 +298,14 @@
         gap: 6px; /* 모바일에서 간격 축소 */
         padding: 12px;
       }
+      .stage-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     .cell {
       background-color: #ffffff;
       border: 2px solid #e9ecef;
-      border-radius: 16px;
+      border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -351,16 +357,6 @@
       border-color: var(--color-p2);
       background-color: var(--color-p2);
       box-shadow: 0 0 10px rgba(220, 53, 69, 0.4);
-    }
-    .cell.empty {
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
     /* 액션 버튼 컨테이너 */
@@ -443,8 +439,6 @@
       border-left: 6px solid var(--danger);
       display: block; 
     }
-    
-    }
     .guide-record h2 {
       color: var(--danger);
     }
@@ -516,17 +510,16 @@
       color: var(--success);
     }
 
-
-
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+    /* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
+    @media (max-width: 600px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+    }
+    .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+    kbd {
+      background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+      color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+    }
 
     /* 결과 알림 및 확인 모달 팝업 시스템 */
     .modal-overlay {
@@ -635,12 +628,10 @@ kbd {
     <!-- 영역 1-A: 퍼즐 제목 영역 -->
     <div class="puzzle-header">
       <h1>라스트 원 님 게임</h1>
-      <!-- <p>가로 또는 세로줄을 선택해 원을 지우세요. 마지막 원을 차지하는 자가 승리합니다!</p> -->
     </div>
 
     <!-- 영역 1-B: 단계 선택 및 선공 설정 영역 -->
     <div class="container-fixed stage-container">
-      <!-- <h2>STAGE SELECT</h2> -->
       <div class="stage-grid" id="stageGrid">
         <!-- JS 동적 버튼 로드 -->
       </div>
@@ -670,7 +661,7 @@ kbd {
       </div>
     </div>
 
-    <!-- 영역 3: 하단 조작 버튼 영역 (되돌리기 - 백스페이스 및 선택확정) -->
+    <!-- 영역 3: 하단 조작 버튼 영역 -->
     <div class="action-container">
       <button class="action-btn btn-reset" id="btnReset" title="단축키: Backspace" disabled>↶ 되돌리기</button>
       <button class="action-btn btn-submit" id="btnSubmit" title="단축키: Enter" disabled>✓ 선택 확정</button>
@@ -683,7 +674,7 @@ kbd {
         <button class="btn-clear-record" id="btnClearRecord">누적기록 초기화</button>
       </div>
       
-      <!-- PvP 사람 대결 전적 기록 테이블 (항상 최상단 배치) -->
+      <!-- PvP 사람 대결 전적 기록 테이블 -->
       <div class="record-section-title" id="pvpRecordTitle" style="display: none;">👥 로컬 PvP 기록</div>
       <table class="record-table" id="pvpRecordTable" style="display: none;">
         <thead>
@@ -718,14 +709,8 @@ kbd {
     <div class="guide-box guide-rules">
       <h2>◈ 게임 방법</h2>
       <ul>
-        <!-- <li>• 플레이어와 AI(또는 두 사람)가 번갈아 가며 격자판 위의 ○을 선택하여 제거합니다.</li>
-        <li>• 한 턴에 최소 1개에서 최대 4개까지의 ○을 선택하여 지울 수 있습니다.</li>
-        <li>• 2개 이상의 ○를 동시에 지울 때는 반드시 <strong>같은 가로 줄</strong> 또는 <strong>같은 세로 줄</strong>에 위치해 있어야 하며 바로 이웃해 있을 필요는 없습니다.</li>
-        <li>• 격자판 위의 <strong>마지막 남은 ○을 표시(제거)하는 사람</strong>이 최종적으로 이기게 됩니다.</li> -->
         <li><b>지우기</b>: 한 턴에 같은 가로/세로 줄의 원을 1~4개까지 자유롭게 지웁니다.</li>
-
         <li><b>조건</b>: 여러 개를 지울 때는 반드시 같은 가로 줄이나 세로 줄에 있어야 하며 바로 이웃할 필요는 없습니다.</li>
-
         <li><b>승리</b>: 격자판의 마지막 원을 지우는 사람이 승리합니다.</li>
       </ul>
     </div>
@@ -766,37 +751,42 @@ kbd {
     </div>
   </div>
 
-    <script>
-    // 1. 단계 버튼 위치 변경: PvP 모드(3, 4단계)를 앞으로 이동
+  <script>
+    // [확장 패치] 5x5 및 6x6 스테이지 데이터 추가 (총 8단계)
     const dataSets = [
-      { stage: 3, size: 3, opponent: 'PLAYER', label: "1단계 (3x3 PvP)" },
-      { stage: 4, size: 4, opponent: 'PLAYER', label: "2단계 (4x4 PvP)" },
-      { stage: 1, size: 3, opponent: 'AI', label: "3단계 (3x3 vs AI)" },
-      { stage: 2, size: 4, opponent: 'AI', label: "4단계 (4x4 vs AI)" }
+      { stage: 1, size: 3, opponent: 'PLAYER', label: "3x3 (PvP)" },
+      { stage: 2, size: 4, opponent: 'PLAYER', label: "4x4 (PvP)" },
+      { stage: 3, size: 5, opponent: 'PLAYER', label: "5x5 (PvP)" },
+      { stage: 4, size: 6, opponent: 'PLAYER', label: "6x6 (PvP)" },
+      { stage: 5, size: 3, opponent: 'AI', label: "3x3 (AI)" },
+      { stage: 6, size: 4, opponent: 'AI', label: "4x4 (AI)" },
+      { stage: 7, size: 5, opponent: 'AI', label: "5x5 (AI)" },
+      { stage: 8, size: 6, opponent: 'AI', label: "6x6 (AI)" }
     ];
 
-    let currentStage = 1; // 2. 초기 단계를 3x3 PvP(3번)로 변경
-    let selectedIndices = [];  // 임시 선택된 인덱스들
-    let currentMask = 0;       // 보드 상태 비트 마스킹 데이터 (켜져있는 셀)
-    let currentTurn = 0;       // 1: 블루팀 (P1), 2: 레드팀 (P2 / AI), 0: 대기 상태
-    let selectedFirstTurn = null; // 선공 결정 전까지 null로 설정하여 강제 잠금 구현
+    let currentStage = 5; 
+    let selectedIndices = [];  
+    let currentMask = 0n;      // [핵심 변경] 6x6(36칸) 지원을 위해 BigInt(0n)로 상태 마스크 전환
+    let currentTurn = 0;       
+    let selectedFirstTurn = null; 
 
-    // 타임머신 무제한 되돌리기 스택
     let undoHistory = [];
 
-    // 로컬 스토리지 상태 기억 저장소
+    // 로컬 스토리지 충돌을 피하기 위해 새 저장 키 지정
+    const STORAGE_KEY = 'nim_game_premium_advanced_6x6_bigint';
     let gameState = {
       clearedStages: [],
-      attempts: { 1: 0, 2: 0, 3: 0, 4: 0 }, 
+      attempts: { 1: 0, 2: 0, 3: 0, 4: 0, 5:0, 6:0, 7:0, 8:0 }, 
       pvpWins: { 
-        3: { p1: 0, p2: 0 }, 
-        4: { p1: 0, p2: 0 } 
+        1: { p1: 0, p2: 0 }, 
+        2: { p1: 0, p2: 0 },
+        3: { p1: 0, p2: 0 },
+        4: { p1: 0, p2: 0 }
       }, 
       stageHistory: {}, 
       aiHistory: [] 
     };
 
-    // AI 연산을 위한 사전 비트 마스크 보관소
     let moveMasks = {};       
     let memoizedWins = {};    
 
@@ -827,8 +817,6 @@ kbd {
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     const modalBtn = document.getElementById('modalBtn');
-
-    // 커스텀 컨펌 모달 DOM 캐싱
     const confirmModalOverlay = document.getElementById('confirmModalOverlay');
     const btnConfirmCancel = document.getElementById('btnConfirmCancel');
     const btnConfirmReset = document.getElementById('btnConfirmReset');
@@ -836,11 +824,16 @@ kbd {
     function init() {
       loadLocalStorage();
       
-      // 수학적 AI 마스킹 구조 계산
+      // 수학적 AI 마스킹 구조 계산 (크기별 병렬 생성)
       precomputeSizeMoves(3);
       precomputeSizeMoves(4);
+      precomputeSizeMoves(5);
+      precomputeSizeMoves(6);
+      
       lazyBuildSolutionTable(3);
       lazyBuildSolutionTable(4);
+      // 5x5 및 6x6은 경우의 수가 지나치게 많아(최대 68GB 메모리 요구) 
+      // 완벽 연산을 사전 계산하지 않고 랜덤/휴리스틱 전략으로 폴백(fallback)합니다.
 
       renderStageButtons();
       renderRecordTable();
@@ -849,7 +842,7 @@ kbd {
     }
 
     function loadLocalStorage() {
-      const saved = localStorage.getItem('nim_game_premium_advanced_2026_rev3');
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -862,13 +855,13 @@ kbd {
           console.error("데이터 복구 에러 발생", e);
         }
       }
-      if (!gameState.aiHistory) {
-        gameState.aiHistory = [];
-      }
+      if (!gameState.aiHistory) gameState.aiHistory = [];
+      if (!gameState.pvpWins[3]) gameState.pvpWins[3] = { p1: 0, p2: 0 };
+      if (!gameState.pvpWins[4]) gameState.pvpWins[4] = { p1: 0, p2: 0 };
     }
 
     function saveLocalStorage() {
-      localStorage.setItem('nim_game_premium_advanced_2026_rev3', JSON.stringify(gameState));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
     }
 
     function renderStageButtons() {
@@ -876,12 +869,10 @@ kbd {
       dataSets.forEach(dt => {
         const btn = document.createElement('button');
         btn.classList.add('stage-btn');
-        if (dt.stage === currentStage) {
-          btn.classList.add('active');
-        }
+        if (dt.stage === currentStage) btn.classList.add('active');
 
         const labelSpan = document.createElement('span');
-        labelSpan.innerText = `${dt.size} × ${dt.size}`;
+        labelSpan.innerText = dt.label.split(' ')[0]; // 사이즈만
         
         const subSpan = document.createElement('span');
         subSpan.classList.add('sub-label');
@@ -890,98 +881,90 @@ kbd {
         btn.appendChild(labelSpan);
         btn.appendChild(subSpan);
 
-        btn.addEventListener('click', () => {
-          changeStage(dt.stage);
-        });
+        btn.addEventListener('click', () => changeStage(dt.stage));
         stageGrid.appendChild(btn);
       });
     }
 
     function renderRecordTable() {
-  aiRecordTableBody.innerHTML = '';
-  pvpRecordTableBody.innerHTML = '';
-  
-  // 기존에 생성된 메시지가 있다면 삭제
-  const emptyMsgId = 'empty-record-msg';
-  let existingMsg = document.getElementById(emptyMsgId);
-  if (existingMsg) existingMsg.remove();
-  
-  let hasAiRecord = false;
-  let hasPvpRecord = false;
+      aiRecordTableBody.innerHTML = '';
+      pvpRecordTableBody.innerHTML = '';
+      
+      const emptyMsgId = 'empty-record-msg';
+      let existingMsg = document.getElementById(emptyMsgId);
+      if (existingMsg) existingMsg.remove();
+      
+      let hasAiRecord = false;
+      let hasPvpRecord = false;
 
-  // AI 전적 계산
-  let aiWins = 0;
-  let aiLosses = 0;
-  if (gameState.aiHistory && gameState.aiHistory.length > 0) {
-    gameState.aiHistory.forEach(log => {
-      if (log.status === 'SUCCESS') aiWins++;
-      else aiLosses++;
-    });
-    hasAiRecord = true;
-  }
+      let aiWins = 0, aiLosses = 0;
+      if (gameState.aiHistory && gameState.aiHistory.length > 0) {
+        gameState.aiHistory.forEach(log => {
+          if (log.status === 'SUCCESS') aiWins++;
+          else aiLosses++;
+        });
+        hasAiRecord = true;
+      }
 
-  // AI 기록 렌더링
-  if (hasAiRecord) {
-    aiRecordTitle.style.display = 'block';
-    // 승패 기록을 타이틀 옆에 추가
-    aiRecordTitle.innerHTML = `🤖 AI 대결 기록 <span style="font-size:13px; color:var(--text-sub); margin-left:8px;">(${aiWins}승 ${aiLosses}패)</span>`;
-    aiRecordTable.style.display = 'table';
-    
-    [...gameState.aiHistory].reverse().forEach((log, idx) => {
-      const tr = document.createElement('tr');
-      if (idx === 0) tr.classList.add('last-record-highlight');
-      const statusText = log.status === 'SUCCESS' ? '승리' : '패배';
-      const statusColor = log.status === 'SUCCESS' ? 'var(--success)' : 'var(--danger)';
-      tr.innerHTML = `
-        <td>${log.size}</td>
-        <td>${log.firstTurn}</td>
-        <td style="color: ${statusColor}; font-weight: 700;">${statusText}</td>
-      `;
-      aiRecordTableBody.appendChild(tr);
-    });
-  } else {
-    aiRecordTitle.style.display = 'none';
-    aiRecordTable.style.display = 'none';
-  }
+      if (hasAiRecord) {
+        aiRecordTitle.style.display = 'block';
+        aiRecordTitle.innerHTML = `🤖 AI 대결 기록 <span style="font-size:13px; color:var(--text-sub); margin-left:8px;">(${aiWins}승 ${aiLosses}패)</span>`;
+        aiRecordTable.style.display = 'table';
+        
+        [...gameState.aiHistory].reverse().forEach((log, idx) => {
+          const tr = document.createElement('tr');
+          if (idx === 0) tr.classList.add('last-record-highlight');
+          const statusText = log.status === 'SUCCESS' ? '승리' : '패배';
+          const statusColor = log.status === 'SUCCESS' ? 'var(--success)' : 'var(--danger)';
+          tr.innerHTML = `
+            <td>${log.size}</td>
+            <td>${log.firstTurn}</td>
+            <td style="color: ${statusColor}; font-weight: 700;">${statusText}</td>
+          `;
+          aiRecordTableBody.appendChild(tr);
+        });
+      } else {
+        aiRecordTitle.style.display = 'none';
+        aiRecordTable.style.display = 'none';
+      }
 
-  // PvP 기록 렌더링
-  const wins3 = gameState.pvpWins[3] || { p1: 0, p2: 0 };
-  const wins4 = gameState.pvpWins[4] || { p1: 0, p2: 0 };
-  const pvpRows = [];
-  if (wins3.p1 > 0 || wins3.p2 > 0) pvpRows.push({ size: '3 × 3', p1: wins3.p1, p2: wins3.p2 });
-  if (wins4.p1 > 0 || wins4.p2 > 0) pvpRows.push({ size: '4 × 4', p1: wins4.p1, p2: wins4.p2 });
+      const pvpRows = [];
+      [1, 2, 3, 4].forEach(stage => {
+        const wins = gameState.pvpWins[stage] || { p1: 0, p2: 0 };
+        const label = dataSets.find(d => d.stage === stage).label.split(' ')[0];
+        if (wins.p1 > 0 || wins.p2 > 0) pvpRows.push({ size: label, p1: wins.p1, p2: wins.p2 });
+      });
 
-  if (pvpRows.length > 0) {
-    hasPvpRecord = true;
-    pvpRecordTitle.style.display = 'block';
-    pvpRecordTable.style.display = 'table';
-    pvpRows.forEach((data, idx) => {
-      const tr = document.createElement('tr');
-      if (idx === pvpRows.length - 1) tr.classList.add('last-record-highlight');
-      tr.innerHTML = `
-        <td>${data.size}</td>
-        <td style="color: var(--color-p1); font-weight: 700;">${data.p1}회 승리</td>
-        <td style="color: var(--color-p2); font-weight: 700;">${data.p2}회 승리</td>
-      `;
-      pvpRecordTableBody.appendChild(tr);
-    });
-  } else {
-    pvpRecordTitle.style.display = 'none';
-    pvpRecordTable.style.display = 'none';
-  }
+      if (pvpRows.length > 0) {
+        hasPvpRecord = true;
+        pvpRecordTitle.style.display = 'block';
+        pvpRecordTable.style.display = 'table';
+        pvpRows.forEach((data, idx) => {
+          const tr = document.createElement('tr');
+          if (idx === pvpRows.length - 1) tr.classList.add('last-record-highlight');
+          tr.innerHTML = `
+            <td>${data.size}</td>
+            <td style="color: var(--color-p1); font-weight: 700;">${data.p1}회 승리</td>
+            <td style="color: var(--color-p2); font-weight: 700;">${data.p2}회 승리</td>
+          `;
+          pvpRecordTableBody.appendChild(tr);
+        });
+      } else {
+        pvpRecordTitle.style.display = 'none';
+        pvpRecordTable.style.display = 'none';
+      }
 
-  // 기록이 아예 없을 때 메시지 표시
-  if (!hasPvpRecord && !hasAiRecord) {
-    const msg = document.createElement('p');
-    msg.id = emptyMsgId;
-    msg.style.color = 'var(--text-sub)';
-    msg.style.textAlign = 'center';
-    msg.style.padding = '20px 0';
-    msg.style.fontSize = '14px';
-    msg.innerText = '누적기록이 없습니다.';
-    recordBox.appendChild(msg);
-  }
-}
+      if (!hasPvpRecord && !hasAiRecord) {
+        const msg = document.createElement('p');
+        msg.id = emptyMsgId;
+        msg.style.color = 'var(--text-sub)';
+        msg.style.textAlign = 'center';
+        msg.style.padding = '20px 0';
+        msg.style.fontSize = '14px';
+        msg.innerText = '누적기록이 없습니다.';
+        recordBox.appendChild(msg);
+      }
+    }
 
     function changeStage(stageNum) {
       backupCurrentState();
@@ -997,10 +980,10 @@ kbd {
     function backupCurrentState() {
       if (currentStage !== undefined) {
         gameState.stageHistory[currentStage] = {
-          mask: currentMask,
+          mask: currentMask.toString(), // BigInt는 문자열로 변환하여 저장
           turn: currentTurn,
           selectedFirstTurn: selectedFirstTurn,
-          undoHistory: undoHistory
+          undoHistory: undoHistory.map(h => ({ mask: h.mask.toString(), turn: h.turn }))
         };
         saveLocalStorage();
       }
@@ -1011,23 +994,23 @@ kbd {
       const size = config.size;
 
       if (config.opponent === 'AI') {
-        turnSelectorTitle.innerText = "선공 플레이어 선택 (플레이어 vs AI)";
+        turnSelectorTitle.innerText = `선공 플레이어 선택 (플레이어 vs AI - ${size}x${size})`;
         btnSelectP1.innerText = "플레이어 선공 (블루)";
         btnSelectP2.innerText = "AI 선공 (레드)";
       } else {
-        turnSelectorTitle.innerText = "선공 플레이어 선택 (플레이어1 vs 플레이어2)";
+        turnSelectorTitle.innerText = `선공 플레이어 선택 (2인용 - ${size}x${size})`;
         btnSelectP1.innerText = "플레이어 1 (블루 선공)";
         btnSelectP2.innerText = "플레이어 2 (레드 선공)";
       }
 
       let savedState = gameState.stageHistory[stageNum];
       if (savedState && savedState.selectedFirstTurn !== null) {
-        currentMask = savedState.mask;
+        currentMask = BigInt(savedState.mask);
         currentTurn = savedState.turn;
         selectedFirstTurn = savedState.selectedFirstTurn;
-        undoHistory = savedState.undoHistory || [];
+        undoHistory = (savedState.undoHistory || []).map(h => ({ mask: BigInt(h.mask), turn: h.turn }));
       } else {
-        currentMask = (1 << (size * size)) - 1; 
+        currentMask = (1n << BigInt(size * size)) - 1n; 
         selectedFirstTurn = null; 
         currentTurn = 0;
         undoHistory = [];
@@ -1044,7 +1027,7 @@ kbd {
         const cell = document.createElement('div');
         cell.classList.add('cell');
 
-        if ((currentMask & (1 << i)) === 0) {
+        if ((currentMask & (1n << BigInt(i))) === 0n) {
           cell.classList.add('empty');
         }
 
@@ -1058,11 +1041,8 @@ kbd {
     function updateSelectorButtons() {
       btnSelectP1.classList.remove('selected');
       btnSelectP2.classList.remove('selected');
-      if (selectedFirstTurn === 1) {
-        btnSelectP1.classList.add('selected');
-      } else if (selectedFirstTurn === 2) {
-        btnSelectP2.classList.add('selected');
-      }
+      if (selectedFirstTurn === 1) btnSelectP1.classList.add('selected');
+      else if (selectedFirstTurn === 2) btnSelectP2.classList.add('selected');
     }
 
     function updateUndoButtonState() {
@@ -1081,9 +1061,7 @@ kbd {
         boardLockOverlay.style.opacity = '0';
         boardLockOverlay.style.visibility = 'hidden';
         setTimeout(() => {
-          if (selectedFirstTurn !== null) {
-            boardLockOverlay.style.display = 'none';
-          }
+          if (selectedFirstTurn !== null) boardLockOverlay.style.display = 'none';
         }, 300);
         updateTurnIndicatorAndBorder();
       }
@@ -1097,19 +1075,11 @@ kbd {
 
       if (currentTurn === 1) {
         boardWrapper.classList.add('glow-p1');
-        if (isAI) {
-          turnIndicator.innerText = '플레이어 차례 (블루)';
-        } else {
-          turnIndicator.innerText = '플레이어 1 차례 (블루)';
-        }
+        turnIndicator.innerText = isAI ? '플레이어 차례 (블루)' : '플레이어 1 차례 (블루)';
         turnIndicator.className = 'turn-indicator p1-turn';
       } else if (currentTurn === 2) {
         boardWrapper.classList.add('glow-p2');
-        if (isAI) {
-          turnIndicator.innerText = 'AI 차례 (레드)';
-        } else {
-          turnIndicator.innerText = '플레이어 2 차례 (레드)';
-        }
+        turnIndicator.innerText = isAI ? 'AI 차례 (레드)' : '플레이어 2 차례 (레드)';
         turnIndicator.className = 'turn-indicator p2-turn';
       }
     }
@@ -1120,23 +1090,15 @@ kbd {
       
       const config = dataSets.find(d => d.stage === currentStage);
       const size = config.size;
-      currentMask = (1 << (size * size)) - 1;
+      currentMask = (1n << BigInt(size * size)) - 1n;
       selectedIndices = [];
       undoHistory = [];
       btnSubmit.disabled = true;
 
-      gameState.stageHistory[currentStage] = {
-        mask: currentMask,
-        turn: currentTurn,
-        selectedFirstTurn: selectedFirstTurn,
-        undoHistory: undoHistory
-      };
-      saveLocalStorage();
-
+      backupCurrentState();
       updateSelectorButtons();
       updateUndoButtonState();
       applyLockState();
-      
       loadStage(currentStage);
 
       if (config.opponent === 'AI' && currentTurn === 2) {
@@ -1165,14 +1127,13 @@ kbd {
         if (selectedIndices.length >= 4) {
           clearCurrentSelectionUI();
           selectedIndices.push(idx);
-          cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel'); // 1. 팀별 색상 적용
+          cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel');
         } else if (selectedIndices.length === 0) {
           selectedIndices.push(idx);
           cell.classList.add('selected', currentTurn === 1 ? 'p1-sel' : 'p2-sel');
         } else {
           const testRows = selectedIndices.map(i => Math.floor(i / size));
           const testCols = selectedIndices.map(i => i % size);
-
           const isSameRow = testRows.every(rowVal => rowVal === r);
           const isSameCol = testCols.every(colVal => colVal === c);
 
@@ -1190,7 +1151,6 @@ kbd {
       btnSubmit.disabled = selectedIndices.length === 0;
     }
 
-    // 임시 선택된 하이라이트 UI만 해제
     function clearCurrentSelectionUI() {
       selectedIndices.forEach(idx => {
         const cell = gameBoard.children[idx];
@@ -1208,7 +1168,6 @@ kbd {
       updateUndoButtonState();
     }
 
-    // ↩ "되돌리기" 기능 - 선택 확정 전 상태로 역추적
     function handleUndo() {
       if (undoHistory.length === 0) return;
 
@@ -1216,17 +1175,15 @@ kbd {
       currentMask = prevState.mask;
       currentTurn = prevState.turn;
 
-      // 임시로 드래그 선택 중이던 것 초기화
       selectedIndices = [];
       btnSubmit.disabled = true;
 
-      // 보드 상태 리프레시
       const config = dataSets.find(d => d.stage === currentStage);
       const size = config.size;
       for (let i = 0; i < size * size; i++) {
         const cell = gameBoard.children[i];
         if (cell) {
-          if ((currentMask & (1 << i)) === 0) {
+          if ((currentMask & (1n << BigInt(i))) === 0n) {
             cell.className = 'cell empty';
           } else {
             cell.className = 'cell';
@@ -1245,28 +1202,25 @@ kbd {
       selectedIndices = [];
       undoHistory = [];
       btnSubmit.disabled = true;
-
       backupCurrentState();
       loadStage(currentStage);
     }
 
     function submitTurn() {
       if (selectedIndices.length === 0) return;
-
       const config = dataSets.find(d => d.stage === currentStage);
       const size = config.size;
 
-      if (config.opponent === 'AI' && currentMask === (1 << (size * size)) - 1) {
+      if (config.opponent === 'AI' && currentMask === (1n << BigInt(size * size)) - 1n) {
         gameState.attempts[currentStage] = (gameState.attempts[currentStage] || 0) + 1;
         renderRecordTable();
         saveLocalStorage();
       }
 
-      // 비트마스크 연산 이전에 현재의 안전 상태 백업 (되돌리기 보장)
       saveToUndoHistory();
 
       selectedIndices.forEach(idx => {
-        currentMask &= ~(1 << idx);
+        currentMask &= ~(1n << BigInt(idx));
         const cell = gameBoard.children[idx];
         if (cell) {
           cell.classList.remove('selected');
@@ -1278,7 +1232,7 @@ kbd {
       btnSubmit.disabled = true;
       backupCurrentState();
 
-      if (currentMask === 0) {
+      if (currentMask === 0n) {
         handleGameFinished(currentTurn); 
         return;
       }
@@ -1292,7 +1246,7 @@ kbd {
       }
     }
 
-function executeAITurn() {
+    function executeAITurn() {
       btnSubmit.disabled = true;
       btnReset.disabled = true;
 
@@ -1300,22 +1254,18 @@ function executeAITurn() {
       const size = config.size;
       const bestMoveMask = solvePerfectMove(currentMask, size);
 
-      // 1단계: AI가 선택한 구슬을 붉은색으로 강조 (선택 표시)
       for (let i = 0; i < size * size; i++) {
-        if ((bestMoveMask & (1 << i)) !== 0) {
+        if ((bestMoveMask & (1n << BigInt(i))) !== 0n) {
           const cell = gameBoard.children[i];
-          if (cell) {
-            cell.classList.add('selected', 'p2-sel'); // AI(P2) 색상 적용
-          }
+          if (cell) cell.classList.add('selected', 'p2-sel'); 
         }
       }
 
-      // 2단계: 800ms 뒤에 실제 데이터를 삭제하고 게임 진행
       setTimeout(() => {
-        if (bestMoveMask > 0) {
+        if (bestMoveMask > 0n) {
           currentMask ^= bestMoveMask;
           for (let i = 0; i < size * size; i++) {
-            if ((bestMoveMask & (1 << i)) !== 0) {
+            if ((bestMoveMask & (1n << BigInt(i))) !== 0n) {
               const cell = gameBoard.children[i];
               if (cell) {
                 cell.classList.remove('selected', 'p2-sel');
@@ -1327,7 +1277,7 @@ function executeAITurn() {
 
         backupCurrentState();
 
-        if (currentMask === 0) {
+        if (currentMask === 0n) {
           handleGameFinished(2); 
           return;
         }
@@ -1339,23 +1289,20 @@ function executeAITurn() {
       }, 800);
     }
 
+    // 마스킹 사전 계산을 BigInt 로직으로 변환
     function precomputeSizeMoves(size) {
       let moves = [];
       for (let i = 0; i < size * size; i++) {
-        moves.push(1 << i);
+        moves.push(1n << BigInt(i));
       }
       for (let r = 0; r < size; r++) {
         let indices = [];
-        for (let c = 0; c < size; c++) {
-          indices.push(r * size + c);
-        }
+        for (let c = 0; c < size; c++) indices.push(r * size + c);
         buildMoveCombos(indices, moves);
       }
       for (let c = 0; c < size; c++) {
         let indices = [];
-        for (let r = 0; r < size; r++) {
-          indices.push(r * size + c);
-        }
+        for (let r = 0; r < size; r++) indices.push(r * size + c);
         buildMoveCombos(indices, moves);
       }
       moveMasks[size] = [...new Set(moves)];
@@ -1365,13 +1312,13 @@ function executeAITurn() {
       const n = indices.length;
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          list.push((1 << indices[i]) | (1 << indices[j]));
+          list.push((1n << BigInt(indices[i])) | (1n << BigInt(indices[j])));
         }
       }
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
           for (let k = j + 1; k < n; k++) {
-            list.push((1 << indices[i]) | (1 << indices[j]) | (1 << indices[k]));
+            list.push((1n << BigInt(indices[i])) | (1n << BigInt(indices[j])) | (1n << BigInt(indices[k])));
           }
         }
       }
@@ -1379,7 +1326,7 @@ function executeAITurn() {
         for (let j = i + 1; j < n; j++) {
           for (let k = j + 1; k < n; k++) {
             for (let l = k + 1; l < n; l++) {
-              list.push((1 << indices[i]) | (1 << indices[j]) | (1 << indices[k]) | (1 << indices[l]));
+              list.push((1n << BigInt(indices[i])) | (1n << BigInt(indices[j])) | (1n << BigInt(indices[k])) | (1n << BigInt(indices[l])));
             }
           }
         }
@@ -1387,14 +1334,19 @@ function executeAITurn() {
     }
 
     function lazyBuildSolutionTable(size) {
+      // 메모리 한계를 고려하여 5x5 이상의 크기(2^25 이상)는 정답 해시 생성을 건너뜁니다.
+      if (size >= 5) return;
       const totalStates = 1 << (size * size);
       memoizedWins[size] = new Int8Array(totalStates);
     }
 
     function canStateWin(mask, size) {
-      if (mask === 0) return false;
+      if (mask === 0n) return false;
+      if (size >= 5) return false; // 5x5 이상은 완전 탐색 생략
+
+      const maskNum = Number(mask); // 사이즈 4 이하는 안전하게 Number 래핑 가능
       const memo = memoizedWins[size];
-      if (memo[mask] !== 0) return memo[mask] === 1;
+      if (memo[maskNum] !== 0) return memo[maskNum] === 1;
 
       const moves = moveMasks[size];
       for (let i = 0; i < moves.length; i++) {
@@ -1402,29 +1354,30 @@ function executeAITurn() {
         if ((mask & move) === move) {
           const nextMask = mask ^ move;
           if (!canStateWin(nextMask, size)) {
-            memo[mask] = 1;
+            memo[maskNum] = 1;
             return true;
           }
         }
       }
 
-      memo[mask] = -1;
+      memo[maskNum] = -1;
       return false;
     }
 
     function solvePerfectMove(mask, size) {
       const moves = moveMasks[size];
       let winningMoves = [];
-      let losingMoves = [];
+      let validMoves = [];
 
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
         if ((mask & move) === move) {
-          const nextMask = mask ^ move;
-          if (!canStateWin(nextMask, size)) {
-            winningMoves.push(move);
-          } else {
-            losingMoves.push(move);
+          validMoves.push(move); // 후보 수집
+          if (size <= 4) { // 제한된 사이즈일 때만 완벽 계산
+            const nextMask = mask ^ move;
+            if (!canStateWin(nextMask, size)) {
+              winningMoves.push(move);
+            }
           }
         }
       }
@@ -1432,13 +1385,12 @@ function executeAITurn() {
       if (winningMoves.length > 0) {
         return winningMoves[Math.floor(Math.random() * winningMoves.length)];
       }
-      if (losingMoves.length > 0) {
-        return losingMoves[Math.floor(Math.random() * losingMoves.length)];
+      if (validMoves.length > 0) {
+        return validMoves[Math.floor(Math.random() * validMoves.length)];
       }
-      return 0;
+      return 0n;
     }
 
-    // 사람 대 사람 승리 전용 테마 매핑 및 모달 노출
     function handleGameFinished(winner) {
       const config = dataSets.find(d => d.stage === currentStage);
       modalOverlay.classList.add('active');
@@ -1449,25 +1401,18 @@ function executeAITurn() {
         const firstTurnText = selectedFirstTurn === 1 ? '플레이어' : 'AI';
 
         if (!gameState.aiHistory) gameState.aiHistory = [];
-        gameState.aiHistory.push({
-          size: sizeText,
-          firstTurn: firstTurnText,
-          status: status
-        });
+        gameState.aiHistory.push({ size: sizeText, firstTurn: firstTurnText, status: status });
 
         if (winner === 1) {
           modalCard.className = 'modal-card success';
           modalTitle.innerText = "🎉 승리!";
-          modalBody.innerText = "초지능 AI의 두뇌 연산 방어벽을 격파했습니다!\n정밀한 판단력이 빛을 발한 한 판이었습니다.";
+          modalBody.innerText = "AI의 치밀한 방어벽을 격파했습니다!\n정밀한 판단력이 빛을 발한 한 판이었습니다.";
           modalBtn.innerText = "다시 하기"; 
-
-          if (!gameState.clearedStages.includes(currentStage)) {
-            gameState.clearedStages.push(currentStage);
-          }
+          if (!gameState.clearedStages.includes(currentStage)) gameState.clearedStages.push(currentStage);
         } else {
           modalCard.className = 'modal-card danger';
           modalTitle.innerText = "❌ 패배";
-          modalBody.innerText = "수학적 최적 경로를 계산한 AI의 방어막에 막혔습니다.\n다시 도전하여 빈틈을 공략해 보세요.";
+          modalBody.innerText = "수학적 최적 경로를 계산한 방어막에 막혔습니다.\n다시 도전하여 빈틈을 공략해 보세요.";
           modalBtn.innerText = "다시 시도";
         }
 
@@ -1476,24 +1421,23 @@ function executeAITurn() {
         renderStageButtons();
         renderRecordTable();
       } else {
-        // [수정사항 1] 사람 대 사람 매치 결과 연출 다변화
         modalBtn.innerText = "다시 하기"; 
         
         if (winner === 1) {
-          modalCard.className = 'modal-card p1-win'; // 블루 전용
+          modalCard.className = 'modal-card p1-win';
           modalTitle.innerText = "🎉 블루팀 승리";
           modalBody.innerText = "플레이어 1 (블루 팀)이 마지막 원을 지우며 승리를 쟁취했습니다!";
-          gameState.pvpWins[currentStage].p1 = (gameState.pvpWins[currentStage].p1 || 0) + 1;
+          if (!gameState.pvpWins[currentStage]) gameState.pvpWins[currentStage] = {p1:0, p2:0};
+          gameState.pvpWins[currentStage].p1++;
         } else {
-          modalCard.className = 'modal-card p2-win'; // 레드 전용
+          modalCard.className = 'modal-card p2-win';
           modalTitle.innerText = "🎉 레드팀 승리";
           modalBody.innerText = "플레이어 2 (레드 팀)가 마지막 원을 지우며 승리를 쟁취했습니다!";
-          gameState.pvpWins[currentStage].p2 = (gameState.pvpWins[currentStage].p2 || 0) + 1;
+          if (!gameState.pvpWins[currentStage]) gameState.pvpWins[currentStage] = {p1:0, p2:0};
+          gameState.pvpWins[currentStage].p2++;
         }
 
-        if (!gameState.clearedStages.includes(currentStage)) {
-          gameState.clearedStages.push(currentStage);
-        }
+        if (!gameState.clearedStages.includes(currentStage)) gameState.clearedStages.push(currentStage);
         gameState.stageHistory[currentStage] = null;
         saveLocalStorage();
         renderStageButtons();
@@ -1503,58 +1447,34 @@ function executeAITurn() {
       modalBtn.focus();
     }
 
-    function closeModal() {
-      modalOverlay.classList.remove('active');
-    }
+    function closeModal() { modalOverlay.classList.remove('active'); }
 
-    modalBtn.addEventListener('click', () => {
-      closeModal();
-      restartStage();
-    });
-
-    btnSelectP1.addEventListener('click', () => {
-      setFirstTurn(1);
-    });
-
-    btnSelectP2.addEventListener('click', () => {
-      setFirstTurn(2);
-    });
-
-    // 기록 누적 전체 초기화
-    btnClearRecord.addEventListener('click', () => {
-      confirmModalOverlay.classList.add('active');
-    });
-
-    btnConfirmCancel.addEventListener('click', () => {
-      confirmModalOverlay.classList.remove('active');
-    });
-
+    modalBtn.addEventListener('click', () => { closeModal(); restartStage(); });
+    btnSelectP1.addEventListener('click', () => setFirstTurn(1));
+    btnSelectP2.addEventListener('click', () => setFirstTurn(2));
+    btnClearRecord.addEventListener('click', () => confirmModalOverlay.classList.add('active'));
+    btnConfirmCancel.addEventListener('click', () => confirmModalOverlay.classList.remove('active'));
+    
     btnConfirmReset.addEventListener('click', () => {
       confirmModalOverlay.classList.remove('active');
       gameState = {
         clearedStages: [],
-        attempts: { 1: 0, 2: 0, 3: 0, 4: 0 },
-        pvpWins: { 
-          3: { p1: 0, p2: 0 }, 
-          4: { p1: 0, p2: 0 } 
-        },
-        stageHistory: {},
-        aiHistory: []
+        attempts: { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+        pvpWins: { 1:{p1:0, p2:0}, 2:{p1:0, p2:0}, 3:{p1:0, p2:0}, 4:{p1:0, p2:0} },
+        stageHistory: {}, aiHistory: []
       };
       saveLocalStorage();
-      currentStage = 1;
+      currentStage = 5;
       renderStageButtons();
       renderRecordTable();
       loadStage(currentStage);
     });
 
-    // [수정사항 2] 되돌리기 클릭 이벤트 리스너 바인딩 수정
     btnReset.addEventListener('click', handleUndo);
     btnSubmit.addEventListener('click', submitTurn);
 
     function setupGlobalEvents() {
       window.addEventListener('keydown', (e) => {
-        // 커스텀 초기화 확인 모달 실행 중일 때 키 제어
         if (confirmModalOverlay.classList.contains('active')) {
           if (e.key === 'Escape' || e.key === 'Esc') {
             e.preventDefault();
@@ -1562,7 +1482,6 @@ function executeAITurn() {
           }
           return;
         }
-
         if (modalOverlay.classList.contains('active')) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -1570,39 +1489,24 @@ function executeAITurn() {
           }
           return;
         }
-
-        // [수정사항 2] Backspace키 단축키 바인딩 (이전 턴 Undo 기능)
         if (e.key === 'Backspace') {
           e.preventDefault();
-          if (!btnReset.disabled) {
-            handleUndo();
-          }
+          if (!btnReset.disabled) handleUndo();
           return;
         }
-
-        // Enter/Space - 선택 확정 제출
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (!btnSubmit.disabled) {
-            submitTurn();
-          }
+          if (!btnSubmit.disabled) submitTurn();
         }
       });
-
       document.addEventListener('contextmenu', e => e.preventDefault());
-      
       document.addEventListener('touchstart', (e) => {
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
+        if (e.touches.length > 1) e.preventDefault();
       }, { passive: false });
-
       let lastTouchEnd = 0;
       document.addEventListener('touchend', (e) => {
         const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 250) {
-          e.preventDefault(); 
-        }
+        if (now - lastTouchEnd <= 250) e.preventDefault(); 
         lastTouchEnd = now;
       }, false);
     }
