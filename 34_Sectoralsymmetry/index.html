@@ -524,6 +524,503 @@
           ctx.arc(r * 0.6, 0, r * 0.16, 0, Math.PI * 2);
           ctx.fill();
         }
+      },
+
+      /* ================= NEW PATTERNS FROM ATTACHED SHEET ================= */
+      {
+        id: "sheet_hex_flower",
+        title: "7. 육각 꽃 테두리 오리기 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "부드럽게 커브가 들어간 외곽 띠와 중앙의 육각 원형 오려내기가 결합되어 화사한 대형 꽃판을 형성합니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // Outer Petal Contour Ring
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.85, -Math.PI / 24, Math.PI / 24);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.68, -Math.PI / 24, Math.PI / 24);
+          ctx.stroke();
+
+          // Radial Connecting Ribs
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.85, 0);
+          ctx.stroke();
+
+          // Center Geometric Petal Notch
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(r * 0.2, r * 0.15, r * 0.45, 0);
+          ctx.quadraticCurveTo(r * 0.2, -r * 0.15, 0, 0);
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_pointy_snowflake",
+        title: "8. 뾰족 별빛 눈결정 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#1e293b",
+        secondaryColor: "#f1f5f9",
+        category: "12",
+        desc: "삼각형 부채꼴 가장자리에 톱니 형태 오려내기를 주어 펼쳤을 때 뾰족한 눈결정 결정체가 만들어집니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.04;
+
+          // Main Sharp Arrow Tip
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, 0);
+          ctx.lineTo(r * 0.88, 0);
+          ctx.lineTo(r * 0.6, r * 0.18);
+          ctx.lineTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.6, -r * 0.18);
+          ctx.closePath();
+          ctx.fill();
+
+          // Outer Star Points
+          ctx.beginPath();
+          ctx.moveTo(r * 0.65, 0);
+          ctx.lineTo(r * 0.92, r * 0.12);
+          ctx.lineTo(r * 0.8, 0);
+          ctx.lineTo(r * 0.92, -r * 0.12);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_double_star",
+        title: "9. 이중 별빛 레이스 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#0f172a",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "중심과 외곽에 이중으로 정교한 별 모양 컷아웃이 배치되는 클래식 눈꽃 종이 오리기 모티프입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+
+          // Outer Star Ring
+          ctx.beginPath();
+          ctx.moveTo(r * 0.55, 0);
+          ctx.lineTo(r * 0.88, r * 0.15);
+          ctx.lineTo(r * 0.72, 0);
+          ctx.lineTo(r * 0.88, -r * 0.15);
+          ctx.closePath();
+          ctx.fill();
+
+          // Inner Star Ring
+          ctx.beginPath();
+          ctx.moveTo(r * 0.25, 0);
+          ctx.lineTo(r * 0.45, r * 0.12);
+          ctx.lineTo(r * 0.38, 0);
+          ctx.lineTo(r * 0.45, -r * 0.12);
+          ctx.closePath();
+          ctx.fill();
+
+          // Center Connective Bar
+          ctx.lineWidth = r * 0.04;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, 0);
+          ctx.lineTo(r * 0.75, 0);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_pine_tree",
+        title: "10. 화살나무 톱니 눈꽃 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "침엽수 가지와 계단식 화살깃 모양으로 홈을 오려내어 기하학적인 침엽형 눈꽃을 만들어냅니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // Central Trunk
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.92, 0);
+          ctx.stroke();
+
+          // Step-Cut Sawtooth Branches
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.45, r * 0.15);
+          ctx.lineTo(r * 0.45, 0);
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.7, r * 0.18);
+          ctx.lineTo(r * 0.7, 0);
+          ctx.moveTo(r * 0.72, 0);
+          ctx.lineTo(r * 0.9, r * 0.15);
+          ctx.stroke();
+
+          // Symmetric Opposite Branches
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.45, -r * 0.15);
+          ctx.lineTo(r * 0.45, 0);
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.7, -r * 0.18);
+          ctx.lineTo(r * 0.7, 0);
+          ctx.moveTo(r * 0.72, 0);
+          ctx.lineTo(r * 0.9, -r * 0.15);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_diamond_star",
+        title: "11. 다이아몬드 별격자 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#1e293b",
+        secondaryColor: "#f1f5f9",
+        category: "12",
+        desc: "선들과 각진 직사각형 컷아웃이 서로 맞물려 현대적이고 모던한 기하학적 별자리 격자를 구성합니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+
+          // Outer Sharp Diamond
+          ctx.beginPath();
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.68, r * 0.18);
+          ctx.lineTo(r * 0.68, -r * 0.18);
+          ctx.closePath();
+          ctx.fill();
+
+          // Outer Crossed V-shaped arms
+          ctx.lineWidth = r * 0.04;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.68, r * 0.18);
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.68, -r * 0.18);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_trefoil_blossom",
+        title: "12. 삼엽 클로버 꽃 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#475569",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "둥근 잎사귀 3개가 묶인 클로버 형태의 외곽 문양이 연속되며 상큼한 꽃밭 느낌을 연출합니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+
+          // Triple Rounded Leaf Tip
+          ctx.beginPath();
+          ctx.arc(r * 0.75, 0, r * 0.12, 0, Math.PI * 2);
+          ctx.arc(r * 0.68, r * 0.1, r * 0.08, 0, Math.PI * 2);
+          ctx.arc(r * 0.68, -r * 0.1, r * 0.08, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Central Stem & Leaf Base
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(r * 0.3, r * 0.08, r * 0.68, 0);
+          ctx.quadraticCurveTo(r * 0.3, -r * 0.08, 0, 0);
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_crown_arrow",
+        title: "13. 왕관 화살깃 만다라 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "왕관 모양의 칼날 컷팅 기법을 써서 선명하고 역동적인 방사형 만다라 패턴을 만듭니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+
+          // Crown Peak
+          ctx.beginPath();
+          ctx.moveTo(r * 0.35, 0);
+          ctx.lineTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.7, r * 0.16);
+          ctx.lineTo(r * 0.58, r * 0.08);
+          ctx.lineTo(r * 0.58, -r * 0.08);
+          ctx.lineTo(r * 0.7, -r * 0.16);
+          ctx.closePath();
+          ctx.fill();
+
+          // Inner Star Core
+          ctx.beginPath();
+          ctx.arc(r * 0.22, 0, r * 0.06, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_heart_star",
+        title: "14. 하트 아치 레이스 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#1e293b",
+        secondaryColor: "#f1f5f9",
+        category: "12",
+        desc: "부채꼴 호를 따라 반원형 하트 아치를 오려내어 펼치면 유기적으로 연결된 우아한 하트 꽃문양이 됩니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // Heart Arch Curves
+          ctx.beginPath();
+          ctx.moveTo(r * 0.4, 0);
+          ctx.quadraticCurveTo(r * 0.65, r * 0.22, r * 0.85, 0);
+          ctx.quadraticCurveTo(r * 0.65, -r * 0.22, r * 0.4, 0);
+          ctx.stroke();
+
+          // Outer Star Cut
+          ctx.beginPath();
+          ctx.moveTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.95, r * 0.08);
+          ctx.lineTo(r * 0.95, -r * 0.08);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_bubble_scale",
+        title: "15. 중첩 원형 버블 링 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#0f172a",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "반원 모양 호들이 서로 겹쳐지면서 동심원 모양의 비늘 패턴 및 만다라 링 구조를 연출합니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // Concentric Bubble Arches
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.82, -Math.PI / 20, Math.PI / 20);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.6, -Math.PI / 20, Math.PI / 20);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.38, -Math.PI / 20, Math.PI / 20);
+          ctx.stroke();
+
+          // Intersecting Loop
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(r * 0.6, 0, r * 0.08, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_circle_crown",
+        title: "16. 서클 크라운 문양 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "외곽 꼭짓점에 동그란 구슬을 달아 고풍스러운 서양 왕관 및 펜던트 보석 양식을 재현합니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.045;
+
+          // Radial Pillar Stem
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, 0);
+          ctx.lineTo(r * 0.72, 0);
+          ctx.stroke();
+
+          // Top Pearl Sphere
+          ctx.beginPath();
+          ctx.arc(r * 0.8, 0, r * 0.1, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Inner Arch Canopy
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.45, -Math.PI / 20, Math.PI / 20);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_heart_leaf",
+        title: "17. 육각 대형 하트잎 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#1e293b",
+        secondaryColor: "#f1f5f9",
+        category: "12",
+        desc: "큼직한 볼륨감의 하트 모양 꽃잎 컷아웃이 전체 원형 화면을 가득 채우는 풍성한 꽃 문양입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+
+          // Big Heart Leaf
+          ctx.beginPath();
+          ctx.moveTo(r * 0.15, 0);
+          ctx.quadraticCurveTo(r * 0.45, r * 0.25, r * 0.88, 0);
+          ctx.quadraticCurveTo(r * 0.45, -r * 0.25, r * 0.15, 0);
+          ctx.fill();
+
+          // Center Hollow Heart Core
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(r * 0.5, 0, r * 0.08, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+      {
+        id: "sheet_beaded_loop",
+        title: "18. 비즈 루프 고리 눈꽃 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#0f172a",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "동글동글한 고리 모듈들이 사방으로 가지를 뻗는 은하수 보석 고리 눈결정 문양입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.045;
+
+          // Main Stem Line
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.88, 0);
+          ctx.stroke();
+
+          // Beaded Outer Ring
+          ctx.beginPath();
+          ctx.arc(r * 0.72, 0, r * 0.12, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Side Loops
+          ctx.beginPath();
+          ctx.arc(r * 0.45, r * 0.1, r * 0.07, 0, Math.PI * 2);
+          ctx.arc(r * 0.45, -r * 0.1, r * 0.07, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_cross_star",
+        title: "19. 십자 크로스 별빛 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "눈꽃 가지 끝마다 작고 또렷한 십자가 교차 문양이 새겨진 섬세한 겨울 눈꽃 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.05;
+          ctx.lineCap = "round";
+
+          // Main Arm
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.stroke();
+
+          // Tip Cross Bar
+          ctx.beginPath();
+          ctx.moveTo(r * 0.75, r * 0.12);
+          ctx.lineTo(r * 0.75, -r * 0.12);
+          ctx.stroke();
+
+          // Middle Branch Cross Bar
+          ctx.beginPath();
+          ctx.moveTo(r * 0.45, r * 0.1);
+          ctx.lineTo(r * 0.45, -r * 0.1);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_pearl_wheel",
+        title: "20. 진주 마법진 방사 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#1e293b",
+        secondaryColor: "#f1f5f9",
+        category: "12",
+        desc: "크고 작은 원형 펀칭 구멍들이 규칙적인 기하학 궤도를 그리며 진주 바퀴를 연상시킵니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+
+          // Outer Large Circle
+          ctx.beginPath();
+          ctx.arc(r * 0.78, 0, r * 0.1, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Middle Circle
+          ctx.beginPath();
+          ctx.arc(r * 0.52, 0, r * 0.07, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Inner Circle
+          ctx.beginPath();
+          ctx.arc(r * 0.28, 0, r * 0.05, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Connecting Line
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.035;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.18, 0);
+          ctx.lineTo(r * 0.88, 0);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "sheet_interlock_square",
+        title: "21. 교차 직각 별 기하학 도안",
+        slices: 12,
+        angleDeg: 30,
+        color: "#0f172a",
+        secondaryColor: "#f8fafc",
+        category: "12",
+        desc: "정사각형과 직각 프레임들이 서로 비틀어져 겹치며 현대적인 만화경 그래픽 기하학을 만듭니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.045;
+
+          // Square Corner Edge Lines
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.65, r * 0.18);
+          ctx.lineTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.65, -r * 0.18);
+          ctx.closePath();
+          ctx.stroke();
+
+          // Outer V-Tooth Apex
+          ctx.beginPath();
+          ctx.moveTo(r * 0.65, 0);
+          ctx.lineTo(r * 0.92, r * 0.1);
+          ctx.lineTo(r * 0.92, -r * 0.1);
+          ctx.closePath();
+          ctx.stroke();
+        }
       }
     ];
 
