@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>부채꼴 & 대칭 원형 문양 갤러리 (Paper Cutout Symmetry)</title>
+  <title>부채꼴 대칭 아트</title>
   
   <!-- Pretendard Font -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -48,12 +48,6 @@
       font-family: 'Pretendard', system-ui, sans-serif;
     }
 
-    .paper-texture {
-      background-color: #ffffff;
-      background-image: radial-gradient(#e2e8f0 0.75px, transparent 0.75px);
-      background-size: 12px 12px;
-    }
-
     .shadow-craft {
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
     }
@@ -74,11 +68,10 @@
       background: #94a3b8;
     }
 
-    .canvas-container {
-      position: relative;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    .tool-btn.active {
+      background-color: #4f46e5 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
     }
   </style>
 </head>
@@ -91,21 +84,21 @@
           ✿
         </div>
         <div>
-          <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">부채꼴 & 대칭 원형 문양 아트 갤러리</h1>
-          <p class="text-xs md:text-sm text-slate-500 font-medium">단 하나의 부채꼴 조각이 펼쳐져 만들어내는 아름다운 360° 대칭 세계</p>
+          <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">부채꼴 대칭 아트</h1>
+          <p class="text-xs md:text-sm text-slate-500 font-medium">부채꼴 조각이 만들어내는 아름다운 360° 대칭 종이오리기 세계</p>
         </div>
       </div>
 
       <!-- Navigation / Mode Switches -->
-      <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-        <button id="navGallery" class="px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm" onclick="switchTab('gallery')">
+      <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl overflow-x-auto w-full md:w-auto">
+        <button id="navGallery" class="px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm" onclick="switchTab('gallery')">
           🖼 문양 갤러리
         </button>
-        <button id="navStudio" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all" onclick="switchTab('studio')">
+        <button id="navStudio" class="px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all" onclick="switchTab('studio')">
           ✨ 펼침 애니메이션 스튜디오
         </button>
-        <button id="navDraw" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all" onclick="switchTab('draw')">
-          🎨 직접 그리기 (DIY)
+        <button id="navDraw" class="px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all" onclick="switchTab('draw')">
+          🎨 직접 그리기
         </button>
       </div>
     </div>
@@ -117,14 +110,14 @@
     <section id="tabGallery" class="block space-y-6">
       
       <!-- Filter Bar -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-craft flex flex-wrap items-center justify-between gap-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-craft flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">대칭 수:</span>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">부채꼴 각도:</span>
           <button class="filter-btn active px-3 py-1.5 text-xs font-bold rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600" onclick="filterGallery('all', this)">전체 보기</button>
-          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('8', this)">45° (8대칭)</button>
-          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('12', this)">30° (12대칭)</button>
-          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('6', this)">60° (6대칭)</button>
-          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('16', this)">22.5° (16대칭)</button>
+          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('15', this)">15° (24분할)</button>
+          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('22.5', this)">22.5° (16분할)</button>
+          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('30', this)">30° (12분할)</button>
+          <button class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" onclick="filterGallery('45', this)">45° (8분할)</button>
         </div>
 
         <div class="flex items-center gap-3">
@@ -138,7 +131,7 @@
       </div>
 
       <!-- Gallery Grid Container -->
-      <div id="galleryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div id="galleryGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Dynamic Cards Inserted by JS -->
       </div>
     </section>
@@ -153,10 +146,13 @@
             <div class="relative w-full max-w-[440px] aspect-square rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center p-4 shadow-inner overflow-hidden">
               <canvas id="studioCanvas" width="800" height="800" class="w-full h-full object-contain"></canvas>
             </div>
-            <div class="mt-3 text-center">
-              <span id="studioSliceCounter" class="inline-block bg-indigo-50 text-indigo-700 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">
-                1 / 8 조각 (45°)
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-2 w-full">
+              <span id="studioSliceCounter" class="inline-block bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-full border border-indigo-200">
+                1 / 24 조각 (15°)
               </span>
+              <button onclick="downloadCanvas('studioCanvas', 'studio_animation.png')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-sm">
+                💾 PNG 저장
+              </button>
             </div>
           </div>
 
@@ -164,9 +160,9 @@
           <div class="w-full lg:w-1/2 space-y-6">
             <div>
               <span class="text-xs font-extrabold text-indigo-600 uppercase tracking-wider">Interactive Folding Studio</span>
-              <h2 id="studioTitle" class="text-2xl font-black text-slate-800 mt-1">동백꽃 종이오리기 로제트</h2>
-              <p id="studioDesc" class="text-sm text-slate-500 mt-1 leading-relaxed">
-                슬라이더를 조절하여 하나의 부채꼴 조각이 360도로 차례대로 펼쳐지며 완성되는 과정을 감상하세요.
+              <h2 id="studioTitle" class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">육각 꽃 테두리 오리기 도안</h2>
+              <p id="studioDesc" class="text-sm text-slate-500 mt-2 leading-relaxed">
+                부채꼴 조각을 펼쳤을 때 완성되는 아름다운 360도 대칭 종이 오리기 문양입니다.
               </p>
             </div>
 
@@ -179,31 +175,31 @@
             </div>
 
             <!-- Slider Control -->
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
-              <div class="flex justify-between items-center text-xs font-bold text-slate-600">
-                <span>접힌 부채꼴 (1개)</span>
-                <span id="studioProgressText" class="text-indigo-600 font-extrabold">100% 완충 (8조각)</span>
+            <div class="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200/80 space-y-3">
+              <div class="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-600">
+                <span>부채꼴 조각 (1개)</span>
+                <span id="studioProgressText" class="text-indigo-600 font-extrabold">100% 완충 (24조각)</span>
                 <span>원형 완성 (전체)</span>
               </div>
-              <input type="range" id="studioProgressSlider" min="1" max="8" value="8" step="0.05" oninput="updateStudioAnimation()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+              <input type="range" id="studioProgressSlider" min="1" max="24" value="24" step="0.05" oninput="updateStudioAnimation()" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
             </div>
 
             <!-- Play / Pause / Reset Buttons -->
             <div class="flex items-center gap-3">
-              <button id="btnPlayAnim" onclick="toggleStudioPlay()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+              <button id="btnPlayAnim" onclick="toggleStudioPlay()" class="flex-1 py-3 sm:py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
                 <span>▶</span> <span id="lblPlayAnim">자동 펼침 재생</span>
               </button>
-              <button onclick="resetStudioAnim()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all">
+              <button onclick="resetStudioAnim()" class="px-4 py-3 sm:py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all">
                 🔄 처음으로
               </button>
             </div>
 
             <!-- Color Palette Customizer -->
-            <div class="pt-2 border-t border-slate-100">
+            <div class="pt-4 border-t border-slate-100">
               <label class="text-xs font-bold text-slate-600 block mb-2">색상 커스텀:</label>
               <div class="flex items-center gap-3">
-                <input type="color" id="studioColorPicker" value="#dc2626" onchange="changeStudioColor(this.value)" class="w-10 h-10 rounded-lg border-2 border-slate-200 cursor-pointer p-0.5">
-                <span id="studioHexText" class="text-xs font-mono font-bold text-slate-500">#dc2626</span>
+                <input type="color" id="studioColorPicker" value="#1e293b" onchange="changeStudioColor(this.value)" class="w-12 h-12 rounded-lg border-2 border-slate-200 cursor-pointer p-0.5">
+                <span id="studioHexText" class="text-sm font-mono font-bold text-slate-500">#1e293b</span>
               </div>
             </div>
 
@@ -215,64 +211,86 @@
 
     <!-- ==================== TAB 3: DIY DRAWING DESIGNER ==================== -->
     <section id="tabDraw" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-craft">
-        <div class="flex flex-col lg:flex-row gap-8">
+      <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-craft">
+        <div class="flex flex-col lg:flex-row gap-6 sm:gap-8">
           
           <!-- Left: Drawing Canvas (Sector) -->
-          <div class="w-full lg:w-1/2 space-y-3">
-            <div class="flex justify-between items-center">
+          <div class="w-full lg:w-1/2 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div>
-                <h3 class="text-base font-bold text-slate-800">1. 부채꼴 조각에 그리기</h3>
-                <p class="text-xs text-slate-500">부채꼴 영역 내부에 마우스/터치로 오려낼 문양을 그려보세요.</p>
+                <h3 class="text-base font-bold text-slate-800">1. 부채꼴 종이에 문양 디자인</h3>
+                <p class="text-xs text-slate-500">다양한 그리기 및 도구로 디자인해보세요.</p>
               </div>
-              <button onclick="clearDrawCanvas()" class="text-xs font-bold text-rose-500 hover:text-rose-700 px-2 py-1 rounded border border-rose-200 bg-rose-50">
-                🗑 전체 지우기
-              </button>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="downloadSectorImage()" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded border border-slate-200 bg-slate-50" title="도안(부채꼴) PNG 저장">💾 PNG 저장</button>
+                <button onclick="undoDraw()" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded border border-slate-200 bg-slate-50">↩️ 되돌리기</button>
+                <button onclick="clearDrawCanvas()" class="text-xs font-bold text-rose-500 hover:text-rose-700 px-3 py-1.5 rounded border border-rose-200 bg-rose-50">🗑 지우기</button>
+              </div>
             </div>
 
+            <!-- Drawing Area -->
             <div class="relative w-full aspect-square max-w-[420px] mx-auto rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden">
-              <canvas id="drawInputCanvas" width="600" height="600" class="w-full h-full cursor-crosshair"></canvas>
+              <canvas id="drawGuideCanvas" width="600" height="600" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+              <canvas id="drawInputCanvas" width="600" height="600" class="relative w-full h-full cursor-crosshair touch-none z-10"></canvas>
             </div>
 
-            <!-- Drawing Tools Toolbar -->
-            <div class="flex flex-wrap items-center gap-2 pt-1">
-              <span class="text-xs font-bold text-slate-500">도구:</span>
-              <button id="toolPen" onclick="setDrawTool('pen')" class="tool-btn active text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm">✏️ 펜</button>
-              <button id="toolEraser" onclick="setDrawTool('eraser')" class="tool-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">🧹 지우개</button>
-              <input type="color" id="drawColorPicker" value="#2563eb" onchange="drawColor = this.value" class="w-8 h-8 rounded border border-slate-300 cursor-pointer p-0.5">
-              
-              <div class="flex items-center gap-2 ml-auto">
-                <span class="text-xs font-bold text-slate-500">선 굵기:</span>
-                <input type="range" id="brushSize" min="3" max="30" value="12" oninput="drawWidth = this.value" class="w-20 accent-indigo-600">
+            <!-- Enhanced Toolbar -->
+            <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold text-slate-500 mr-1 block w-full sm:w-auto">도구:</span>
+                <button id="toolPen" onclick="setDrawTool('pen')" class="tool-btn active text-xs font-bold px-3 py-2 rounded-lg bg-indigo-600 text-white shadow-sm flex-1 sm:flex-none">✏️ 펜</button>
+                <button id="toolLine" onclick="setDrawTool('line')" class="tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none">📏 직선</button>
+                <button id="toolCircle" onclick="setDrawTool('circle')" class="tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none">⭕ 원</button>
+                <button id="toolDiamond" onclick="setDrawTool('diamond')" class="tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none">💎 다이아몬드</button>
+                <button id="toolStar" onclick="setDrawTool('star')" class="tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none">⭐ 별</button>
+                <button id="toolEraser" onclick="setDrawTool('eraser')" class="tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none">🧹 지우개</button>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-200/60">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-500">색상:</span>
+                  <input type="color" id="drawColorPicker" value="#2563eb" onchange="drawColor = this.value" class="w-8 h-8 rounded border border-slate-300 cursor-pointer p-0.5">
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 max-w-[200px]">
+                  <span class="text-xs font-bold text-slate-500">크기:</span>
+                  <input type="range" id="brushSize" min="2" max="40" value="10" oninput="drawWidth = parseInt(this.value)" class="w-full accent-indigo-600">
+                </div>
               </div>
             </div>
+
           </div>
 
           <!-- Right: Real-time Symmetrical Result Canvas -->
-          <div class="w-full lg:w-1/2 space-y-3">
-            <div class="flex justify-between items-center">
+          <div class="w-full lg:w-1/2 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div>
-                <h3 class="text-base font-bold text-slate-800">2. 실시간 완성 원형 문양</h3>
-                <p class="text-xs text-slate-500">부채꼴이 미러링 대칭으로 펼쳐진 결과입니다.</p>
+                <h3 class="text-base font-bold text-slate-800">2. 실시간 완성 원형</h3>
+                <p class="text-xs text-slate-500">360도로 회전 대칭 전개된 최종 결과입니다.</p>
               </div>
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-slate-500">대칭각:</label>
-                <select id="drawSymmetrySelect" onchange="updateDrawSymmetry()" class="text-xs font-bold bg-slate-100 border border-slate-200 rounded-lg px-2 py-1">
-                  <option value="8">45° (8대칭)</option>
-                  <option value="12" selected>30° (12대칭)</option>
-                  <option value="6">60° (6대칭)</option>
-                  <option value="16">22.5° (16대칭)</option>
+              <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer pl-2 pr-2 border-r border-slate-200">
+                  <input type="checkbox" id="showRadialLines" onchange="renderCustomSymmetryOutput()" class="w-3.5 h-3.5 accent-indigo-600">
+                  부채꼴 경계선
+                </label>
+                <label class="text-xs font-bold text-slate-600 pl-1">분할 수:</label>
+                <select id="drawSymmetrySelect" onchange="updateDrawSymmetry()" class="text-xs font-bold bg-white border border-slate-200 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500">
+                  <option value="24" selected>24분할 (15°)</option>
+                  <option value="16">16분할 (22.5°)</option>
+                  <option value="12">12분할 (30°)</option>
+                  <option value="8">8분할 (45°)</option>
                 </select>
               </div>
             </div>
 
             <div class="relative w-full aspect-square max-w-[420px] mx-auto rounded-xl border border-slate-200 bg-white shadow-inner flex items-center justify-center overflow-hidden">
-              <canvas id="drawOutputCanvas" width="600" height="600" class="w-full h-full"></canvas>
+              <!-- 전체 원이 렌더링되는 캔버스 -->
+              <canvas id="drawOutputCanvas" width="600" height="600" class="w-full h-full object-contain"></canvas>
             </div>
 
-            <div class="flex justify-end pt-1">
-              <button onclick="downloadCustomPattern()" class="text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 px-4 py-2 rounded-xl shadow-sm flex items-center gap-1.5">
-                💾 PNG 이미지 저장
+            <div class="flex justify-end pt-2">
+              <button onclick="downloadCustomPattern()" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded border border-slate-200 bg-slate-50">
+                💾 PNG 저장
               </button>
             </div>
           </div>
@@ -283,27 +301,28 @@
 
   </main>
 
+  <!-- Modal -->
   <div id="patternModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all">
     <div class="bg-white w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto">
-      <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 font-bold text-xl p-2">✕</button>
+      <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 font-bold text-xl p-2 w-10 h-10 flex items-center justify-center rounded-full bg-slate-100">✕</button>
       
-      <div class="flex items-center gap-3">
-        <span id="modalBadge" class="bg-indigo-100 text-indigo-700 text-xs font-black px-3 py-1 rounded-full">45° (8대칭)</span>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 pr-8">
+        <span id="modalBadge" class="bg-indigo-100 text-indigo-700 text-xs font-black px-3 py-1 rounded-full w-fit">15° (24분할)</span>
         <h3 id="modalTitle" class="text-xl font-extrabold text-slate-800">문양 상세 확대 보기</h3>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
         <!-- Modal Left: Sector -->
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
-          <span class="text-xs font-bold text-slate-500 mb-2">단일 부채꼴 조각</span>
-          <div class="w-48 h-48 bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center">
+          <span class="text-xs font-bold text-slate-500 mb-2">부채꼴 조각</span>
+          <div class="w-full aspect-square max-w-[240px] bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center">
             <canvas id="modalSectorCanvas" width="300" height="300" class="w-full h-full object-contain"></canvas>
           </div>
         </div>
         <!-- Modal Right: Full Circle -->
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
           <span class="text-xs font-bold text-slate-500 mb-2">완성 대칭 원 문양</span>
-          <div class="w-48 h-48 bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center">
+          <div class="w-full aspect-square max-w-[240px] bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center">
             <canvas id="modalCircleCanvas" width="300" height="300" class="w-full h-full object-contain"></canvas>
           </div>
         </div>
@@ -313,11 +332,11 @@
         문양 설명 영역입니다.
       </p>
 
-      <div class="flex justify-end gap-3 pt-2">
-        <button onclick="closeModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-100">
+      <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+        <button onclick="closeModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-100 text-center">
           닫기
         </button>
-        <button id="modalBtnAnimate" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">
+        <button id="modalBtnAnimate" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md text-center">
           ✨ 스튜디오에서 펼치기
         </button>
       </div>
@@ -327,258 +346,55 @@
   <script>
     const PRESETS = [
       {
-        id: "camellia",
-        title: "1. 동백꽃 전통 로제트",
-        slices: 8,
-        angleDeg: 45,
-        color: "#dc2626",
-        secondaryColor: "#fef2f2",
-        category: "8",
-        desc: "8장의 꽃잎이 격자 구조로 교차하며 피어나는 전통 동백꽃 문양입니다. 외각의 부드러운 곡선과 중심의 씨앗 모양이 아름다운 수평 대칭을 이룹니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-          // Petal 1
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.quadraticCurveTo(r * 0.45, r * 0.2, r * 0.88, 0);
-          ctx.quadraticCurveTo(r * 0.45, -r * 0.2, 0, 0);
-          ctx.fill();
-
-          // Outer ring arc cutout
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.09;
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.72, -Math.PI / 16, Math.PI / 16);
-          ctx.stroke();
-
-          // Center jewel dot
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(r * 0.45, 0, r * 0.07, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-      {
-        id: "cobalt_lace",
-        title: "2. 코발트 레이스 만다라",
-        slices: 12,
-        angleDeg: 30,
-        color: "#1d4ed8",
-        secondaryColor: "#eff6ff",
-        category: "12",
-        desc: "30도 각도의 부채꼴 12개가 정밀하게 짜여진 유럽 고딕 풍의 레이스 만다라입니다. 정교한 망사 패턴과 중심부 꽃관이 조화를 이룹니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.fillStyle = color;
-
-          // Inner Lotus leaf
-          ctx.beginPath();
-          ctx.moveTo(0,0);
-          ctx.lineTo(r * 0.45, 0);
-          ctx.quadraticCurveTo(r * 0.25, r * 0.12, 0, 0);
-          ctx.quadraticCurveTo(r * 0.25, -r * 0.12, 0, 0);
-          ctx.fill();
-
-          // Outer mesh arches
-          ctx.lineWidth = r * 0.04;
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.6, -Math.PI / 24, Math.PI / 24);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.82, -Math.PI / 24, Math.PI / 24);
-          ctx.stroke();
-
-          // Diamond lattice lines
-          ctx.beginPath();
-          ctx.moveTo(r * 0.6, -r * 0.1);
-          ctx.lineTo(r * 0.82, r * 0.1);
-          ctx.moveTo(r * 0.6, r * 0.1);
-          ctx.lineTo(r * 0.82, -r * 0.1);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "star_crystal",
-        title: "3. 8각 크리스탈 별 문양",
-        slices: 8,
-        angleDeg: 45,
-        color: "#0284c7",
-        secondaryColor: "#f0f9ff",
-        category: "8",
-        desc: "샤프한 직선과 삼각형 오려내기 기법을 활용한 8각 별 형태의 크리스탈 문양입니다. 나침반 모티브의 기하학적 미학을 보여줍니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-          // Main Star Arrow
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(r * 0.9, 0);
-          ctx.lineTo(r * 0.45, r * 0.18);
-          ctx.lineTo(r * 0.45, -r * 0.18);
-          ctx.closePath();
-          ctx.fill();
-
-          // Outer Triangle Teeth
-          ctx.beginPath();
-          ctx.moveTo(r * 0.68, 0);
-          ctx.lineTo(r * 0.92, r * 0.22);
-          ctx.lineTo(r * 0.92, -r * 0.22);
-          ctx.closePath();
-          ctx.fill();
-        }
-      },
-      {
-        id: "snowflake_mandi",
-        title: "4. 화사한 눈결정 종이꽃",
-        slices: 6,
-        angleDeg: 60,
-        color: "#0891b2",
-        secondaryColor: "#ecfeff",
-        category: "6",
-        desc: "60도 부채꼴 6개로 완성되는 클래식한 6각 육형 눈결정 문양입니다. 가지치기 형태의 섬세한 컷아웃이 돋보입니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.06;
-          ctx.lineCap = "round";
-
-          // Main Stem
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(r * 0.9, 0);
-          ctx.stroke();
-
-          // Side Branches
-          ctx.beginPath();
-          ctx.moveTo(r * 0.35, 0);
-          ctx.lineTo(r * 0.6, r * 0.22);
-          ctx.moveTo(r * 0.35, 0);
-          ctx.lineTo(r * 0.6, -r * 0.22);
-
-          ctx.moveTo(r * 0.65, 0);
-          ctx.lineTo(r * 0.85, r * 0.18);
-          ctx.moveTo(r * 0.65, 0);
-          ctx.lineTo(r * 0.85, -r * 0.18);
-          ctx.stroke();
-
-          // Tip Crystal Hexagon
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(r * 0.9, 0, r * 0.07, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-      {
-        id: "sunburst_sol",
-        title: "5. 황금 태양 광륜 만다라",
-        slices: 16,
-        angleDeg: 22.5,
-        color: "#d97706",
-        secondaryColor: "#fffbeb",
-        category: "16",
-        desc: "22.5도의 섬세한 부채꼴 16개가 촘촘히 엮여 마치 일체형 태양 광륜처럼 불꽃 모양의 에너지를 뿜어내는 문양입니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-
-          // Flame Ray
-          ctx.beginPath();
-          ctx.moveTo(r * 0.18, 0);
-          ctx.quadraticCurveTo(r * 0.55, r * 0.12, r * 0.95, 0);
-          ctx.quadraticCurveTo(r * 0.55, -r * 0.12, r * 0.18, 0);
-          ctx.fill();
-
-          // Middle Ring
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.045;
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.48, -Math.PI / 32, Math.PI / 32);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "gothic_rose",
-        title: "6. 고딕 스테인드 장미 창문",
-        slices: 12,
-        angleDeg: 30,
-        color: "#7c3aed",
-        secondaryColor: "#f5f3ff",
-        category: "12",
-        desc: "성당의 스테인드글라스 장미창을 오마주한 12대칭 문양입니다. 조화로운 원호와 방사형 기둥이 환상적인 대칭미를 연출합니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.fillStyle = color;
-
-          ctx.lineWidth = r * 0.045;
-
-          // Inner Arch
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.35, -Math.PI / 24, Math.PI / 24);
-          ctx.stroke();
-
-          // Outer Arch
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.85, -Math.PI / 24, Math.PI / 24);
-          ctx.stroke();
-
-          // Petal Heart
-          ctx.beginPath();
-          ctx.arc(r * 0.6, 0, r * 0.16, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-
-      /* ================= NEW PATTERNS FROM ATTACHED SHEET ================= */
-      {
-        id: "sheet_hex_flower",
-        title: "7. 육각 꽃 테두리 오리기 도안",
-        slices: 12,
-        angleDeg: 30,
+        id: "sheet_1_hex_flower",
+        title: "1. 육각 꽃 테두리 오리기 도안",
+        slices: 24,
+        angleDeg: 15,
+        isHalfFold: true,
         color: "#334155",
         secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "부드럽게 커브가 들어간 외곽 띠와 중앙의 육각 원형 오려내기가 결합되어 화사한 대형 꽃판을 형성합니다.",
+        category: "15",
+        desc: "부드럽게 커브가 들어간 외곽 띠와 중앙의 오려내기 문양. 조각 24개가 반사 대칭으로 연결되어 화사한 대형 꽃판을 형성합니다.",
         drawPath: function(ctx, r, color) {
           ctx.strokeStyle = color;
           ctx.fillStyle = color;
           ctx.lineWidth = r * 0.05;
 
-          // Outer Petal Contour Ring
           ctx.beginPath();
-          ctx.arc(0, 0, r * 0.85, -Math.PI / 24, Math.PI / 24);
+          ctx.arc(0, 0, r * 0.85, 0, Math.PI / 12);
           ctx.stroke();
 
           ctx.beginPath();
-          ctx.arc(0, 0, r * 0.68, -Math.PI / 24, Math.PI / 24);
+          ctx.arc(0, 0, r * 0.68, 0, Math.PI / 12);
           ctx.stroke();
 
-          // Radial Connecting Ribs
           ctx.beginPath();
           ctx.moveTo(r * 0.3, 0);
           ctx.lineTo(r * 0.85, 0);
           ctx.stroke();
 
-          // Center Geometric Petal Notch
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.quadraticCurveTo(r * 0.2, r * 0.15, r * 0.45, 0);
-          ctx.quadraticCurveTo(r * 0.2, -r * 0.15, 0, 0);
+          ctx.lineTo(r * 0.42, 0);
+          ctx.quadraticCurveTo(r * 0.25, r * 0.12, 0, 0);
           ctx.fill();
         }
       },
       {
-        id: "sheet_pointy_snowflake",
-        title: "8. 뾰족 별빛 눈결정 도안",
+        id: "sheet_2_pointy_snowflake",
+        title: "2. 뾰족 별빛 눈결정 도안",
         slices: 12,
         angleDeg: 30,
+        isHalfFold: false,
         color: "#1e293b",
         secondaryColor: "#f1f5f9",
-        category: "12",
-        desc: "삼각형 부채꼴 가장자리에 톱니 형태 오려내기를 주어 펼쳤을 때 뾰족한 눈결정 결정체가 만들어집니다.",
+        category: "30",
+        desc: "부채꼴 가장자리에 톱니 형태 오려내기를 주어 펼쳤을 때 뾰족한 눈결정 결정체가 만들어집니다.",
         drawPath: function(ctx, r, color) {
           ctx.strokeStyle = color;
           ctx.fillStyle = color;
           ctx.lineWidth = r * 0.04;
 
-          // Main Sharp Arrow Tip
           ctx.beginPath();
           ctx.moveTo(r * 0.2, 0);
           ctx.lineTo(r * 0.88, 0);
@@ -588,7 +404,6 @@
           ctx.closePath();
           ctx.fill();
 
-          // Outer Star Points
           ctx.beginPath();
           ctx.moveTo(r * 0.65, 0);
           ctx.lineTo(r * 0.92, r * 0.12);
@@ -599,199 +414,86 @@
         }
       },
       {
-        id: "sheet_double_star",
-        title: "9. 이중 별빛 레이스 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#0f172a",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "중심과 외곽에 이중으로 정교한 별 모양 컷아웃이 배치되는 클래식 눈꽃 종이 오리기 모티프입니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-          ctx.strokeStyle = color;
-
-          // Outer Star Ring
-          ctx.beginPath();
-          ctx.moveTo(r * 0.55, 0);
-          ctx.lineTo(r * 0.88, r * 0.15);
-          ctx.lineTo(r * 0.72, 0);
-          ctx.lineTo(r * 0.88, -r * 0.15);
-          ctx.closePath();
-          ctx.fill();
-
-          // Inner Star Ring
-          ctx.beginPath();
-          ctx.moveTo(r * 0.25, 0);
-          ctx.lineTo(r * 0.45, r * 0.12);
-          ctx.lineTo(r * 0.38, 0);
-          ctx.lineTo(r * 0.45, -r * 0.12);
-          ctx.closePath();
-          ctx.fill();
-
-          // Center Connective Bar
-          ctx.lineWidth = r * 0.04;
-          ctx.beginPath();
-          ctx.moveTo(r * 0.2, 0);
-          ctx.lineTo(r * 0.75, 0);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "sheet_pine_tree",
-        title: "10. 화살나무 톱니 눈꽃 도안",
-        slices: 12,
-        angleDeg: 30,
+        id: "sheet_4_pine_tree",
+        title: "3. 화살나무 톱니 눈꽃 도안",
+        slices: 24,
+        angleDeg: 15,
+        isHalfFold: true,
         color: "#334155",
         secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "침엽수 가지와 계단식 화살깃 모양으로 홈을 오려내어 기하학적인 침엽형 눈꽃을 만들어냅니다.",
+        category: "15",
+        desc: "침엽수 가지와 계단식 화살깃 모양 홈을 오려낸 도안. 절반 각도만 오려내어 섬세한 침엽 눈꽃을 만듭니다.",
         drawPath: function(ctx, r, color) {
           ctx.strokeStyle = color;
           ctx.fillStyle = color;
           ctx.lineWidth = r * 0.05;
 
-          // Central Trunk
           ctx.beginPath();
           ctx.moveTo(0, 0);
           ctx.lineTo(r * 0.92, 0);
           ctx.stroke();
 
-          // Step-Cut Sawtooth Branches
           ctx.beginPath();
           ctx.moveTo(r * 0.3, 0);
-          ctx.lineTo(r * 0.45, r * 0.15);
-          ctx.lineTo(r * 0.45, 0);
-          ctx.moveTo(r * 0.5, 0);
-          ctx.lineTo(r * 0.7, r * 0.18);
-          ctx.lineTo(r * 0.7, 0);
-          ctx.moveTo(r * 0.72, 0);
-          ctx.lineTo(r * 0.9, r * 0.15);
-          ctx.stroke();
-
-          // Symmetric Opposite Branches
-          ctx.beginPath();
-          ctx.moveTo(r * 0.3, 0);
-          ctx.lineTo(r * 0.45, -r * 0.15);
-          ctx.lineTo(r * 0.45, 0);
-          ctx.moveTo(r * 0.5, 0);
-          ctx.lineTo(r * 0.7, -r * 0.18);
-          ctx.lineTo(r * 0.7, 0);
-          ctx.moveTo(r * 0.72, 0);
-          ctx.lineTo(r * 0.9, -r * 0.15);
+          ctx.lineTo(r * 0.48, r * 0.12);
+          ctx.lineTo(r * 0.48, 0);
+          ctx.moveTo(r * 0.52, 0);
+          ctx.lineTo(r * 0.72, r * 0.15);
+          ctx.lineTo(r * 0.72, 0);
+          ctx.moveTo(r * 0.75, 0);
+          ctx.lineTo(r * 0.9, r * 0.12);
           ctx.stroke();
         }
       },
       {
-        id: "sheet_diamond_star",
-        title: "11. 다이아몬드 별격자 도안",
-        slices: 12,
-        angleDeg: 30,
+        id: "sheet_5_diamond_star",
+        title: "4. 다이아몬드 별격자 도안",
+        slices: 24,
+        angleDeg: 15,
+        isHalfFold: true,
         color: "#1e293b",
         secondaryColor: "#f1f5f9",
-        category: "12",
-        desc: "선들과 각진 직사각형 컷아웃이 서로 맞물려 현대적이고 모던한 기하학적 별자리 격자를 구성합니다.",
+        category: "15",
+        desc: "15도 부채꼴에 새겨진 각진 다이아몬드 및 직각 프레임 오려내기가 선명한 기하학 별자리 격자를 완성합니다.",
         drawPath: function(ctx, r, color) {
           ctx.fillStyle = color;
           ctx.strokeStyle = color;
 
-          // Outer Sharp Diamond
           ctx.beginPath();
           ctx.moveTo(r * 0.5, 0);
           ctx.lineTo(r * 0.85, 0);
-          ctx.lineTo(r * 0.68, r * 0.18);
-          ctx.lineTo(r * 0.68, -r * 0.18);
+          ctx.lineTo(r * 0.68, r * 0.12);
           ctx.closePath();
           ctx.fill();
 
-          // Outer Crossed V-shaped arms
           ctx.lineWidth = r * 0.04;
           ctx.beginPath();
           ctx.moveTo(r * 0.3, 0);
-          ctx.lineTo(r * 0.68, r * 0.18);
-          ctx.moveTo(r * 0.3, 0);
-          ctx.lineTo(r * 0.68, -r * 0.18);
+          ctx.lineTo(r * 0.68, r * 0.12);
           ctx.stroke();
         }
       },
       {
-        id: "sheet_trefoil_blossom",
-        title: "12. 삼엽 클로버 꽃 도안",
+        id: "sheet_8_heart_star",
+        title: "5. 하트 아치 레이스 도안",
         slices: 12,
         angleDeg: 30,
-        color: "#475569",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "둥근 잎사귀 3개가 묶인 클로버 형태의 외곽 문양이 연속되며 상큼한 꽃밭 느낌을 연출합니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-
-          // Triple Rounded Leaf Tip
-          ctx.beginPath();
-          ctx.arc(r * 0.75, 0, r * 0.12, 0, Math.PI * 2);
-          ctx.arc(r * 0.68, r * 0.1, r * 0.08, 0, Math.PI * 2);
-          ctx.arc(r * 0.68, -r * 0.1, r * 0.08, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Central Stem & Leaf Base
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.quadraticCurveTo(r * 0.3, r * 0.08, r * 0.68, 0);
-          ctx.quadraticCurveTo(r * 0.3, -r * 0.08, 0, 0);
-          ctx.fill();
-        }
-      },
-      {
-        id: "sheet_crown_arrow",
-        title: "13. 왕관 화살깃 만다라 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#334155",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "왕관 모양의 칼날 컷팅 기법을 써서 선명하고 역동적인 방사형 만다라 패턴을 만듭니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-
-          // Crown Peak
-          ctx.beginPath();
-          ctx.moveTo(r * 0.35, 0);
-          ctx.lineTo(r * 0.85, 0);
-          ctx.lineTo(r * 0.7, r * 0.16);
-          ctx.lineTo(r * 0.58, r * 0.08);
-          ctx.lineTo(r * 0.58, -r * 0.08);
-          ctx.lineTo(r * 0.7, -r * 0.16);
-          ctx.closePath();
-          ctx.fill();
-
-          // Inner Star Core
-          ctx.beginPath();
-          ctx.arc(r * 0.22, 0, r * 0.06, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-      {
-        id: "sheet_heart_star",
-        title: "14. 하트 아치 레이스 도안",
-        slices: 12,
-        angleDeg: 30,
+        isHalfFold: false,
         color: "#1e293b",
         secondaryColor: "#f1f5f9",
-        category: "12",
+        category: "30",
         desc: "부채꼴 호를 따라 반원형 하트 아치를 오려내어 펼치면 유기적으로 연결된 우아한 하트 꽃문양이 됩니다.",
         drawPath: function(ctx, r, color) {
           ctx.strokeStyle = color;
           ctx.fillStyle = color;
           ctx.lineWidth = r * 0.05;
 
-          // Heart Arch Curves
           ctx.beginPath();
           ctx.moveTo(r * 0.4, 0);
           ctx.quadraticCurveTo(r * 0.65, r * 0.22, r * 0.85, 0);
           ctx.quadraticCurveTo(r * 0.65, -r * 0.22, r * 0.4, 0);
           ctx.stroke();
 
-          // Outer Star Cut
           ctx.beginPath();
           ctx.moveTo(r * 0.85, 0);
           ctx.lineTo(r * 0.95, r * 0.08);
@@ -801,225 +503,543 @@
         }
       },
       {
-        id: "sheet_bubble_scale",
-        title: "15. 중첩 원형 버블 링 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#0f172a",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "반원 모양 호들이 서로 겹쳐지면서 동심원 모양의 비늘 패턴 및 만다라 링 구조를 연출합니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.05;
-
-          // Concentric Bubble Arches
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.82, -Math.PI / 20, Math.PI / 20);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.6, -Math.PI / 20, Math.PI / 20);
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.38, -Math.PI / 20, Math.PI / 20);
-          ctx.stroke();
-
-          // Intersecting Loop
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(r * 0.6, 0, r * 0.08, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-      {
-        id: "sheet_circle_crown",
-        title: "16. 서클 크라운 문양 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#334155",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "외곽 꼭짓점에 동그란 구슬을 달아 고풍스러운 서양 왕관 및 펜던트 보석 양식을 재현합니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.fillStyle = color;
-          ctx.lineWidth = r * 0.045;
-
-          // Radial Pillar Stem
-          ctx.beginPath();
-          ctx.moveTo(r * 0.2, 0);
-          ctx.lineTo(r * 0.72, 0);
-          ctx.stroke();
-
-          // Top Pearl Sphere
-          ctx.beginPath();
-          ctx.arc(r * 0.8, 0, r * 0.1, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Inner Arch Canopy
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 0.45, -Math.PI / 20, Math.PI / 20);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "sheet_heart_leaf",
-        title: "17. 육각 대형 하트잎 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#1e293b",
-        secondaryColor: "#f1f5f9",
-        category: "12",
-        desc: "큼직한 볼륨감의 하트 모양 꽃잎 컷아웃이 전체 원형 화면을 가득 채우는 풍성한 꽃 문양입니다.",
+        id: "showcase_camellia",
+        title: "6. 동백꽃 전통 로제트",
+        slices: 16,
+        angleDeg: 22.5,
+        isHalfFold: true,
+        color: "#dc2626",
+        secondaryColor: "#fef2f2",
+        category: "22.5",
+        desc: "22.5도 부채꼴 16개가 펼쳐지며 8장의 교차 꽃잎과 격자 씨앗을 완성하는 전통 동백꽃 문양입니다.",
         drawPath: function(ctx, r, color) {
           ctx.fillStyle = color;
-
-          // Big Heart Leaf
-          ctx.beginPath();
-          ctx.moveTo(r * 0.15, 0);
-          ctx.quadraticCurveTo(r * 0.45, r * 0.25, r * 0.88, 0);
-          ctx.quadraticCurveTo(r * 0.45, -r * 0.25, r * 0.15, 0);
-          ctx.fill();
-
-          // Center Hollow Heart Core
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(r * 0.5, 0, r * 0.08, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      },
-      {
-        id: "sheet_beaded_loop",
-        title: "18. 비즈 루프 고리 눈꽃 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#0f172a",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "동글동글한 고리 모듈들이 사방으로 가지를 뻗는 은하수 보석 고리 눈결정 문양입니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.fillStyle = color;
-          ctx.lineWidth = r * 0.045;
-
-          // Main Stem Line
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.lineTo(r * 0.88, 0);
+          ctx.quadraticCurveTo(r * 0.45, r * 0.15, r * 0.88, 0);
+          ctx.fill();
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.08;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.72, 0, Math.PI / 8);
           ctx.stroke();
 
-          // Beaded Outer Ring
+          ctx.fillStyle = "#ffffff";
           ctx.beginPath();
-          ctx.arc(r * 0.72, 0, r * 0.12, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // Side Loops
-          ctx.beginPath();
-          ctx.arc(r * 0.45, r * 0.1, r * 0.07, 0, Math.PI * 2);
-          ctx.arc(r * 0.45, -r * 0.1, r * 0.07, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.arc(r * 0.45, 0, r * 0.06, 0, Math.PI * 2);
+          ctx.fill();
         }
       },
       {
-        id: "sheet_cross_star",
-        title: "19. 십자 크로스 별빛 도안",
+        id: "snow_1_classic_crystal",
+        title: "7. 클래식 육각 눈결정",
         slices: 12,
         angleDeg: 30,
-        color: "#334155",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "눈꽃 가지 끝마다 작고 또렷한 십자가 교차 문양이 새겨진 섬세한 겨울 눈꽃 도안입니다.",
+        isHalfFold: true,
+        color: "#0ea5e9",
+        secondaryColor: "#f0f9ff",
+        category: "30",
+        desc: "가장 기본적이고 아름다운 6각 베이스의 눈송이입니다. 긴 가지에서 뻗어나온 잔가지들이 대칭을 이룹니다.",
         drawPath: function(ctx, r, color) {
           ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.05;
+          ctx.lineWidth = r * 0.06;
           ctx.lineCap = "round";
-
-          // Main Arm
+          ctx.lineJoin = "round";
+          
+          // 메인 가지 (가운데 축)
           ctx.beginPath();
           ctx.moveTo(0, 0);
           ctx.lineTo(r * 0.9, 0);
           ctx.stroke();
 
-          // Tip Cross Bar
-          ctx.beginPath();
-          ctx.moveTo(r * 0.75, r * 0.12);
-          ctx.lineTo(r * 0.75, -r * 0.12);
-          ctx.stroke();
-
-          // Middle Branch Cross Bar
-          ctx.beginPath();
-          ctx.moveTo(r * 0.45, r * 0.1);
-          ctx.lineTo(r * 0.45, -r * 0.1);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "sheet_pearl_wheel",
-        title: "20. 진주 마법진 방사 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#1e293b",
-        secondaryColor: "#f1f5f9",
-        category: "12",
-        desc: "크고 작은 원형 펀칭 구멍들이 규칙적인 기하학 궤도를 그리며 진주 바퀴를 연상시킵니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.fillStyle = color;
-
-          // Outer Large Circle
-          ctx.beginPath();
-          ctx.arc(r * 0.78, 0, r * 0.1, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Middle Circle
-          ctx.beginPath();
-          ctx.arc(r * 0.52, 0, r * 0.07, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Inner Circle
-          ctx.beginPath();
-          ctx.arc(r * 0.28, 0, r * 0.05, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Connecting Line
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.035;
-          ctx.beginPath();
-          ctx.moveTo(r * 0.18, 0);
-          ctx.lineTo(r * 0.88, 0);
-          ctx.stroke();
-        }
-      },
-      {
-        id: "sheet_interlock_square",
-        title: "21. 교차 직각 별 기하학 도안",
-        slices: 12,
-        angleDeg: 30,
-        color: "#0f172a",
-        secondaryColor: "#f8fafc",
-        category: "12",
-        desc: "정사각형과 직각 프레임들이 서로 비틀어져 겹치며 현대적인 만화경 그래픽 기하학을 만듭니다.",
-        drawPath: function(ctx, r, color) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = r * 0.045;
-
-          // Square Corner Edge Lines
+          // 곁가지 1
           ctx.beginPath();
           ctx.moveTo(r * 0.3, 0);
-          ctx.lineTo(r * 0.65, r * 0.18);
-          ctx.lineTo(r * 0.85, 0);
-          ctx.lineTo(r * 0.65, -r * 0.18);
-          ctx.closePath();
+          ctx.lineTo(r * 0.5, r * 0.15);
           ctx.stroke();
 
-          // Outer V-Tooth Apex
+          // 곁가지 2
           ctx.beginPath();
-          ctx.moveTo(r * 0.65, 0);
-          ctx.lineTo(r * 0.92, r * 0.1);
-          ctx.lineTo(r * 0.92, -r * 0.1);
+          ctx.moveTo(r * 0.55, 0);
+          ctx.lineTo(r * 0.75, r * 0.15);
+          ctx.stroke();
+          
+          // 끝 다이아몬드
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.92, r * 0.05);
+          ctx.lineTo(r * 1.0, 0);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "snow_2_frost_fern",
+        title: "8. 서리 고사리 눈꽃",
+        slices: 16,
+        angleDeg: 22.5,
+        isHalfFold: true,
+        color: "#2563eb",
+        secondaryColor: "#eff6ff",
+        category: "22.5",
+        desc: "여러 개의 각진 톱니가 연속적으로 뻗어나가며 고사리 잎사귀처럼 빽빽한 서리 결정을 만듭니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.04;
+          
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.stroke();
+
+          // 지그재그 오려내기
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, 0);
+          ctx.lineTo(r * 0.3, r * 0.1);
+          ctx.lineTo(r * 0.35, 0);
+          ctx.lineTo(r * 0.45, r * 0.12);
+          ctx.lineTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.65, r * 0.15);
+          ctx.lineTo(r * 0.7, 0);
+          ctx.lineTo(r * 0.85, r * 0.12);
+          ctx.lineTo(r * 0.95, 0);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "snow_3_geometric_star",
+        title: "9. 기하학 팔각 별눈꽃",
+        slices: 16,
+        angleDeg: 22.5,
+        isHalfFold: true,
+        color: "#4f46e5",
+        secondaryColor: "#eef2ff",
+        category: "22.5",
+        desc: "직선과 날카로운 각도로만 이루어져 얼음처럼 차갑고 모던한 느낌을 주는 8각 별 형태의 눈꽃입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.03;
+
+          // 중앙 별
+          ctx.beginPath();
+          ctx.moveTo(r * 0.1, 0);
+          ctx.lineTo(r * 0.3, r * 0.15);
+          ctx.lineTo(r * 0.4, 0);
+          ctx.closePath();
+          ctx.fill();
+
+          // 외곽 마름모 프레임
+          ctx.beginPath();
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.7, r * 0.2);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.stroke();
+          
+          // 내부 연결선
+          ctx.beginPath();
+          ctx.moveTo(r * 0.4, 0);
+          ctx.lineTo(r * 0.7, r * 0.2);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "snow_4_lace_mandala",
+        title: "10. 눈꽃 레이스 만다라",
+        slices: 12,
+        angleDeg: 30,
+        isHalfFold: false,
+        color: "#0284c7",
+        secondaryColor: "#f0f9ff",
+        category: "30",
+        desc: "반으로 접지 않고 한 조각 전체에 둥근 곡선과 뾰족한 각을 섞어 오려낸 화려한 눈꽃 만다라 패턴입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.03;
+
+          // 곡선 아치
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.4, -r*0.05, r*0.05);
+          ctx.stroke();
+          
+          ctx.beginPath();
+          ctx.moveTo(r * 0.4, r*0.1);
+          ctx.quadraticCurveTo(r * 0.6, r * 0.2, r * 0.8, 0);
+          ctx.quadraticCurveTo(r * 0.6, -r * 0.2, r * 0.4, -r*0.1);
+          ctx.stroke();
+
+          // 마름모 구멍
+          ctx.beginPath();
+          ctx.moveTo(r * 0.6, 0);
+          ctx.lineTo(r * 0.7, r * 0.08);
+          ctx.lineTo(r * 0.8, 0);
+          ctx.lineTo(r * 0.7, -r * 0.08);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "snow_5_sharp_spikes",
+        title: "11. 가시덤불 눈송이",
+        slices: 24,
+        angleDeg: 15,
+        isHalfFold: true,
+        color: "#3b82f6",
+        secondaryColor: "#eff6ff",
+        category: "15",
+        desc: "15도의 좁은 각도 안에서 얇고 날카로운 선들을 뻗어내어, 펼쳤을 때 24개의 섬세한 가시들이 맞물리는 복잡한 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.03;
+          ctx.lineCap = "round";
+
+          // 긴 축
+          ctx.beginPath();
+          ctx.moveTo(r * 0.1, 0);
+          ctx.lineTo(r * 0.95, 0);
+          ctx.stroke();
+
+          // 가시들
+          const drawSpike = (x1, x2, y) => {
+            ctx.beginPath();
+            ctx.moveTo(x1, 0);
+            ctx.lineTo(x2, y);
+            ctx.stroke();
+          };
+
+          drawSpike(r * 0.2, r * 0.35, r * 0.08);
+          drawSpike(r * 0.4, r * 0.6, r * 0.1);
+          drawSpike(r * 0.65, r * 0.85, r * 0.12);
+          drawSpike(r * 0.8, r * 0.9, r * 0.05);
+        }
+      },
+      {
+        id: "snow_6_floral_frost",
+        title: "12. 꽃봉오리 눈결정",
+        slices: 12,
+        angleDeg: 30,
+        isHalfFold: true,
+        color: "#6366f1",
+        secondaryColor: "#eef2ff",
+        category: "30",
+        desc: "가지는 뾰족하지만 끝부분이 꽃잎처럼 둥글게 마무리되어, 꽃과 눈꽃의 경계에 있는 듯한 아름다운 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.04;
+
+          // 둥근 꽃잎 베이스
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(r * 0.3, r * 0.1, r * 0.5, 0);
+          ctx.fill();
+
+          // 뾰족한 가지
+          ctx.beginPath();
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.7, r * 0.15);
+          ctx.lineTo(r * 0.8, 0);
+          ctx.stroke();
+
+          // 끝부분 동그라미
+          ctx.beginPath();
+          ctx.arc(r * 0.85, 0, r * 0.05, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      },
+      {
+        id: "snow_7_hollow_hex",
+        title: "13. 속빈 육각 눈송이",
+        slices: 12,
+        angleDeg: 30,
+        isHalfFold: true,
+        color: "#0ea5e9",
+        secondaryColor: "#f0f9ff",
+        category: "30",
+        desc: "중심부가 시원하게 비어있고 외곽을 띠 형태로 두른 듯한 두꺼운 프레임의 눈꽃 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // 중간 띠
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.lineTo(r * 0.4, r * 0.15);
+          ctx.lineTo(r * 0.6, r * 0.15);
+          ctx.lineTo(r * 0.7, 0);
+          ctx.stroke();
+
+          // 바깥쪽 띠
+          ctx.beginPath();
+          ctx.moveTo(r * 0.5, 0);
+          ctx.lineTo(r * 0.6, r * 0.25);
+          ctx.lineTo(r * 0.8, r * 0.25);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.stroke();
+          
+          // 끝 다이아몬드
+          ctx.beginPath();
+          ctx.moveTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.95, r * 0.08);
+          ctx.lineTo(r * 1.0, 0);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "snow_8_spider_web",
+        title: "14. 거미줄 눈꽃",
+        slices: 16,
+        angleDeg: 22.5,
+        isHalfFold: false,
+        color: "#334155",
+        secondaryColor: "#f8fafc",
+        category: "22.5",
+        desc: "얇은 선들이 가로질러 거미줄처럼 엮인 형태의 독특하고 차분한 눈꽃 패턴입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.02;
+
+          // 십자 선
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r, 0);
+          ctx.stroke();
+
+          // 대각선 아치들
+          for(let i=0.3; i<=0.9; i+=0.2) {
+             ctx.beginPath();
+             ctx.moveTo(r * i, 0);
+             ctx.lineTo(r * (i-0.1), r * 0.15);
+             ctx.stroke();
+             
+             ctx.beginPath();
+             ctx.moveTo(r * i, 0);
+             ctx.lineTo(r * (i-0.1), -r * 0.15);
+             ctx.stroke();
+          }
+        }
+      },
+      {
+        id: "snow_9_crown_jewel",
+        title: "15. 왕관 보석 눈꽃",
+        slices: 12,
+        angleDeg: 30,
+        isHalfFold: true,
+        color: "#8b5cf6",
+        secondaryColor: "#f5f3ff",
+        category: "30",
+        desc: "끝부분이 화려한 왕관 장식처럼 넓게 퍼지는 우아하고 화려한 눈송이입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.04;
+
+          // 중심 연결선
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.5, 0);
+          ctx.stroke();
+
+          // 중간 하트형 장식
+          ctx.beginPath();
+          ctx.moveTo(r * 0.3, 0);
+          ctx.quadraticCurveTo(r * 0.5, r * 0.15, r * 0.6, 0);
+          ctx.fill();
+
+          // 왕관 끝부분
+          ctx.beginPath();
+          ctx.moveTo(r * 0.6, 0);
+          ctx.lineTo(r * 0.8, r * 0.2);
+          ctx.lineTo(r * 0.9, r * 0.1);
+          ctx.lineTo(r * 0.85, 0);
           ctx.closePath();
           ctx.stroke();
+          ctx.fill();
+        }
+      },
+      {
+        id: "snow_10_dense_forest",
+        title: "16. 빽빽한 숲 눈송이",
+        slices: 24,
+        angleDeg: 15,
+        isHalfFold: true,
+        color: "#0f766e",
+        secondaryColor: "#f0fdfa",
+        category: "15",
+        desc: "15도의 좁은 각에 가지를 촘촘하게 배치하여, 펼쳤을 때 마치 침엽수림을 위에서 내려다본 듯 빽빽하고 웅장한 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.04;
+          ctx.lineCap = "square";
+
+          ctx.beginPath();
+          ctx.moveTo(r * 0.1, 0);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.stroke();
+
+          // 촘촘한 직각 가지들
+          for(let i=0.2; i<=0.8; i+=0.15) {
+            ctx.beginPath();
+            ctx.moveTo(r * i, 0);
+            ctx.lineTo(r * i, r * 0.1);
+            ctx.stroke();
+          }
+          
+          // 끝부분 장식
+          ctx.beginPath();
+          ctx.moveTo(r * 0.85, 0);
+          ctx.lineTo(r * 0.95, r * 0.08);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "octa_1_sunflower",
+        title: "17. 8각 해바라기 로제트",
+        slices: 8,
+        angleDeg: 45,
+        isHalfFold: true,
+        color: "#d97706",
+        secondaryColor: "#fffbeb",
+        category: "45",
+        desc: "45도의 넓은 부채꼴 조각 8개가 모여 볼륨감 넘치는 8잎 해바라기 로제트를 형성하는 화사한 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+
+          // 외곽 풍성한 꽃잎 테두리
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(r * 0.5, r * 0.25, r * 0.85, 0);
+          ctx.fill();
+
+          // 중앙 도넛 프레임
+          ctx.lineWidth = r * 0.06;
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.45, 0, Math.PI / 4);
+          ctx.stroke();
+
+          // 씨앗 마름모 구멍
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.moveTo(r * 0.25, 0);
+          ctx.lineTo(r * 0.32, r * 0.08);
+          ctx.lineTo(r * 0.38, 0);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "octa_2_starburst",
+        title: "18. 8각 스타버스트 별문양",
+        slices: 8,
+        angleDeg: 45,
+        isHalfFold: true,
+        color: "#7c3aed",
+        secondaryColor: "#f5f3ff",
+        category: "45",
+        desc: "각진 별빛 레이어가 3단으로 겹쳐지며 강렬한 빛을 발산하는 8각 지오메트릭 별문양 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = r * 0.04;
+
+          // 내측 중심 별
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(r * 0.4, 0);
+          ctx.lineTo(r * 0.25, r * 0.18);
+          ctx.closePath();
+          ctx.fill();
+
+          // 외측 뾰족한 메인 별 가지
+          ctx.beginPath();
+          ctx.moveTo(r * 0.45, 0);
+          ctx.lineTo(r * 0.9, 0);
+          ctx.lineTo(r * 0.6, r * 0.22);
+          ctx.closePath();
+          ctx.fill();
+
+          // 연결 브리지 선
+          ctx.beginPath();
+          ctx.moveTo(r * 0.35, 0);
+          ctx.lineTo(r * 0.6, r * 0.22);
+          ctx.stroke();
+        }
+      },
+      {
+        id: "octa_3_rose_window",
+        title: "19. 8각 고딕 장미창 도안",
+        slices: 8,
+        angleDeg: 45,
+        isHalfFold: false,
+        color: "#b91c1c",
+        secondaryColor: "#fef2f2",
+        category: "45",
+        desc: "유럽 고딕 성당의 장미창 스테인드글라스를 연상시키는 아치 형태의 우아한 8분할 패턴입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // 2중 곡선 아치
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.82, -Math.PI / 8, Math.PI / 8);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r * 0.55, -Math.PI / 8, Math.PI / 8);
+          ctx.stroke();
+
+          // 중앙을 잇는 물방울 문양
+          ctx.beginPath();
+          ctx.moveTo(r * 0.2, 0);
+          ctx.quadraticCurveTo(r * 0.4, r * 0.15, r * 0.55, 0);
+          ctx.quadraticCurveTo(r * 0.4, -r * 0.15, r * 0.2, 0);
+          ctx.fill();
+
+          // 외곽 보석 모양 팁
+          ctx.beginPath();
+          ctx.moveTo(r * 0.82, 0);
+          ctx.lineTo(r * 0.95, r * 0.08);
+          ctx.lineTo(r * 0.95, -r * 0.08);
+          ctx.closePath();
+          ctx.fill();
+        }
+      },
+      {
+        id: "octa_4_windmill",
+        title: "20. 8각 바람개비 만다라",
+        slices: 8,
+        angleDeg: 45,
+        isHalfFold: true,
+        color: "#059669",
+        secondaryColor: "#ecfdf5",
+        category: "45",
+        desc: "S자 유선형 오려내기가 회전하듯 이어져 시원하고 역동적인 나선형 바람개비를 만드는 8각 도안입니다.",
+        drawPath: function(ctx, r, color) {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = r * 0.05;
+
+          // S자 메인 줄기
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.bezierCurveTo(r * 0.3, r * 0.2, r * 0.6, -r * 0.1, r * 0.9, 0);
+          ctx.stroke();
+
+          // 풍차 날개 깃
+          ctx.beginPath();
+          ctx.moveTo(r * 0.4, 0);
+          ctx.quadraticCurveTo(r * 0.6, r * 0.25, r * 0.85, r * 0.1);
+          ctx.lineTo(r * 0.7, 0);
+          ctx.closePath();
+          ctx.fill();
         }
       }
     ];
@@ -1029,20 +1049,35 @@
     let selectedPreset = PRESETS[0];
 
     // Studio animation state
-    let studioProgress = 8;
+    let studioProgress = 24;
     let isStudioPlaying = false;
     let studioAnimTimer = null;
     let studioCustomColor = null;
 
-    // Drawing Canvas State
+    // DIY Canvas State & History
     let isDrawing = false;
-    let drawTool = "pen"; // "pen" or "eraser"
+    let drawTool = "pen"; // pen, line, circle, diamond, star, eraser
     let drawColor = "#2563eb";
-    let drawWidth = 12;
-    let drawSymmetryCount = 12;
+    let drawWidth = 10;
+    let drawSymmetryCount = 24;
+    
+    // Draw canvas geometry settings (No Mirror Fold Mode anymore, standard rotational symmetry)
+    let drawStartPos = null;
+    let dragStartSnapshot = null; 
 
+    let canvasHistory = [];
+    const MAX_HISTORY = 15;
 
-    // Draw unit sector canvas with clear sector geometry (Paper Fold View)
+    // --- 헬퍼 함수 ---
+    function downloadCanvas(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
     function renderUnitSector(ctx, width, height, preset, customColor = null, bgStyle = "grid") {
       ctx.clearRect(0, 0, width, height);
 
@@ -1057,24 +1092,24 @@
         ctx.fillRect(0, 0, width, height);
       }
 
-      // Position vertex (apex of the sector) at center bottom to give maximum visual area
       const cx = width / 2;
       const cy = height * 0.88;
       const radius = Math.min(width, height) * 0.78;
       const angleRad = (preset.angleDeg * Math.PI) / 180;
 
-      const startAngle = -Math.PI / 2 - angleRad / 2;
-      const endAngle = -Math.PI / 2 + angleRad / 2;
+      // Start / End Angles
+      const startAngle = preset.isHalfFold ? -Math.PI / 2 : -Math.PI / 2 - angleRad / 2;
+      const endAngle = preset.isHalfFold ? -Math.PI / 2 + angleRad : -Math.PI / 2 + angleRad / 2;
 
       ctx.save();
       ctx.translate(cx, cy);
 
-      // 1. Draw Sector Paper Shadow
-      ctx.shadowColor = "rgba(0, 0, 0, 0.15)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 6;
+      // Sector Paper Body Shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.12)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 5;
 
-      // 2. Draw Folded Sector Paper Body (White folded paper wedge)
+      // Folded Wedge Shape
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.arc(0, 0, radius, startAngle, endAngle);
@@ -1083,39 +1118,37 @@
       ctx.fillStyle = preset.secondaryColor || "#fafafa";
       ctx.fill();
 
-      // Reset shadow for crisp lines
       ctx.shadowColor = "transparent";
 
-      // 3. Draw Paper Border Outline (Bold Sector Edges)
-      ctx.strokeStyle = "#475569";
+      // Paper Border Outline
+      ctx.strokeStyle = "#334155";
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 4. Sector Center Fold Axis Line (Dotted)
+      // Axis Line
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(0, -radius);
-      ctx.strokeStyle = "#94a3b8";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = preset.isHalfFold ? "#dc2626" : "#94a3b8";
+      ctx.lineWidth = 2;
       ctx.setLineDash([4, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // 5. Draw Angle Arc Badge Indicator
+      // Angle Indicator Badge
       ctx.beginPath();
       ctx.arc(0, 0, radius * 0.25, startAngle, endAngle);
       ctx.strokeStyle = "#6366f1";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Angle Text Label
       ctx.fillStyle = "#4338ca";
-      ctx.font = "bold 13px Pretendard, sans-serif";
+      ctx.font = "bold 12px Pretendard, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText(`${preset.angleDeg}°`, 0, -radius * 0.27);
 
-      // 6. Clip content within sector wedge boundary
+      // Clip pattern inside sector
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -1123,21 +1156,18 @@
       ctx.closePath();
       ctx.clip();
 
-      // Rotate so symmetry axis points straight up
       ctx.rotate(-Math.PI / 2);
 
-      // Render Pattern Drawing on Sector
+      // Render Pattern
       preset.drawPath(ctx, radius, customColor || preset.color);
 
       ctx.restore();
       ctx.restore();
     }
 
-    // Draw Full Symmetrical Circle Pattern
     function renderSymmetricalCircle(ctx, width, height, preset, progressSlices = null, customColor = null, bgStyle = "grid") {
       ctx.clearRect(0, 0, width, height);
 
-      // Background
       if (bgStyle === "grid") {
         drawGridBg(ctx, width, height);
       } else if (bgStyle === "dark") {
@@ -1165,7 +1195,6 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Loop over slices
       for (let i = 0; i < Math.ceil(totalSlicesToDraw); i++) {
         let opacity = 1.0;
         if (i >= Math.floor(totalSlicesToDraw)) {
@@ -1175,8 +1204,8 @@
         ctx.save();
         ctx.rotate(i * sliceAngle);
 
-        // Mirror alternate slices for realistic paper folding (Kirigami)
-        if (i % 2 === 1) {
+        // Mirror alternate slices if it is a half-fold pattern
+        if (preset.isHalfFold && i % 2 === 1) {
           ctx.scale(1, -1);
           ctx.rotate(-sliceAngle);
         }
@@ -1192,7 +1221,9 @@
         ctx.stroke();
 
         ctx.save();
-        ctx.rotate(sliceAngle / 2);
+        if (!preset.isHalfFold) {
+          ctx.rotate(sliceAngle / 2);
+        }
         preset.drawPath(ctx, radius, customColor || preset.color);
         ctx.restore();
 
@@ -1202,7 +1233,6 @@
       ctx.restore();
     }
 
-    // Grid Background Helper
     function drawGridBg(ctx, width, height) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, width, height);
@@ -1225,58 +1255,55 @@
       }
     }
 
-
     function renderGalleryCards() {
       const grid = document.getElementById("galleryGrid");
       grid.innerHTML = "";
 
       const bgStyle = document.getElementById("galleryBgStyle").value;
-
       const filtered = PRESETS.filter(p => activeFilter === "all" || p.category === activeFilter);
 
-      filtered.forEach((preset, idx) => {
+      filtered.forEach((preset) => {
         const card = document.createElement("div");
         card.className = "bg-white rounded-3xl border border-slate-200/90 shadow-craft overflow-hidden transition-all hover:shadow-xl flex flex-col";
 
         card.innerHTML = `
-          <!-- Card Header -->
-          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div>
-              <span class="text-[11px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
-                ${preset.angleDeg}° 부채꼴 (${preset.slices}회 대칭)
+              <span class="text-[11px] font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100 inline-block mb-1">
+                ${preset.angleDeg}° 부채꼴 (${preset.slices}분할)
               </span>
-              <h3 class="text-base font-extrabold text-slate-800 mt-1">${preset.title}</h3>
+              <h3 class="text-base font-extrabold text-slate-800 leading-tight">${preset.title}</h3>
             </div>
-            <button onclick="openModal('${preset.id}')" class="text-xs font-bold text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl transition-all shadow-sm">
+            <button onclick="openModal('${preset.id}')" class="text-xs font-bold text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 px-3 py-2 rounded-xl transition-all shadow-sm whitespace-nowrap ml-2">
               🔍 크게 보기
             </button>
           </div>
 
-          <!-- Side-by-Side Canvas Display -->
-          <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 items-center">
-            
-            <!-- Unit Sector Display -->
-            <div class="flex flex-col items-center">
-              <span class="text-xs font-bold text-slate-500 mb-2">✂️ 접힌 부채꼴 종이 도안</span>
-              <div class="w-full aspect-square max-w-[220px] rounded-2xl border border-slate-200/80 bg-slate-50 p-2 shadow-inner">
+          <div class="p-5 grid grid-cols-2 gap-3 flex-1 items-start">
+            <div class="flex flex-col items-center w-full">
+              <span class="text-[11px] font-bold text-slate-500 mb-1.5">✂️ 부채꼴 종이 도안</span>
+              <div class="w-full aspect-square max-w-[200px] rounded-2xl border border-slate-200/80 bg-slate-50 p-2 shadow-inner relative mb-2">
                 <canvas id="sectorCanvas_${preset.id}" width="400" height="400" class="w-full h-full object-contain"></canvas>
               </div>
+              <button onclick="downloadCanvas('sectorCanvas_${preset.id}', 'pattern_${preset.id}_sector.png')" class="text-[11px] font-bold text-slate-600 hover:text-indigo-600 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg shadow-sm transition-all w-full max-w-[160px] flex justify-center items-center gap-1">
+                💾 PNG 저장
+              </button>
             </div>
 
-            <!-- Complete Circle Display -->
-            <div class="flex flex-col items-center">
-              <span class="text-xs font-bold text-slate-500 mb-2">✿ 펼쳐진 완성 대칭 원</span>
-              <div class="w-full aspect-square max-w-[220px] rounded-2xl border border-slate-200/80 bg-slate-50 p-2 shadow-inner">
+            <div class="flex flex-col items-center w-full">
+              <span class="text-[11px] font-bold text-slate-500 mb-1.5">✿ 완성 대칭 원</span>
+              <div class="w-full aspect-square max-w-[200px] rounded-2xl border border-slate-200/80 bg-slate-50 p-2 shadow-inner relative mb-2">
                 <canvas id="circleCanvas_${preset.id}" width="400" height="400" class="w-full h-full object-contain"></canvas>
               </div>
+              <button onclick="downloadCanvas('circleCanvas_${preset.id}', 'pattern_${preset.id}_circle.png')" class="text-[11px] font-bold text-slate-600 hover:text-indigo-600 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg shadow-sm transition-all w-full max-w-[160px] flex justify-center items-center gap-1">
+                💾 PNG 저장
+              </button>
             </div>
-
           </div>
 
-          <!-- Card Footer Actions -->
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-            <p class="text-xs text-slate-500 line-clamp-1 max-w-[65%]">${preset.desc}</p>
-            <button onclick="launchInStudio('${preset.id}')" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1">
+          <div class="px-5 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p class="text-xs text-slate-500 line-clamp-2 sm:line-clamp-1 flex-1 leading-relaxed">${preset.desc}</p>
+            <button onclick="launchInStudio('${preset.id}')" class="w-full sm:w-auto text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md flex justify-center items-center gap-1">
               ✨ 펼치기 시뮬레이션
             </button>
           </div>
@@ -1284,7 +1311,6 @@
 
         grid.appendChild(card);
 
-        // Render canvases after DOM insertion
         setTimeout(() => {
           const sCanvas = document.getElementById(`sectorCanvas_${preset.id}`);
           const cCanvas = document.getElementById(`circleCanvas_${preset.id}`);
@@ -1309,7 +1335,6 @@
       renderGalleryCards();
     }
 
-
     function populateStudioDropdown() {
       const select = document.getElementById("studioPatternSelect");
       select.innerHTML = "";
@@ -1331,7 +1356,6 @@
 
       studioCustomColor = selectedPreset.color;
 
-      // Update slider max to match slice count
       const slider = document.getElementById("studioProgressSlider");
       slider.max = selectedPreset.slices;
       slider.value = selectedPreset.slices;
@@ -1355,11 +1379,8 @@
     }
 
     function toggleStudioPlay() {
-      if (isStudioPlaying) {
-        pauseStudioAnim();
-      } else {
-        playStudioAnim();
-      }
+      if (isStudioPlaying) pauseStudioAnim();
+      else playStudioAnim();
     }
 
     function playStudioAnim() {
@@ -1372,7 +1393,7 @@
       }
 
       studioAnimTimer = setInterval(() => {
-        let val = parseFloat(slider.value) + 0.08;
+        let val = parseFloat(slider.value) + 0.12;
         if (val >= selectedPreset.slices) {
           val = selectedPreset.slices;
           pauseStudioAnim();
@@ -1412,24 +1433,44 @@
       playStudioAnim();
     }
 
-
     const drawInCanvas = document.getElementById("drawInputCanvas");
     const drawInCtx = drawInCanvas.getContext("2d");
     const drawOutCanvas = document.getElementById("drawOutputCanvas");
     const drawOutCtx = drawOutCanvas.getContext("2d");
 
-    let lastDrawPos = null;
+    let drawGuideCanvas = null;
+    let drawGuideCtx = null;
+
+    function saveHistory() {
+      if (canvasHistory.length >= MAX_HISTORY) {
+        canvasHistory.shift();
+      }
+      canvasHistory.push(drawInCtx.getImageData(0, 0, drawInCanvas.width, drawInCanvas.height));
+    }
+
+    function undoDraw() {
+      if (canvasHistory.length > 0) {
+        const lastState = canvasHistory.pop();
+        drawInCtx.putImageData(lastState, 0, 0);
+        renderCustomSymmetryOutput();
+      }
+    }
 
     function initDrawCanvas() {
+      if (!drawGuideCanvas) {
+        drawGuideCanvas = document.getElementById("drawGuideCanvas");
+        drawGuideCtx = drawGuideCanvas.getContext("2d");
+      }
+      
       clearDrawCanvas();
 
-      // Mouse Listeners
+      // Mouse Events
       drawInCanvas.onmousedown = (e) => startDrawing(e);
       drawInCanvas.onmousemove = (e) => draw(e);
-      drawInCanvas.onmouseup = () => stopDrawing();
-      drawInCanvas.onmouseleave = () => stopDrawing();
+      drawInCanvas.onmouseup = (e) => stopDrawing(e);
+      drawInCanvas.onmouseleave = (e) => stopDrawing(e);
 
-      // Touch Listeners
+      // Touch Events (mobile friendly)
       drawInCanvas.ontouchstart = (e) => {
         e.preventDefault();
         startDrawing(e.touches[0]);
@@ -1438,20 +1479,18 @@
         e.preventDefault();
         draw(e.touches[0]);
       };
-      drawInCanvas.ontouchend = () => stopDrawing();
+      drawInCanvas.ontouchend = (e) => stopDrawing(e);
 
-      // Pre-populate with a nice sample stroke
       drawDefaultSamplePattern();
     }
+    
+    function drawGuideSector() {
+      if (!drawGuideCtx) return;
+      const w = drawGuideCanvas.width;
+      const h = drawGuideCanvas.height;
+      drawGuideCtx.clearRect(0, 0, w, h);
 
-    function clearDrawCanvas() {
-      const w = drawInCanvas.width;
-      const h = drawInCanvas.height;
-      drawInCtx.clearRect(0, 0, w, h);
-      lastDrawPos = null;
-
-      // Draw Sector Base Guide (Upright Folded Paper Shape)
-      drawInCtx.save();
+      drawGuideCtx.save();
       const angleDeg = 360 / drawSymmetryCount;
       const angleRad = (angleDeg * Math.PI) / 180;
       const cx = w / 2;
@@ -1461,36 +1500,51 @@
       const startAngle = -Math.PI / 2 - angleRad / 2;
       const endAngle = -Math.PI / 2 + angleRad / 2;
 
-      drawInCtx.translate(cx, cy);
+      drawGuideCtx.translate(cx, cy);
 
-      // Wedge paper background
-      drawInCtx.beginPath();
-      drawInCtx.moveTo(0, 0);
-      drawInCtx.arc(0, 0, r, startAngle, endAngle);
-      drawInCtx.closePath();
-      drawInCtx.fillStyle = "#fafafa";
-      drawInCtx.fill();
+      // Draw Sector Base Background
+      drawGuideCtx.beginPath();
+      drawGuideCtx.moveTo(0, 0);
+      drawGuideCtx.arc(0, 0, r, startAngle, endAngle);
+      drawGuideCtx.closePath();
+      drawGuideCtx.fillStyle = "#fafafa";
+      drawGuideCtx.fill();
 
-      // Bold Paper Outer Edges
-      drawInCtx.strokeStyle = "#334155";
-      drawInCtx.lineWidth = 4;
-      drawInCtx.stroke();
+      // Sector Outline
+      drawGuideCtx.strokeStyle = "#334155";
+      drawGuideCtx.lineWidth = 4;
+      drawGuideCtx.stroke();
 
-      // Center Symmetry Guide
-      drawInCtx.beginPath();
-      drawInCtx.moveTo(0, 0);
-      drawInCtx.lineTo(0, -r);
-      drawInCtx.strokeStyle = "#a5b4fc";
-      drawInCtx.lineWidth = 2;
-      drawInCtx.setLineDash([6, 6]);
-      drawInCtx.stroke();
+      drawGuideCtx.restore();
+    }
 
-      drawInCtx.restore();
+    function clearDrawCanvas() {
+      const w = drawInCanvas.width;
+      const h = drawInCanvas.height;
+      drawInCtx.clearRect(0, 0, w, h);
+      canvasHistory = [];
 
+      drawGuideSector();
       renderCustomSymmetryOutput();
     }
 
+    function downloadSectorImage() {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = drawInCanvas.width;
+      tempCanvas.height = drawInCanvas.height;
+      const tCtx = tempCanvas.getContext('2d');
+      if (drawGuideCanvas) tCtx.drawImage(drawGuideCanvas, 0, 0);
+      tCtx.drawImage(drawInCanvas, 0, 0);
+      
+      const link = document.createElement("a");
+      link.download = "my_design_sector.png";
+      link.href = tempCanvas.toDataURL("image/png");
+      link.click();
+    }
+
     function drawDefaultSamplePattern() {
+      saveHistory();
+
       const w = drawInCanvas.width;
       const h = drawInCanvas.height;
       const cx = w / 2;
@@ -1499,9 +1553,8 @@
 
       drawInCtx.save();
       drawInCtx.translate(cx, cy);
-      drawInCtx.rotate(-Math.PI / 2); // Align with symmetry axis
+      drawInCtx.rotate(-Math.PI / 2);
 
-      // Draw Lotus Leaf Stroke
       drawInCtx.strokeStyle = "#2563eb";
       drawInCtx.lineWidth = 12;
       drawInCtx.lineCap = "round";
@@ -1509,20 +1562,17 @@
       drawInCtx.beginPath();
       drawInCtx.moveTo(0, 0);
       drawInCtx.quadraticCurveTo(r * 0.4, r * 0.18, r * 0.75, 0);
-      drawInCtx.quadraticCurveTo(r * 0.4, -r * 0.18, 0, 0);
       drawInCtx.stroke();
 
-      // Decorative Ring Arc
       drawInCtx.strokeStyle = "#dc2626";
       drawInCtx.lineWidth = 8;
       drawInCtx.beginPath();
-      drawInCtx.arc(0, 0, r * 0.52, -Math.PI / 20, Math.PI / 20);
+      drawInCtx.arc(0, 0, r * 0.52, 0, Math.PI / 15);
       drawInCtx.stroke();
 
-      // Jewel Dot
       drawInCtx.fillStyle = "#d97706";
       drawInCtx.beginPath();
-      drawInCtx.arc(r * 0.8, 0, r * 0.05, 0, Math.PI * 2);
+      drawInCtx.arc(r * 0.8, 0, r * 0.06, 0, Math.PI * 2);
       drawInCtx.fill();
 
       drawInCtx.restore();
@@ -1532,45 +1582,119 @@
 
     function setDrawTool(tool) {
       drawTool = tool;
-      document.querySelectorAll(".tool-btn").forEach(b => b.className = "tool-btn text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200");
-      if (tool === "pen") {
-        document.getElementById("toolPen").className = "tool-btn active text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm";
-      } else {
-        document.getElementById("toolEraser").className = "tool-btn active text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-600 text-white shadow-sm";
+      document.querySelectorAll(".tool-btn").forEach(b => {
+        b.className = "tool-btn text-xs font-bold px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 flex-1 sm:flex-none";
+      });
+
+      const btnMap = {
+        pen: "toolPen",
+        line: "toolLine",
+        circle: "toolCircle",
+        diamond: "toolDiamond",
+        star: "toolStar",
+        eraser: "toolEraser"
+      };
+
+      if (btnMap[tool]) {
+        document.getElementById(btnMap[tool]).className = "tool-btn active text-xs font-bold px-3 py-2 rounded-lg bg-indigo-600 text-white shadow-sm flex-1 sm:flex-none";
       }
     }
 
     function startDrawing(e) {
+      saveHistory();
+      dragStartSnapshot = drawInCtx.getImageData(0, 0, drawInCanvas.width, drawInCanvas.height);
       isDrawing = true;
-      lastDrawPos = getCanvasPos(drawInCanvas, e);
+      drawStartPos = getCanvasPos(drawInCanvas, e);
+    }
+
+    function drawShapeLogic(ctx, startP, endP, tool, color, width) {
+      ctx.lineWidth = width;
+      ctx.strokeStyle = (tool === "eraser") ? "#fafafa" : color;
+      ctx.fillStyle = (tool === "eraser") ? "#fafafa" : color;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      if (tool === "line") {
+        ctx.beginPath();
+        ctx.moveTo(startP.x, startP.y);
+        ctx.lineTo(endP.x, endP.y);
+        ctx.stroke();
+      } else if (tool === "circle") {
+        const r = Math.hypot(endP.x - startP.x, endP.y - startP.y);
+        ctx.beginPath();
+        ctx.arc(startP.x, startP.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (tool === "diamond") {
+        const r = Math.max(5, Math.hypot(endP.x - startP.x, endP.y - startP.y));
+        ctx.beginPath();
+        ctx.moveTo(startP.x, startP.y - r);
+        ctx.lineTo(startP.x + r, startP.y);
+        ctx.lineTo(startP.x, startP.y + r);
+        ctx.lineTo(startP.x - r, startP.y);
+        ctx.closePath();
+        ctx.fill();
+      } else if (tool === "star") {
+        const r = Math.max(5, Math.hypot(endP.x - startP.x, endP.y - startP.y));
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(
+            startP.x + r * Math.cos((18 + i * 72) * Math.PI / 180),
+            startP.y - r * Math.sin((18 + i * 72) * Math.PI / 180)
+          );
+          ctx.lineTo(
+            startP.x + (r / 2) * Math.cos((54 + i * 72) * Math.PI / 180),
+            startP.y - (r / 2) * Math.sin((54 + i * 72) * Math.PI / 180)
+          );
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     function draw(e) {
       if (!isDrawing) return;
-      const pos = getCanvasPos(drawInCanvas, e);
+      const currentPos = getCanvasPos(drawInCanvas, e);
 
-      drawInCtx.lineWidth = drawWidth;
-      drawInCtx.lineCap = "round";
-      drawInCtx.lineJoin = "round";
+      if (drawTool === "pen" || drawTool === "eraser") {
+        drawInCtx.lineWidth = drawWidth;
+        drawInCtx.lineCap = "round";
+        drawInCtx.lineJoin = "round";
+        drawInCtx.strokeStyle = (drawTool === "eraser") ? "#fafafa" : drawColor;
 
-      if (drawTool === "pen") {
-        drawInCtx.strokeStyle = drawColor;
+        drawInCtx.beginPath();
+        drawInCtx.moveTo(drawStartPos.x, drawStartPos.y);
+        drawInCtx.lineTo(currentPos.x, currentPos.y);
+        drawInCtx.stroke();
+
+        drawStartPos = currentPos;
+        renderCustomSymmetryOutput();
       } else {
-        drawInCtx.strokeStyle = "#fafafa"; // Paper background eraser
+        // 실시간 도형 프리뷰
+        if (dragStartSnapshot) {
+          drawInCtx.putImageData(dragStartSnapshot, 0, 0);
+        }
+        drawShapeLogic(drawInCtx, drawStartPos, currentPos, drawTool, drawColor, drawWidth);
+        renderCustomSymmetryOutput();
       }
-
-      drawInCtx.beginPath();
-      drawInCtx.moveTo(lastDrawPos.x, lastDrawPos.y);
-      drawInCtx.lineTo(pos.x, pos.y);
-      drawInCtx.stroke();
-
-      lastDrawPos = pos;
-      renderCustomSymmetryOutput();
     }
 
-    function stopDrawing() {
+    function stopDrawing(e) {
+      if (!isDrawing) return;
       isDrawing = false;
-      lastDrawPos = null;
+
+      if (e && e.clientX !== undefined) {
+        const endPos = getCanvasPos(drawInCanvas, e);
+        if (drawTool !== "pen" && drawTool !== "eraser") {
+          if (dragStartSnapshot) {
+            drawInCtx.putImageData(dragStartSnapshot, 0, 0);
+          }
+          drawShapeLogic(drawInCtx, drawStartPos, endPos, drawTool, drawColor, drawWidth);
+          renderCustomSymmetryOutput();
+        }
+      }
+
+      drawStartPos = null;
+      dragStartSnapshot = null;
     }
 
     function getCanvasPos(canvas, evt) {
@@ -1594,49 +1718,50 @@
       const hIn = drawInCanvas.height;
       const cxIn = wIn / 2;
       const cyIn = hIn * 0.88;
-      const rIn = Math.min(wIn, hIn) * 0.78;
 
       const wOut = drawOutCanvas.width;
       const hOut = drawOutCanvas.height;
       drawOutCtx.clearRect(0, 0, wOut, hOut);
 
-      // Background Grid
       drawGridBg(drawOutCtx, wOut, hOut);
 
       const cxOut = wOut / 2;
       const cyOut = hOut / 2;
-      const rOut = Math.min(wOut, hOut) * 0.42;
+      // Make radius larger so full circle is visible nicely
+      const rOut = Math.min(wOut, hOut) * 0.45;
+      const rIn = Math.min(wIn, hIn) * 0.78;
+      
       const sliceAngle = (2 * Math.PI) / drawSymmetryCount;
       const scale = rOut / rIn;
 
       drawOutCtx.save();
       drawOutCtx.translate(cxOut, cyOut);
 
-      // Outer Guide Circle
+      // Outer Boundary Guide
       drawOutCtx.beginPath();
       drawOutCtx.arc(0, 0, rOut, 0, Math.PI * 2);
       drawOutCtx.strokeStyle = "#cbd5e1";
       drawOutCtx.lineWidth = 2;
       drawOutCtx.stroke();
 
-      // Render Perfectly Centered Symmetric Slices
       for (let i = 0; i < drawSymmetryCount; i++) {
         drawOutCtx.save();
         drawOutCtx.rotate(i * sliceAngle);
 
-        // Mirror alternate slices across sector bisector axis
+        // 선 대칭(거울 대칭) 적용: 홀수 번째 조각은 부채꼴의 중심축을 기준으로 좌우 반전
         if (i % 2 === 1) {
           drawOutCtx.scale(-1, 1);
         }
 
-        // Clip exact wedge boundary around symmetry axis (-90 degrees)
+        // Clip EXACTLY the slice wedge out of the input canvas
         drawOutCtx.beginPath();
         drawOutCtx.moveTo(0, 0);
-        drawOutCtx.arc(0, 0, rOut * 1.02, -Math.PI / 2 - sliceAngle / 2, -Math.PI / 2 + sliceAngle / 2);
+        // Cover slightly larger radius (+5%) for boundary safety during clipping
+        drawOutCtx.arc(0, 0, rOut * 1.05, -Math.PI / 2 - sliceAngle / 2, -Math.PI / 2 + sliceAngle / 2);
         drawOutCtx.closePath();
         drawOutCtx.clip();
 
-        // Project sector input canvas centered on apex (cxIn, cyIn)
+        // Draw mapped slice
         drawOutCtx.drawImage(
           drawInCanvas,
           0, 0, wIn, hIn,
@@ -1644,6 +1769,20 @@
         );
 
         drawOutCtx.restore();
+
+        const showRadialLines = document.getElementById("showRadialLines");
+        if (showRadialLines && showRadialLines.checked) {
+          drawOutCtx.save();
+          drawOutCtx.rotate(i * sliceAngle);
+          drawOutCtx.beginPath();
+          drawOutCtx.moveTo(0, 0);
+          const boundAngle = -Math.PI / 2 + sliceAngle / 2;
+          drawOutCtx.lineTo(rOut * Math.cos(boundAngle), rOut * Math.sin(boundAngle));
+          drawOutCtx.strokeStyle = "rgba(148, 163, 184, 0.6)"; // slate-400 with opacity
+          drawOutCtx.lineWidth = 1;
+          drawOutCtx.stroke();
+          drawOutCtx.restore();
+        }
       }
 
       drawOutCtx.restore();
@@ -1656,12 +1795,12 @@
       link.click();
     }
 
-
+    // Modal Handlers
     function openModal(presetId) {
       const preset = PRESETS.find(p => p.id === presetId);
       if (!preset) return;
 
-      document.getElementById("modalBadge").innerText = `${preset.angleDeg}° 부채꼴 (${preset.slices}회 대칭)`;
+      document.getElementById("modalBadge").innerText = `${preset.angleDeg}° (${preset.slices}분할)`;
       document.getElementById("modalTitle").innerText = preset.title;
       document.getElementById("modalDesc").innerText = preset.desc;
 
@@ -1685,7 +1824,6 @@
       document.getElementById("patternModal").classList.add("hidden");
     }
 
-
     function switchTab(tabName) {
       currentTab = tabName;
 
@@ -1693,23 +1831,23 @@
       document.getElementById("tabStudio").className = tabName === "studio" ? "block space-y-6" : "hidden";
       document.getElementById("tabDraw").className = tabName === "draw" ? "block space-y-6" : "hidden";
 
-      // Nav Highlight
       document.getElementById("navGallery").className = tabName === "gallery" 
-        ? "px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
-        : "px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
+        ? "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
+        : "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
 
       document.getElementById("navStudio").className = tabName === "studio" 
-        ? "px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
-        : "px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
+        ? "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
+        : "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
 
       document.getElementById("navDraw").className = tabName === "draw" 
-        ? "px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
-        : "px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
+        ? "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all bg-white text-slate-800 shadow-sm"
+        : "px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all";
 
       if (tabName === "studio") {
         updateStudioAnimation();
       } else if (tabName === "draw") {
-        initDrawCanvas();
+        // Slight delay to ensure canvas elements are fully rendered in DOM for width/height measurements
+        setTimeout(initDrawCanvas, 10);
       }
     }
 
