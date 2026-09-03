@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>밤길 다리 건너기</title>
-  
-        <!-- Google tag (gtag.js) -->
+
+          <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -158,14 +158,6 @@
       overflow: hidden;
     }
 
-    @media (max-width: 550px) {
-      .bridge-viewport {
-        grid-template-columns: 1fr 80px 1fr;
-        padding: 10px;
-        min-height: 320px;
-      }
-    }
-
     .bank-zone {
       background: rgba(255, 255, 255, 0.7);
       border-radius: 12px;
@@ -257,6 +249,7 @@
       font-weight: 800;
       text-align: center;
       line-height: 20px;
+      flex-shrink: 0;
     }
 
     .person-name {
@@ -272,6 +265,7 @@
       background: rgba(0, 123, 255, 0.1);
       padding: 2px 6px;
       border-radius: 6px;
+      white-space: nowrap;
     }
 
     .bridge-middle {
@@ -643,6 +637,60 @@
       display: flex;
       gap: 8px;
     }
+
+    /* Mobile Responsive Optimizations */
+    @media (max-width: 600px) {
+      /* 1. Hide Keyboard Shortcuts on Mobile */
+      .shortcuts-box {
+        display: none !important;
+      }
+
+      /* 2. Compact Person Display for Mobile */
+      .bridge-viewport {
+        grid-template-columns: 1fr 70px 1fr;
+        padding: 8px;
+        gap: 6px;
+        min-height: 260px;
+      }
+
+      .bank-zone {
+        padding: 6px 4px;
+      }
+
+      .bank-header {
+        font-size: 11px;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .person-card {
+        padding: 8px 6px;
+      }
+
+      .person-name {
+        display: none; /* Hide full text name on small screen to display only '1분', '2분' etc. */
+      }
+
+      .person-key {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        line-height: 18px;
+      }
+
+      .person-time {
+        font-size: 12px;
+        padding: 2px 4px;
+      }
+
+      .puzzle-title-area h1 {
+        font-size: 26px;
+      }
+
+      .status-item {
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -693,7 +741,7 @@
         <div class="bridge-middle">
           <div class="flashlight-icon" id="flashlightVisual">🔦</div>
           <div class="bridge-path">
-            🌉 외나무 다리
+            🌉 다리
           </div>
         </div>
 
@@ -762,7 +810,7 @@
       </ul>
     </section>
 
-    <!-- [영역 6: 키보드 단축키] -->
+    <!-- [영역 6: 키보드 단축키 - 모바일 환경에서는 전용 CSS로 자동 숨김] -->
     <section class="guide-box shortcuts-box">
       <div class="guide-box-header">
         <h2 class="guide-title">⌨ 키보드 단축키</h2>
@@ -952,7 +1000,6 @@
 
     function togglePersonSelection(personId) {
       const state = getCurrentState();
-      const stage = getCurrentStage();
       const personState = state.positions.find(p => p.id === personId);
 
       // Only allow selecting people who are on the same side as the flashlight
