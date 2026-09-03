@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>밤길 다리 건너기</title>
+  
+        <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VHD0QPH39L');
+  </script>
+
+  <!-- Pretendard Font CDN -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --active: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --text-main: #222222;
+      --text-sub: #555555;
+      --border-light: #e9ecef;
+      --bg-btn-default: #f8f9fa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 15px 10px;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Fixed Container Style */
+    .container-fixed {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      width: 100%;
+    }
+
+    /* Area 1-A: Header Title (Fluid) */
+    .puzzle-title-area {
+      text-align: center;
+      padding: 10px 0 5px 0;
+    }
+
+    .puzzle-title-area h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .puzzle-title-area p {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* Area 1-B: Stage Selection (Fixed) */
+    .stage-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stage-btn {
+      background-color: var(--bg-btn-default);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px 4px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .stage-btn:hover {
+      background-color: #e9ecef;
+      color: var(--text-main);
+    }
+
+    .stage-btn.active {
+      background-color: var(--active);
+      color: #ffffff;
+      border-color: var(--active);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Area 2: Puzzle Problem Area (Fixed) */
+    .game-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 2px dashed var(--border-light);
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-item {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .status-highlight {
+      color: var(--active);
+      font-size: 18px;
+    }
+
+    .target-highlight {
+      color: var(--danger);
+    }
+
+    .bridge-viewport {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      gap: 10px;
+      min-height: 280px;
+      background: linear-gradient(180deg, #e8f4f8 0%, #d0e7f2 100%);
+      border-radius: 16px;
+      padding: 15px;
+      position: relative;
+      border: 2px solid #bcdbe8;
+      overflow: hidden;
+    }
+
+    @media (max-width: 550px) {
+      .bridge-viewport {
+        grid-template-columns: 1fr 80px 1fr;
+        padding: 10px;
+        min-height: 320px;
+      }
+    }
+
+    .bank-zone {
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+
+    .bank-zone.has-flashlight {
+      border-color: #ffc107;
+      box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+      background: rgba(255, 253, 230, 0.85);
+    }
+
+    .bank-header {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-sub);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .bank-header .flashlight-badge {
+      font-size: 12px;
+      background: #ffc107;
+      color: #000;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .people-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .person-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .person-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .person-card.selected {
+      border-color: var(--active);
+      background-color: #e6f0ff;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    }
+
+    .person-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .person-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .person-key {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: #e9ecef;
+      color: #495057;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 20px;
+    }
+
+    .person-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .person-time {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--active);
+      background: rgba(0, 123, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .bridge-middle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .bridge-path {
+      width: 100%;
+      height: 60px;
+      background: #8b5a2b;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+      position: relative;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .bridge-path::before, .bridge-path::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      width: 100%;
+      height: 4px;
+      background: #5c3a17;
+    }
+
+    .bridge-path::after {
+      top: auto;
+      bottom: -4px;
+    }
+
+    .flashlight-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px #ffeb3b);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 5px #ffeb3b); }
+      100% { transform: scale(1.15); filter: drop-shadow(0 0 15px #ffeb3b); }
+    }
+
+    /* Area 3: Control Buttons Area (Fluid) */
+    .controls-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      flex: 2;
+      height: 54px;
+      background-color: var(--active);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-action:hover {
+      background-color: #0069d9;
+    }
+
+    .btn-action:disabled {
+      background-color: #a0c7ff;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-reset {
+      flex: 1;
+      height: 54px;
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .btn-reset:hover {
+      background-color: #e9ecef;
+    }
+
+    /* Status Message Display at Bottom */
+    .status-msg-box {
+      min-height: 24px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .status-msg-box.success {
+      color: var(--success);
+    }
+
+    .status-msg-box.danger {
+      color: var(--danger);
+    }
+
+    .status-msg-box.info {
+      color: var(--active);
+    }
+
+    /* Lower Guide Boxes Common Style */
+    .guide-box {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      word-break: keep-all;
+    }
+
+    .guide-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .guide-title {
+      font-size: 18px;
+      font-weight: 700;
+      padding-left: 10px;
+    }
+
+    /* Area 4: Cumulative Record */
+    .guide-box.record-box {
+      border-left: 6px solid var(--danger);
+    }
+
+    .guide-box.record-box .guide-title {
+      color: var(--danger);
+    }
+
+    .btn-reset-records {
+      background-color: #ffffff;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset-records:hover {
+      background-color: var(--danger);
+      color: #ffffff;
+    }
+
+    /* Record Table */
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .record-table th, .record-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .record-table th {
+      background-color: #f8f9fa;
+      color: var(--text-sub);
+      font-weight: 700;
+    }
+
+    .record-table td {
+      font-weight: 600;
+    }
+
+    .badge-clear {
+      color: var(--success);
+      font-weight: 800;
+    }
+
+    .badge-unclear {
+      color: var(--text-sub);
+    }
+
+    /* Area 5: Puzzle Rules */
+    .guide-box.rules-box {
+      border-left: 6px solid var(--active);
+    }
+
+    .guide-box.rules-box .guide-title {
+      color: var(--active);
+    }
+
+    .rules-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rules-list li {
+      font-size: 15px;
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    /* Area 6: Keyboard Shortcuts */
+    .guide-box.shortcuts-box {
+      border-left: 6px solid var(--success);
+    }
+
+    .guide-box.shortcuts-box .guide-title {
+      color: var(--success);
+    }
+
+    .shortcuts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    kbd {
+      background-color: #f8f9fa;
+      border: 1px solid #ced4da;
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Area 3 Popup / Modal System */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 15px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 350px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+      transform: scale(0.9);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-card.success {
+      border-top: 6px solid var(--success);
+    }
+
+    .modal-card.danger {
+      border-top: 6px solid var(--danger);
+    }
+
+    .modal-icon {
+      font-size: 44px;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .modal-title.success { color: var(--success); }
+    .modal-title.danger { color: var(--danger); }
+
+    .modal-desc {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .btn-modal {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-modal.success {
+      background-color: var(--success);
+    }
+    .btn-modal.success:hover {
+      background-color: #218838;
+    }
+
+    .btn-modal.danger {
+      background-color: var(--danger);
+    }
+    .btn-modal.danger:hover {
+      background-color: #c82333;
+    }
+
+    .btn-modal.secondary {
+      background-color: var(--border-light);
+      color: var(--text-main);
+    }
+    .btn-modal.secondary:hover {
+      background-color: #ced4da;
+    }
+
+    .modal-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- [영역 1-A: 퍼즐 제목 영역] - Fluid -->
+    <header class="puzzle-title-area">
+      <h1>밤길 다리 건너기</h1>
+      <p>손전등 하나로 모두가 최소 시간 안에 다리를 건너도록 도우세요!</p>
+    </header>
+
+    <!-- [영역 1-B: 단계 선택 영역] - Fixed -->
+    <section class="container-fixed">
+      <div class="stage-selector-grid" id="stageSelector">
+        <!-- Stage buttons rendered via JS -->
+      </div>
+    </section>
+
+    <!-- [영역 2: 퍼즐 문제 영역] - Fixed -->
+    <main class="container-fixed">
+      <div class="game-status-bar">
+        <div class="status-item">
+          단계: <span id="currentStageName" class="status-highlight">단계 1</span>
+        </div>
+        <div class="status-item">
+          경과 시간: <span id="elapsedTime" class="status-highlight">0</span>분
+          / 목표: <span id="targetTime" class="target-highlight">17</span>분
+        </div>
+        <div class="status-item">
+          이동 횟수: <span id="moveCount">0</span>회
+        </div>
+      </div>
+
+      <!-- Visual Bridge Canvas -->
+      <div class="bridge-viewport">
+        <!-- Left Bank -->
+        <div class="bank-zone" id="bankLeft">
+          <div class="bank-header">
+            <span>출발지 (왼쪽)</span>
+            <span class="flashlight-badge" id="badgeLeft" style="display:none;">🔦 손전등</span>
+          </div>
+          <div class="people-list" id="listLeft">
+            <!-- Left side people -->
+          </div>
+        </div>
+
+        <!-- Bridge Middle -->
+        <div class="bridge-middle">
+          <div class="flashlight-icon" id="flashlightVisual">🔦</div>
+          <div class="bridge-path">
+            🌉 외나무 다리
+          </div>
+        </div>
+
+        <!-- Right Bank -->
+        <div class="bank-zone" id="bankRight">
+          <div class="bank-header">
+            <span>도착지 (오른쪽)</span>
+            <span class="flashlight-badge" id="badgeRight" style="display:none;">🔦 손전등</span>
+          </div>
+          <div class="people-list" id="listRight">
+            <!-- Right side people -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- [영역 3: 하단 조작 버튼 영역 및 상태 메시지] - Fluid -->
+    <section>
+      <div class="controls-area">
+        <button class="btn-action" id="btnCross" onclick="handleCrossBridge()">
+          <span>🔦</span> <span id="btnCrossText">다리 건너기</span>
+        </button>
+        <button class="btn-reset" id="btnReset" onclick="resetCurrentStage()">
+          🔄 초기화
+        </button>
+      </div>
+      <div class="status-msg-box" id="statusMsg" style="margin-top: 10px;"></div>
+    </section>
+
+    <!-- [영역 4: 누적 기록] -->
+    <section class="guide-box record-box">
+      <div class="guide-box-header">
+        <h2 class="guide-title">📊 누적 기록</h2>
+        <button class="btn-reset-records" onclick="confirmResetRecords()">누적기록 초기화</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="record-table">
+          <thead>
+            <tr>
+              <th>단계</th>
+              <th>인원</th>
+              <th>목표 시간</th>
+              <th>최고 기록</th>
+              <th>상태</th>
+              <th>시도 횟수</th>
+            </tr>
+          </thead>
+          <tbody id="recordTableBody">
+            <!-- Dynamic Record Rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- [영역 5: 퍼즐 규칙] -->
+    <section class="guide-box rules-box">
+      <div class="guide-box-header">
+        <h2 class="guide-title">◈ 퍼즐 규칙</h2>
+      </div>
+      <ul class="rules-list">
+        <li>• 밤이라 어두워서 손전등이 있어야만 다리를 건널 수 있습니다.</li>
+        <li>• 한 번에 최대 두 사람까지만 함께 다리를 건널 수 있습니다.</li>
+        <li>• 두 사람이 함께 건널 때는 더 느린 사람의 속도(더 긴 시간)로 이동합니다.</li>
+        <li>• 다리를 건넌 후에는 손전등을 반대편으로 가져와야 다른 사람이 건널 수 있습니다.</li>
+        <li>• 주어진 목표 시간 이내에 모든 사람이 무사히 건너면 성공입니다.</li>
+      </ul>
+    </section>
+
+    <!-- [영역 6: 키보드 단축키] -->
+    <section class="guide-box shortcuts-box">
+      <div class="guide-box-header">
+        <h2 class="guide-title">⌨ 키보드 단축키</h2>
+      </div>
+      <div class="shortcuts-container">
+        <div class="shortcut-item"><kbd>1</kbd> ~ <kbd>5</kbd> : 사람 선택 / 해제</div>
+        <div class="shortcut-item"><kbd>Space</kbd> / <kbd>Enter</kbd> : 다리 건너기 / 돌아오기</div>
+        <div class="shortcut-item"><kbd>R</kbd> : 현재 단계 초기화</div>
+        <div class="shortcut-item"><kbd>Tab</kbd> : 다음 단계 전환</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Result Notification Popup (Modal Overlay) -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <div class="modal-icon" id="modalIcon">🎉</div>
+      <div class="modal-title" id="modalTitle">정답입니다!</div>
+      <div class="modal-desc" id="modalDesc">모든 사람이 목표 시간 내에 무사히 다리를 건넜습니다.</div>
+      <div class="modal-btn-group">
+        <button class="btn-modal" id="modalBtn" onclick="handleModalConfirm()">확인</button>
+        <button class="btn-modal secondary" id="modalCancelBtn" onclick="closeModal()" style="display: none;">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Disable right click & context menu & double-tap zoom
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    
+    // Stage datasets definitions
+    const dataSets = [
+      {
+        id: 1,
+        name: "1단계",
+        targetTime: 17,
+        people: [
+          { id: 1, name: "1분 소년", time: 1, icon: "⚡" },
+          { id: 2, name: "2분 청년", time: 2, icon: "🚶" },
+          { id: 3, name: "5분 아저씨", time: 5, icon: "🐢" },
+          { id: 4, name: "10분 할아버지", time: 10, icon: "🦥" }
+        ]
+      },
+      {
+        id: 2,
+        name: "2단계",
+        targetTime: 22,
+        people: [
+          { id: 1, name: "1분 학생", time: 1, icon: "⚡" },
+          { id: 2, name: "3분 대원", time: 3, icon: "🏃" },
+          { id: 3, name: "7분 등산객", time: 7, icon: "🚶" },
+          { id: 4, name: "12분 탐험가", time: 12, icon: "🐢" }
+        ]
+      },
+      {
+        id: 3,
+        name: "3단계",
+        targetTime: 29,
+        people: [
+          { id: 1, name: "2분 선수", time: 2, icon: "🏃" },
+          { id: 2, name: "4분 코치", time: 4, icon: "🚶" },
+          { id: 3, name: "8분 심판", time: 8, icon: "🐢" },
+          { id: 4, name: "15분 관중", time: 15, icon: "🦥" }
+        ]
+      },
+      {
+        id: 4,
+        name: "4단계",
+        targetTime: 28,
+        people: [
+          { id: 1, name: "1분 러너", time: 1, icon: "⚡" },
+          { id: 2, name: "2분 보이스카우트", time: 2, icon: "🏃" },
+          { id: 3, name: "4분 가이드", time: 4, icon: "🚶" },
+          { id: 4, name: "8분 사진가", time: 8, icon: "🐢" },
+          { id: 5, name: "16분 짐꾼", time: 16, icon: "🦥" }
+        ]
+      },
+      {
+        id: 5,
+        name: "5단계",
+        targetTime: 56,
+        people: [
+          { id: 1, name: "3분 전사", time: 3, icon: "⚡" },
+          { id: 2, name: "5분 마법사", time: 5, icon: "🏃" },
+          { id: 3, name: "10분 궁수", time: 10, icon: "🚶" },
+          { id: 4, name: "20분 사제", time: 20, icon: "🐢" },
+          { id: 5, name: "25분 성기사", time: 25, icon: "🦥" }
+        ]
+      }
+    ];
+
+    // Global application state
+    let currentStageIndex = 0;
+    
+    // stageHistory remembers live state per stage
+    let stageHistory = {};
+
+    // Cumulative stats stored in localStorage
+    let userRecords = {};
+
+    const STORAGE_KEY_RECORDS = "bridge_puzzle_records_v2";
+    const STORAGE_KEY_HISTORY = "bridge_puzzle_history_v2";
+
+    function initDataPersistence() {
+      // Load accumulated records
+      try {
+        const savedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
+        if (savedRecords) {
+          userRecords = JSON.parse(savedRecords);
+        } else {
+          userRecords = createInitialRecords();
+        }
+      } catch (e) {
+        userRecords = createInitialRecords();
+      }
+
+      // Load active stage history
+      try {
+        const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+        if (savedHistory) {
+          stageHistory = JSON.parse(savedHistory);
+        } else {
+          stageHistory = createInitialHistory();
+        }
+      } catch (e) {
+        stageHistory = createInitialHistory();
+      }
+    }
+
+    function createInitialRecords() {
+      const records = {};
+      dataSets.forEach(stage => {
+        records[stage.id] = {
+          bestTime: null,
+          isCleared: false,
+          attempts: 0
+        };
+      });
+      return records;
+    }
+
+    function createInitialHistory() {
+      const history = {};
+      dataSets.forEach(stage => {
+        history[stage.id] = createDefaultStateForStage(stage);
+      });
+      return history;
+    }
+
+    function createDefaultStateForStage(stage) {
+      return {
+        flashlightPos: 0, // 0: Left, 1: Right
+        elapsedTime: 0,
+        moveCount: 0,
+        selectedIds: [],
+        positions: stage.people.map(p => ({ id: p.id, pos: 0 })) // All start on Left
+      };
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(userRecords));
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(stageHistory));
+      } catch (e) {
+        console.error("Storage save failed", e);
+      }
+    }
+
+    function getCurrentStage() {
+      return dataSets[currentStageIndex];
+    }
+
+    function getCurrentState() {
+      const stage = getCurrentStage();
+      if (!stageHistory[stage.id]) {
+        stageHistory[stage.id] = createDefaultStateForStage(stage);
+      }
+      return stageHistory[stage.id];
+    }
+
+    function setStage(index) {
+      currentStageIndex = index;
+      renderStageButtons();
+      renderGameView();
+      setStatusMessage("");
+    }
+
+    function togglePersonSelection(personId) {
+      const state = getCurrentState();
+      const stage = getCurrentStage();
+      const personState = state.positions.find(p => p.id === personId);
+
+      // Only allow selecting people who are on the same side as the flashlight
+      if (personState.pos !== state.flashlightPos) {
+        setStatusMessage("손전등이 있는 위치에 있는 사람만 선택할 수 있습니다.", "danger");
+        return;
+      }
+
+      const selIdx = state.selectedIds.indexOf(personId);
+      if (selIdx > -1) {
+        // Deselect
+        state.selectedIds.splice(selIdx, 1);
+        setStatusMessage("");
+      } else {
+        // Select (Max 2 people)
+        if (state.selectedIds.length >= 2) {
+          setStatusMessage("한 번에 최대 두 사람까지만 이동할 수 있습니다.", "danger");
+          return;
+        }
+        state.selectedIds.push(personId);
+        setStatusMessage("");
+      }
+
+      saveToStorage();
+      renderGameView();
+    }
+
+    function handleCrossBridge() {
+      const state = getCurrentState();
+      const stage = getCurrentStage();
+
+      if (state.selectedIds.length === 0) {
+        setStatusMessage("건너갈 사람을 1명 이상 선택해 주세요.", "danger");
+        return;
+      }
+
+      if (state.selectedIds.length > 2) {
+        setStatusMessage("한 번에 최대 2명까지만 다리를 건널 수 있습니다.", "danger");
+        return;
+      }
+
+      // Calculate time taken (maximum time among selected people)
+      const selectedPeople = stage.people.filter(p => state.selectedIds.includes(p.id));
+      const timeCost = Math.max(...selectedPeople.map(p => p.time));
+
+      // Execute move
+      const targetBank = state.flashlightPos === 0 ? 1 : 0;
+      state.positions.forEach(p => {
+        if (state.selectedIds.includes(p.id)) {
+          p.pos = targetBank;
+        }
+      });
+
+      state.flashlightPos = targetBank;
+      state.elapsedTime += timeCost;
+      state.moveCount += 1;
+      state.selectedIds = []; // Clear selection
+
+      saveToStorage();
+      renderGameView();
+
+      // Check stage completion condition
+      checkGameEndCondition();
+    }
+
+    function checkGameEndCondition() {
+      const state = getCurrentState();
+      const stage = getCurrentStage();
+      const allCrossed = state.positions.every(p => p.pos === 1);
+
+      if (allCrossed) {
+        // Increment attempts count
+        userRecords[stage.id].attempts += 1;
+
+        if (state.elapsedTime <= stage.targetTime) {
+          // SUCCESS!
+          userRecords[stage.id].isCleared = true;
+          if (userRecords[stage.id].bestTime === null || state.elapsedTime < userRecords[stage.id].bestTime) {
+            userRecords[stage.id].bestTime = state.elapsedTime;
+          }
+          saveToStorage();
+          renderRecordTable();
+
+          setStatusMessage(`🎉 정답! ${state.elapsedTime}분 만에 성공하셨습니다!`, "success");
+          showModal(true, `🎉 정답입니다!`, `${state.elapsedTime}분 만에 무사히 다리를 건넜습니다!\n(목표 시간: ${stage.targetTime}분)`);
+        } else {
+          // OVER TIME LIMIT
+          saveToStorage();
+          renderRecordTable();
+
+          setStatusMessage(`❌ 목표 시간(${stage.targetTime}분)을 초과했습니다! (${state.elapsedTime}분 소요)`, "danger");
+          showModal(false, `❌ 목표 시간 초과!`, `모두 건넜지만 ${state.elapsedTime}분이 걸려 목표(${stage.targetTime}분)를 초과했습니다. 다시 시도해 보세요.`);
+        }
+      } else {
+        const sideText = state.flashlightPos === 0 ? "왼쪽 출발지" : "오른쪽 도착지";
+        setStatusMessage(`손전등이 ${sideText}로 이동했습니다.`, "info");
+      }
+    }
+
+    function resetCurrentStage() {
+      const stage = getCurrentStage();
+      stageHistory[stage.id] = createDefaultStateForStage(stage);
+      saveToStorage();
+      renderGameView();
+      setStatusMessage("현재 단계가 초기화되었습니다.", "info");
+    }
+
+    function resetAllRecords() {
+      userRecords = createInitialRecords();
+      stageHistory = createInitialHistory();
+      saveToStorage();
+      renderStageButtons();
+      renderGameView();
+      renderRecordTable();
+      setStatusMessage("모든 누적 기록과 진행 상태가 초기화되었습니다.", "info");
+    }
+
+    let currentModalIsSuccess = false;
+    let modalMode = "result"; // "result" or "confirmReset"
+
+    function confirmResetRecords() {
+      modalMode = "confirmReset";
+      const overlay = document.getElementById("modalOverlay");
+      const card = document.getElementById("modalCard");
+      const icon = document.getElementById("modalIcon");
+      const titleEl = document.getElementById("modalTitle");
+      const descEl = document.getElementById("modalDesc");
+      const btn = document.getElementById("modalBtn");
+      const cancelBtn = document.getElementById("modalCancelBtn");
+
+      card.className = "modal-card danger";
+      icon.innerText = "⚠️";
+      titleEl.innerText = "누적 기록 초기화";
+      titleEl.className = "modal-title danger";
+      descEl.innerText = "모든 최고 기록과 시도 횟수, 진행 상태가 삭제됩니다.\n정말 초기화하시겠습니까?";
+
+      btn.className = "btn-modal danger";
+      btn.innerText = "초기화";
+      cancelBtn.style.display = "block";
+
+      overlay.classList.add("active");
+      btn.focus();
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById("modalOverlay");
+      overlay.classList.remove("active");
+    }
+
+    function showModal(isSuccess, title, desc) {
+      modalMode = "result";
+      currentModalIsSuccess = isSuccess;
+      const overlay = document.getElementById("modalOverlay");
+      const card = document.getElementById("modalCard");
+      const icon = document.getElementById("modalIcon");
+      const titleEl = document.getElementById("modalTitle");
+      const descEl = document.getElementById("modalDesc");
+      const btn = document.getElementById("modalBtn");
+      const cancelBtn = document.getElementById("modalCancelBtn");
+
+      cancelBtn.style.display = "none";
+
+      card.className = "modal-card " + (isSuccess ? "success" : "danger");
+      icon.innerText = isSuccess ? "🎉" : "❌";
+      titleEl.innerText = title;
+      titleEl.className = "modal-title " + (isSuccess ? "success" : "danger");
+      descEl.innerText = desc;
+
+      if (isSuccess) {
+        btn.className = "btn-modal success";
+        btn.innerText = currentStageIndex < dataSets.length - 1 ? "다음 단계로 (Enter)" : "닫기 (Enter)";
+      } else {
+        btn.className = "btn-modal danger";
+        btn.innerText = "다시 시도 (Enter)";
+      }
+
+      overlay.classList.add("active");
+      btn.focus();
+    }
+
+    function handleModalConfirm() {
+      closeModal();
+
+      if (modalMode === "confirmReset") {
+        resetAllRecords();
+        return;
+      }
+
+      if (currentModalIsSuccess) {
+        if (currentStageIndex < dataSets.length - 1) {
+          setStage(currentStageIndex + 1);
+        }
+      } else {
+        resetCurrentStage();
+      }
+    }
+
+    function setStatusMessage(msg, type = "info") {
+      const msgBox = document.getElementById("statusMsg");
+      msgBox.innerText = msg;
+      msgBox.className = "status-msg-box " + type;
+    }
+
+    function renderStageButtons() {
+      const container = document.getElementById("stageSelector");
+      container.innerHTML = "";
+
+      dataSets.forEach((stage, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "stage-btn" + (idx === currentStageIndex ? " active" : "");
+        
+        const isCleared = userRecords[stage.id]?.isCleared;
+        btn.innerText = stage.name + (isCleared ? " ★" : "");
+        btn.onclick = () => setStage(idx);
+        container.appendChild(btn);
+      });
+    }
+
+    function renderGameView() {
+      const stage = getCurrentStage();
+      const state = getCurrentState();
+
+      // Top Status Bar
+      document.getElementById("currentStageName").innerText = stage.name;
+      document.getElementById("elapsedTime").innerText = state.elapsedTime;
+      document.getElementById("targetTime").innerText = stage.targetTime;
+      document.getElementById("moveCount").innerText = state.moveCount;
+
+      // Flashlight Badges
+      const badgeLeft = document.getElementById("badgeLeft");
+      const badgeRight = document.getElementById("badgeRight");
+      const bankLeft = document.getElementById("bankLeft");
+      const bankRight = document.getElementById("bankRight");
+      const flashlightVisual = document.getElementById("flashlightVisual");
+
+      if (state.flashlightPos === 0) {
+        badgeLeft.style.display = "inline-block";
+        badgeRight.style.display = "none";
+        bankLeft.classList.add("has-flashlight");
+        bankRight.classList.remove("has-flashlight");
+        flashlightVisual.style.transform = "scaleX(1)";
+      } else {
+        badgeLeft.style.display = "none";
+        badgeRight.style.display = "inline-block";
+        bankLeft.classList.remove("has-flashlight");
+        bankRight.classList.add("has-flashlight");
+        flashlightVisual.style.transform = "scaleX(-1)";
+      }
+
+      // Action Button Text
+      const btnCrossText = document.getElementById("btnCrossText");
+      if (state.flashlightPos === 0) {
+        btnCrossText.innerText = "오른쪽으로 건너기";
+      } else {
+        btnCrossText.innerText = "왼쪽으로 돌아오기";
+      }
+
+      // Render People Lists
+      const listLeft = document.getElementById("listLeft");
+      const listRight = document.getElementById("listRight");
+      listLeft.innerHTML = "";
+      listRight.innerHTML = "";
+
+      stage.people.forEach((person, index) => {
+        const personState = state.positions.find(p => p.id === person.id);
+        const isSelected = state.selectedIds.includes(person.id);
+        const isSameSideWithFlashlight = personState.pos === state.flashlightPos;
+
+        const card = document.createElement("div");
+        let cardClass = "person-card";
+        if (isSelected) cardClass += " selected";
+        if (!isSameSideWithFlashlight) cardClass += " disabled";
+        card.className = cardClass;
+
+        card.innerHTML = `
+          <div class="person-info">
+            <span class="person-key">${index + 1}</span>
+            <span>${person.icon}</span>
+            <span class="person-name">${person.name}</span>
+          </div>
+          <span class="person-time">${person.time}분</span>
+        `;
+
+        card.onclick = () => togglePersonSelection(person.id);
+
+        if (personState.pos === 0) {
+          listLeft.appendChild(card);
+        } else {
+          listRight.appendChild(card);
+        }
+      });
+
+      renderRecordTable();
+    }
+
+    function renderRecordTable() {
+      const tbody = document.getElementById("recordTableBody");
+      tbody.innerHTML = "";
+
+      dataSets.forEach(stage => {
+        const rec = userRecords[stage.id] || { bestTime: null, isCleared: false, attempts: 0 };
+        const tr = document.createElement("tr");
+
+        const peopleCount = stage.people.length;
+        const bestTimeText = rec.bestTime !== null ? `${rec.bestTime}분` : "-";
+        const clearBadge = rec.isCleared 
+          ? `<span class="badge-clear">클리어</span>` 
+          : `<span class="badge-unclear">미완료</span>`;
+
+        tr.innerHTML = `
+          <td>${stage.name}</td>
+          <td>${peopleCount}명</td>
+          <td>${stage.targetTime}분</td>
+          <td>${bestTimeText}</td>
+          <td>${clearBadge}</td>
+          <td>${rec.attempts}회</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.addEventListener("keydown", function(e) {
+      const modal = document.getElementById("modalOverlay");
+      const isModalActive = modal.classList.contains("active");
+
+      // Handle keyboard inside active modal
+      if (isModalActive) {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          e.preventDefault();
+          handleModalConfirm();
+        }
+        return;
+      }
+
+      // Keys 1 ~ 5 for person selection
+      if (e.key >= "1" && e.key <= "5") {
+        const idx = parseInt(e.key, 10) - 1;
+        const stage = getCurrentStage();
+        if (idx < stage.people.length) {
+          togglePersonSelection(stage.people[idx].id);
+        }
+      }
+
+      // Space or Enter for crossing bridge
+      if (e.key === " " || e.key === "Spacebar" || e.key === "Enter") {
+        e.preventDefault();
+        handleCrossBridge();
+      }
+
+      // R key for Reset
+      if (e.key === "r" || e.key === "R" || e.key === "ㄱ") {
+        resetCurrentStage();
+      }
+
+      // Tab key for Next Stage
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const nextIdx = (currentStageIndex + 1) % dataSets.length;
+        setStage(nextIdx);
+      }
+    });
+
+    window.onload = function() {
+      initDataPersistence();
+      renderStageButtons();
+      renderGameView();
+    };
+  </script>
+</body>
+</html>
