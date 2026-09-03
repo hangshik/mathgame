@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>밤길 다리 건너기</title>
 
-          <!-- Google tag (gtag.js) -->
+        <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-VHD0QPH39L');
-  </script>
+  </script>  
 
   <!-- Pretendard Font CDN -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -667,8 +667,9 @@
         padding: 8px 6px;
       }
 
-      .person-name {
-        display: none; /* Hide full text name on small screen to display only '1분', '2분' etc. */
+      .person-name,
+      .person-icon {
+        display: none; /* 모바일 화면에서 이름과 아이콘 모두 숨김 */
       }
 
       .person-key {
@@ -1277,7 +1278,7 @@
         card.innerHTML = `
           <div class="person-info">
             <span class="person-key">${index + 1}</span>
-            <span>${person.icon}</span>
+            <span class="person-icon">${person.icon}</span>
             <span class="person-name">${person.name}</span>
           </div>
           <span class="person-time">${person.time}분</span>
