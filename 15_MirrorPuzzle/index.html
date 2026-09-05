@@ -35,7 +35,7 @@
       color: var(--text-main);
       min-height: 100vh;
       margin: 0;
-      padding: 10px 4px; /* 바깥 여백 최소화하여 가로 공간 확보 */
+      padding: 10px 4px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -51,18 +51,18 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 16px; /* 모바일에서 컴포넌트 간격 최적화 */
+      gap: 16px;
     }
 
     h1 {
       text-align: center;
-      font-size: clamp(24px, 7vw, 36px); /* 타이틀 크기 유동적 조절 */
+      font-size: clamp(24px, 7vw, 36px);
       font-weight: 800;
       margin: 10px 0 0 0;
       color: var(--text-main);
     }
 
-    /* 단계 선택 영역 (CSS Grid - 한 줄에 7개 고정) */
+    /* 단계 선택 영역 */
     .stage-buttons {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -76,7 +76,7 @@
     .stage-buttons button {
       width: 100%;
       padding: 8px 0;
-      font-size: clamp(9px, 2.5vw, 13px); /* 작은 화면에서 폰트 깨짐 방지 */
+      font-size: clamp(9px, 2.5vw, 13px);
       font-weight: 600;
       cursor: pointer;
       border: 1px solid #e9ecef;
@@ -107,10 +107,10 @@
       border-color: var(--success);
     }
 
-    /* 영역 2: 퍼즐 문제 영역 (가로 공간 극대화) */
+    /* 퍼즐 문제 영역 */
     .grid-container {
       background: var(--card-bg);
-      padding: 12px; /* 패딩을 줄여 게임판 자체 크기를 키움 */
+      padding: 12px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       width: 100%;
@@ -132,7 +132,7 @@
       justify-content: center;
       align-items: center;
       background: white;
-      font-size: clamp(16px, 6vw, 28px); /* 모바일 화면 비례 글자 크기 증가 */
+      font-size: clamp(16px, 6vw, 28px);
       font-weight: 700;
       width: 100%;
       height: 100%;
@@ -190,7 +190,7 @@
       transform: translate(-50%, -50%) rotate(45deg);
     }
 
-    /* 영역 3: 하단 조작 버튼 영역 */
+    /* 하단 조작 버튼 영역 */
     .buttons-wrapper {
       width: 100%;
     }
@@ -207,7 +207,7 @@
       flex: 1;
       height: 48px;
       padding: 0;
-      font-size: clamp(13px, 3.5vw, 16px);
+      font-size: clamp(12px, 3.2vw, 15px);
       font-weight: 700;
       cursor: pointer;
       border: 1px solid #ced4da;
@@ -241,19 +241,19 @@
       outline: none;
     }
 
-    /* 처음으로 버튼 스타일 지정 */
-    .reset-btn {
+    /* 처음으로 및 기록 초기화 버튼 동일 빨간색 스타일 적용 */
+    .reset-btn, .clear-btn {
       color: var(--danger) !important;
       border: 1.5px solid var(--danger) !important;
       background: var(--card-bg);
       transition: background 0.2s, color 0.2s;
     }
-    .reset-btn:hover {
+    .reset-btn:hover, .clear-btn:hover {
       background-color: var(--danger) !important;
       color: white !important;
     }
 
-    /* 영역 5: 하단 가이드 공간 */
+    /* 가이드 공간 */
     .guide-box {
       background-color: var(--card-bg);
       border-radius: 12px;
@@ -265,7 +265,7 @@
       word-break: keep-all;
     }
         
-        .guide-active {
+    .guide-active {
       border-left: 6px solid var(--active);
     }
     .guide-active .guide-title {
@@ -298,16 +298,16 @@
     }
 
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+    @media (max-width: 600px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+    }
+    .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+    kbd {
+      background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+      color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+    }
 
-    /* 결과 알림 팝업창 */
+    /* 모달 팝업창 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -366,6 +366,11 @@ kbd {
       line-height: 1.5;
     }
 
+    .modal-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
     .modal-btn {
       width: 100%;
       height: 48px;
@@ -382,6 +387,9 @@ kbd {
 
     .modal-btn.danger { background: var(--danger); color: white; }
     .modal-btn.danger:hover { background: #c82333; }
+
+    .modal-btn.secondary { background: #6c757d; color: white; }
+    .modal-btn.secondary:hover { background: #5a6268; }
   </style>
 </head>
 <body>
@@ -389,7 +397,7 @@ kbd {
   <div class="container-fixed">
     <h1>거울퍼즐</h1>
 
-    <!-- 영역 1: 단계 선택 (7개 고정 구조) -->
+    <!-- 영역 1: 단계 선택 -->
     <div class="stage-buttons" id="stageButtons"></div>
 
     <!-- 영역 2: 퍼즐 문제 영역 -->
@@ -400,7 +408,7 @@ kbd {
     <!-- 영역 3: 하단 조작 버튼 -->
     <div class="buttons-wrapper">
       <div class="buttons">
-        <!-- <a href="example.html" class="btn-desc">문제 설명</a> -->
+        <button id="clearDataBtn" class="clear-btn">🗑️ 기록 초기화</button>
         <button id="resetBtn" class="reset-btn">🔄 처음으로</button>
         <button id="checkBtn">✓ 정답 확인</button>        
       </div>
@@ -416,9 +424,8 @@ kbd {
           <li>숫자 1과 숫자 4에 대한 것은 아래 그림을 참고하세요. 경로를 따라가다 보면 동일한 녹색 원을 두 번 이상 지나치며 중복으로 셀 수도 있습니다.</li>
         </ul>
         <img src="e2.png" class="desc-img small" style="margin-top: 20px; width:100%; max-width: 400px;">
-  
+      </div>
     </div>
-  </div>
 
     <div class="keyboard-info">
       <h3>⌨️ 키보드 단축키</h3>
@@ -433,12 +440,14 @@ kbd {
     </div>
   </div>
 
-  <!-- 결과 알림 팝업창 -->
+  <!-- 결과 알림 및 확인 팝업창 -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-card" id="modalCard">
       <div class="modal-title" id="modalTitle">🎉 성공!</div>
       <div class="modal-body" id="modalBody">정답입니다!</div>
-      <button class="modal-btn" id="modalBtn">다음 단계로</button>
+      <div class="modal-btn-group" id="modalBtnGroup">
+        <button class="modal-btn" id="modalBtn">다음 단계로</button>
+      </div>
     </div>
   </div>
 
@@ -450,6 +459,7 @@ kbd {
 
     const stageButtons = document.getElementById('stageButtons');
     const grid = document.getElementById('grid');
+    const clearDataBtn = document.getElementById('clearDataBtn');
     const resetBtn = document.getElementById('resetBtn');
     const checkBtn = document.getElementById('checkBtn');
     
@@ -457,7 +467,7 @@ kbd {
     const modalCard = document.getElementById('modalCard');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
-    const modalBtn = document.getElementById('modalBtn');
+    const modalBtnGroup = document.getElementById('modalBtnGroup');
 
     let buttons = [];
     let currentData = [];
@@ -466,19 +476,19 @@ kbd {
     let isModalOpen = false;
     let modalType = '';
 
-// 상태 로드
-let currentStage = parseInt(sessionStorage.getItem('mp_currentStage')) || 1;
-const completedStages = new Set(JSON.parse(sessionStorage.getItem('mp_completedStages')) || []);
-const stageHistory = JSON.parse(sessionStorage.getItem('mp_stageHistory')) || {};
-const stageFailCounts = JSON.parse(sessionStorage.getItem('mp_stageFailCounts')) || {};
+    // localStorage를 통한 영구 상태 관리
+    let currentStage = parseInt(localStorage.getItem('mp_currentStage')) || 1;
+    let completedStages = new Set(JSON.parse(localStorage.getItem('mp_completedStages')) || []);
+    let stageHistory = JSON.parse(localStorage.getItem('mp_stageHistory')) || {};
+    let stageFailCounts = JSON.parse(localStorage.getItem('mp_stageFailCounts')) || {};
 
-// 상태 저장 함수
-function saveToStorage() {
-  sessionStorage.setItem('mp_currentStage', currentStage);
-  sessionStorage.setItem('mp_completedStages', JSON.stringify([...completedStages]));
-  sessionStorage.setItem('mp_stageHistory', JSON.stringify(stageHistory));
-  sessionStorage.setItem('mp_stageFailCounts', JSON.stringify(stageFailCounts));
-}
+    // 상태 저장 함수
+    function saveToStorage() {
+      localStorage.setItem('mp_currentStage', currentStage);
+      localStorage.setItem('mp_completedStages', JSON.stringify([...completedStages]));
+      localStorage.setItem('mp_stageHistory', JSON.stringify(stageHistory));
+      localStorage.setItem('mp_stageFailCounts', JSON.stringify(stageFailCounts));
+    }
 
     const dataSets = [
       [[,,0,,],[,0,1,2,],[,0,1,2,],[,0,0,0,],[,3,2,1,]],
@@ -509,7 +519,7 @@ function saveToStorage() {
       [[,1,,22,,1,],[,0,2,0,1,0,],[,2,0,0,0,1,],[,0,0,0,0,2,],[,1,0,0,0,1,],[,0,1,2,1,2,],[,1,,,,,]]
     ];
 
-    // 빌드 동적 버튼 생성 (총 26단계)
+    // 빌드 동적 버튼 생성
     for (let i = 1; i <= 26; i++) {
       const btn = document.createElement('button');
       btn.textContent = `${i}단계`;
@@ -527,7 +537,7 @@ function saveToStorage() {
       closeModal();
       renderGrid();
       updateStageButtons();
-      saveToStorage(); // 전환될 때 상태 저장
+      saveToStorage();
     }
 
     function renderGrid() {
@@ -536,7 +546,6 @@ function saveToStorage() {
       grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
       grid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
-      // 모바일 및 데스크톱을 포괄하여 최대 크기 지정 (화면 크기에 따라 100% 대응)
       if (gridSize === 5) {
         grid.style.maxWidth = "400px";
       } else if (gridSize === 6) {
@@ -557,7 +566,6 @@ function saveToStorage() {
             const btn = document.createElement('button');
             btn.className = 'button-cell';
             
-            // 기존 풀이 이력이 있다면 복원, 없다면 0(기본 원)으로 설정
             const historyKey = `${row},${col}`;
             let savedState = 0;
             if (stageHistory[currentStage] && stageHistory[currentStage][historyKey] !== undefined) {
@@ -572,19 +580,18 @@ function saveToStorage() {
 
             btn.addEventListener('click', () => {
               let current = parseInt(btn.dataset.state);
-              if (current === 0) current = 2;       // 원 -> 백슬래시(\)
-              else if (current === 2) current = 1;  // 백슬래시(\) -> 슬래시(/)
-              else current = 0;                     // 슬래시(/) -> 원
+              if (current === 0) current = 2;
+              else if (current === 2) current = 1;
+              else current = 0;
               
               btn.dataset.state = current;
               shape.className = `shape ${getShapeClass(current)}`;
               
-              // 유저 조작 세션 이력 보존 기록
               if (!stageHistory[currentStage]) {
                   stageHistory[currentStage] = {};
               }
               stageHistory[currentStage][`${row},${col}`] = current;
-              saveToStorage(); // 블록 전환될 때 실시간 저장
+              saveToStorage();
             });
 
             cell.appendChild(btn);
@@ -614,6 +621,11 @@ function saveToStorage() {
       saveToStorage();
     });
 
+    // 기록 초기화 버튼 클릭 이벤트
+    clearDataBtn.addEventListener('click', () => {
+      showModal('clear_confirm', '🚨 기록 초기화', '클리어 정보 및 모든 플레이 기록을 초기화하시겠습니까?');
+    });
+
     // 정답 확인 버튼 클릭 이벤트
     checkBtn.addEventListener('click', () => {
       let correct = 0;
@@ -635,7 +647,6 @@ function saveToStorage() {
       saveToStorage();
     });
 
-    // 오답 횟수를 포함하여 단계 버튼 이름 일괄 업데이트
     function updateStageButtons() {
       document.querySelectorAll('.stage-buttons button').forEach(btn => {
         btn.classList.remove('selected', 'completed');
@@ -653,34 +664,65 @@ function saveToStorage() {
       });
     }
 
-    // 모달 다이어로그 시스템 관리 함수
+    // 모달 다이어로그 시스템 관리
     function showModal(type, title, message) {
       modalType = type;
       modalTitle.textContent = title;
       modalBody.textContent = message;
+      modalBtnGroup.innerHTML = '';
       
-      cardClass = 'modal-card';
-      btnClass = 'modal-btn';
-      
-      cardCard = document.getElementById('modalCard');
-      modalBtn.className = 'modal-btn';
-      
-      if(type === 'success') {
+      if (type === 'success') {
         modalTitle.className = 'modal-title success';
-        addBorderClass = 'success-border';
         modalCard.className = 'modal-card success-border';
-        modalBtn.classList.add('success');
-        modalBtn.textContent = '다음 단계로';
-      } else {
+        
+        const btn = document.createElement('button');
+        btn.className = 'modal-btn success';
+        btn.textContent = '다음 단계로';
+        btn.addEventListener('click', handleModalAction);
+        modalBtnGroup.appendChild(btn);
+        btn.focus();
+      } else if (type === 'danger') {
         modalTitle.className = 'modal-title danger';
         modalCard.className = 'modal-card danger-border';
-        modalBtn.classList.add('danger');
-        modalBtn.textContent = '다시 시도';
+        
+        const btn = document.createElement('button');
+        btn.className = 'modal-btn danger';
+        btn.textContent = '다시 시도';
+        btn.addEventListener('click', handleModalAction);
+        modalBtnGroup.appendChild(btn);
+        btn.focus();
+      } else if (type === 'clear_confirm') {
+        modalTitle.className = 'modal-title danger';
+        modalCard.className = 'modal-card danger-border';
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'modal-btn secondary';
+        cancelBtn.textContent = '취소';
+        cancelBtn.addEventListener('click', closeModal);
+        
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'modal-btn danger';
+        confirmBtn.textContent = '초기화 실행';
+        confirmBtn.addEventListener('click', () => {
+          localStorage.removeItem('mp_currentStage');
+          localStorage.removeItem('mp_completedStages');
+          localStorage.removeItem('mp_stageHistory');
+          localStorage.removeItem('mp_stageFailCounts');
+          
+          completedStages.clear();
+          stageHistory = {};
+          stageFailCounts = {};
+          
+          loadStage(1);
+        });
+        
+        modalBtnGroup.appendChild(cancelBtn);
+        modalBtnGroup.appendChild(confirmBtn);
+        confirmBtn.focus();
       }
       
       modalOverlay.classList.add('active');
       isModalOpen = true;
-      modalBtn.focus();
     }
 
     function closeModal() {
@@ -700,24 +742,24 @@ function saveToStorage() {
         } else {
           showModal('success', '🏆 모든 단계 완료!', '거울퍼즐의 모든 스테이지를 클리어하셨습니다!');
           modalType = 'end';
-          modalBtn.textContent = '확인';
         }
       } else {
         closeModal();
       }
     }
 
-    modalBtn.addEventListener('click', handleModalAction);
     modalOverlay.addEventListener('click', (e) => {
       if(e.target === modalOverlay && modalType !== 'end') {
         closeModal();
       }
     });
 
-    // 전역 단축키 키보드 바인딩 이벤트 처리
+    // 단축키 키보드 이벤트
     document.addEventListener('keydown', function(e) {
       if (isModalOpen) {
-        if (e.key === 'Enter' || e.code === 'Space') {
+        if (e.key === 'Escape') {
+          closeModal();
+        } else if (modalType !== 'clear_confirm' && (e.key === 'Enter' || e.code === 'Space')) {
           e.preventDefault();
           handleModalAction();
         }
@@ -732,7 +774,7 @@ function saveToStorage() {
       }
     });
 
-    // 앱 첫 로드 시 브라우저에 기록되어 있던 스테이지 실행
+    // 시작 시 저장된 진행 상태 불러오기
     loadStage(currentStage);
   </script>
 </body>
