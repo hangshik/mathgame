@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>얼음미로</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
         :root {
             --bg: #f0f2f5;
@@ -154,7 +154,6 @@
             image-rendering: pixelated;
         }
 
-        /* 변경된 통합 조작 그리드 시스템 (액션 버튼을 화살표 왼쪽으로 통합) */
         .control-panel {
             display: flex;
             justify-content: center;
@@ -163,16 +162,13 @@
 
         .combined-grid {
             display: grid;
-            /* 3번째 열(24px)은 기능 버튼과 화살표 사이의 넓어진 간격을 의미합니다. */
             grid-template-columns: 80px 80px 44px 64px 64px 64px;
             grid-template-rows: repeat(3, 64px);
-            /* 세로 방향에 row-gap(16px)을 주어 되돌리기와 초기화 사이 간격을 늘렸습니다. */
             row-gap: 12px;
             column-gap: 12px;
             align-items: center;
             justify-content: center;
         }
-        /* 모바일 반응형 처리 (화면이 좁아지면 버튼 크기 축소) */
         @media (max-width: 420px) {
             .combined-grid {
                 grid-template-columns: 65px 65px 4px 54px 54px 54px;
@@ -183,7 +179,6 @@
             .side-btn { font-size: 13px !important; border-radius: 12px !important; }
         }
 
-        /* 공통 버튼 베이스 스타일 */
         .d-btn {
             background-color: var(--card-bg);
             border: none;
@@ -205,7 +200,6 @@
             background-color: #e9ecef;
         }
 
-        /* 화살표 및 교체 패드 배치 */
         .btn-up { grid-column: 5; grid-row: 1; }
         .btn-left { grid-column: 4; grid-row: 2; }
         .btn-center { 
@@ -218,7 +212,6 @@
         .btn-right { grid-column: 6; grid-row: 2; }
         .btn-down { grid-column: 5; grid-row: 3; }
 
-        /* 왼쪽 기능 버튼 배치 (2칸 너비 차지) */
         .side-btn {
             grid-column: 1 / span 2;
             font-size: 15px;
@@ -233,14 +226,13 @@
         .btn-reset {
             grid-row: 2;
             color: var(--danger);
-      border: 1.5px solid var(--danger);
+            border: 1.5px solid var(--danger);
         }
         .btn-reset:hover {
             background-color: var(--danger);
-      color: white;
+            color: white;
         }
 
-        /* 가이드 및 기록 보드 스타일 */
         .guide-box {
             background-color: var(--card-bg);
             border-radius: 12px;
@@ -267,7 +259,6 @@
         }
         .guide-box li { margin-bottom: 6px; }
 
-        /* 누적 기록 스타일 */
         .box-records { border-left: 6px solid var(--danger); }
         .box-records h3 { color: var(--danger); }
         .clear-record-btn {
@@ -300,11 +291,9 @@
             font-weight: 700;
         }
         
-        /* 2. 이동 횟수 조절 스타일 */
         .count-good { color: var(--active) !important; font-weight: 700; }
         .count-bad { color: var(--danger) !important; font-weight: 700; }
 
-        /* 3. 마지막에 기록된 행 하이라이트 효과 스타일 */
         .latest-row {
             background-color: #fff5f5 !important;
         }
@@ -321,18 +310,16 @@
         .box-shortcuts { border-left: 6px solid var(--success); }
         .box-shortcuts h3 { color: var(--success); }
 
-
         .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+        @media (max-width: 600px) {
+            .shortcut-grid { grid-template-columns: 1fr; }
+        }
+        .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+        kbd {
+            background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+            color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+        }
 
-        /* 결과 알림 팝업창 및 공통 모달 스타일 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -359,12 +346,12 @@ kbd {
         }
         .modal-card.success { border-top: 6px solid var(--success); }
         .modal-card.fail { border-top: 6px solid var(--danger); }
-        .modal-card.confirm { border-top: 6px solid  var(--danger); } /* 확인 창 전용 상단 테두리 */
+        .modal-card.confirm { border-top: 6px solid var(--danger); }
 
         .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
         .modal-card.success .modal-title { color: var(--success); }
         .modal-card.fail .modal-title { color: var(--danger); }
-        .modal-card.confirm .modal-title { color:  var(--danger); }
+        .modal-card.confirm .modal-title { color: var(--danger); }
         
         .modal-msg { color: var(--text-sub); font-size: 15px; margin-bottom: 24px; line-height: 1.5; word-break: keep-all; }
         
@@ -375,7 +362,6 @@ kbd {
         .modal-card.success .modal-btn { background-color: var(--success); }
         .modal-card.fail .modal-btn { background-color: var(--danger); }
 
-        /* 누적 기록 초기화 모달용 2버튼 가로 배치 스타일 */
         .modal-btn-group {
             display: flex;
             gap: 10px;
@@ -461,7 +447,7 @@ kbd {
         <h3>⌨ 키보드 단축키</h3>
         <div class="shortcut-grid">
             <div class="shortcut-item">
-                <kbd>↑</kbd>  <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <span>원 이동 조작</span>
+                <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> <span>원 이동 조작</span>
             </div>
             <div class="shortcut-item">
                 <kbd>Space</kbd> <span>조작할 원 전환 (테두리 표시됨)</span>
@@ -472,6 +458,7 @@ kbd {
             <div class="shortcut-item">
                 <kbd>R</kbd> / <kbd>Esc</kbd> <span>처음으로</span>
             </div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="game-modal">
@@ -507,11 +494,17 @@ let completedStages = new Set();
 let isLastResultSuccess = false;
 
 let stageStartTime = 0;
-const clearedRecords = {};
-const stageHistory = {};
+let clearedRecords = {};
+let stageHistory = {};
 
-// 마지막에 성공적으로 기록이 업데이트된 스테이지 번호 보관 변수
 let latestClearedLevel = null;
+
+// LocalStorage 키 관리 객체
+const STORAGE_KEYS = {
+    COMPLETED: 'ice_maze_completed',
+    RECORDS: 'ice_maze_records',
+    HISTORY: 'ice_maze_history'
+};
 
 const levels = [
     { target: 6, map: [[1,1,1,1,1,1], [1,0,0,0,3,1], [1,0,2,0,0,1], [1,0,0,1,0,1], [1,3,0,1,2,1], [1,1,1,1,1,1]], players: [{x:3, y:2, color:'#007bff'}, {x:1, y:1, color:'#dc3545'}] },
@@ -528,6 +521,39 @@ const levels = [
     { target: 69, map: [[1,1,1,1,1,1,1,1,1,1], [1,3,0,3,0,2,2,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,0,0,0,0,0,0,1], [1,0,0,1,0,1,0,0,0,1], [1,0,0,0,0,0,1,0,0,1], [1,0,1,0,0,0,2,1,0,1], [1,0,1,0,0,0,1,0,0,1], [1,1,1,1,1,1,1,1,1,1]], players: [{x:5, y:8, color:'#007bff'}, {x:1, y:5, color:'#dc3545'}, {x:4, y:5, color:'#28a745'}] }
 ];
 
+// LocalStorage 저장 함수
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.COMPLETED, JSON.stringify(Array.from(completedStages)));
+        localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(clearedRecords));
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(stageHistory));
+    } catch (e) {
+        console.error("LocalStorage 저장 중 오류 발생:", e);
+    }
+}
+
+// LocalStorage 불러오기 함수
+function loadFromLocalStorage() {
+    try {
+        const savedCompleted = localStorage.getItem(STORAGE_KEYS.COMPLETED);
+        if (savedCompleted) {
+            completedStages = new Set(JSON.parse(savedCompleted));
+        }
+
+        const savedRecords = localStorage.getItem(STORAGE_KEYS.RECORDS);
+        if (savedRecords) {
+            clearedRecords = JSON.parse(savedRecords);
+        }
+
+        const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+        if (savedHistory) {
+            stageHistory = JSON.parse(savedHistory);
+        }
+    } catch (e) {
+        console.error("LocalStorage 로드 중 오류 발생:", e);
+    }
+}
+
 function saveStageState() {
     if (players.length > 0) {
         stageHistory[currentLevel] = {
@@ -537,6 +563,7 @@ function saveStageState() {
             history: [...history],
             startTime: stageStartTime
         };
+        saveToLocalStorage();
     }
 }
 
@@ -570,6 +597,7 @@ function initGame(idx, isReset = false) {
 
 function resetCurrentLevel() {
     delete stageHistory[currentLevel];
+    saveToLocalStorage();
     initGame(currentLevel, true);
 }
 
@@ -587,7 +615,6 @@ function updateUI() {
     renderRecordTable();
 }
 
-// 2, 3번 조건이 포함된 테이블 가시화 처리 로직
 function renderRecordTable() {
     const tbody = document.getElementById('record-table-body');
     tbody.innerHTML = '';
@@ -603,12 +630,10 @@ function renderRecordTable() {
         const data = clearedRecords[idx];
         const tr = document.createElement('tr');
         
-        // 3. 마지막에 달성한 단계의 행(Row)에만 특정 클래스 부여
         if (idx === latestClearedLevel) {
             tr.className = 'latest-row';
         }
 
-        // 2. 이동 횟수가 목표 횟수보다 작거나 같으면 파란색(count-good), 크면 빨간색(count-bad) 적용
         const moveClass = (data.moves <= data.target) ? 'count-good' : 'count-bad';
 
         tr.innerHTML = `
@@ -621,7 +646,6 @@ function renderRecordTable() {
     });
 }
 
-/* --- 누적 기록 초기화 모달 제어 로직 --- */
 function openClearStatsModal() {
     document.getElementById('clear-stats-modal').style.display = 'flex';
 }
@@ -630,15 +654,24 @@ function closeClearStatsModal() {
     document.getElementById('clear-stats-modal').style.display = 'none';
 }
 
+// 누적 기록 및 LocalStorage 데이터 완전히 초기화
 function confirmClearStats() {
     completedStages.clear();
     latestClearedLevel = null;
     for (let key in clearedRecords) delete clearedRecords[key];
     for (let key in stageHistory) delete stageHistory[key];
+    
+    try {
+        localStorage.removeItem(STORAGE_KEYS.COMPLETED);
+        localStorage.removeItem(STORAGE_KEYS.RECORDS);
+        localStorage.removeItem(STORAGE_KEYS.HISTORY);
+    } catch (e) {
+        console.error("LocalStorage 초기화 중 오류 발생:", e);
+    }
+
     closeClearStatsModal();
     resetCurrentLevel();
 }
-/* -------------------------------------- */
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -698,7 +731,7 @@ function varColor(name) {
 
 function handleMove(dx, dy) {
     if (document.getElementById('game-modal').style.display === 'flex') return;
-    if (document.getElementById('clear-stats-modal').style.display === 'flex') return; // 초기화 모달 중 이동 방지
+    if (document.getElementById('clear-stats-modal').style.display === 'flex') return;
     const p = players.find(p => p.active);
     if (!p || p.done) return;
 
@@ -740,7 +773,6 @@ function handleMove(dx, dy) {
             const timeCalculated = Math.round((Date.now() - stageStartTime) / 1000);
             const timeString = timeCalculated + "초";
 
-            // 최신 클리어 스테이지 갱신 
             latestClearedLevel = currentLevel;
 
             if (!clearedRecords[currentLevel] || clearedRecords[currentLevel].moves > moves) {
@@ -752,6 +784,7 @@ function handleMove(dx, dy) {
             }
 
             completedStages.add(currentLevel);
+            saveToLocalStorage();
             updateUI();
             showPopup(true);
         }
@@ -822,7 +855,6 @@ window.addEventListener('keydown', (e) => {
     const modal = document.getElementById('game-modal');
     const clearModal = document.getElementById('clear-stats-modal');
 
-    // 초기화 모달창이 열려있을 때의 단축키 처리
     if (clearModal.style.display === 'flex') {
         if (e.key === 'Escape') {
             e.preventDefault();
@@ -832,7 +864,7 @@ window.addEventListener('keydown', (e) => {
             e.preventDefault();
             confirmClearStats();
         }
-        return; // 모달 활성화 중에는 게임 플레이 키 차단
+        return;
     }
 
     if (modal.style.display === 'flex') {
@@ -854,6 +886,8 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'r' || e.key === 'R' || e.key === 'Escape') resetCurrentLevel();
 });
 
+// 초기화 로직: 저장된 데이터 불러온 후 게임 시작
+loadFromLocalStorage();
 initGame(0);
 draw();
 </script>
