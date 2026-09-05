@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>매직 필</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
         :root {
             --board-rows: 5;
@@ -97,14 +96,13 @@
         .info-right { display: flex; justify-content: flex-end; width: 30%; }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #333; }
 
-.game-board-wrapper {
-            margin: 0 auto 20px auto; /* 게임판이 작아져도 중앙에 오도록 설정 */
+        .game-board-wrapper {
+            margin: 0 auto 20px auto;
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 30px; 
             grid-template-rows: auto 30px;
             gap: 5px; justify-items: center; align-items: center;
-            /* max-width는 자바스크립트에서 단계별로 동적 제어함 */
         }
 
         .game-board {
@@ -225,12 +223,16 @@
             border: none; color: white;
             white-space: nowrap;
         }
-        .btn-reset {       color: var(--danger);
+        .btn-reset {       
+            color: var(--danger);
             border: 1.5px solid var(--danger);
-        background-color: #fff;}
+            background-color: #fff;
+        }
 
-        .btn-reset:hover {       background-color: var(--danger);
-            color: white;}
+        .btn-reset:hover {       
+            background-color: var(--danger);
+            color: white;
+        }
         
         .btn-hint { background-color: #fab005; color: white; display: flex; align-items: center; justify-content: center; }
         .btn-hint:active { background-color: #f08c00; }
@@ -284,6 +286,34 @@
             padding: 12px 0; width: 100%; border-radius: 10px;
             font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px;
         }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-modal-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 0;
+            flex: 1;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-modal-cancel {
+            background-color: #adb5bd;
+            color: white;
+            border: none;
+            padding: 12px 0;
+            flex: 1;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -320,6 +350,7 @@
         </div>
 
         <div class="controls">
+            <button class="btn-ctrl btn-reset" onclick="openResetModal()">🗑️ 기록 초기화</button>
             <label class="chk-wrapper">
                 <input type="checkbox" id="chkShowCounts" onchange="toggleCounts()">
                 셀 갯수
@@ -347,6 +378,19 @@
             <div class="modal-record-label">기록</div>
             <div id="clearTimeText"></div>
             <button class="btn-modal" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <div id="resetConfirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title" style="color: var(--danger);">기록 초기화</h2>
+            <div class="modal-record-label" style="margin-top:10px; font-size:15px; color:#333;">
+                모든 게임 진행 상황과 클리어 기록을 삭제하고 초기화하시겠습니까?
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal-cancel" onclick="closeResetModal()">취소</button>
+                <button class="btn-modal-danger" onclick="confirmResetAll()">초기화</button>
+            </div>
         </div>
     </div>
 
@@ -444,8 +488,9 @@
             }
         ];
 
-        const levelStates = {}; 
-        const levelHintCounts = {}; 
+        let levelStates = {}; 
+        let levelHintCounts = {}; 
+        let clearRecords = {};
 
         let currentLevelIdx = 0;
         let activeShapes = []; 
@@ -475,7 +520,53 @@
         const countDisplay = document.getElementById('countDisplay');
         const msgArea = document.getElementById('msgArea');
 
+        // --- localStorage 저장/불러오기 기능 ---
+        function saveToLocalStorage() {
+            saveCurrentState();
+            const saveData = {
+                levelStates: levelStates,
+                levelHintCounts: levelHintCounts,
+                clearRecords: clearRecords
+            };
+            localStorage.setItem('magic_fill_game_data', JSON.stringify(saveData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('magic_fill_game_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    levelStates = data.levelStates || {};
+                    levelHintCounts = data.levelHintCounts || {};
+                    clearRecords = data.clearRecords || {};
+                } catch(e) {
+                    console.error("저장된 데이터를 불러오는 중 오류 발생:", e);
+                }
+            }
+        }
+
+        function openResetModal() {
+            document.getElementById('resetConfirmModal').style.display = 'flex';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+        }
+
+        function confirmResetAll() {
+            localStorage.removeItem('magic_fill_game_data');
+            levelStates = {};
+            levelHintCounts = {};
+            clearRecords = {};
+            
+            closeResetModal();
+            createLevelButtons();
+            loadLevel(0);
+            showMessage("모든 기록이 초기화되었습니다.", "info");
+        }
+
         function init() {
+            loadFromLocalStorage();
             createLevelButtons();
             
             const chk = document.getElementById('chkShowCounts');
@@ -514,9 +605,13 @@
                 const hintCount = levelHintCounts[lvl.id] || 0;
                 const hintText = hintCount > 0 ? `(${hintCount})` : '';
 
+                if (clearRecords[lvl.id]) {
+                    btn.classList.add('cleared');
+                }
+
                 btn.innerHTML = `
                     <span id="lvl-title-${lvl.id}" style="font-size:15px">${lvl.id}단계${hintText}</span>
-                    <span class="lvl-record" id="rec-${lvl.id}"></span>
+                    <span class="lvl-record" id="rec-${lvl.id}">${clearRecords[lvl.id] || ''}</span>
                 `;
                 btn.onclick = () => switchLevel(idx);
                 container.appendChild(btn);
@@ -534,7 +629,7 @@
 
         function switchLevel(newIdx) {
             if (currentLevelIdx === newIdx) return;
-            saveCurrentState(); 
+            saveToLocalStorage(); 
             loadLevel(newIdx);  
         }
 
@@ -542,6 +637,7 @@
             if (gameActive) {
                 const now = Date.now();
                 currentLevelElapsedTime += Math.floor((now - sessionStartTime) / 1000);
+                sessionStartTime = now;
             }
             levelStates[currentLevelIdx] = {
                 activeShapes: JSON.parse(JSON.stringify(activeShapes)),
@@ -553,7 +649,7 @@
             };
         }
 
-function loadLevel(idx) {
+        function loadLevel(idx) {
             currentLevelIdx = idx;
             const levelData = LEVELS[idx];
             const dims = getDims(levelData);
@@ -567,7 +663,6 @@ function loadLevel(idx) {
             document.documentElement.style.setProperty('--board-cols', dims.cols);
             document.documentElement.style.setProperty('--board-rows', dims.rows);
 
-            // --- [여기서부터 게임판 wrapper 크기 조절 코드 추가] ---
             const wrapper = document.querySelector('.game-board-wrapper');
             if (wrapper) {
                 const lvlId = levelData.id;
@@ -581,7 +676,6 @@ function loadLevel(idx) {
                     wrapper.style.maxWidth = '800px';
                 }
             }
-            // --- [추가 완료] ---
             
             boardElement.style.display = 'grid'; 
             hideMessage();
@@ -601,8 +695,6 @@ function loadLevel(idx) {
             paletteRotation = 0;
             currentLevelElapsedTime = 0;
             
-            // [수정] 힌트 카운트가 없을 때(최초 실행 시)만 0으로 초기화
-            // 초기화 버튼을 눌러서 이 함수가 실행되더라도 기존 값이 있으면 유지됨
             if (levelHintCounts[levelData.id] === undefined) {
                 levelHintCounts[levelData.id] = 0;
             }
@@ -649,7 +741,8 @@ function loadLevel(idx) {
 
         function resetLevel() {
             delete levelStates[currentLevelIdx];
-            loadLevel(currentLevelIdx);
+            initLevelData(LEVELS[currentLevelIdx]);
+            saveToLocalStorage();
         }
 
         function renderPalette() {
@@ -724,7 +817,6 @@ function loadLevel(idx) {
                 });
             });
 
-            // 보드 렌더링
             for (let i = 0; i < totalCells; i++) {
                 const cellDiv = document.createElement('div');
                 cellDiv.className = 'cell';
@@ -752,14 +844,12 @@ function loadLevel(idx) {
                 boardElement.appendChild(cellDiv);
             }
 
-            // 목표 개수 계산
             let cellsPerShape = 0;
             level.shape.forEach(row => row.forEach(v => { if(v) cellsPerShape++; }));
             const totalTargetCells = cellsPerShape * level.target;
             const targetPerRow = totalTargetCells / dims.rows;
             const targetPerCol = totalTargetCells / dims.cols;
 
-            // 현재 합계 계산
             const rowSums = new Array(dims.rows).fill(0);
             const colSums = new Array(dims.cols).fill(0);
             for (let i = 0; i < totalCells; i++) {
@@ -771,7 +861,6 @@ function loadLevel(idx) {
                 }
             }
 
-            // 가로 합계 렌더링
             for(let r=0; r<dims.rows; r++) {
                 const div = document.createElement('div');
                 div.className = 'count-cell' + (showCounts ? ' visible' : '');
@@ -783,7 +872,6 @@ function loadLevel(idx) {
                 rowCountsElement.appendChild(div);
             }
 
-            // 세로 합계 렌더링
             for(let c=0; c<dims.cols; c++) {
                 const div = document.createElement('div');
                 div.className = 'count-cell' + (showCounts ? ' visible' : '');
@@ -796,7 +884,6 @@ function loadLevel(idx) {
             }
         }
 
-        // --- 힌트 로직 (Solutions 기반) ---
         function useHint() {
             if (!gameActive) return;
             const level = LEVELS[currentLevelIdx];
@@ -835,13 +922,12 @@ function loadLevel(idx) {
                 renderBoard();
                 updateGameUI();
                 checkAutoWin();
+                saveToLocalStorage();
                 showMessage("정답 위치에 배치했습니다.", "info");
             } else {
                 showMessage("더 이상 배치할 정답 위치가 없습니다.", "info");
             }
         }
-
-        // --- Drag & Drop ---
 
         function startDrag(e, source, shapeObj = null, cellIdx = -1) {
             if (!gameActive) return;
@@ -1013,6 +1099,7 @@ function loadLevel(idx) {
                 handleDrop(e.clientX, e.clientY);
             }
             
+            saveToLocalStorage();
             dragSource = null;
             draggedShapeData = null;
         }
@@ -1243,12 +1330,16 @@ function loadLevel(idx) {
             const timeStr = formatTime(currentLevelElapsedTime);
             const levelId = LEVELS[currentLevelIdx].id;
             
+            clearRecords[levelId] = timeStr;
+
             const btn = document.getElementById(`btn-lvl-${levelId}`);
             if(btn) {
                 btn.classList.add('cleared');
                 const recSpan = document.getElementById(`rec-${levelId}`);
                 if (recSpan) recSpan.innerText = timeStr;
             }
+
+            saveToLocalStorage();
 
             document.getElementById('clearTimeText').innerText = timeStr;
             document.getElementById('successModal').style.display = 'flex';
