@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🚢 전함 퍼즐</title>
+
+        <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VHD0QPH39L');
+  </script>  
+
+
+    <!-- Pretendard Font CDN -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --active: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --text-main: #222222;
+            --text-sub: #555555;
+            --border-color: #e9ecef;
+            --water-bg: #e3f2fd;
+            --water-border: #90caf9;
+            --ship-bg: #34495e;
+            --ship-border: #1a252f;
+            --hint-border: #f39c12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 15px 10px;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .title-zone {
+            text-align: center;
+            padding: 10px 0 5px 0;
+        }
+
+        .title-zone h1 {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .container-fixed {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .stage-selector {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .stage-btn {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 12px 0;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .stage-btn:hover, .stage-btn:active {
+            background-color: #e9ecef;
+        }
+
+        .stage-btn.active {
+            background-color: var(--active);
+            color: #ffffff;
+            border-color: var(--active);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Cleared stage button style (Green) */
+        .stage-btn.cleared {
+            background-color: var(--success);
+            color: #ffffff;
+            border-color: var(--success);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .stage-btn.cleared::after {
+            content: " ✓";
+            font-size: 12px;
+        }
+
+        .puzzle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .puzzle-info {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .fleet-status {
+            display: flex;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-sub);
+            flex-wrap: wrap;
+        }
+
+        .fleet-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .board-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-row {
+            display: flex;
+            flex: 1;
+        }
+
+        .grid-cell {
+            flex: 1;
+            aspect-ratio: 1 / 1;
+            margin: 2px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-cell:active {
+            transform: scale(0.95);
+        }
+
+        /* Grid header/indicator cells */
+        .cell-indicator {
+            background-color: transparent;
+            color: var(--text-sub);
+            cursor: default;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .cell-indicator.fulfilled {
+            color: var(--success);
+        }
+
+        .cell-indicator.exceeded {
+            color: var(--danger);
+        }
+
+        /* Empty & Water states */
+        .cell-empty {
+            background-color: #f8f9fa;
+            border: 2px dashed #ced4da;
+        }
+
+        .cell-water {
+            background-color: var(--water-bg);
+            border: 2px solid var(--water-border);
+        }
+
+        .cell-water::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--water-border);
+            opacity: 0.6;
+        }
+
+        /* Custom Ship Graphic Classes */
+        .cell-ship {
+            background-color: var(--water-bg);
+            border: 2px solid var(--water-border);
+        }
+
+        .ship-part {
+            width: 85%;
+            height: 85%;
+            background-color: var(--ship-bg);
+            border: 2px solid var(--ship-border);
+            box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        /* 1-Tile Ship: Circle */
+        .ship-single {
+            border-radius: 50%;
+        }
+
+        /* 2, 3, 4, 5-Tile Ship Ends & Center */
+        .ship-cap-left {
+            border-radius: 50% 0 0 50%;
+            width: 100%;
+            margin-left: 15%;
+        }
+
+        .ship-cap-right {
+            border-radius: 0 50% 50% 0;
+            width: 100%;
+            margin-right: 15%;
+        }
+
+        .ship-cap-top {
+            border-radius: 50% 50% 0 0;
+            height: 100%;
+            margin-top: 15%;
+        }
+
+        .ship-cap-bottom {
+            border-radius: 0 0 50% 50%;
+            height: 100%;
+            margin-bottom: 15%;
+        }
+
+        .ship-middle {
+            border-radius: 0;
+            width: 100%;
+            height: 85%;
+        }
+
+        .ship-middle-v {
+            border-radius: 0;
+            width: 85%;
+            height: 100%;
+        }
+
+        /* Hint Cells Styling */
+        .grid-cell.cell-hint {
+            cursor: not-allowed;
+            box-shadow: 0 0 0 2px var(--hint-border) inset;
+        }
+
+        .controls-zone {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-action {
+            height: 54px;
+            font-size: 17px;
+            font-weight: 700;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .btn-reset {
+            background-color: #ffffff;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+
+        .btn-reset:hover, .btn-reset:active {
+            background-color: var(--danger);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-submit {
+            background-color: var(--active);
+            color: #ffffff;
+        }
+
+        .btn-submit:hover, .btn-submit:active {
+            background-color: #0056b3;
+            box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Inline Status Message */
+        .inline-message {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            min-height: 24px;
+            margin-top: -5px;
+        }
+
+        .inline-message.success {
+            color: var(--success);
+        }
+
+        .inline-message.danger {
+            color: var(--danger);
+        }
+
+        .guide-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            word-break: keep-all;
+        }
+
+        .guide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .guide-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Zone 4 Specifics */
+        .guide-card.records {
+            border-left: 6px solid var(--danger);
+        }
+        .guide-card.records .guide-title {
+            color: var(--danger);
+        }
+
+        .btn-reset-history {
+            background-color: #ffffff;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset-history:hover, .btn-reset-history:active {
+            background-color: var(--danger);
+            color: #ffffff;
+        }
+
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .history-table th, .history-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-table th {
+            font-weight: 700;
+            color: var(--text-sub);
+            background-color: #f8f9fa;
+        }
+
+        .history-table td {
+            font-weight: 600;
+        }
+
+        .empty-history {
+            color: var(--text-sub);
+            padding: 15px 0 !important;
+            font-size: 14px;
+        }
+
+        /* Zone 5 Specifics */
+        .guide-card.rules {
+            border-left: 6px solid var(--active);
+        }
+        .guide-card.rules .guide-title {
+            color: var(--active);
+        }
+
+        .rules-list {
+            list-style: none;
+            font-size: 15px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .rules-list li {
+            margin-bottom: 6px;
+        }
+
+        /* Zone 6 Specifics */
+        .guide-card.shortcuts {
+            border-left: 6px solid var(--success);
+        }
+        .guide-card.shortcuts .guide-title {
+            color: var(--success);
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        kbd {
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-bottom: 2px solid #adb5bd;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 90%;
+            max-width: 350px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-card.success-modal {
+            border-top: 6px solid var(--success);
+        }
+
+        .modal-card.danger-modal {
+            border-top: 6px solid var(--danger);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .modal-title.success {
+            color: var(--success);
+        }
+
+        .modal-title.danger {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            font-size: 15px;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            height: 48px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-btn.single {
+            grid-column: span 2;
+        }
+
+        .modal-btn.success {
+            background-color: var(--success);
+            color: #ffffff;
+        }
+
+        .modal-btn.success:hover {
+            background-color: #218838;
+        }
+
+        .modal-btn.danger {
+            background-color: var(--danger);
+            color: #ffffff;
+        }
+
+        .modal-btn.danger:hover {
+            background-color: #c82333;
+        }
+
+        .modal-btn.secondary {
+            background-color: #e9ecef;
+            color: var(--text-main);
+        }
+
+        .modal-btn.secondary:hover {
+            background-color: #dee2e6;
+        }
+
+        /* Icons preview sample */
+        .icon-sample {
+            display: inline-flex;
+            align-items: center;
+            height: 14px;
+        }
+        .sample-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--ship-bg);
+        }
+        .sample-ship-icon {
+            display: flex;
+            height: 9px;
+        }
+        .sample-ship-icon .s-l { width: 5px; height: 9px; background: var(--ship-bg); border-radius: 3px 0 0 3px; }
+        .sample-ship-icon .s-m { width: 5px; height: 9px; background: var(--ship-bg); }
+        .sample-ship-icon .s-r { width: 5px; height: 9px; background: var(--ship-bg); border-radius: 0 3px 3px 0; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        
+        <!-- [영역 1-A: 퍼즐 제목 영역] -->
+        <header class="title-zone">
+            <h1>🚢 전함 퍼즐</h1>
+        </header>
+
+        <!-- [영역 1-B: 단계 선택 영역] -->
+        <section class="container-fixed">
+            <nav class="stage-selector" id="stageSelector">
+                <!-- Stage buttons dynamically rendered -->
+            </nav>
+        </section>
+
+        <!-- [영역 2: 퍼즐 문제 영역] -->
+        <main class="container-fixed">
+            <div class="puzzle-header">
+                <div class="puzzle-info" id="stageTitle">단계 1</div>
+                <div class="fleet-status" id="fleetStatus">
+                    <!-- Fleet requirements loaded dynamically -->
+                </div>
+            </div>
+            <div class="board-container" id="boardContainer">
+                <!-- Grid board dynamically rendered -->
+            </div>
+        </main>
+
+        <!-- [영역 3: 하단 조작 버튼 영역] -->
+        <section class="controls-zone">
+            <button class="btn-action btn-reset" id="btnReset">초기화</button>
+            <button class="btn-action btn-submit" id="btnSubmit">정답확인</button>
+        </section>
+        <div class="inline-message" id="inlineMessage"></div>
+
+        <!-- [영역 4: 누적 기록] -->
+        <section class="guide-card records">
+            <div class="guide-header">
+                <h2 class="guide-title">📊 누적 기록</h2>
+                <button class="btn-reset-history" id="btnResetHistory">누적기록 초기화</button>
+            </div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>상태</th>
+                        <th>최고 기록</th>
+                        <th>시도 횟수</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Dynamic history rows -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- [영역 5: 퍼즐 규칙] -->
+        <section class="guide-card rules">
+            <div class="guide-header">
+                <h2 class="guide-title">◈ 퍼즐 규칙</h2>
+            </div>
+            <ul class="rules-list">
+                <li>• 지정된 수량의 전함들이 바다에 숨겨져 있습니다.</li>
+                <li>• <b>1칸 전함</b>부터 최대 <b>5칸 전함</b>까지 다양한 크기의 배가 등장합니다.</li>
+                <li>• 배의 크기에 맞춰 양 끝단은 반원, 중간은 직사각형 형태로 모양이 자동 표현됩니다.</li>
+                <li>• 게임 시작 시 주황색 테두리의 힌트 타일이 제공되어 위치를 알려줍니다.</li>
+                <li>• 각 행과 열 우측/하단의 숫자는 해당 줄에 존재하는 전함 타일의 총 개수입니다.</li>
+                <li>• 모든 전함은 대각선을 포함하여 상하좌우로 서로 인접할 수 없습니다.</li>
+                <li>• 일반 타일을 클릭할 때마다 [미확인 ➔ 바다 ➔ 전함 ➔ 미확인] 순서로 변경됩니다.</li>
+            </ul>
+        </section>
+
+        <!-- [영역 6: 키보드 단축키] -->
+        <section class="guide-card shortcuts">
+            <div class="guide-header">
+                <h2 class="guide-title">⌨ 키보드 단축키</h2>
+            </div>
+            <div class="shortcut-grid">
+                <div class="shortcut-item">
+                    <span>단계 선택</span>
+                    <div><kbd>1</kbd> ~ <kbd>5</kbd></div>
+                </div>
+                <div class="shortcut-item">
+                    <span>현재 단계 초기화</span>
+                    <kbd>R</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>정답 확인</span>
+                    <kbd>Enter</kbd>
+                </div>
+                <div class="shortcut-item">
+                    <span>팝업 확인/다음</span>
+                    <kbd>Space</kbd> / <kbd>Enter</kbd>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- [결과 알림 팝업창 모달] -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card" id="modalCard">
+            <div class="modal-title" id="modalTitle">🎉 성공!</div>
+            <div class="modal-body" id="modalBody">모든 전함을 완벽하게 찾아냈습니다!</div>
+            <div class="modal-buttons" id="modalButtonsContainer">
+                <button class="modal-btn single" id="modalBtn">다음 단계로</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to automatically compute ship counts from a solution matrix (supports arbitrary lengths like 1 to 5)
+        function parseFleetCounts(solution, rows, cols) {
+            let visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
+            let counts = {};
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (solution[r][c] === 1 && !visited[r][c]) {
+                        let shipCells = [];
+                        let queue = [[r, c]];
+                        visited[r][c] = true;
+
+                        while (queue.length > 0) {
+                            let [cr, cc] = queue.shift();
+                            shipCells.push([cr, cc]);
+
+                            const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                            for (let [dr, dc] of dirs) {
+                                let nr = cr + dr;
+                                let nc = cc + dc;
+                                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                                    if (solution[nr][nc] === 1 && !visited[nr][nc]) {
+                                        visited[nr][nc] = true;
+                                        queue.push([nr, nc]);
+                                    }
+                                }
+                            }
+                        }
+
+                        let length = shipCells.length;
+                        counts[length] = (counts[length] || 0) + 1;
+                    }
+                }
+            }
+            return counts;
+        }
+
+        // Helper function to parse user current placed ships on grid into fleet counts
+        function parseUserFleetCounts(grid, rows, cols) {
+            let visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
+            let counts = {};
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (grid[r][c] === 2 && !visited[r][c]) {
+                        let shipCells = [];
+                        let queue = [[r, c]];
+                        visited[r][c] = true;
+
+                        while (queue.length > 0) {
+                            let [cr, cc] = queue.shift();
+                            shipCells.push([cr, cc]);
+
+                            const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+                            for (let [dr, dc] of dirs) {
+                                let nr = cr + dr;
+                                let nc = cc + dc;
+                                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                                    if (grid[nr][nc] === 2 && !visited[nr][nc]) {
+                                        visited[nr][nc] = true;
+                                        queue.push([nr, nc]);
+                                    }
+                                }
+                            }
+                        }
+
+                        let length = shipCells.length;
+                        counts[length] = (counts[length] || 0) + 1;
+                    }
+                }
+            }
+            return counts;
+        }
+
+        // 5 Battleship Stages Definition (Supports Rectangular grids and up to 5-tile ships)
+        const STAGES = [
+            {
+                id: 1,
+                name: "단계 1",
+                solution: [
+                    [1,0,1,0,0,0],
+                    [0,0,0,0,0,0],
+                    [0,1,1,0,1,0],
+                    [0,0,0,0,1,0],
+                    [0,0,1,0,1,0],
+                    [1,0,1,0,0,0]
+                ],
+                hintCoords: [
+                    { r: 2, c: 0 }
+                ]
+            },
+            {
+                id: 2,
+                name: "단계 2 (직사각형)",
+                solution: [
+                    [1, 0, 0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 1, 1, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [1, 0, 0, 1, 0, 0, 0]
+                ],
+                hintCoords: [
+                    { r: 0, c: 6 },
+                    { r: 2, c: 5 },
+                    { r: 1, c: 1 }
+                ]
+            },
+            {
+                id: 3,
+                name: "단계 3 (4칸 배 포함)",
+                solution: [
+                    [0, 0, 0, 0, 0, 0],
+                    [1, 1, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 1, 0, 1],
+                    [0, 1, 0, 1, 0, 0],
+                    [0, 0, 0, 0, 0, 1]
+                ],
+                hintCoords: [
+                    { r: 1, c: 1 },
+                    { r: 3, c: 5 },
+                    { r: 5, c: 5 }
+                ]
+            },
+            {
+                id: 4,
+                name: "단계 4 (5칸 대형 배 포함)",
+                solution: [
+                    [1, 1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 1, 1],
+                    [0, 0, 0, 0, 0, 0],
+                    [1, 1, 0, 1, 0, 1],
+                    [0, 0, 0, 0, 0, 0]
+                ],
+                hintCoords: [
+                    { r: 0, c: 2 },
+                    { r: 2, c: 4 },
+                    { r: 4, c: 5 }
+                ]
+            },
+            {
+                id: 5,
+                name: "단계 5",
+                solution: [
+                    [0, 1, 1, 0, 0, 1],
+                    [0, 0, 0, 0, 0, 1],
+                    [1, 0, 0, 1, 0, 1],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 1, 0, 1, 1, 0],
+                    [0, 0, 0, 0, 0, 0]
+                ],
+                hintCoords: [
+                    { r: 1, c: 5 },
+                    { r: 4, c: 1 },
+                    { r: 0, c: 1 }
+                ]
+            }
+        ];
+
+        // Automatically compute rows, cols, rowCounts, colCounts, fleet counts, and hints using solution matrix
+        STAGES.forEach(stage => {
+            stage.rows = stage.solution.length;
+            stage.cols = stage.solution[0].length;
+            stage.rowCounts = stage.solution.map(row => row.reduce((sum, val) => sum + val, 0));
+            stage.colCounts = Array(stage.cols).fill(0);
+            for (let c = 0; c < stage.cols; c++) {
+                for (let r = 0; r < stage.rows; r++) {
+                    stage.colCounts[c] += stage.solution[r][c];
+                }
+            }
+            stage.fleetCounts = parseFleetCounts(stage.solution, stage.rows, stage.cols);
+
+            stage.hints = stage.hintCoords.map(coord => ({
+                r: coord.r,
+                c: coord.c,
+                type: stage.solution[coord.r][coord.c] === 1 ? 2 : 1
+            }));
+        });
+
+        const STORAGE_KEY = "battleship_puzzle_data_v10";
+
+        let currentStageIdx = 0;
+        let stageHistory = {};
+        let persistentRecords = {};
+
+        let startTime = null;
+        let timerInterval = null;
+        let elapsedTimeSeconds = 0;
+
+        // Load data from LocalStorage
+        function loadStoredData() {
+            try {
+                const savedData = localStorage.getItem(STORAGE_KEY);
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    stageHistory = parsed.stageHistory || {};
+                    persistentRecords = parsed.persistentRecords || {};
+                }
+            } catch (e) {
+                console.error("Failed to load local storage:", e);
+            }
+
+            STAGES.forEach(stage => {
+                if (!stageHistory[stage.id]) {
+                    // Create empty grid based on dynamic rows and cols
+                    stageHistory[stage.id] = Array(stage.rows).fill(0).map(() => Array(stage.cols).fill(0));
+                    applyHintsToStage(stage);
+                }
+                if (!persistentRecords[stage.id]) {
+                    persistentRecords[stage.id] = {
+                        cleared: false,
+                        bestTime: null,
+                        attempts: 0
+                    };
+                }
+            });
+        }
+
+        function applyHintsToStage(stage) {
+            stage.hints.forEach(hint => {
+                stageHistory[stage.id][hint.r][hint.c] = hint.type;
+            });
+        }
+
+        function saveStoredData() {
+            try {
+                const payload = {
+                    stageHistory: stageHistory,
+                    persistentRecords: persistentRecords
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            } catch (e) {
+                console.error("Failed to save to local storage:", e);
+            }
+        }
+
+        function initApp() {
+            loadStoredData();
+            renderStageSelector();
+            loadStage(0);
+            renderHistoryTable();
+            bindEvents();
+            preventGestures();
+        }
+
+        function renderStageSelector() {
+            const selector = document.getElementById("stageSelector");
+            selector.innerHTML = "";
+            STAGES.forEach((stage, idx) => {
+                const btn = document.createElement("button");
+                const isCleared = persistentRecords[stage.id].cleared;
+                btn.className = `stage-btn ${idx === currentStageIdx ? "active" : ""} ${isCleared ? "cleared" : ""}`;
+                btn.innerText = `단계 ${stage.id}`;
+                btn.onclick = () => selectStage(idx);
+                selector.appendChild(btn);
+            });
+        }
+
+        function selectStage(idx) {
+            if (idx === currentStageIdx) return;
+            currentStageIdx = idx;
+            renderStageSelector();
+            loadStage(currentStageIdx);
+        }
+
+        function loadStage(idx) {
+            currentStageIdx = idx;
+            const stage = STAGES[idx];
+            
+            document.getElementById("stageTitle").innerText = `${stage.name} (${stage.rows}x${stage.cols})`;
+            
+            updateFleetStatusHeader();
+            clearInlineMessage();
+            renderBoard();
+            startTimer();
+        }
+
+        function updateFleetStatusHeader() {
+            const stage = STAGES[currentStageIdx];
+            const currentGrid = stageHistory[stage.id];
+            const userFleetCounts = parseUserFleetCounts(currentGrid, stage.rows, stage.cols);
+
+            let fleetHtml = '';
+            const sortedLengths = Object.keys(stage.fleetCounts).map(Number).sort((a, b) => b - a);
+            sortedLengths.forEach(len => {
+                let sampleHtml = '';
+                if (len === 1) {
+                    sampleHtml = `<span class="sample-circle"></span>`;
+                } else {
+                    sampleHtml = `<span class="sample-ship-icon"><span class="s-l"></span>`;
+                    for(let i=0; i<len-2; i++) sampleHtml += `<span class="s-m"></span>`;
+                    sampleHtml += `<span class="s-r"></span></span>`;
+                }
+
+                const targetCount = stage.fleetCounts[len];
+                const currentCount = userFleetCounts[len] || 0;
+                const isMatched = (currentCount === targetCount);
+                const colorStyle = isMatched ? 'color: var(--success);' : 'color: var(--danger);';
+
+                fleetHtml += `
+                    <div class="fleet-item">
+                        <span class="icon-sample">${sampleHtml}</span>
+                        <span>${len}칸 (<span style="${colorStyle}">${targetCount}: ${currentCount}척</span>)</span>
+                    </div>`;
+            });
+            document.getElementById("fleetStatus").innerHTML = fleetHtml;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            elapsedTimeSeconds = 0;
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                elapsedTimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            if (seconds === null || seconds === undefined) return "-";
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m > 0 ? m + "분 " : ""}${s}초`;
+        }
+
+        // Determine specific ship graphic part based on solution layout for correct hints display
+        function getShipPartClassForSolution(solution, r, c, rows, cols) {
+            const top = (r > 0 && solution[r - 1][c] === 1);
+            const bottom = (r < rows - 1 && solution[r + 1][c] === 1);
+            const left = (c > 0 && solution[r][c - 1] === 1);
+            const right = (c < cols - 1 && solution[r][c + 1] === 1);
+
+            const connectedCount = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+
+            if (connectedCount === 0) {
+                return "ship-single";
+            } else if (connectedCount >= 2) {
+                if (left && right) return "ship-middle";
+                if (top && bottom) return "ship-middle-v";
+                return "ship-middle";
+            } else {
+                if (left) return "ship-cap-right";
+                if (right) return "ship-cap-left";
+                if (top) return "ship-cap-bottom";
+                if (bottom) return "ship-cap-top";
+            }
+            return "ship-single";
+        }
+
+        // Determine specific ship graphic part based on adjacent user grid tiles
+        function getShipPartClass(grid, r, c, rows, cols) {
+            const top = (r > 0 && grid[r - 1][c] === 2);
+            const bottom = (r < rows - 1 && grid[r + 1][c] === 2);
+            const left = (c > 0 && grid[r][c - 1] === 2);
+            const right = (c < cols - 1 && grid[r][c + 1] === 2);
+
+            const connectedCount = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+
+            if (connectedCount === 0) {
+                return "ship-single"; 
+            } else if (connectedCount >= 2) {
+                if (left && right) return "ship-middle";
+                if (top && bottom) return "ship-middle-v";
+                return "ship-middle";
+            } else {
+                if (left) return "ship-cap-right";
+                if (right) return "ship-cap-left";
+                if (top) return "ship-cap-bottom";
+                if (bottom) return "ship-cap-top";
+            }
+            return "ship-single";
+        }
+
+        function isHintCell(stage, r, c) {
+            return stage.hints.some(h => h.r === r && h.c === c);
+        }
+
+        function renderBoard() {
+            const stage = STAGES[currentStageIdx];
+            const boardContainer = document.getElementById("boardContainer");
+            boardContainer.innerHTML = "";
+
+            const currentGrid = stageHistory[stage.id];
+
+            // Compute current row and column ship cell counts
+            const currentRowCounts = Array(stage.rows).fill(0);
+            const currentColCounts = Array(stage.cols).fill(0);
+
+            for (let r = 0; r < stage.rows; r++) {
+                for (let c = 0; c < stage.cols; c++) {
+                    if (currentGrid[r][c] === 2) { // 2 = Ship
+                        currentRowCounts[r]++;
+                        currentColCounts[c]++;
+                    }
+                }
+            }
+
+            // Create Grid Rows including Indicator cells (rows + 1, cols + 1)
+            for (let r = 0; r <= stage.rows; r++) {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "grid-row";
+
+                for (let c = 0; c <= stage.cols; c++) {
+                    const cellDiv = document.createElement("div");
+
+                    if (r < stage.rows && c < stage.cols) {
+                        // Interactive Game Cell
+                        const state = currentGrid[r][c]; // 0: empty, 1: water, 2: ship
+                        const isHint = isHintCell(stage, r, c);
+
+                        if (state === 0) {
+                            cellDiv.className = `grid-cell cell-empty ${isHint ? 'cell-hint' : ''}`;
+                        } else if (state === 1) {
+                            cellDiv.className = `grid-cell cell-water ${isHint ? 'cell-hint' : ''}`;
+                        } else if (state === 2) {
+                            cellDiv.className = `grid-cell cell-ship ${isHint ? 'cell-hint' : ''}`;
+                            const shipPart = document.createElement("div");
+                            
+                            let partClass = "";
+                            if (isHint) {
+                                partClass = getShipPartClassForSolution(stage.solution, r, c, stage.rows, stage.cols);
+                            } else {
+                                partClass = getShipPartClass(currentGrid, r, c, stage.rows, stage.cols);
+                            }
+                            
+                            shipPart.className = `ship-part ${partClass}`;
+                            cellDiv.appendChild(shipPart);
+                        }
+
+                        if (!isHint) {
+                            cellDiv.onclick = () => toggleCell(r, c);
+                        }
+
+                    } else if (r < stage.rows && c === stage.cols) {
+                        // Row Indicator (Right edge)
+                        cellDiv.className = "grid-cell cell-indicator";
+                        const target = stage.rowCounts[r];
+                        const current = currentRowCounts[r];
+                        cellDiv.innerText = target;
+                        if (current === target) cellDiv.classList.add("fulfilled");
+                        else if (current > target) cellDiv.classList.add("exceeded");
+                    } else if (r === stage.rows && c < stage.cols) {
+                        // Col Indicator (Bottom edge)
+                        cellDiv.className = "grid-cell cell-indicator";
+                        const target = stage.colCounts[c];
+                        const current = currentColCounts[c];
+                        cellDiv.innerText = target;
+                        if (current === target) cellDiv.classList.add("fulfilled");
+                        else if (current > target) cellDiv.classList.add("exceeded");
+                    } else {
+                        // Bottom Right Corner Cell
+                        cellDiv.className = "grid-cell cell-indicator";
+                        cellDiv.innerText = "";
+                    }
+
+                    rowDiv.appendChild(cellDiv);
+                }
+                boardContainer.appendChild(rowDiv);
+            }
+
+            updateFleetStatusHeader();
+        }
+
+        function toggleCell(r, c) {
+            const stage = STAGES[currentStageIdx];
+            
+            if (isHintCell(stage, r, c)) return;
+
+            // Cycle: 0 (Empty) -> 1 (Water) -> 2 (Ship) -> 0 (Empty)
+            let current = stageHistory[stage.id][r][c];
+            if (current === 0) current = 1;
+            else if (current === 1) current = 2;
+            else current = 0;
+
+            stageHistory[stage.id][r][c] = current;
+            saveStoredData();
+            renderBoard();
+            clearInlineMessage();
+        }
+
+        function resetCurrentStage() {
+            const stage = STAGES[currentStageIdx];
+            stageHistory[stage.id] = Array(stage.rows).fill(0).map(() => Array(stage.cols).fill(0));
+            applyHintsToStage(stage);
+            saveStoredData();
+            renderBoard();
+            clearInlineMessage();
+            startTimer();
+        }
+
+        function checkAnswer() {
+            const stage = STAGES[currentStageIdx];
+            const grid = stageHistory[stage.id];
+            
+            persistentRecords[stage.id].attempts += 1;
+
+            let isCorrect = true;
+
+            for (let r = 0; r < stage.rows; r++) {
+                for (let c = 0; c < stage.cols; c++) {
+                    const userIsShip = (grid[r][c] === 2) ? 1 : 0;
+                    const solutionIsShip = stage.solution[r][c];
+                    if (userIsShip !== solutionIsShip) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+                if (!isCorrect) break;
+            }
+
+            if (isCorrect) {
+                persistentRecords[stage.id].cleared = true;
+                if (persistentRecords[stage.id].bestTime === null || elapsedTimeSeconds < persistentRecords[stage.id].bestTime) {
+                    persistentRecords[stage.id].bestTime = elapsedTimeSeconds;
+                }
+                saveStoredData();
+                renderStageSelector();
+                renderHistoryTable();
+
+                showInlineMessage("🎉 정답입니다! 축하합니다.", "success");
+                showModal(
+                    true,
+                    "🎉 성공!",
+                    `단계 ${stage.id}를 ${formatTime(elapsedTimeSeconds)} 만에 클리어했습니다!`,
+                    currentStageIdx < STAGES.length - 1 ? "다음 단계로" : "확인",
+                    false
+                );
+            } else {
+                saveStoredData();
+                renderHistoryTable();
+
+                showInlineMessage("❌ 틀렸습니다! 행/열 개수 및 전함 배치를 확인해주세요.", "danger");
+                showModal(
+                    false,
+                    "❌ 틀렸습니다!",
+                    "전함 위치나 행/열 수량이 규칙에 맞지 않습니다. 다시 시도해 보세요.",
+                    "다시 시도",
+                    false
+                );
+            }
+        }
+
+        function showInlineMessage(msg, type) {
+            const msgDiv = document.getElementById("inlineMessage");
+            msgDiv.innerText = msg;
+            msgDiv.className = `inline-message ${type}`;
+        }
+
+        function clearInlineMessage() {
+            const msgDiv = document.getElementById("inlineMessage");
+            msgDiv.innerText = "";
+            msgDiv.className = "inline-message";
+        }
+
+        function showModal(isSuccess, title, body, btnText, isConfirmModal = false, onConfirm = null) {
+            const overlay = document.getElementById("modalOverlay");
+            const card = document.getElementById("modalCard");
+            const modalTitle = document.getElementById("modalTitle");
+            const modalBody = document.getElementById("modalBody");
+            const buttonsContainer = document.getElementById("modalButtonsContainer");
+
+            card.className = `modal-card ${isSuccess ? "success-modal" : "danger-modal"}`;
+            modalTitle.innerText = title;
+            modalTitle.className = `modal-title ${isSuccess ? "success" : "danger"}`;
+            modalBody.innerText = body;
+            
+            buttonsContainer.innerHTML = "";
+
+            if (isConfirmModal) {
+                const cancelBtn = document.createElement("button");
+                cancelBtn.className = "modal-btn secondary";
+                cancelBtn.innerText = "취소";
+                cancelBtn.onclick = hideModal;
+
+                const confirmBtn = document.createElement("button");
+                confirmBtn.className = "modal-btn danger";
+                confirmBtn.innerText = btnText;
+                confirmBtn.onclick = () => {
+                    hideModal();
+                    if (onConfirm) onConfirm();
+                };
+
+                buttonsContainer.appendChild(cancelBtn);
+                buttonsContainer.appendChild(confirmBtn);
+            } else {
+                const modalBtn = document.createElement("button");
+                modalBtn.className = `modal-btn single ${isSuccess ? "success" : "danger"}`;
+                modalBtn.innerText = btnText;
+                modalBtn.onclick = () => {
+                    hideModal();
+                    if (isSuccess && currentStageIdx < STAGES.length - 1) {
+                        selectStage(currentStageIdx + 1);
+                    }
+                };
+                buttonsContainer.appendChild(modalBtn);
+            }
+
+            overlay.classList.add("active");
+            buttonsContainer.querySelector("button:last-child").focus();
+        }
+
+        function hideModal() {
+            const overlay = document.getElementById("modalOverlay");
+            overlay.classList.remove("active");
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById("historyTableBody");
+            tbody.innerHTML = "";
+
+            const activeStages = STAGES.filter(stage => {
+                const rec = persistentRecords[stage.id];
+                return rec && rec.attempts > 0;
+            });
+
+            if (activeStages.length === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td colspan="4" class="empty-history">아직 플레이 기록이 없습니다.</td>`;
+                tbody.appendChild(tr);
+                return;
+            }
+
+            activeStages.forEach(stage => {
+                const rec = persistentRecords[stage.id];
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>${stage.name}</td>
+                    <td style="color: ${rec.cleared ? 'var(--success)' : 'var(--text-sub)'}">
+                        ${rec.cleared ? '완료 ✓' : '도전 중'}
+                    </td>
+                    <td>${formatTime(rec.bestTime)}</td>
+                    <td>${rec.attempts}회</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function requestResetAllHistory() {
+            showModal(
+                false,
+                "누적 기록 초기화",
+                "모든 누적 기록과 진행 상황이 삭제됩니다. 정말 초기화하시겠습니까?",
+                "초기화",
+                true,
+                () => {
+                    localStorage.removeItem(STORAGE_KEY);
+                    stageHistory = {};
+                    persistentRecords = {};
+                    loadStoredData();
+                    renderStageSelector();
+                    loadStage(currentStageIdx);
+                    renderHistoryTable();
+                    showInlineMessage("모든 누적 기록이 초기화되었습니다.", "danger");
+                }
+            );
+        }
+
+        function bindEvents() {
+            document.getElementById("btnReset").onclick = resetCurrentStage;
+            document.getElementById("btnSubmit").onclick = checkAnswer;
+            document.getElementById("btnResetHistory").onclick = requestResetAllHistory;
+
+            window.addEventListener("keydown", (e) => {
+                const modalOverlay = document.getElementById("modalOverlay");
+                const isModalActive = modalOverlay.classList.contains("active");
+
+                if (isModalActive) {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const lastBtn = document.getElementById("modalButtonsContainer").querySelector("button:last-child");
+                        if (lastBtn) lastBtn.click();
+                    }
+                    return;
+                }
+
+                if (e.key >= "1" && e.key <= "5") {
+                    const targetIdx = parseInt(e.key) - 1;
+                    if (targetIdx < STAGES.length) {
+                        selectStage(targetIdx);
+                    }
+                } else if (e.key === "r" || e.key === "R") {
+                    resetCurrentStage();
+                } else if (e.key === "Enter") {
+                    checkAnswer();
+                }
+            });
+        }
+
+        function preventGestures() {
+            document.addEventListener("contextmenu", (e) => e.preventDefault());
+            document.addEventListener("dblclick", (e) => e.preventDefault());
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
