@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>누리카베</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
         :root {
             --board-size: 5;
@@ -25,7 +24,6 @@
             --active: #007bff;
             --success: #28a745;
             --danger: #dc3545;
-
         }
 
         body {
@@ -72,7 +70,7 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 3px;
-            margin-bottom: 3px;   /* [추가] 줄(5개 묶음) 사이의 아래 간격을 gap과 동일하게 설정 */
+            margin-bottom: 3px;
         }
 
         .level-btn {
@@ -133,18 +131,17 @@
         .info-title { font-weight: bold; font-size: 16px; }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 700; color: #333; }
 
-.game-board {
+        .game-board {
             display: none; 
             grid-template-columns: repeat(var(--board-size), 1fr);
             grid-template-rows: repeat(var(--board-size), 1fr);
             
-            /* 외곽 테두리 두께 균일화를 위한 재설정 */
             border-top: 2px solid var(--grid-line-color);
             border-left: 2px solid var(--grid-line-color);
             border-bottom: 1px solid var(--grid-line-color);
             border-right: 1px solid var(--grid-line-color);
             
-            gap: 0; /* [수정] 1px에서 0으로 변경하여 소수점 공백 오차 원천 차단 */
+            gap: 0;
             user-select: none;
             box-shadow: 0 8px 30px rgba(0,0,0,0.08);
             width: 100%;
@@ -158,7 +155,7 @@
             background-color: var(--color-bg-solved);
         }
 
-.cell {
+        .cell {
             background-color: #fff;
             display: flex;
             justify-content: center;
@@ -172,7 +169,6 @@
             aspect-ratio: 1;
             overflow: hidden; 
             
-            /* [추가] 각 셀의 우측과 하단에 내부 격자선 직접 부여 */
             border-right: 1px solid var(--grid-line-color);
             border-bottom: 1px solid var(--grid-line-color);
         }
@@ -180,7 +176,6 @@
             .cell { font-size: 24px; }
         }
 
-        /* 15x15일 때 폰트 사이즈 조금 조절 */
         @media (min-width: 500px) {
             .game-board[style*="--board-size: 15"] .cell { font-size: 18px; }
         }
@@ -191,7 +186,6 @@
 
         .cell.clue { cursor: default; }
         
-        /* 오류 스타일 */
         .cell.error {
             background-color: var(--color-error) !important;
             color: #d32f2f !important;
@@ -200,7 +194,6 @@
             background-color: #ef5350 !important;
         }
 
-        /* 정답 스타일 */
         .cell.correct {
             background-color: #e8f5e9 !important; 
         }
@@ -245,15 +238,16 @@
         .btn-ctrl:active { transform: translateY(2px); box-shadow: none; }
         .btn-check { background-color: var(--color-active); }
         .btn-check:hover { background-color: #0056b3; }
-        .btn-reset { 
+        
+        .btn-reset, .btn-clear-all { 
             color: var(--danger);
             background-color: #fff;
             border: 1.5px solid var(--danger);
-}
-.btn-reset:hover { 
-    background-color: var(--danger);
-    color: white;    /* 글씨 색상 유지 */
-}
+        }
+        .btn-reset:hover, .btn-clear-all:hover { 
+            background-color: var(--danger);
+            color: white;
+        }
 
         .modal-overlay {
             position: fixed;
@@ -265,125 +259,138 @@
             z-index: 1000;
             backdrop-filter: blur(4px);
         }
-.modal-content {
-    background: white;
-    padding: 36px 30px 30px;
-    border-radius: 24px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    max-width: 320px;
-    width: 90%;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+        .modal-content {
+            background: white;
+            padding: 36px 30px 30px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 320px;
+            width: 90%;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
         @keyframes popIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
         
-.success-card {
-    border-top: 6px solid var(--success);
-}
-
-.success-title {
-    font-size: 30px;
-    font-weight: 800;
-    color: var(--success);
-    margin: 0 0 18px;
-}
-
-.success-time {
-    font-size: 18px;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-.success-time span {
-    font-weight: bold;
-    color: var(--success);
-}
-
-.shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
-
-.close-modal-btn {
-    background: var(--success);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    max-width: 300px;
-    transition: background 0.2s;
-}
-
-.close-modal-btn:hover {
-    background: #218838;
-}
-        /* .rules {
-            margin-top: 30px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #555;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 500px;
-            box-sizing: border-box;
+        .success-card {
+            border-top: 6px solid var(--success);
         }
-        .rules b { color: #2c3e50; } */
+
+        .danger-card {
+            border-top: 6px solid var(--danger);
+        }
+
+        .success-title {
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--success);
+            margin: 0 0 18px;
+        }
+
+        .danger-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--danger);
+            margin: 0 0 12px;
+        }
+
+        .success-time {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .success-time span {
+            font-weight: bold;
+            color: var(--success);
+        }
+
+        .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+        @media (max-width: 600px) {
+            .shortcut-grid { grid-template-columns: 1fr; }
+        }
+        .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+        kbd {
+            background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+            color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+        }
+
+        .close-modal-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            transition: background 0.2s;
+        }
+
+        .close-modal-btn:hover { background: #218838; }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-modal-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-modal-cancel {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .btn-modal-cancel:hover { background: #ced4da; }
+        .btn-modal-confirm {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-modal-confirm:hover { background: #c82333; }
 
         .guide-box {
-    width: 100%;
-    max-width: 800px;
-    line-height: 1.6;
-    box-sizing: border-box;
-    background: white;
-    border-radius: 14px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    padding: 4px 4px 4px 20px;
-    margin-bottom: 14px;
-    word-break: keep-all;
-}
+            width: 100%;
+            max-width: 800px;
+            line-height: 1.6;
+            box-sizing: border-box;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            padding: 4px 4px 4px 20px;
+            margin-bottom: 14px;
+            word-break: keep-all;
+        }
 
-.guide-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
+        .guide-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
 
-.guide-title {
-    font-size: 18px;
-    font-weight: 700;
-}
+        .guide-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
 
-.guide-active {
-    border-left: 6px solid var(--active);
-}
+        .guide-active { border-left: 6px solid var(--active); }
+        .guide-active .guide-title { color: var(--active); }
 
-.guide-active .guide-title {
-    color: var(--active);
-}
-
-.guide-success {
-    border-left: 6px solid var(--success);
-}
-
-.guide-success .guide-title {
-    color: var(--success);
-}
+        .guide-success { border-left: 6px solid var(--success); }
+        .guide-success .guide-title { color: var(--success); }
     </style>
 </head>
 <body>
@@ -410,6 +417,9 @@ kbd {
     <div id="messageArea" class="message-area"></div>
 
     <div class="controls">
+        <button class="btn-ctrl btn-clear-all" onclick="openResetConfirmModal()">
+            🗑️ 기록 초기화
+        </button>
         <button class="btn-ctrl btn-reset" onclick="resetBoard()">
             🔄 처음으로
         </button>
@@ -439,28 +449,32 @@ kbd {
         <div class="shortcut-item">
             <kbd>드래그</kbd> <span>여러 칸 한 번에 칠하기</span>
         </div>
+    </div>
 </section>
-
-
 
 <div id="successModal" class="modal-overlay">
     <div class="modal-content success-card" onclick="event.stopPropagation()">
-
         <h2 class="success-title">🎉 정답!</h2>
-
         <div class="success-time">
             기록:
             <span id="currentClearTime"></span>
         </div>
-
-        <button
-            id="successConfirmBtn"
-            class="close-modal-btn"
-            onclick="closeModal()"
-        >
+        <button id="successConfirmBtn" class="close-modal-btn" onclick="closeModal()">
             확인
         </button>
+    </div>
+</div>
 
+<div id="resetConfirmModal" class="modal-overlay">
+    <div class="modal-content danger-card" onclick="event.stopPropagation()">
+        <h2 class="danger-title">⚠️ 기록 초기화</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">
+            모든 클리어 기록과 저장된 진행 상황이 사라집니다.<br>정말 초기화하시겠습니까?
+        </p>
+        <div class="modal-btn-group">
+            <button class="btn-modal-action btn-modal-cancel" onclick="closeResetConfirmModal()">취소</button>
+            <button id="resetConfirmBtn" class="btn-modal-action btn-modal-confirm" onclick="clearAllData()">초기화</button>
+        </div>
     </div>
 </div>
 
@@ -493,7 +507,6 @@ kbd {
                 { id: 18, size: 12, grid: [0,0,0,0,0,0,0,0,0,0,0,0, 0,0,2,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 1,0,1,0,0,10,0,0,0,0,0,0, 0,0,0,2,0,0,0,0,2,0,0,0, 0,0,0,0,0,1,0,1,0,6,0,0, 0,0,4,0,1,0,1,0,0,0,0,2, 0,0,0,2,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,3,0,0,5,0,0, 0,0,0,0,0,0,0,0,0,0,0,0, 0,2,0,0,0,0,0,0,0,5,0,0, 0,0,0,2,0,0,0,0,0,0,0,1] },
                 { id: 19, size: 12, grid: [0,0,0,0,0,1,0,4,0,0,0,0, 0,4,0,0,2,0,0,0,0,0,0,0, 0,0,1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,5,0, 0,0,0,0,0,0,1,0,0,0,0,0, 0,0,0,0,0,5,0,0,0,0,0,0, 0,0,0,0,0,0,4,0,0,0,0,0, 0,0,0,0,0,10,0,0,0,0,0,0, 0,5,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,11,0,0, 0,0,0,0,0,0,0,1,0,0,3,0, 0,0,0,0,4,0,1,0,0,0,0,0] },
                 { id: 20, size: 12, grid: [0,0,2,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,0,2,0,0,0,0, 0,0,0,0,0,0,9,0,0,7,0,0, 0,0,0,5,0,0,0,2,0,0,0,0, 0,0,0,0,0,1,0,0,0,0,0,0, 0,0,0,0,0,0,2,0,0,0,3,0, 0,0,0,0,4,0,0,0,3,0,0,0, 0,0,4,0,0,2,0,0,0,0,0,0, 0,0,0,0,3,0,0,0,0,0,1,0, 0,0,0,0,0,0,2,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,2,0,0] }
-                
             ],
             '15': [
                 { id: 21, size: 15, grid: [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0, 0,0,0,0,2,0,0,0,0,0,2,0,0,0,0, 0,2,0,0,0,0,0,3,0,0,0,0,2,0,0, 0,0,0,1,0,0,2,0,2,0,0,0,0,4,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,7,0,0,0,0,0,0,2,0,1,0, 0,2,0,0,0,3,0,0,0,4,0,0,0,0,0, 0,0,0,2,0,0,0,0,0,0,0,1,0,0,0, 0,0,0,0,0,2,0,0,0,1,0,0,0,2,0, 0,2,0,2,0,0,0,0,0,0,5,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,1,0,0,0,0,3,0,5,0,0,2,0,0,0, 0,0,3,0,0,0,0,2,0,0,0,0,0,1,0, 0,0,0,0,2,0,0,0,0,0,3,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,1,0] },
@@ -503,16 +516,16 @@ kbd {
                 { id: 25, size: 15, grid: [7,0,1,0,0,0,0,0,0,2,0,0,0,0,7, 0,0,0,0,2,0,0,0,2,0,0,0,0,0,0, 0,0,0,0,0,3,0,0,0,0,0,0,0,0,2, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,2,0,2,0,0,0,3,0,0,1,0, 2,0,0,0,0,0,0,0,0,0,0,0,3,0,0, 0,2,0,0,2,0,0,0,0,0,14,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,1,0,0,0,0,0,0,0,0,1,0, 0,0,2,0,0,0,0,0,0,0,0,0,0,0,0, 0,4,0,0,2,0,0,0,1,0,8,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 5,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,4,0,0,0,1,0,0,0,0, 2,0,0,0,0,1,0,0,0,0,0,0,5,0,6] }
             ]
         };
-/// 18과 20 위치 수정함, 21 25 22 24 23 순서로 수정함
+
         let currentLevel = null;
-        let boardState = []; // 0: White, 1: Wall
+        let boardState = [];
         let gameActive = false;
         
         let isDragging = false;
         let dragTargetState = null;
 
-        const savedStates = {}; 
-        const records = {};
+        let savedStates = {}; 
+        let records = {};
 
         let startTime = 0;
         let timerInterval = null;
@@ -522,55 +535,96 @@ kbd {
         const timerElement = document.getElementById('timer');
         const levelInfo = document.getElementById('levelInfo');
         const successModal = document.getElementById('successModal');
+        const resetConfirmModal = document.getElementById('resetConfirmModal');
         const messageArea = document.getElementById('messageArea');
 
-document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
 
-    const key = e.key.toLowerCase();
+            // 초기화 확인 모달 열려있을 때
+            if (resetConfirmModal.style.display === 'flex') {
+                if (key === 'enter') {
+                    e.preventDefault();
+                    document.getElementById('resetConfirmBtn').click();
+                } else if (key === 'escape') {
+                    e.preventDefault();
+                    closeResetConfirmModal();
+                }
+                return;
+            }
 
-    // 성공 팝업 열려있을 때
-    if (successModal.style.display === 'flex') {
+            // 성공 팝업 열려있을 때
+            if (successModal.style.display === 'flex') {
+                if (key === 'enter' || key === ' ') {
+                    e.preventDefault();
+                    document.getElementById('successConfirmBtn').click();
+                }
+                return;
+            }
 
-        if (key === 'enter' || key === ' ') {
-            e.preventDefault();
-            document.getElementById('successConfirmBtn').click();
-        }
+            if (!gameActive) return;
 
-        return;
-    }
+            if (key === 'enter' || key === ' ') {
+                e.preventDefault();
+                checkSolution();
+            }
 
-    if (!gameActive) return;
+            if (key === 'c' || key === 'r' || key === 'escape') {
+                resetBoard();
+            }
+        });
 
-    if (key === 'enter' || key === ' ') {
-        e.preventDefault();
-        checkSolution();
-    }
-
-    if (key === 'c' || key === 'r' || key === 'escape') {
-        resetBoard();
-    }
-});
         document.addEventListener('mouseup', () => { isDragging = false; dragTargetState = null; });
         document.addEventListener('touchend', () => { isDragging = false; dragTargetState = null; });
 
+        function loadStorageData() {
+            try {
+                const storedRecords = localStorage.getItem('nurikabe_records');
+                if (storedRecords) records = JSON.parse(storedRecords);
+
+                const storedStates = localStorage.getItem('nurikabe_saved_states');
+                if (storedStates) savedStates = JSON.parse(storedStates);
+            } catch (e) {
+                console.error('localStorage를 불러오는 중 오류 발생:', e);
+            }
+        }
+
+        function saveStorageData() {
+            try {
+                localStorage.setItem('nurikabe_records', JSON.stringify(records));
+                localStorage.setItem('nurikabe_saved_states', JSON.stringify(savedStates));
+            } catch (e) {
+                console.error('localStorage에 저장하는 중 오류 발생:', e);
+            }
+        }
+
         function init() {
+            loadStorageData();
+
             createLevelButtons('lvl-group-5', LEVELS['5'], '5');
             createLevelButtons('lvl-group-7', LEVELS['7'], '7');
             createLevelButtons('lvl-group-10', LEVELS['10'], '10');
             createLevelButtons('lvl-group-12', LEVELS['12'], '12');
             createLevelButtons('lvl-group-15', LEVELS['15'], '15');
+            
             successModal.onclick = closeModal;
+            resetConfirmModal.onclick = closeResetConfirmModal;
         }
 
         function createLevelButtons(containerId, dataList, groupKey) {
             const container = document.getElementById(containerId);
+            container.innerHTML = '';
             dataList.forEach((level) => {
+                const key = `lvl-${level.id}`;
+                const isCleared = records[key];
+                const clearTimeStr = (typeof isCleared === 'string') ? isCleared : (isCleared ? '완료' : '');
+
                 const btn = document.createElement('button');
-                btn.className = 'level-btn';
+                btn.className = `level-btn ${isCleared ? 'cleared' : ''}`;
                 btn.id = `btn-${groupKey}-${level.id}`;
                 btn.innerHTML = `
                     <span>${level.id}단계</span>
-                    <span class="btn-record" id="rec-${groupKey}-${level.id}"></span>
+                    <span class="btn-record" id="rec-${groupKey}-${level.id}">${clearTimeStr}</span>
                 `;
                 btn.onclick = () => loadLevel(level, groupKey);
                 container.appendChild(btn);
@@ -587,6 +641,7 @@ document.addEventListener('keydown', (e) => {
                 board: [...boardState],
                 totalTime: accumulatedTime + currentSessionTime
             };
+            saveStorageData();
         }
 
         function loadLevel(levelData, groupKey) {
@@ -597,21 +652,15 @@ document.addEventListener('keydown', (e) => {
             
             currentLevel = levelData;
             const key = `lvl-${levelData.id}`;
-            const isCleared = (records[key]);
+            const isCleared = records[key];
 
             document.documentElement.style.setProperty('--board-size', levelData.size);
 
             let maxBoardWidth = 800;
+            if (levelData.id >= 1 && levelData.id <= 5) maxBoardWidth = 400;
+            else if (levelData.id >= 6 && levelData.id <= 10) maxBoardWidth = 560;
 
-            if (levelData.id >= 1 && levelData.id <= 5) {
-                maxBoardWidth = 400;
-            }
-            else if (levelData.id >= 6 && levelData.id <= 10) {
-                maxBoardWidth = 560;
-            }
-
-boardElement.style.maxWidth = `${maxBoardWidth}px`;
-
+            boardElement.style.maxWidth = `${maxBoardWidth}px`;
             levelInfo.innerText = `${levelData.id}단계 - ${levelData.size}x${levelData.size}`;
 
             document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
@@ -655,6 +704,7 @@ boardElement.style.maxWidth = `${maxBoardWidth}px`;
             stopTimer();
             startTimer();
             renderBoard();
+            saveStorageData();
         }
 
         function renderBoard() {
@@ -870,7 +920,7 @@ boardElement.style.maxWidth = `${maxBoardWidth}px`;
             showMessage("정답입니다! 완벽해요!", "success");
 
             const key = `lvl-${currentLevel.id}`;
-            records[key] = true; 
+            records[key] = finalTimeStr; 
             
             let groupKey;
             if (currentLevel.size === 5) groupKey = '5';
@@ -890,7 +940,6 @@ boardElement.style.maxWidth = `${maxBoardWidth}px`;
             document.getElementById('currentClearTime').innerText = finalTimeStr;
             successModal.style.display = 'flex';
         }
-
 
         function showMessage(msg, type) {
             if (!msg) {
@@ -929,6 +978,35 @@ boardElement.style.maxWidth = `${maxBoardWidth}px`;
 
         function closeModal() {
             successModal.style.display = 'none';
+        }
+
+        function openResetConfirmModal() {
+            resetConfirmModal.style.display = 'flex';
+        }
+
+        function closeResetConfirmModal() {
+            resetConfirmModal.style.display = 'none';
+        }
+
+        function clearAllData() {
+            localStorage.removeItem('nurikabe_records');
+            localStorage.removeItem('nurikabe_saved_states');
+            
+            for (let k in records) delete records[k];
+            for (let k in savedStates) delete savedStates[k];
+
+            closeResetConfirmModal();
+
+            stopTimer();
+            gameActive = false;
+            currentLevel = null;
+
+            boardElement.style.display = 'none';
+            levelInfo.innerText = "문제 선택 대기중";
+            timerElement.innerText = "00:00";
+            showMessage("");
+
+            init();
         }
 
         init();
