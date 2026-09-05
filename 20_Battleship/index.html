@@ -46,7 +46,6 @@
       overflow-x: hidden;
     }
 
-    /* 가로 길이를 최대 800px로 확장 조정 */
     .container-fixed {
       width: 100%;
       max-width: 800px;
@@ -64,7 +63,6 @@
       text-align: center;
     }
 
-    /* 제목 영역 */
     h1 {
       font-size: 32px;
       font-weight: 800;
@@ -72,7 +70,6 @@
       color: var(--text-main);
     }
 
-    /* 단계 선택 */
     .stage-grid {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -107,7 +104,6 @@
       border-color: var(--success);
     }
 
-    /* 퍼즐 핵심 플레이 영역 */
     .game-wrapper {
       display: flex;
       flex-direction: column;
@@ -144,7 +140,6 @@
     .cell.hint.over { color: var(--danger); text-shadow: 1px 1px 0px white; }
     .cell.preview { background: rgba(0,123,255,0.25) !important; border: 2px solid var(--active); box-sizing: border-box; }
 
-    /* 선박 컴포넌트 */
     .ship {
       position: absolute;
       display: flex;
@@ -176,7 +171,6 @@
       will-change: transform;
     }
 
-    /* 선박 대기소(독) */
     .dock {
       display: flex;
       gap: 10px;
@@ -192,7 +186,6 @@
       touch-action: none;
     }
 
-    /* 하단 조작 버튼 영역 (최대 가로폭 800px 대응) */
     .controls-row {
       display: flex;
       gap: 12px;
@@ -201,7 +194,6 @@
       justify-content: center;
     }
     
-    /* 힌트 및 초기화 버튼 스타일: 흰색 바탕에 검은색 글씨 */
     .action-btn {
       flex: 1;
       height: 54px;
@@ -222,8 +214,8 @@
     .action-btn:active { transform: scale(0.98); background-color: #e9ecef; }
     .action-btn:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border-color: #dee2e6; }
 
-        /* 처음으로 버튼 스타일 지정 */
-        .action-btn.reset-btn {
+    /* 처음으로 및 기록 초기화 버튼 스타일 (동일한 빨간색 스타일) */
+    .action-btn.reset-btn {
       color: var(--danger);
       border: 1.5px solid var(--danger);
     }
@@ -232,7 +224,6 @@
       color: white;
     }
 
-    /* 가이드 공간 기본 공통 레이아웃 */
     .guide-box {
       background: var(--card-bg);
       border-radius: 12px;
@@ -247,19 +238,18 @@
     .rule-list { margin: 0; padding-left: 0; list-style: none; color: var(--text-sub); }
     .rule-list li { margin-bottom: 6px; position: relative; }
     .guide-box.shortcuts { border-left: 6px solid var(--success); }
-    .guide-box.shortcuts .guide-title {  font-size: 18px;color: var(--success); }
+    .guide-box.shortcuts .guide-title { font-size: 18px; color: var(--success); }
 
     .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-    /* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
+    @media (max-width: 600px) {
+      .shortcut-grid { grid-template-columns: 1fr; }
+    }
     .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-  kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+    kbd {
+      background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+      color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+    }
 
-    /* 모달 시스템 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -296,8 +286,9 @@
     .modal-title.danger { color: var(--danger); }
     
     .modal-body { color: var(--text-sub); margin-bottom: 20px; font-size: 15px; }
+    .modal-btn-group { display: flex; gap: 10px; }
     .modal-btn {
-      width: 100%;
+      flex: 1;
       padding: 12px;
       border-radius: 12px;
       border: none;
@@ -308,6 +299,7 @@
     }
     .modal-btn.success { background: var(--success); }
     .modal-btn.danger { background: var(--danger); }
+    .modal-btn.secondary { background: #6c757d; }
   </style>
 </head>
 <body>
@@ -330,11 +322,12 @@
 
   <!-- [영역 3] 하단 조작 버튼 영역 -->
   <div class="container-fluid controls-row">
+    <button class="action-btn reset-btn" onclick="confirmClearAllData()">🗑️ 기록 초기화</button>
     <button id="btnHint" class="action-btn" onclick="useHint()">💡 힌트</button>
     <button class="action-btn reset-btn" onclick="resetCurrentStage()">🔄 처음으로</button>
   </div>
 
-  <!-- [영역 5] 퍼즐 규칙 공간 (누적 기록, 키보드 단축키 공간 완전히 삭제) -->
+  <!-- [영역 5] 퍼즐 규칙 공간 -->
   <div class="container-fixed guide-box guide-active">
     <h3 style="color: var(--active);">◈ 퍼즐 규칙</h3>
     <ul class="rule-list">
@@ -358,14 +351,17 @@
             <kbd>R</kbd> <span>처음으로</span>
         </div>
     </div>
-</div>
+  </div>
 
-  <!-- 결과 알림 팝업창 (모달 디스플레이) -->
+  <!-- 결과 및 확인 알림 팝업창 -->
   <div id="modalOverlay" class="modal-overlay">
     <div id="modalCard" class="modal-card">
       <div id="modalTitle" class="modal-title"></div>
       <div id="modalBody" class="modal-body"></div>
-      <button id="modalBtn" class="modal-btn"></button>
+      <div id="modalBtnGroup" class="modal-btn-group">
+        <button id="modalBtnCancel" class="modal-btn secondary" style="display: none;">취소</button>
+        <button id="modalBtn" class="modal-btn"></button>
+      </div>
     </div>
   </div>
 
@@ -377,7 +373,6 @@
   let currentStage = 1;
   
   let allStagesData = {};     
-  let stageHistory = {};      
   let clearedStages = {};     
   let stageHintStatus = {};   
   let solutionCache = {};     
@@ -400,19 +395,53 @@
 
   let dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
 
+  function saveToLocalStorage() {
+    localStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
+    localStorage.setItem('battleship_stages_data', JSON.stringify(allStagesData));
+    
+    // Set 객체 직렬화 변환
+    const hintStatusToSave = {};
+    for (let key in stageHintStatus) {
+      hintStatusToSave[key] = {
+        count: stageHintStatus[key].count,
+        revealedIds: Array.from(stageHintStatus[key].revealedIds)
+      };
+    }
+    localStorage.setItem('battleship_hint_status', JSON.stringify(hintStatusToSave));
+  }
+
+  function loadFromLocalStorage() {
+    if (localStorage.getItem('battleship_cleared')) {
+      try { clearedStages = JSON.parse(localStorage.getItem('battleship_cleared')); } catch(e){}
+    }
+
+    if (localStorage.getItem('battleship_stages_data')) {
+      try { allStagesData = JSON.parse(localStorage.getItem('battleship_stages_data')); } catch(e){}
+    }
+
+    if (localStorage.getItem('battleship_hint_status')) {
+      try { 
+        const loadedHintStatus = JSON.parse(localStorage.getItem('battleship_hint_status'));
+        for (let key in loadedHintStatus) {
+          stageHintStatus[key] = {
+            count: loadedHintStatus[key].count,
+            revealedIds: new Set(loadedHintStatus[key].revealedIds)
+          };
+        }
+      } catch(e){}
+    }
+  }
+
   function init(){
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('dblclick', (e) => e.preventDefault());
 
-    if(sessionStorage.getItem('battleship_cleared')) {
-      try { clearedStages = JSON.parse(sessionStorage.getItem('battleship_cleared')); } catch(e){}
-    }
-
     for(let i=1; i<=TOTAL_STAGES; i++){
       allStagesData[i] = [];
-      stageHistory[i] = null;
       stageHintStatus[i] = { count: 0, revealedIds: new Set() };
     }
+
+    loadFromLocalStorage();
 
     renderStageButtons();
     loadStage(1);
@@ -435,18 +464,7 @@
   }
 
   function loadStage(n){
-    if (allStagesData[currentStage]) {
-      stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
-    }
-
     currentStage = n;
-    
-    if (stageHistory[n] && stageHistory[n].length > 0) {
-      allStagesData[n] = JSON.parse(JSON.stringify(stageHistory[n]));
-    } else {
-      allStagesData[n] = [];
-    }
-
     dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
     renderStageButtons();
     renderBoard();
@@ -458,7 +476,7 @@
     const solution = getSolution(stageNum);
     if (!solution || solution.length === 0) return null;
 
-    let currentShips = allStagesData[stageNum];
+    let currentShips = allStagesData[stageNum] || [];
     const sortedSol = [...solution].sort((a,b) => b.id - a.id);
 
     for (let solShip of sortedSol) {
@@ -501,6 +519,7 @@
 
   function computeSumsUnified(ships){
     let curR=[0,0,0,0,0], curC=[0,0,0,0,0];
+    if(!ships) return {curR, curC};
     ships.forEach(s=>{
       if(s.dir === 'h'){
         if(s.r>=0 && s.r<SIZE) curR[s.r] += s.id;
@@ -521,7 +540,7 @@
 
   function checkWinAndUpdateUI(){
     const hints = stageHints[currentStage];
-    const ships = allStagesData[currentStage];
+    const ships = allStagesData[currentStage] || [];
     const {curR, curC} = computeSumsUnified(ships);
 
     const rowOk = curR.every((v,i)=>{
@@ -538,7 +557,7 @@
     const win = ships.length===5 && rowOk && colOk;
     if(win && !clearedStages[currentStage]) {
       clearedStages[currentStage] = true;
-      sessionStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
+      saveToLocalStorage();
       renderStageButtons();
       updateHintButtonUI();
       showModal(true, "🎉 성공!", `스테이지 ${currentStage} 클리어 정답입니다!`, currentStage < TOTAL_STAGES ? "다음 단계로" : "게임 완료");
@@ -619,7 +638,7 @@
       if (!isLargeShip && !isRevealed) return;
     }
 
-    allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id !== targetShip.id);
+    allStagesData[currentStage] = (allStagesData[currentStage] || []).filter(s => s.id !== targetShip.id);
     allStagesData[currentStage].push({...targetShip});
     
     if (!status.revealedIds.has(targetShip.id)) {
@@ -629,6 +648,7 @@
       }
     }
     
+    saveToLocalStorage();
     renderStageButtons();
     renderBoard();
     renderDock();
@@ -639,7 +659,7 @@
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
     const hints = stageHints[currentStage];
-    const ships = allStagesData[currentStage];
+    const ships = allStagesData[currentStage] || [];
     const {curR, curC} = computeSumsUnified(ships);
 
     for(let r=0; r<=SIZE; r++){
@@ -680,7 +700,7 @@
   function renderDock(){
     const dock = document.getElementById('dock');
     dock.innerHTML = '';
-    const ships = allStagesData[currentStage];
+    const ships = allStagesData[currentStage] || [];
     const placedIds = ships.map(s=>s.id);
     for(let i=1; i<=5; i++){
       if(!placedIds.includes(i)){
@@ -764,11 +784,12 @@
   }
 
   function canPlace(r,c,dir,id){
+    const ships = allStagesData[currentStage] || [];
     for(let i=0; i<3; i++){
       const rr = dir==='h'?r:r+i;
       const cc = dir==='h'?c+i:c;
       if(rr<0 || cc<0 || rr>=SIZE || cc>=SIZE) return false;
-      if(allStagesData[currentStage].some(s => s.id!==id && isOverlapping(s,rr,cc))) return false;
+      if(ships.some(s => s.id!==id && isOverlapping(s,rr,cc))) return false;
     }
     return true;
   }
@@ -783,14 +804,14 @@
   }
 
   function placeShip(id,r,c,dir){
-    allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id!==id);
+    allStagesData[currentStage] = (allStagesData[currentStage] || []).filter(s => s.id!==id);
     allStagesData[currentStage].push({id,r,c,dir});
-    stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
+    saveToLocalStorage();
     renderBoard(); renderDock();
   }
 
   function rotateShip(id){
-    const ships = allStagesData[currentStage];
+    const ships = allStagesData[currentStage] || [];
     const s = ships.find(ss => ss.id===id);
     if(s){
       const oldDir = s.dir;
@@ -802,7 +823,7 @@
       if(canPlace(newR, newC, nextDir, id)){
         s.r = newR; s.c = newC; s.dir = nextDir;
       }
-      stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
+      saveToLocalStorage();
       renderBoard(); renderDock();
     } else {
       dockDir[id] = (dockDir[id] === 'h') ? 'v' : 'h';
@@ -869,8 +890,8 @@
       if(anchor && canPlace(anchor.r, anchor.c, dir, id)){
         placeShip(id, anchor.r, anchor.c, dir);
       } else {
-        allStagesData[currentStage] = allStagesData[currentStage].filter(s => s.id!==id);
-        stageHistory[currentStage] = JSON.parse(JSON.stringify(allStagesData[currentStage]));
+        allStagesData[currentStage] = (allStagesData[currentStage] || []).filter(s => s.id!==id);
+        saveToLocalStorage();
         renderBoard(); renderDock();
       }
     };
@@ -879,30 +900,56 @@
   }
 
   function resetCurrentStage(){
-  // 1. 성공 상태 초기화
-  clearedStages[currentStage] = false;
-  sessionStorage.setItem('battleship_cleared', JSON.stringify(clearedStages));
-  
-  // 2. 힌트 상태도 초기화
-  stageHintStatus[currentStage] = { count: 0, revealedIds: new Set() };
+    clearedStages[currentStage] = false;
+    stageHintStatus[currentStage] = { count: 0, revealedIds: new Set() };
 
-  // 3. 기존 데이터 초기화 로직
-  allStagesData[currentStage] = [];
-  stageHistory[currentStage] = [];
-  dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
-  
-  renderStageButtons();
-  renderBoard(); 
-  renderDock();
-  updateHintButtonUI(); 
-}
+    allStagesData[currentStage] = [];
+    dockDir = {1:'h',2:'h',3:'h',4:'h',5:'h'};
+    
+    saveToLocalStorage();
+    renderStageButtons();
+    renderBoard(); 
+    renderDock();
+    updateHintButtonUI(); 
+  }
 
-  function showModal(isSuccess, title, bodyMessage, buttonText) {
+  function confirmClearAllData() {
+    showModal(
+      false, 
+      "⚠️ 기록 초기화", 
+      "모든 스테이지의 클리어 기록과 배치 상태가 초기화됩니다. 정말 삭제하시겠습니까?", 
+      "초기화", 
+      true, 
+      () => {
+        clearAllData();
+      }
+    );
+  }
+
+  function clearAllData() {
+    localStorage.removeItem('battleship_cleared');
+    localStorage.removeItem('battleship_stages_data');
+    localStorage.removeItem('battleship_hint_status');
+
+    clearedStages = {};
+    allStagesData = {};
+    stageHintStatus = {};
+
+    for(let i=1; i<=TOTAL_STAGES; i++){
+      allStagesData[i] = [];
+      stageHintStatus[i] = { count: 0, revealedIds: new Set() };
+    }
+
+    loadStage(1);
+  }
+
+  function showModal(isSuccess, title, bodyMessage, buttonText, isConfirm = false, onConfirm = null) {
     const overlay = document.getElementById('modalOverlay');
     const card = document.getElementById('modalCard');
     const titleEl = document.getElementById('modalTitle');
     const bodyEl = document.getElementById('modalBody');
     const btnEl = document.getElementById('modalBtn');
+    const btnCancelEl = document.getElementById('modalBtnCancel');
 
     card.className = `modal-card ${isSuccess ? 'success' : 'danger'}`;
     titleEl.className = `modal-title ${isSuccess ? 'success' : 'danger'}`;
@@ -912,12 +959,22 @@
     btnEl.innerText = buttonText;
     btnEl.className = `modal-btn ${isSuccess ? 'success' : 'danger'}`;
 
-    btnEl.onclick = () => {
-      hideModal();
-      if (isSuccess && currentStage < TOTAL_STAGES) {
-        loadStage(currentStage + 1);
-      }
-    };
+    if (isConfirm) {
+      btnCancelEl.style.display = 'block';
+      btnCancelEl.onclick = () => hideModal();
+      btnEl.onclick = () => {
+        hideModal();
+        if (onConfirm) onConfirm();
+      };
+    } else {
+      btnCancelEl.style.display = 'none';
+      btnEl.onclick = () => {
+        hideModal();
+        if (isSuccess && currentStage < TOTAL_STAGES) {
+          loadStage(currentStage + 1);
+        }
+      };
+    }
 
     overlay.classList.add('active');
     btnEl.focus();
@@ -934,6 +991,8 @@
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         document.getElementById('modalBtn').click();
+      } else if (e.key === 'Escape') {
+        hideModal();
       }
       return;
     }
