@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>기묘한 계산기</title>
-    <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -137,7 +137,6 @@ h1 {
   gap: 20px;
 }
 
-/* 변경: flex-wrap을 적용하여 좁은 화면에서 유연하게 대처 */
 .stage-badge-container {
   display: flex;
   flex-wrap: wrap;
@@ -148,7 +147,6 @@ h1 {
   gap: 8px;
 }
 
-/* 상단 정보 글자 크기 기존 15px -> 22.5px (1.5배 확대) */
 .info-item {
   font-size: 22.5px;
   color: var(--text-sub);
@@ -158,14 +156,13 @@ h1 {
   color: var(--text-main);
 }
 
-/* 미디어 쿼리 추가: 화면 폭이 좁아 한 줄에 안 들어갈 때 남은 횟수를 아래로 내림 */
 @media (max-width: 480px) {
   .stage-badge-container {
     justify-content: flex-start;
     gap: 12px;
   }
   #info-limit {
-    width: 100%; /* 부모 너비를 다 차지하게 해서 강제 줄바꿈 효과 */
+    width: 100%;
     margin-top: 2px;
   }
 }
@@ -186,7 +183,6 @@ h1 {
   color: var(--text-main);
 }
 
-/* 연산 이력 박스 */
 .history-box {
   border-top: 1px dashed #cccccc;
   padding-top: 12px;
@@ -196,7 +192,6 @@ h1 {
   line-height: 1.6;
 }
 
-/* 연산 버튼 그리드 */
 .calc-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -230,12 +225,17 @@ button.calc-btn:disabled {
 /* [영역 3: 하단 조작 버튼 영역] */
 .control-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   width: 100%;
 }
 
-/* 초기화, 뒤로가기 버튼: 바탕 흰색, 글자 검은색, 테두리 추가 */
+@media (max-width: 480px) {
+  .control-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .btn-util {
   height: 54px;
   font-size: 16px;
@@ -245,20 +245,21 @@ button.calc-btn:disabled {
   cursor: pointer;
   color: #000000;
   background-color: #ffffff;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 .btn-util:hover { 
   background-color: #f8f9fa; 
 }
-    /* 처음으로 버튼 스타일 지정 */
-    .btn-util.reset-btn {
-      color: var(--danger);
-      border: 1.5px solid var(--danger);
-    }
-    .btn-util.reset-btn:hover {
-      background-color: var(--danger);
-      color: white;
-    }
+
+/* 빨간색 보더 스타일 (처음으로 및 기록 초기화) */
+.btn-util.danger-btn {
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+}
+.btn-util.danger-btn:hover {
+  background-color: var(--danger);
+  color: white;
+}
 
 /* [영역 5, 6: 하단 가이드 공간] */
 .guide-box {
@@ -289,16 +290,15 @@ button.calc-btn:disabled {
   margin-bottom: 4px;
 }
 
-/* 영역별 커스텀 보더 */
 .guide-rules { border-left: 6px solid var(--active); }
 .guide-rules h3 { color: var(--active); }
 .guide-keys { border-left: 6px solid var(--success); }
 .guide-keys h3 { color: var(--success); }
 
 .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
 @media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
+  .shortcut-grid { grid-template-columns: 1fr; }
+}
 .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
 kbd {
   background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
@@ -345,6 +345,7 @@ kbd {
 
 .modal-card.success-modal { border-top: 6px solid var(--success); }
 .modal-card.fail-modal { border-top: 6px solid var(--danger); }
+.modal-card.confirm-modal { border-top: 6px solid var(--danger); }
 
 .modal-title {
   font-size: 24px;
@@ -352,13 +353,18 @@ kbd {
   margin-bottom: 15px;
 }
 .success-modal .modal-title { color: var(--success); }
-.fail-modal .modal-title { color: var(--danger); }
+.fail-modal .modal-title, .confirm-modal .modal-title { color: var(--danger); }
 
 .modal-body {
   font-size: 16px;
   color: var(--text-sub);
   margin-bottom: 20px;
   line-height: 1.5;
+}
+
+.modal-btn-group {
+  display: flex;
+  gap: 10px;
 }
 
 .modal-btn {
@@ -373,6 +379,13 @@ kbd {
 }
 .success-modal .modal-btn { background-color: var(--success); }
 .fail-modal .modal-btn { background-color: var(--danger); }
+
+.btn-secondary {
+  background-color: #6c757d;
+}
+.btn-danger-fill {
+  background-color: var(--danger);
+}
 </style>
 </head>
 <body>
@@ -415,7 +428,8 @@ kbd {
   <!-- [영역 3: 하단 조작 버튼 영역] -->
   <div class="container-fluid">
     <div class="control-row">
-      <button class="btn-util reset-btn" onclick="clearValue()">🔄 처음으로 </button>
+      <button class="btn-util danger-btn" onclick="confirmResetAllData()">🗑️ 기록 초기화</button>
+      <button class="btn-util danger-btn" onclick="clearValue()">🔄 처음으로</button>
       <button class="btn-util" onclick="undo()">↶ 되돌리기</button>
     </div>
   </div>
@@ -464,6 +478,16 @@ kbd {
     <div class="modal-body">제한 횟수를 초과했거나 실패했습니다. 다시 도전해 보세요!</div>
     <button class="modal-btn" onclick="closeModal(); retryStage();">다시 시도</button>
   </div>
+
+  <!-- 전체 초기화 확인 모달 -->
+  <div class="modal-card confirm-modal" id="modal-confirm" style="display:none;">
+    <div class="modal-title">⚠️ 데이터 초기화</div>
+    <div class="modal-body">모든 스테이지 클리어 기록 및 진행 상황이 완전히 삭제됩니다. 계속하시겠습니까?</div>
+    <div class="modal-btn-group">
+      <button class="modal-btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="modal-btn btn-danger-fill" onclick="resetAllData()">초기화</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -486,7 +510,6 @@ let stageHistory = {};
 
 // 데이터 초기화 및 LocalStorage 데이터 병합 함수
 function loadGameData() {
-  // 1. 기본 구조 생성
   for(let i = 1; i <= 18; i++) {
     stageFailCounts[i] = 0;
     stageHistory[i] = {
@@ -495,18 +518,17 @@ function loadGameData() {
     };
   }
 
-  // 2. 로컬스토리지 복구 시도
   try {
-    const savedCurrentStage = sessionStorage.getItem('weird_calc_currentStage');
+    const savedCurrentStage = localStorage.getItem('weird_calc_currentStage');
     if (savedCurrentStage) currentStage = parseInt(savedCurrentStage, 10);
 
-    const savedSuccess = sessionStorage.getItem('weird_calc_successStages');
+    const savedSuccess = localStorage.getItem('weird_calc_successStages');
     if (savedSuccess) successStages = new Set(JSON.parse(savedSuccess));
 
-    const savedFailCounts = sessionStorage.getItem('weird_calc_stageFailCounts');
+    const savedFailCounts = localStorage.getItem('weird_calc_stageFailCounts');
     if (savedFailCounts) stageFailCounts = JSON.parse(savedFailCounts);
 
-    const savedHistory = sessionStorage.getItem('weird_calc_stageHistory');
+    const savedHistory = localStorage.getItem('weird_calc_stageHistory');
     if (savedHistory) stageHistory = JSON.parse(savedHistory);
   } catch (e) {
     console.error("로컬스토리지 데이터를 가져오는 데 실패했습니다.", e);
@@ -516,10 +538,10 @@ function loadGameData() {
 // 데이터를 저장하는 함수
 function saveGameData() {
   try {
-    sessionStorage.setItem('weird_calc_currentStage', currentStage);
-    sessionStorage.setItem('weird_calc_successStages', JSON.stringify([...successStages]));
-    sessionStorage.setItem('weird_calc_stageFailCounts', JSON.stringify(stageFailCounts));
-    sessionStorage.setItem('weird_calc_stageHistory', JSON.stringify(stageHistory));
+    localStorage.setItem('weird_calc_currentStage', currentStage);
+    localStorage.setItem('weird_calc_successStages', JSON.stringify([...successStages]));
+    localStorage.setItem('weird_calc_stageFailCounts', JSON.stringify(stageFailCounts));
+    localStorage.setItem('weird_calc_stageHistory', JSON.stringify(stageHistory));
   } catch (e) {
     console.error("로컬스토리지 데이터 저장 실패", e);
   }
@@ -530,6 +552,7 @@ const levelBox = document.getElementById('level-selector');
 const modalOverlay = document.getElementById('modal-overlay');
 const modalSuccess = document.getElementById('modal-success');
 const modalFail = document.getElementById('modal-fail');
+const modalConfirm = document.getElementById('modal-confirm');
 
 function initLevelSelector() {
   levelBox.innerHTML = '';
@@ -560,7 +583,7 @@ function updateSelectorUI() {
 function switchStage(n) {
   if(isModalOpen) return;
   currentStage = n;
-  saveGameData(); // 현재 조작 단계 저장
+  saveGameData();
   updateSelectorUI();
   renderPuzzle();
 }
@@ -611,7 +634,7 @@ function applyOp(op, num) {
   
   currentStatus.history.push({ before, op, num, after: currentStatus.value });
   
-  saveGameData(); // 연산 실행 시 데이터 백업
+  saveGameData();
   renderPuzzle();
   checkGameResult();
 }
@@ -622,7 +645,7 @@ function undo() {
   if(currentStatus.history.length > 0) {
     const last = currentStatus.history.pop();
     currentStatus.value = last.before;
-    saveGameData(); // 되돌리기 시 데이터 백업
+    saveGameData();
     renderPuzzle();
   }
 }
@@ -631,14 +654,47 @@ function clearValue() {
   if(isModalOpen || successStages.has(currentStage)) return;
   stageHistory[currentStage].value = stages[currentStage].start;
   stageHistory[currentStage].history = [];
-  saveGameData(); // 초기화 시 데이터 백업
+  saveGameData();
   renderPuzzle();
 }
 
 function retryStage() {
   stageHistory[currentStage].value = stages[currentStage].start;
   stageHistory[currentStage].history = [];
-  saveGameData(); // 재시도 시 데이터 백업
+  saveGameData();
+  renderPuzzle();
+}
+
+/* -------- 기록 초기화 시스템 -------- */
+function confirmResetAllData() {
+  if(isModalOpen) return;
+  isModalOpen = true;
+  modalOverlay.classList.add('active');
+  modalSuccess.style.display = 'none';
+  modalFail.style.display = 'none';
+  modalConfirm.style.display = 'block';
+}
+
+function resetAllData() {
+  localStorage.removeItem('weird_calc_currentStage');
+  localStorage.removeItem('weird_calc_successStages');
+  localStorage.removeItem('weird_calc_stageFailCounts');
+  localStorage.removeItem('weird_calc_stageHistory');
+
+  currentStage = 1;
+  successStages.clear();
+  
+  for(let i = 1; i <= 18; i++) {
+    stageFailCounts[i] = 0;
+    stageHistory[i] = {
+      value: stages[i].start,
+      history: []
+    };
+  }
+
+  saveGameData();
+  closeModal();
+  updateSelectorUI();
   renderPuzzle();
 }
 
@@ -649,7 +705,7 @@ function checkGameResult() {
   
   if(currentStatus.value === s.end) {
     successStages.add(currentStage);
-    saveGameData(); // 결과 업데이트 백업
+    saveGameData();
     updateSelectorUI();
     showModal(true);
     return;
@@ -657,7 +713,7 @@ function checkGameResult() {
   
   if(currentStatus.history.length >= s.limit) {
     stageFailCounts[currentStage]++;
-    saveGameData(); // 결과 업데이트 백업
+    saveGameData();
     updateSelectorUI();
     showModal(false);
   }
@@ -666,6 +722,7 @@ function checkGameResult() {
 function showModal(isSuccess) {
   isModalOpen = true;
   modalOverlay.classList.add('active');
+  modalConfirm.style.display = 'none';
   if(isSuccess) {
     modalSuccess.style.display = 'block';
     modalFail.style.display = 'none';
@@ -712,7 +769,7 @@ document.addEventListener('keydown', (e) => {
     if(k === ' ' || k === 'Enter') {
       if(modalSuccess.style.display === 'block') {
         goNextStage();
-      } else {
+      } else if(modalFail.style.display === 'block') {
         closeModal();
         retryStage();
       }
@@ -729,7 +786,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* 시스템 구동 시작 */
-loadGameData(); // 데이터 로드 완료 후 렌더링 진행
+loadGameData();
 initLevelSelector();
 switchStage(currentStage);
 </script>
