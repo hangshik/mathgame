@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Battle</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
-
-
         :root {
             --board-size: 5;
             --border-thin: 1px solid #aaa;
@@ -25,7 +22,7 @@
             --color-success: #28a745;
             --color-bg-solved: #e8f5e9;
             --color-dot: #b0b8c0;
-            --color-hint-active: #e3f2fd; /* 힌트 강조색 (연한 파랑) */
+            --color-hint-active: #e3f2fd;
             --danger: #dc3545;
             --bg-color: #f0f2f5;
         }
@@ -42,10 +39,12 @@
             min-height: 100vh;
         }
 
-        h1 { font-size: 36px;
+        h1 { 
+            font-size: 36px;
             color: #1a1a1a;
             margin: 0 0 20px 0;
-            letter-spacing: -0.5px;}
+            letter-spacing: -0.5px;
+        }
 
         /* --- 레벨 패널 --- */
         .level-panel {
@@ -73,7 +72,7 @@
 
         .level-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* 버튼 너비 약간 조정 */
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 8px;
         }
 
@@ -95,7 +94,6 @@
         }
         .level-btn:hover { background-color: #f1f3f5; border-color: #ced4da; }
         
-        /* 활성 상태 */
         .level-btn.active {
             background-color: var(--color-active);
             color: white;
@@ -104,7 +102,6 @@
             z-index: 2;
         }
         
-        /* 클리어 상태 */
         .level-btn.cleared { background-color: #28a745; border-color: #218838; color: white; }
         .level-btn.cleared:hover { background-color: #218838; }
         
@@ -148,7 +145,7 @@
         .stars-left { font-size: 14px; font-weight: 600; color: var(--color-active); }
         .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 700; color: #333; }
 
-/* --- 보드 --- */
+        /* --- 보드 --- */
         .game-board {
             display: none; 
             grid-template-columns: repeat(var(--board-size), minmax(0, 1fr));
@@ -162,20 +159,17 @@
             aspect-ratio: 1;
             margin-bottom: 25px;
             transition: background-color 0.3s ease;
-            /* [추가] 자식 요소가 보드 너비를 기준으로 크기를 계산할 수 있게 설정 */
             container-type: inline-size;
         }
 
-        /* [수정] 최상단 html 태그의 스타일에 --board-size: 5가 입력되었을 때 보드 크기를 축소합니다. */
         html[style*="--board-size: 5"] .game-board {
             width: 400px;
-            max-width: 100%; /* 화면이 250px보다 작은 모바일 환경 대응 */
+            max-width: 100%;
         }
 
-        /* [추가] 최상단 html 태그의 스타일에 --board-size: 8이 입력되었을 때 보드 크기를 최대 640px로 제한합니다. */
         html[style*="--board-size: 8"] .game-board {
             width: 640px;
-            max-width: 100%; /* 화면이 640px보다 작은 환경 대응 */
+            max-width: 100%;
         }
 
         .game-board.solved-board .cell {
@@ -185,82 +179,68 @@
             background-color: #dcedc8;
         }
 
-.cell {
-    position: relative;
-    border-right: var(--border-thin);
-    border-bottom: var(--border-thin);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-size: calc((100cqw / var(--board-size)) * 0.7);
-    cursor: pointer;
-    box-sizing: border-box;
-    background-color: #fff;
-    transition: background-color 0.1s;
-    
-    /* [수정 2번 적용] 별이 생길 때 셀 크기가 변하지 않도록 줄 높이 고정 */
-    line-height: 1; 
-}
+        .cell {
+            position: relative;
+            border-right: var(--border-thin);
+            border-bottom: var(--border-thin);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-size: calc((100cqw / var(--board-size)) * 0.7);
+            cursor: pointer;
+            box-sizing: border-box;
+            background-color: #fff;
+            transition: background-color 0.1s;
+            line-height: 1; 
+        }
 
         .thick-right { border-right: var(--border-thick); }
         .thick-bottom { border-bottom: var(--border-thick); }
 
         .cell.star { 
-            color: #ffeb3b; /* 별 내부 색상 (밝은 노랑) */
-            
-            /* 외곽선 설정 (두께 1.5px, 검은색) */
+            color: #ffeb3b;
             -webkit-text-stroke: 1.5px black; 
-            
-            /* 입체감을 위한 가벼운 그림자 (선택 사항) */
             text-shadow: 2px 2px 0 rgba(0,0,0,0.15); 
         }
         
-        /* (6) 회색 원 대신 빨간 X */
         .cell.cross { color: transparent; }
         .cell.cross::before,
         .cell.cross::after {
             content: '';
             position: absolute;
-            width: 30%; /* [수정] 셀 너비의 50%로 변경 */
-            height: 3px; /* 필요시 두께도 조정 가능 (예: calc((100cqw/var(--board-size))*0.05)) */
-            background: #e53935; /* 빨간색 */
+            width: 30%;
+            height: 3px;
+            background: #e53935;
             border-radius: 2px;
         }
         .cell.cross::before { transform: rotate(45deg); }
         .cell.cross::after  { transform: rotate(-45deg); }
 
-
-        /* 힌트 하이라이트 (파란색) */
         .cell.hint-active {
             background-color: var(--color-hint-active) !important;
         }
 
-        /* 오류 표시 (최우선) */
         .cell.error { background-color: var(--color-error) !important; }
 
-        /* --- 컨트롤 (수정됨) --- */
+        /* --- 컨트롤 --- */
         .controls {
             display: flex;
             gap: 12px;
             width: 100%;
             max-width: 800px;
-            /* 추가: 줄바꿈 허용 */
-    flex-wrap: wrap;
+            flex-wrap: wrap;
         }
 
-        /* 추가: 모바일 화면(768px 이하)일 때 설정 */
-@media (max-width: 600px) {
-    .controls button {
-        /* 버튼 2개가 들어가도록 설정 (gap 12px을 고려하여 계산) */
-        flex: 1 1 calc(50% - 6px);
-    }
-}
-        /* (1) 버튼 기본 파란색 스타일 적용 */
+        @media (max-width: 600px) {
+            .controls button {
+                flex: 1 1 calc(50% - 6px);
+            }
+        }
+
         .btn-ctrl {
-            /* 기존 공통 스타일 유지 */
             flex: 1;
             padding: 14px;
             border-radius: 12px;
@@ -273,77 +253,65 @@
             gap: 8px;
             transition: all 0.1s;
 
-            /* [변경] 파란색 배경, 흰색 글씨 */
-            background-color: var(--color-active); /* #007bff */
+            background-color: var(--color-active);
             color: white;
             border: 1px solid #0056b3;
-            box-shadow: 0 4px 0 #004494; /* 짙은 파란 그림자 */
+            box-shadow: 0 4px 0 #004494;
         }
 
-        /* 마우스 올렸을 때 */
         .btn-ctrl:hover {
             background-color: #0069d9;
             border-color: #004085;
         }
 
-        /* 버튼 눌렀을 때 */
         .btn-ctrl:active { 
             transform: translateY(4px);
             box-shadow: none !important;
         }
 
-            /* 처음으로 버튼 스타일 지정 */
-    .btn-ctrl.reset-btn {
-      color: var(--danger);
-      background-color: #fff;
-      border: 1.5px solid var(--danger);
-      box-shadow: 0 4px 0 #cc2535; /* 짙은 파란 그림자 */
+        /* 빨간색 버튼 스타일 (처음으로, 기록 초기화) */
+        .btn-ctrl.danger-btn {
+            color: var(--danger);
+            background-color: #fff;
+            border: 1.5px solid var(--danger);
+            box-shadow: 0 4px 0 #cc2535;
+        }
+        .btn-ctrl.danger-btn:hover {
+            background-color: var(--danger);
+            color: white;
+        }
 
-      /* --danger: #dc3545; */
-    }
-    .btn-ctrl.reset-btn:hover {
-      background-color: var(--danger);
-      color: white;
-    }
-
-       
-
-        /* Color 버튼 활성화(체크) 상태 스타일 */
         .btn-color.active {
-            background-color: #0056b3 !important; /* 더 진한 파란색 */
-            box-shadow: 0 2px 0 #003366 !important; /* 눌린 듯한 얕은 그림자 */
+            background-color: #0056b3 !important;
+            box-shadow: 0 2px 0 #003366 !important;
             transform: translateY(2px);
         }
 
-        /* (2) Color 버튼 내부 체크박스 아이콘 스타일 */
         .check-box-icon {
             display: inline-block;
             width: 14px;
             height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.7); /* 반투명 흰색 테두리 사각형 */
+            border: 2px solid rgba(255, 255, 255, 0.7);
             border-radius: 3px;
             position: relative;
             transition: all 0.2s;
         }
 
-        /* 활성화 시 체크박스 채우기 */
         .btn-color.active .check-box-icon {
             background-color: white;
             border-color: white;
         }
 
-        /* 활성화 시 체크 모양(✔) 표시 */
         .btn-color.active .check-box-icon::after {
             content: '✔';
             position: absolute;
             top: -4px;
             left: 0;
             font-size: 14px;
-            color: #0056b3; /* 파란색 체크 */
+            color: #0056b3;
             font-weight: bold;
             line-height: 1.2;
         }
-
 
         /* --- 모달 --- */
         .modal-overlay {
@@ -358,11 +326,11 @@
         }
         .modal-content {
             background: white;
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 280px;
+            max-width: 300px;
             width: 90%;
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -370,25 +338,56 @@
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-        .modal-title { font-size: 32px; margin: 0 0 15px 0; color: #28a745; }
+        .modal-title { font-size: 28px; margin: 0 0 15px 0; color: #28a745; }
+        
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
         .close-modal-btn {
             background: var(--color-active);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 24px;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,123,255,0.4);
-            margin-top: 20px;
         }
         .close-modal-btn:hover { background: #66a1e0; }
 
-                /* [추가] 메시지 표시 영역 스타일 */
+        .confirm-btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        .confirm-btn-danger:hover { background: #b02a37; }
+
+        .cancel-modal-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cancel-modal-btn:hover { background: #5c636a; }
+
         .message-area {
-            display: none;       /* [변경] 기본적으로 화면에서 숨김 (공간 차지 X) */
-            margin-bottom: 12px; /* 메시지가 나타날 때만 아래 여백 적용됨 */
+            display: none;
+            margin-bottom: 12px;
             font-weight: 700;
             font-size: 16px;
             text-align: center;
@@ -397,10 +396,9 @@
             max-width: 800px;
         }
 
-        
-        /* 메시지 종류별 색상 */
-        .msg-success { color: #28a745; } /* 초록색 */
-        .msg-error { color: #e53935; }   /* 빨간색 */
+        .msg-success { color: #28a745; }
+        .msg-error { color: #e53935; }
+
         .rules {
             margin-top: 30px;
             font-size: 18px;
@@ -455,11 +453,13 @@
 
     <div id="board" class="game-board"></div>
 
-    <!-- [추가] 메시지가 표시될 영역 -->
     <div id="messageArea" class="message-area"></div>
 
     <div class="controls">
-        <!-- [수정] class에 "active" 추가, aria-pressed="true"로 변경 -->
+        <button class="btn-ctrl danger-btn" onclick="openResetAllModal()">
+            🗑️ 기록 초기화
+        </button>
+
         <button id="btnColor" class="btn-ctrl btn-color active" aria-pressed="true" onclick="toggleColorMode()">
             <span class="check-box-icon"></span> Color
         </button>
@@ -468,14 +468,13 @@
             💡 힌트
         </button>
 
-        <button class="btn-ctrl reset-btn" onclick="resetBoard()">
+        <button class="btn-ctrl danger-btn" onclick="resetBoard()">
             🔄 처음으로
         </button>
 
         <button class="btn-ctrl btn-check" onclick="checkStars()">
             ✓ 확인
         </button>
-
     </div>
 
     <div class="rules">
@@ -484,9 +483,7 @@
         2. 별끼리는 상하좌우 및 대각선으로 인접할 수 없습니다.<br>
         3. "확인"을 클릭하면 현재 상태를 확인할 수 있습니다.<br>
         4. 1번 클릭하면 <span style="color: #f44336; font-weight: bold;">x</span>, 2번 클릭하면 별(<span style="color: #FFD600; font-weight: bold;">★</span>), 3번 클릭하면 다시 빈칸이 됩니다.
-   
     </div>
-
 
     <div id="successModal" class="modal-overlay">
         <div class="modal-content" onclick="event.stopPropagation()">
@@ -494,7 +491,22 @@
             <div style="font-size: 20px; font-weight: bold; color: #555;">
                 기록: <span id="currentClearTime" style="color:#28a745"></span>
             </div>
-            <button class="close-modal-btn" onclick="closeModal()">확인</button>
+            <div class="modal-btns">
+                <button class="close-modal-btn" onclick="closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resetConfirmModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 class="modal-title" style="color: var(--danger);">⚠️ 초기화</h2>
+            <div style="font-size: 16px; font-weight: bold; color: #555; line-height: 1.4;">
+                모든 게임 기록과 진행 상황을<br>초기화하시겠습니까?
+            </div>
+            <div class="modal-btns">
+                <button class="confirm-btn-danger" onclick="confirmResetAll()">초기화</button>
+                <button class="cancel-modal-btn" onclick="closeResetAllModal()">취소</button>
+            </div>
         </div>
     </div>
 
@@ -635,8 +647,7 @@
                     hintOrder: [
                         27,16,26,36,37,38,28,18,17,35,25,24,34,44,45,46,4,5,9,8,19,29,39,48,49,59,69,79,89,99,13,12,11,10,20,30,31,21,22,23,32,33,40,41,42,50,51,52,53,43,47,0,60,70,80,90,61,71,81,62,72,82,92,91,1,2,3,75,74,64,65,66,76,86,85,84,15,55,95,14,67,77,94,54,63,73,83,93,78,68,58,57,56,96,87,97,98,88,6,7
                     ]
-                }
-                ,
+                },
                 {
                     id: 6, size: 10, stars: 2,
                     solution: [
@@ -645,8 +656,7 @@
                     regions: [
                         0,0,0,0,1,1,1,1,2,2, 0,1,1,1,1,1,1,2,2,3, 0,4,4,1,1,4,4,2,3,3, 5,4,4,4,4,4,3,3,3,6, 5,4,5,4,6,6,6,6,6,6, 5,5,5,4,4,4,7,7,7,6, 8,5,5,5,4,4,9,7,6,6, 8,8,8,5,5,9,9,6,6,9, 8,8,8,5,5,9,9,9,6,9, 8,8,8,8,8,8,9,9,9,9
                     ]
-                }
-                ,
+                },
                 {
                     id: 7, size: 10, stars: 2,
                     solution: [
@@ -655,15 +665,14 @@
                     regions: [
                         0,0,0,0,0,0,0,0,0,0, 1,1,1,1,1,1,1,2,2,2, 1,1,3,3,3,3,1,2,2,4, 1,1,3,2,2,2,2,2,2,4, 5,5,5,2,2,2,2,6,4,4, 5,5,5,2,2,6,6,6,4,4, 5,5,5,2,2,6,6,6,4,4, 7,7,7,2,8,6,6,6,4,4, 7,7,7,8,8,6,6,9,4,4, 7,7,7,8,9,9,9,9,9,9
                     ]
-                }
-                ,
+                },
                 {
                     id: 8, size: 10, stars: 2,
                     solution: [
                         0,1,0,1,0,0,0,0,0,0, 0,0,0,0,0,1,0,0,0,1, 0,0,1,0,0,0,0,1,0,0, 1,0,0,0,0,1,0,0,0,0, 0,0,0,1,0,0,0,1,0,0, 0,1,0,0,0,0,0,0,0,1, 0,0,0,0,1,0,1,0,0,0, 1,0,0,0,0,0,0,0,1,0, 0,0,1,0,1,0,0,0,0,0, 0,0,0,0,0,0,1,0,1,0
                     ],
                     regions: [
-                        0,0,0,1,1,1,1,1,1,2, 0,1,1,1,1,1,1,2,2,2, 0,3,3,3,1,1,4,4,2,2, 0,0,0,3,3,3,4,4,2,2, 5,5,5,6,7,3,4,4,8,2, 5,5,5,6,7,3,7,4,8,2, 5,5,5,6,7,7,7,4,8,8, 5,5,5,6,6,6,6,6,6,8, 5,5,9,9,9,9,9,8,8,8, 9,9,9,9,9,8,8,8,8,8
+                        0,0,0,1,1,1,1,1,1,2, 0,1,1,1,1,1,1,2,2,2, 0,3,3,3,1,1,4,4,2,2, 0,0,0,3,3,3,4,4,2,2, 5,5,5,6,7,3,4,4,8,2, 5,5,5,6,7,3,7,4,8,2, 5,5,5,6,7,7,7,4,8,8, 5,5,5,6,6,6,6,6,8, 5,5,9,9,9,9,9,8,8,8, 9,9,9,9,9,8,8,8,8,8
                     ]
                 }
             ]
@@ -672,19 +681,24 @@
         let currentLevelData = null;
         let gridState = [];
         let gameActive = false;
-        const savedStates = {}; 
-        const records = {};
-        const hintCounts = {}; // 레벨별 힌트 사용 횟수 저장
-        let lastHintIndex = -1; // 마지막으로 힌트가 적용된 셀 인덱스 (파란색 하이라이트용)
+        
+        // localStorage 키 정의
+        const STORAGE_KEY_RECORDS = 'star_battle_records';
+        const STORAGE_KEY_SAVED_STATES = 'star_battle_saved_states';
+        const STORAGE_KEY_HINT_COUNTS = 'star_battle_hint_counts';
 
-        // (5) Color 모드 상태
+        // localStorage 데이터 로드
+        let savedStates = JSON.parse(localStorage.getItem(STORAGE_KEY_SAVED_STATES)) || {}; 
+        let records = JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS)) || {};
+        let hintCounts = JSON.parse(localStorage.getItem(STORAGE_KEY_HINT_COUNTS)) || {};
+
+        let lastHintIndex = -1;
         let isColorMode = true;
 
-        // (5) 구역 색상 팔레트(필요하면 늘려도 됨)
         const REGION_COLORS = [
-        '#FFE0E0', '#FFE8CC', '#FFF4CC', '#E8FFCC', '#CCFFE9',
-        '#CCF2FF', '#D9E7FF', '#E8D9FF', '#FFD9F2', '#E0E0E0',
-        '#D7F9F1', '#F9EED7', '#E5F1FF', '#E7FFE5', '#FFF1E5'
+            '#FFE0E0', '#FFE8CC', '#FFF4CC', '#E8FFCC', '#CCFFE9',
+            '#CCF2FF', '#D9E7FF', '#E8D9FF', '#FFD9F2', '#E0E0E0',
+            '#D7F9F1', '#F9EED7', '#E5F1FF', '#E7FFE5', '#FFF1E5'
         ];
 
         let startTime = 0;
@@ -696,12 +710,17 @@
         const statusInfo = document.getElementById('statusInfo');
         const starsLeftElement = document.getElementById('starsLeft');
         const successModal = document.getElementById('successModal');
+        const resetConfirmModal = document.getElementById('resetConfirmModal');
 
         function init() {
             createLevelButtons('lvl-5-1', LEVELS['5-1'], '5-1');
             createLevelButtons('lvl-8-1', LEVELS['8-1'], '8-1');
             createLevelButtons('lvl-10-2', LEVELS['10-2'], '10-2');
             successModal.onclick = closeModal;
+            resetConfirmModal.onclick = closeResetAllModal;
+            
+            // 기존 클리어 기록UI 갱신
+            updateAllLevelBtnRecords();
         }
 
         function createLevelButtons(containerId, dataList, groupKey) {
@@ -710,7 +729,6 @@
                 const btn = document.createElement('button');
                 btn.className = 'level-btn';
                 btn.id = `btn-${groupKey}-${level.id}`;
-                // 버튼 내부에 텍스트 span과 기록 span 배치
                 btn.innerHTML = `
                     <span>문제 ${level.id}</span>
                     <span class="btn-record" id="rec-${groupKey}-${level.id}"></span>
@@ -718,6 +736,31 @@
                 btn.onclick = () => loadLevel(level, groupKey);
                 container.appendChild(btn);
             });
+        }
+
+        function saveStorage() {
+            localStorage.setItem(STORAGE_KEY_SAVED_STATES, JSON.stringify(savedStates));
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+            localStorage.setItem(STORAGE_KEY_HINT_COUNTS, JSON.stringify(hintCounts));
+        }
+
+        function updateAllLevelBtnRecords() {
+            for (let groupKey in LEVELS) {
+                LEVELS[groupKey].forEach(level => {
+                    const key = `${groupKey}-${level.id}`;
+                    const btn = document.getElementById(`btn-${key}`);
+                    const btnRecord = document.getElementById(`rec-${key}`);
+                    
+                    if (records[key] && records[key].length > 0) {
+                        if (btn) btn.classList.add('cleared');
+                        if (btnRecord) btnRecord.innerText = records[key][0];
+                    } else {
+                        if (btn) btn.classList.remove('cleared');
+                        if (btnRecord) btnRecord.innerText = '';
+                    }
+                    updateLevelBtnText(groupKey, level.id);
+                });
+            }
         }
 
         function saveCurrentState() {
@@ -731,6 +774,7 @@
                 totalTime: accumulatedTime + currentSessionTime,
                 hintCount: hintCounts[key] || 0
             };
+            saveStorage();
         }
 
         function loadLevel(levelData, groupKey) {
@@ -739,8 +783,6 @@
             }
 
             boardElement.style.display = 'grid';
-
-            // [추가] 레벨 변경 시 메시지 영역 지우기
             showMessage("", "");
 
             currentLevelData = { ...levelData, groupKey: groupKey };
@@ -755,7 +797,6 @@
             successModal.style.display = 'none';
             stopTimer();
 
-            // 레벨 로드 시 이전 힌트 하이라이트는 초기화
             lastHintIndex = -1;
 
             if (savedStates[key]) {
@@ -768,7 +809,6 @@
                 hintCounts[key] = 0;
             }
 
-            // 버튼 텍스트(힌트 카운트) 업데이트
             updateLevelBtnText(groupKey, levelData.id);
 
             if (alreadyCleared) {
@@ -816,9 +856,9 @@
             hintCounts[key] = 0; 
             lastHintIndex = -1; 
             
+            saveStorage();
             updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
 
-            // [추가] 초기화 시 메시지 영역 지우기
             showMessage("", ""); 
 
             gameActive = true; 
@@ -829,6 +869,32 @@
             renderBoard();
         }
 
+        function openResetAllModal() {
+            resetConfirmModal.style.display = 'flex';
+        }
+
+        function closeResetAllModal() {
+            resetConfirmModal.style.display = 'none';
+        }
+
+        function confirmResetAll() {
+            // localstorage 삭제
+            localStorage.removeItem(STORAGE_KEY_RECORDS);
+            localStorage.removeItem(STORAGE_KEY_SAVED_STATES);
+            localStorage.removeItem(STORAGE_KEY_HINT_COUNTS);
+
+            savedStates = {};
+            records = {};
+            hintCounts = {};
+
+            updateAllLevelBtnRecords();
+
+            if (currentLevelData) {
+                resetBoard();
+            }
+
+            closeResetAllModal();
+        }
 
         function useHint() {
             if (!gameActive || !currentLevelData) return;
@@ -836,10 +902,8 @@
             const size = currentLevelData.size;
             const key = `${currentLevelData.groupKey}-${currentLevelData.id}`;
             
-            // 1. 오답(잘못 찍은 별) 찾기
             const wrongStars = [];
             for (let i = 0; i < size * size; i++) {
-                // 유저는 별(1)이라 했지만 정답은 별이 아닌 경우
                 if (gridState[i] === 1 && currentLevelData.solution[i] !== 1) {
                     wrongStars.push(i);
                 }
@@ -848,25 +912,17 @@
             let pick = -1;
 
             if (wrongStars.length > 0) {
-                // [우선순위 1] 틀린 부분이 있으면 고쳐준다 (X 표시)
                 pick = wrongStars[0]; 
                 gridState[pick] = 2; 
             } else {
-                // [우선순위 2] 틀린 부분이 없으면 지정된 순서대로 힌트를 준다
                 let foundByOrder = false;
                 
                 if (currentLevelData.hintOrder && currentLevelData.hintOrder.length > 0) {
                     for (let i = 0; i < currentLevelData.hintOrder.length; i++) {
                         const targetIdx = currentLevelData.hintOrder[i];
-                        
-                        // 정답 데이터 확인 (1: 별, 0: 빈칸)
                         const solutionVal = currentLevelData.solution[targetIdx];
-                        
-                        // 정답이 1이면 별(1), 0이면 X(2)가 되어야 함
                         const targetState = (solutionVal === 1) ? 1 : 2;
 
-                        // 현재 상태가 정답과 다르다면 힌트로 적용
-                        // (아직 입력 안 했거나, 잘못된 표시를 하고 있는 경우 등)
                         if (gridState[targetIdx] !== targetState) {
                             pick = targetIdx;
                             gridState[pick] = targetState; 
@@ -876,12 +932,9 @@
                     }
                 }
 
-                // [우선순위 3] hintOrder가 없거나, hintOrder를 다 채웠는데도 게임이 안 끝난 경우
-                // 기존 방식대로 "아직 찾지 못한 별"을 하나 알려줌
                 if (!foundByOrder) {
                     const emptySpots = [];
                     for (let i = 0; i < size * size; i++) {
-                        // 정답이 별(1)인데 아직 별(1)로 표시되지 않은 곳 찾기
                         if (currentLevelData.solution[i] === 1 && gridState[i] !== 1) {
                             emptySpots.push(i);
                         }
@@ -892,22 +945,19 @@
                         return;
                     }
                     
-                    // 남은 별 중 첫 번째를 보여줌
                     pick = emptySpots[0];
                     gridState[pick] = 1;
                 }
             }
 
-            // 공통 로직: 힌트 카운트 증가 및 화면 갱신
             hintCounts[key] = (hintCounts[key] || 0) + 1;
+            saveStorage();
             updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
             
-            lastHintIndex = pick; // 파란색 하이라이트
+            lastHintIndex = pick; 
             renderBoard();
         }
 
-
-        // [수정 후] checkStars 함수
         function checkStars() {
             if (!currentLevelData) return;
 
@@ -918,17 +968,14 @@
             let hasWrongX = false;
 
             for (let i = 0; i < total; i++) {
-                // 1. 잘못된 별 확인: 유저 입력이 별(1)인데 정답이 아닌 경우
                 if (gridState[i] === 1 && currentLevelData.solution[i] !== 1) {
                     hasWrongStar = true;
                 }
-                // 2. 잘못된 X 확인: 유저 입력이 X(2)인데 정답이 별(1)인 자리인 경우
                 if (gridState[i] === 2 && currentLevelData.solution[i] === 1) {
                     hasWrongX = true;
                 }
             }
 
-            // 메시지 분기 처리
             if (hasWrongStar && hasWrongX) {
                 showMessage("잘못된 별과 X가 있습니다.", "error");
             } else if (hasWrongStar) {
@@ -939,28 +986,21 @@
                 showMessage("모든 표시가 정확합니다.", "success");
             }
 
-            // [변경됨] 좌클릭(click)과 우클릭(contextmenu) 모두 감지 등록
             setTimeout(() => {
                 document.addEventListener('click', clearMessageOnce);
                 document.addEventListener('contextmenu', clearMessageOnce);
             }, 0);
         }
 
-        // [수정 후] clearMessageOnce 함수
         function clearMessageOnce() {
-            showMessage("", ""); // 메시지 지우기
-            
-            // [변경됨] 등록했던 좌클릭, 우클릭 이벤트 리스너를 모두 제거
+            showMessage("", ""); 
             document.removeEventListener('click', clearMessageOnce);
             document.removeEventListener('contextmenu', clearMessageOnce);
         }
 
-
-        // [추가] 메시지 출력 헬퍼 함수
         function showMessage(text, type) {
             const msgEl = document.getElementById('messageArea');
             if (msgEl) {
-                // [추가됨] 텍스트가 없으면 숨기고(display: none), 있으면 보이게(display: block) 설정
                 if (text === "") {
                     msgEl.style.display = 'none';
                 } else {
@@ -975,7 +1015,6 @@
             }
         }
 
-
         function toggleColorMode() {
             isColorMode = !isColorMode;
 
@@ -983,13 +1022,10 @@
             if (btn) {
                 btn.classList.toggle('active', isColorMode);
                 btn.setAttribute('aria-pressed', String(isColorMode));
-                // 체크 느낌으로 텍스트도 바꾸고 싶으면 아래 주석 해제
-                // btn.innerText = isColorMode ? "Color ✓" : "Color";
             }
 
             renderBoard();
         }
-
 
         function renderBoard() {
             const size = currentLevelData.size;
@@ -1004,7 +1040,6 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
 
-                // (5) Color 모드면 구역별로 배경색 표시
                 if (isColorMode) {
                     const rid = regions[i];
                     const color = REGION_COLORS[rid % REGION_COLORS.length];
@@ -1013,11 +1048,9 @@
                     cell.style.backgroundColor = '';
                 }
 
-
                 if (c < size - 1 && regions[i] !== regions[i + 1]) cell.classList.add('thick-right');
                 if (r < size - 1 && regions[i] !== regions[i + size]) cell.classList.add('thick-bottom');
 
-                // 힌트로 변경된 셀 파란색 배경 적용
                 if (i === lastHintIndex) {
                     cell.classList.add('hint-active');
                 }
@@ -1045,25 +1078,23 @@
             }
         }
 
+        function handleInput(idx) {
+            if (lastHintIndex !== -1) {
+                lastHintIndex = -1;
+            }
+            if (gridState[idx] === 0) {
+                gridState[idx] = 2; 
+            } else if (gridState[idx] === 2) {
+                gridState[idx] = 1; 
+            } else {
+                gridState[idx] = 0; 
+            }
+            
+            saveCurrentState();
+            renderBoard();
+        }
 
-function handleInput(idx) {
-    // 사용자가 클릭 시 힌트 하이라이트 제거
-    if (lastHintIndex !== -1) {
-        lastHintIndex = -1;
-    }
-    // [수정 1번 적용] 순서 변경: 빈칸(0) -> X(2) -> 별(1) -> 빈칸(0)
-    if (gridState[idx] === 0) {
-        gridState[idx] = 2; // 먼저 X 표시
-    } else if (gridState[idx] === 2) {
-        gridState[idx] = 1; // X 다음 별 표시
-    } else {
-        gridState[idx] = 0; // 별 다음 빈칸
-    }
-    
-    renderBoard();
-}
         function handleRightClick(idx) {
-            // 사용자가 클릭 시 힌트 하이라이트 제거
             if (lastHintIndex !== -1) {
                 lastHintIndex = -1;
             }
@@ -1071,6 +1102,8 @@ function handleInput(idx) {
             if (gridState[idx] === 0) gridState[idx] = 2;
             else if (gridState[idx] === 2) gridState[idx] = 0;
             else if (gridState[idx] === 1) gridState[idx] = 2;
+            
+            saveCurrentState();
             renderBoard();
         }
 
@@ -1161,16 +1194,16 @@ function handleInput(idx) {
             
             gameActive = false;
             
-            // 성공 시 보드 배경색 변경
             boardElement.classList.add('solved-board');
-            // 성공 시 힌트 하이라이트 제거
             lastHintIndex = -1;
-            renderBoard(); // 하이라이트 제거 반영을 위해 다시 렌더링
+            renderBoard();
 
             if (!records[key]) records[key] = [];
             records[key].push(finalTimeStr);
             records[key].sort(); 
             
+            saveStorage();
+
             const btnRecord = document.getElementById(`rec-${key}`);
             if (btnRecord) btnRecord.innerText = records[key][0];
 
