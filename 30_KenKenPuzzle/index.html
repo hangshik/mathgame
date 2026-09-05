@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>캔캔퍼즐</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
         :root {
             --board-size: 5;
@@ -42,21 +42,14 @@
         }
 
         h1 { 
-            font-size: 38px; /* 글 크기 확대 */
+            font-size: 38px;
             color: #1a1a1a;
             margin: 0 0 8px 0;
             letter-spacing: -0.5px;
             font-weight: 800;
         }
 
-        .subtitle {
-            font-size: 16px; /* 글 크기 확대 */
-            color: #555;
-            margin-bottom: 25px;
-            font-weight: 500;
-        }
-
-        /* --- 레벨 패널 (최대 가로 너비 800px로 조절) --- */
+        /* --- 레벨 패널 --- */
         .level-panel {
             background: white;
             padding: 24px;
@@ -66,18 +59,6 @@
             width: 100%;
             max-width: 800px;
             box-sizing: border-box;
-        }
-
-        .level-group { margin-bottom: 16px; }
-        .level-group:last-child { margin-bottom: 0; }
-        
-        .level-group-title {
-            font-weight: 800;
-            font-size: 15px; /* 글 크기 확대 */
-            margin-bottom: 8px;
-            color: #444;
-            display: flex;
-            justify-content: space-between;
         }
 
         .level-buttons {
@@ -95,7 +76,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 14px; /* 글 크기 확대 */
+            font-size: 14px;
             transition: all 0.2s;
             display: flex;
             flex-direction: column;
@@ -104,7 +85,6 @@
         }
         .level-btn:hover { background-color: #f1f3f5; border-color: #ced4da; }
         
-        /* 활성 상태 */
         .level-btn.active {
             background-color: var(--color-active);
             color: white;
@@ -113,7 +93,6 @@
             z-index: 2;
         }
         
-        /* 클리어 상태 */
         .level-btn.cleared { background-color: #28a745; border-color: #218838; color: white; }
         .level-btn.cleared:hover { background-color: #218838; }
         
@@ -130,7 +109,7 @@
         }
 
         .btn-record {
-            font-size: 10px; /* 글 크기 확대 */
+            font-size: 10px;
             font-weight: 600;
             margin-top: 2px;
             color: #777;
@@ -138,7 +117,7 @@
         .level-btn.cleared .btn-record,
         .level-btn.active .btn-record { color: white; opacity: 0.9; }
 
-        /* --- 정보 바 (최대 가로 너비 800px로 조절) --- */
+        /* --- 정보 바 --- */
         .game-info-bar {
             display: flex;
             justify-content: space-between;
@@ -153,11 +132,11 @@
             box-sizing: border-box;
         }
         .status-left { display: flex; flex-direction: column; gap: 4px; }
-        .info-title { font-weight: 800; font-size: 18px; } /* 글 크기 확대 */
-        .status-target { font-size: 15px; font-weight: 700; color: var(--color-active); } /* 글 크기 확대 */
-        .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #111; } /* 글 크기 확대 */
+        .info-title { font-weight: 800; font-size: 18px; }
+        .status-target { font-size: 15px; font-weight: 700; color: var(--color-active); }
+        .timer { font-size: 24px; font-family: 'Courier New', monospace; font-weight: 800; color: #111; }
 
-        /* --- 보드 (기본 최대 800px 내에서 각 칸의 크기를 최대 120px로 유기적 제한) --- */
+        /* --- 보드 --- */
         .game-board {
             display: none; 
             grid-template-columns: repeat(var(--board-size), minmax(0, 1fr));
@@ -190,48 +169,43 @@
             overflow: hidden;
             cursor: pointer;
             box-sizing: border-box;
-            background-color: #fff; /* 구역 색상 없앰 (화이트 테마) */
+            background-color: #fff;
             transition: background-color 0.15s;
         }
 
-/* 선택된 셀 효과 */
-.cell.selected {
-    box-shadow: inset 0 0 0 3px var(--color-active);
-    z-index: 5;
-}
+        .cell.selected {
+            box-shadow: inset 0 0 0 3px var(--color-active);
+            z-index: 5;
+        }
 
-        /* 굵은 경계선 (Cage 구분용) */
         .thick-right { border-right: var(--border-thick) !important; }
         .thick-bottom { border-bottom: var(--border-thick) !important; }
         .thick-left { border-left: var(--border-thick) !important; }
         .thick-top { border-top: var(--border-thick) !important; }
 
-/* Cage 목표값 표시 (깔끔한 폰트 굵기 및 자간 조정) */
         .cage-label {
             position: absolute;
             top: 3px;
             left: 4px;
-            font-size: calc((100cqw / var(--board-size)) * 0.23); /* 살짝 줄여서 여백 확보 */
-            font-weight: 700; /* 뭉개짐을 방지하기 위해 850 -> 700으로 변경 */
-            color: #333; /* 완전 검은색보다 약간 부드러운 색상 적용 */
+            font-size: calc((100cqw / var(--board-size)) * 0.23);
+            font-weight: 700;
+            color: #333;
             line-height: 1;
             pointer-events: none;
             z-index: 2;
-            letter-spacing: -0.5px; /* 글자 간격 조정으로 기호와 숫자의 깔끔함 증대 */
+            letter-spacing: -0.5px;
         }
 
-        /* 셀 안의 실제 입력 값 (3px 아래로 이동) */
         .cell-value {
             font-size: calc((100cqw / var(--board-size)) * 0.52);
-            font-weight: 700; /* 850 -> 표준 굵기인 800으로 변경 */
+            font-weight: 700;
             color: #111;
             pointer-events: none;
             margin-top: calc((100cqw / var(--board-size)) * 0.12);
             position: relative; 
-            top: 3px; /* 요청하신 대로 기존 위치에서 정확히 3px 아래로 이동 */
+            top: 3px;
         }
 
-        /* 메모(Maybe) 모드일 때 나타날 후보 숫자 격자 */
         .maybe-container {
             position: absolute;
             bottom: 3px;
@@ -244,14 +218,13 @@
             text-align: center;
         }
         .maybe-digit {
-            font-size: calc((100cqw / var(--board-size)) * 0.18); /* 글 크기 확대 */
+            font-size: calc((100cqw / var(--board-size)) * 0.18);
             font-weight: 800;
             color: #007bff;
             opacity: 0.9;
             line-height: 1;
         }
 
-        /* 힌트 및 오류 스타일 */
         .cell.hint-active {
             background-color: var(--color-hint-active) !important;
         }
@@ -259,7 +232,7 @@
             background-color: var(--color-error) !important;
         }
 
-        /* --- 컨트롤 영역 (최대 가로 너비 800px로 조절) --- */
+        /* --- 컨트롤 영역 --- */
         .controls {
             display: flex;
             flex-direction: column;
@@ -269,7 +242,6 @@
             box-sizing: border-box;
         }
 
-        /* 입력 키패드 */
         .input-keypad {
             display: flex;
             gap: 6px;
@@ -281,11 +253,11 @@
         .btn-digit {
             flex: 1;
             min-width: 38px;
-            height: 52px; /* 키패드 높이 증가 */
+            height: 52px;
             border-radius: 8px;
             border: 2px solid #aaa;
             background-color: white;
-            font-size: 20px; /* 글 크기 확대 */
+            font-size: 20px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.1s;
@@ -301,33 +273,36 @@
         .btn-digit.btn-erase {
             background-color: #f8f9fa;
             color: #dc3545;
-            font-size: 16px; /* 글 크기 확대 */
+            font-size: 16px;
         }
 
-        /* 기능성 버튼 가로줄 */
+        /* 기능성 버튼 영역 */
         .utility-buttons {
             display: flex;
             gap: 8px;
             width: 100%;
+            flex-wrap: wrap;
         }
 
-        /* 공통 스타일: 흰색 바탕에 검은색 테두리 */
         .btn-ctrl {
-            flex: 1;
-            padding: 14px; /* 여백 증가 */
+            flex: 1 1 calc(20% - 8px);
+            min-width: 0;
+            padding: 14px 8px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 800;
-            font-size: 15px; /* 글 크기 확대 */
+            font-size: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 6px;
             transition: all 0.1s;
-            background-color: #ffffff; /* 흰색 바탕 */
-            color: #111111; /* 검은색 글씨 */
-            border: 2px solid #111111; /* 검은색 테두리 */
-            box-shadow: 0 3px 0 #111111; /* 검은색 입체 그림자 */
+            background-color: #ffffff;
+            color: #111111;
+            border: 2px solid #111111;
+            box-shadow: 0 3px 0 #111111;
+            box-sizing: border-box;
+            white-space: nowrap;
         }
 
         .btn-ctrl:hover {
@@ -339,7 +314,6 @@
             box-shadow: none !important;
         }
 
-        /* 처음으로 버튼 스타일 (붉은 경고색 테마 유지) */
         .btn-ctrl.reset-btn {
             color: var(--danger);
             background-color: #fff;
@@ -352,7 +326,6 @@
             border-color: var(--danger);
         }
 
-        /* Maybe (체크/메모) 버튼 활성화 상태 */
         .btn-maybe.active {
             background-color: #fd7e14 !important;
             border-color: #d96200 !important;
@@ -361,7 +334,6 @@
             transform: translateY(2px);
         }
 
-        /* 체크박스 아이콘 기본 스타일 */
         .check-box-icon {
             display: inline-block;
             width: 12px;
@@ -371,9 +343,9 @@
             position: relative;
             background-color: white;
             transition: all 0.15s;
+            flex-shrink: 0;
         }
 
-        /* 활성화 시 체크박스 배경 변화 및 기호 매핑 */
         .active .check-box-icon {
             background-color: white;
             border-color: white;
@@ -387,17 +359,15 @@
             font-weight: bold;
         }
 
-        /* 각 버튼 활성화 상태 전용 체크 아이콘 색상 설정 */
         .btn-maybe.active .check-box-icon::after {
             color: #fd7e14;
         }
 
-        /* --- 메시지 표시 영역 (최대 가로 너비 800px로 조절) --- */
         .message-area {
             display: none;
             margin-top: 15px;
             font-weight: 800;
-            font-size: 16px; /* 글 크기 확대 */
+            font-size: 16px;
             text-align: center;
             width: 100%;
             max-width: 800px;
@@ -405,7 +375,6 @@
         .msg-success { color: #28a745; }
         .msg-error { color: #e53935; }
 
-        /* --- 규칙 정보판 (최대 가로 너비 800px로 조절) --- */
         .rules {
             margin-top: 30px;
             font-size: 18px;
@@ -430,9 +399,8 @@
             color: var(--color-active);
         }
 
-            /* 영역 6: 키보드 단축키 */
-.guide-shortcuts {
-        margin-top: 30px;
+        .guide-shortcuts {
+            margin-top: 30px;
             font-size: 18px;
             line-height: 1.6;
             color: #555;
@@ -442,29 +410,25 @@
             width: 100%;
             max-width: 800px;
             box-sizing: border-box;
-        border-left: 6px solid var(--color-success);
-    }
+            border-left: 6px solid var(--color-success);
+        }
     
-    .guide-shortcuts h2 {
-        margin: 0 0 16px 0;
-        font-size: 1.25rem;
-        color: var(--color-success);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+        .guide-shortcuts h2 {
+            margin: 0 0 16px 0;
+            font-size: 1.25rem;
+            color: var(--color-success);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-
-
-    .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
-/* 모바일 화면 대응: 한 줄에 하나씩 정렬 */
-@media (max-width: 600px) {
-.shortcut-grid {    grid-template-columns: 1fr;  }}
-.shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
-kbd {
-  background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
-  color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
-}
+        .shortcut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 20px; font-size: 15px; color: var(--text-sub); }
+        
+        .shortcut-item { display: flex; align-items: center; gap: 10px; line-height: 1.5; }
+        kbd {
+            background-color: #f8f9fa; border: 1px solid #ced4da; border-bottom: 3px solid #adb5bd; border-radius: 6px;
+            color: #495057; display: inline-block; font-size: 14px; font-weight: 700; padding: 5px 9px; white-space: nowrap;
+        }
 
         /* --- 모달 --- */
         .modal-overlay {
@@ -479,44 +443,40 @@ kbd {
         }
         .modal-content {
             background: white;
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
             text-align: center;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 300px;
+            max-width: 320px;
             width: 90%;
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* 기존 level-group-title을 버튼 스타일로 변경 */
-        .level-group-title {
-            width: 100%;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-weight: 800;
-            font-size: 15px;
-            color: #444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-align: left;
-        }
-        .level-group-title:hover {
-            background: #e9ecef;
-        }
-        /* 대기 상태의 문제 버튼 영역 숨김 처리용 클래스 */
-        .level-buttons.collapsed {
-            display: none !important;
-        }
-        /* 타이틀 정렬 보정 */
-        .level-title-text {
+        .modal-btn-group {
             display: flex;
             gap: 10px;
-            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .modal-action-btn {
+            flex: 1;
+            padding: 12px 0;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .modal-btn-confirm {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+        .modal-btn-cancel {
+            background: #e9ecef;
+            color: #495057;
         }
 
         @keyframes popIn {
@@ -538,22 +498,29 @@ kbd {
         }
         .close-modal-btn:hover { background: #0056b3; }
 
+        @media (max-width: 600px) {
+            .shortcut-grid { grid-template-columns: 1fr; }
+            .utility-buttons {
+                display: grid !important;
+                grid-template-columns: repeat(6, 1fr) !important;
+                gap: 8px;
+            }
+            #btnClearRecords, #btnBeginner { grid-column: span 3; }
+            #btnResetBoard, #btnMaybe, #btnCheckGrid { grid-column: span 2; }
+
+            .btn-ctrl {
+                width: 100%;
+                padding: 12px 4px;
+                font-size: 13px;
+            }
+        }
+
         @media (max-width: 480px) {
             h1 { font-size: 28px; }
             .level-buttons { grid-template-columns: repeat(4, 1fr); }
             .btn-digit { height: 44px; font-size: 16px; }
-            .btn-ctrl { padding: 12px; font-size: 13px; }
         }
-    </style>
-</head>
-<body>
 
-    <h1>캔캔퍼즐</h1>
-    <!-- <div class="subtitle">디자인 & 로직이 조화된 사칙연산 격자 퍼즐</div> -->
-
-    <!-- 레벨 셀렉터 패널 (5단계 x 8문제) -->
-<style>
-        /* 격자 탭 버튼들을 가로로 한 줄에 배치 */
         .grid-tab-container {
             display: flex;
             gap: 5px;
@@ -563,7 +530,6 @@ kbd {
             flex-wrap: wrap;
         }
 
-        /* 개별 격자 선택 버튼 스타일 */
         .grid-tab-btn {
             padding: 9px 20px;
             font-size: 15px;
@@ -581,7 +547,6 @@ kbd {
             border-color: #bbb;
         }
 
-        /* 선택된 격자 버튼 활성화 스타일 */
         .grid-tab-btn.tab-active {
             background-color: var(--color-active);
             color: white;
@@ -589,25 +554,26 @@ kbd {
             box-shadow: 0 4px 10px rgba(0,123,255,0.25);
         }
 
-        /* 숨겨진 문제 리스트 영역 */
         .level-buttons.collapsed {
             display: none !important;
         }
 
-/* 초급모드 버튼 활성화 상태 스타일 */
         .btn-beginner.active {
-            background-color: #28a745 !important; /* 초록색 배경 */
-            border-color: #218838 !important; /* 진한 초록색 테두리 */
+            background-color: #28a745 !important;
+            border-color: #218838 !important;
             color: white !important;
-            box-shadow: 0 1px 0 #1e7e34 !important; /* 초록색 그림자 */
+            box-shadow: 0 1px 0 #1e7e34 !important;
             transform: translateY(2px);
         }
-        /* 초급모드 활성화 시 체크박스 기호 매핑 */
         .btn-beginner.active .check-box-icon::after {
             content: '✔';
-            color: #28a745; /* 체크 마크도 초록색으로 통일 */
+            color: #28a745;
         }
     </style>
+</head>
+<body>
+
+    <h1>캔캔퍼즐</h1>
 
     <div class="level-panel">
         <div class="grid-tab-container">
@@ -639,34 +605,33 @@ kbd {
 
     <!-- 메시지 피드백 공간 -->
     <div id="messageArea" class="message-area"></div>
-<br>
+    <br>
     <!-- 조작 컨트롤러 -->
     <div class="controls">
-        <!-- 숫자 키패드 (선택한 격자의 사이즈에 맞게 동적 제어됨) -->
+        <!-- 숫자 키패드 -->
         <div class="input-keypad" id="keypad"></div>
 
         <br>
         <div class="utility-buttons">
-            <!-- <button class="btn-ctrl" onclick="useHint()">
-                💡 힌트
-            </button> -->
+            <button id="btnClearRecords" class="btn-ctrl reset-btn" onclick="openResetRecordsModal()">
+                🗑 기록 초기화
+            </button>
             <button id="btnBeginner" class="btn-ctrl btn-beginner" onclick="toggleBeginnerMode()">
-            <span class="check-box-icon"></span> 초급모드
-        </button>
-
-            <button class="btn-ctrl reset-btn" onclick="resetBoard()">
+                <span class="check-box-icon"></span> 초급모드
+            </button>
+            <button id="btnResetBoard" class="btn-ctrl reset-btn" onclick="resetBoard()">
                 🔄 처음으로
             </button>
             <button id="btnMaybe" class="btn-ctrl btn-maybe" onclick="toggleMaybeMode()">
                 <span class="check-box-icon"></span> 메모
             </button>
-            <button class="btn-ctrl" onclick="checkGrid()">
+            <button id="btnCheckGrid" class="btn-ctrl" onclick="checkGrid()">
                 ✓ 확인
             </button>
         </div>
     </div>
 
-    <!-- 상세 규칙 가이드 (수식 가독성 보강) -->
+    <!-- 상세 규칙 가이드 -->
     <div class="rules">
         <div class="rules-header">◈ 캔캔 퍼즐(KenKen Puzzle) 규칙</div>
         1. 가로줄(행)과 세로줄(열) 각각에 중복 없이 1부터 격자 크기(<b>N</b>)까지의 숫자가 정확히 한 번씩 들어가야 합니다.<br>
@@ -675,29 +640,25 @@ kbd {
         4. <b>초급 모드</b>를 켜고 틀린 숫자를 입력하면 빨간 배경으로 보입니다.<br>
         5. <b>메모 모드</b>를 켜면 숫자를 바로 확정하지 않고 셀의 구석에 작게 메모형태로 남겨둘 수 있습니다.
     </div>
-    
-    
 
-     <!-- 영역 6: 키보드 단축키 -->
+    <!-- 키보드 단축키 -->
     <div class="guide-box guide-shortcuts">
       <h2>⌨ 키보드 단축키</h2>
-      
       <div class="shortcut-grid">
         <div class="shortcut-item">
             <kbd>1</kbd> ~ <kbd>9</kbd> <span>숫자입력</span>
         </div>
-                <div class="shortcut-item">
+        <div class="shortcut-item">
             <kbd>방향키(↑↓←→)</kbd> <span>격자(셀) 이동</span>
         </div>
-                <div class="shortcut-item">
+        <div class="shortcut-item">
             <kbd>M</kbd> <span>메모 모드 켜기 / 끄기</span>
         </div>
-                <div class="shortcut-item">
+        <div class="shortcut-item">
             <kbd>Backspace</kbd> / <kbd>0</kbd> <span>선택한 셀의 숫자 지우기</span>
         </div>
       </div>
     </div>
-
 
     <!-- 클리어 축하 모달 -->
     <div id="successModal" class="modal-overlay">
@@ -710,21 +671,120 @@ kbd {
         </div>
     </div>
 
+    <!-- 기록 초기화 확인 모달 -->
+    <div id="resetRecordsModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 style="margin-top: 0; color: var(--danger); font-size: 22px;">⚠️ 기록 초기화</h3>
+            <p style="color: #555; font-weight: 600; font-size: 15px; margin: 15px 0;">모든 클리어 기록과 진행 중인 게임 데이터가 초기화됩니다.<br>정말 삭제하시겠습니까?</p>
+            <div class="modal-btn-group">
+                <button class="modal-action-btn modal-btn-cancel" onclick="closeResetRecordsModal()">취소</button>
+                <button class="modal-action-btn modal-btn-confirm" onclick="confirmResetRecords()">초기화</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 캔캔 데이터 세트 (5x5 ~ 9x9 격자, 단계별 8문제 구축)
-        // solution: 전체 정답 플랫 배열 (좌상단부터 우하단 순서)
-        // cages: [{ target: '목표값', op: '연산자', cells: [셀 인덱스 배열] }]
+        const STORAGE_KEY = 'kenken_puzzle_records';
+        const SAVE_STATE_KEY = 'kenken_current_game_state';
+        
+        let records = {};
+        let currentLevelData = null;
+        let boardState = [];
+        let maybeState = [];
+        let selectedCellIndex = null;
+        let isMaybeMode = false;
+        let isBeginnerMode = false;
+
+        let timerInterval = null;
+        let startTime = 0;
+        let accumulatedTime = 0;
+        let isSolved = false;
+
+        const boardElement = document.getElementById('board');
+        const keypadElement = document.getElementById('keypad');
+        const statusInfoElement = document.getElementById('statusInfo');
+        const statusTargetElement = document.getElementById('statusTarget');
+        const timerElement = document.getElementById('timer');
+        const messageAreaElement = document.getElementById('messageArea');
+        const btnMaybe = document.getElementById('btnMaybe');
+        const btnBeginner = document.getElementById('btnBeginner');
+        const successModal = document.getElementById('successModal');
+
+        function saveGameState() {
+            if (!currentLevelData || isSolved) return;
+            const currentMs = accumulatedTime + (timerInterval ? (Date.now() - startTime) : 0);
+            const state = {
+                size: currentLevelData.size,
+                id: currentLevelData.id,
+                boardState: boardState,
+                maybeState: maybeState,
+                timeMs: currentMs,
+                isBeginnerMode: isBeginnerMode,
+                isMaybeMode: isMaybeMode
+            };
+            localStorage.setItem(SAVE_STATE_KEY, JSON.stringify(state));
+        }
+
+        function clearGameState() {
+            localStorage.removeItem(SAVE_STATE_KEY);
+        }
+
+        function loadRecords() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                records = saved ? JSON.parse(saved) : {};
+            } catch(e) {
+                records = {};
+            }
+        }
+
+        function saveRecords() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            } catch(e) {}
+        }
+
+        function getRecord(size, id) {
+            const key = `${size}_${id}`;
+            return records[key] || null;
+        }
+
+        function setRecord(size, id, timeMs) {
+            const key = `${size}_${id}`;
+            if (!records[key] || records[key] > timeMs) {
+                records[key] = timeMs;
+                saveRecords();
+            }
+        }
+
+        function clearAllRecords() {
+            records = {};
+            localStorage.removeItem(STORAGE_KEY);
+            clearGameState(); 
+            renderLevelButtons();
+            if (currentLevelData) {
+                loadLevel(currentLevelData, String(currentLevelData.size));
+            }
+        }
+
+        function openResetRecordsModal() {
+            document.getElementById('resetRecordsModal').style.display = 'flex';
+        }
+
+        function closeResetRecordsModal() {
+            document.getElementById('resetRecordsModal').style.display = 'none';
+        }
+
+        function confirmResetRecords() {
+            clearAllRecords();
+            closeResetRecordsModal();
+        }
+
         const LEVELS = {
             '5': [
                 {
                     id: 1, size: 5,
-                    solution: [
-                        3,4,1,2,5,
-                        1,3,5,4,2,
-                        4,5,2,3,1,
-                        5,2,3,1,4,
-                        2,1,4,5,3
-                    ],
+                    solution: [3,4,1,2,5,1,3,5,4,2,4,5,2,3,1,5,2,3,1,4,2,1,4,5,3],
                     cages: [
                         { label: "36x", cells: [0, 1, 5,6] },
                         { label: "7+", cells: [2, 3, 8] },
@@ -740,9 +800,7 @@ kbd {
                 },
                 {
                     id: 2, size: 5,
-                    solution: [
-                        1,4,3,2,5,5,2,4,1,3,2,3,1,5,4,3,5,2,4,1,4,1,5,3,2
-                    ],
+                    solution: [1,4,3,2,5,5,2,4,1,3,2,3,1,5,4,3,5,2,4,1,4,1,5,3,2],
                     cages: [
                         { label: "5/", cells: [0,5] },
                         { label: "4", cells: [1] },
@@ -758,9 +816,7 @@ kbd {
                 },
                 {
                     id: 3, size: 5,
-                    solution: [
-                        3,2,4,1,5,5,4,1,3,2,2,1,5,4,3,4,3,2,5,1,1,5,3,2,4
-                    ],
+                    solution: [3,2,4,1,5,5,4,1,3,2,2,1,5,4,3,4,3,2,5,1,1,5,3,2,4],
                     cages: [
                         { label: "30x", cells: [0,1,5] },
                         { label: "12x", cells: [2,3,7,8] },
@@ -776,9 +832,7 @@ kbd {
                 },
                 {
                     id: 4, size: 5,
-                    solution: [
-                        5,3,4,1,2,3,4,2,5,1,1,2,3,4,5,4,5,1,2,3,2,1,5,3,4
-                    ],
+                    solution: [5,3,4,1,2,3,4,2,5,1,1,2,3,4,5,4,5,1,2,3,2,1,5,3,4],
                     cages: [
                         { label: "12+", cells: [0,5,6] },
                         { label: "24x", cells: [1,2,7] },
@@ -795,9 +849,7 @@ kbd {
                 },
                 {
                     id: 5, size: 5,
-                    solution: [
-                        2,4,5,3,1,1,3,2,5,4,4,5,3,1,2,3,2,1,4,5,5,1,4,2,3
-                    ],
+                    solution: [2,4,5,3,1,1,3,2,5,4,4,5,3,1,2,3,2,1,4,5,5,1,4,2,3],
                     cages: [
                         { label: "6+", cells: [0,5,6] },
                         { label: "4", cells: [1] },
@@ -814,9 +866,7 @@ kbd {
                 },
                 {
                     id: 6, size: 5,
-                    solution: [
-                        5,1,2,4,3,1,4,3,2,5,2,3,1,5,4,3,5,4,1,2,4,2,5,3,1
-                    ],
+                    solution: [5,1,2,4,3,1,4,3,2,5,2,3,1,5,4,3,5,4,1,2,4,2,5,3,1],
                     cages: [
                         { label: "10x", cells: [0,1,2] },
                         { label: "120x", cells: [3,4,8,13] },
@@ -832,9 +882,7 @@ kbd {
                 },
                 {
                     id: 7, size: 5,
-                    solution: [
-                        3,2,4,1,5,4,1,5,3,2,5,3,2,4,1,1,5,3,2,4,2,4,1,5,3
-                    ],
+                    solution: [3,2,4,1,5,4,1,5,3,2,5,3,2,4,1,1,5,3,2,4,2,4,1,5,3],
                     cages: [
                         { label: "180x", cells: [0,5,10,11] },
                         { label: "8x", cells: [1,2] },
@@ -852,9 +900,7 @@ kbd {
                 },
                 {
                     id: 8, size: 5,
-                    solution: [
-                        4,1,2,5,3,2,5,3,4,1,5,4,1,3,2,3,2,4,1,5,1,3,5,2,4
-                    ],
+                    solution: [4,1,2,5,3,2,5,3,4,1,5,4,1,3,2,3,2,4,1,5,1,3,5,2,4],
                     cages: [
                         { label: "10+", cells: [0,1,6] },
                         { label: "120x", cells: [2,3,7,8] },
@@ -867,8 +913,7 @@ kbd {
                         { label: "5", cells: [22] },
                         { label: "2/", cells: [23,24] }
                     ]
-                },
-                
+                }
             ],
             '6': [
                 {
@@ -1059,9 +1104,7 @@ kbd {
             '7': [
                 {
                     id: 1, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "2", cells: [0]},
                         { label: "8+", cells: [1,7,8]},
@@ -1081,7 +1124,8 @@ kbd {
                         { label: "6x", cells: [41,48]},
                         { label: "18x", cells: [42,43]}
                     ]
-                },                {
+                },
+                {
                     id: 2, size: 7,
                     solution: [
                         2,5,1,7,4,3,6,7,3,5,4,6,1,2,4,1,6,5,7,2,3,5,2,3,6,1,7,4,1,6,7,3,2,4,5,6,4,2,1,3,5,7,3,7,4,2,5,6,1
@@ -1106,11 +1150,10 @@ kbd {
                         { label: "42x", cells: [41,47,48]},
                         { label: "40x", cells: [44,45,46]}
                     ]
-                },                {
+                },
+                {
                     id: 3, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "2", cells: [0]},
                         { label: "120x", cells: [1,2,8,9]},
@@ -1132,11 +1175,10 @@ kbd {
                         { label: "6", cells: [44]},
                         { label: "6+", cells: [45,46]}
                     ]
-                },                {
+                },
+                {
                     id: 4, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "12+", cells: [0,1,8]},
                         { label: "10x", cells: [2,9,10]},
@@ -1158,11 +1200,10 @@ kbd {
                         { label: "7/", cells: [44,45]},
                         { label: "2/", cells: [47,48]}
                     ]
-                },                {
+                },
+                {
                     id: 5, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "7", cells: [0]},
                         { label: "12+", cells: [1,8,15,16]},
@@ -1183,11 +1224,10 @@ kbd {
                         { label: "21x", cells: [41,47,48]},
                         { label: "1-", cells: [43,44]}
                     ]
-                },                {
+                },
+                {
                     id: 6, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "16+", cells: [0,1,8,15]},
                         { label: "8+", cells: [2,3]},
@@ -1209,11 +1249,10 @@ kbd {
                         { label: "84x", cells: [40,41,48]},
                         { label: "30x", cells: [45,46,47]}
                     ]
-                },                {
+                },
+                {
                     id: 7, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "4-", cells: [0,1]},
                         { label: "90x", cells: [2,9,16,17]},
@@ -1235,11 +1274,10 @@ kbd {
                         { label: "6", cells: [42]},
                         { label: "3/", cells: [46,47]}
                     ]
-                },                {
+                },
+                {
                     id: 8, size: 7,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "3-", cells: [0,7]},
                         { label: "5-", cells: [1,2]},
@@ -1267,11 +1305,9 @@ kbd {
                 }
             ],
             '8': [
-                                {
+                {
                     id: 1, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "8", cells: [0]},
                         { label: "17+", cells: [1,9,10]},
@@ -1301,9 +1337,7 @@ kbd {
                     ]
                 }, {
                     id: 2, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "13+", cells: [0,8,9]},
                         { label: "18+", cells: [1,2,10,18]},
@@ -1330,9 +1364,7 @@ kbd {
                     ]
                 }, {
                     id: 3, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "10+", cells: [0,1,2]},
                         { label: "5", cells: [3]},
@@ -1360,9 +1392,7 @@ kbd {
                     ]
                 }, {
                     id: 4, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "18+", cells: [0,8,9]},
                         { label: "5+", cells: [1,2,10]},
@@ -1389,9 +1419,7 @@ kbd {
                     ]
                 }, {
                     id: 5, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "2-", cells: [0,1]},
                         { label: "120x", cells: [2,10,11]},
@@ -1422,9 +1450,7 @@ kbd {
                     ]
                 }, {
                     id: 6, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "23+", cells: [0,1,8,9]},
                         { label: "16+", cells: [2,3,11,19]},
@@ -1454,9 +1480,7 @@ kbd {
                     ]
                 }, {
                     id: 7, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "196x", cells: [0,1,8,16]},
                         { label: "24x", cells: [2,10,18]},
@@ -1486,9 +1510,7 @@ kbd {
                     ]
                 }, {
                     id: 8, size: 8,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "9+", cells: [0,1]},
                         { label: "13+", cells: [2,10]},
@@ -1520,11 +1542,9 @@ kbd {
                 }
             ],
             '9': [
-                                {
+                {
                     id: 1, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "9", cells: [0]},
                         { label: "21+", cells: [1,2,10,19]},
@@ -1561,9 +1581,7 @@ kbd {
                     ]
                 },{
                     id: 2, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "80x", cells: [0,1,10]},
                         { label: "5+", cells: [2,11]},
@@ -1600,9 +1618,7 @@ kbd {
                     ]
                 },{
                     id: 3, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "14+", cells: [0,9,10]},
                         { label: "13+", cells: [1,2,3]},
@@ -1637,9 +1653,7 @@ kbd {
                     ]
                 },{
                     id: 4, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "7-", cells: [0,9]},
                         { label: "105x", cells: [1,10,18,19]},
@@ -1674,9 +1688,7 @@ kbd {
                     ]
                 },{
                     id: 5, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "504x", cells: [0,9,10]},
                         { label: "6/", cells: [1,2]},
@@ -1714,9 +1726,7 @@ kbd {
                     ]
                 },{
                     id: 6, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "36x", cells: [0,1,10]},
                         { label: "8", cells: [2]},
@@ -1750,9 +1760,7 @@ kbd {
                     ]
                 },{
                     id: 7, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "20x", cells: [0,1,9]},
                         { label: "7/", cells: [2,3]},
@@ -1789,9 +1797,7 @@ kbd {
                     ]
                 },{
                     id: 8, size: 9,
-                    solution: [
-                        
-                    ],
+                    solution: [],
                     cages: [
                         { label: "2/", cells: [0,9]},
                         { label: "22+", cells: [1,2,10]},
@@ -1830,216 +1836,53 @@ kbd {
             ]
         };
 
+        function switchGridTab(size, autoLoad = true) {
+            document.querySelectorAll('.grid-tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            const targetTab = document.getElementById(`tab-${size}`);
+            if (targetTab) targetTab.classList.add('tab-active');
 
-        let currentLevelData = null;
-        let gridState = [];
-        let maybeState = [];
-        let selectedCellIndex = -1;
-        let gameActive = false;
-
-        let savedStates = JSON.parse(localStorage.getItem('kenken_savedStates')) || {}; 
-        let records = JSON.parse(localStorage.getItem('kenken_records')) || {};
-        let hintCounts = JSON.parse(localStorage.getItem('kenken_hintCounts')) || {};
-
-        let isMaybeMode = false;
-        let isBeginnerMode = false; // 초급모드 상태 변수 추가
-
-        let startTime = 0;
-        let timerInterval = null;
-        let accumulatedTime = 0; 
-
-        const boardElement = document.getElementById('board');
-        const timerElement = document.getElementById('timer');
-        const statusInfo = document.getElementById('statusInfo');
-        const statusTarget = document.getElementById('statusTarget');
-        const successModal = document.getElementById('successModal');
-        const keypadElement = document.getElementById('keypad');
-
-        // 현재 게임 데이터를 localStorage에 동기화하는 함수
-function saveGameData() {
-    // 현재 진행 중인 게임이 있다면 상태를 최신화
-    if (gameActive && currentLevelData) {
-        saveCurrentState(); 
-    }
-    localStorage.setItem('kenken_savedStates', JSON.stringify(savedStates));
-    localStorage.setItem('kenken_records', JSON.stringify(records));
-    localStorage.setItem('kenken_hintCounts', JSON.stringify(hintCounts));
-}
-
-        function init() {
-            createLevelButtons('lvl-5', LEVELS['5'], '5');
-            createLevelButtons('lvl-6', LEVELS['6'], '6');
-            createLevelButtons('lvl-7', LEVELS['7'], '7');
-            createLevelButtons('lvl-8', LEVELS['8'], '8');
-            createLevelButtons('lvl-9', LEVELS['9'], '9');
-            
-            // 처음에 5x5를 제외한 6x6 ~ 9x9 문제 목록은 숨김 처리
-            document.getElementById('lvl-6').classList.add('collapsed');
-            document.getElementById('lvl-7').classList.add('collapsed');
-            document.getElementById('lvl-8').classList.add('collapsed');
-            document.getElementById('lvl-9').classList.add('collapsed');
-
-            successModal.onclick = closeModal;
-    document.addEventListener('keydown', handleKeyDown);
-
-    // 브라우저 탭을 닫거나 새로고침할 때 데이터 저장
-    window.addEventListener('beforeunload', saveGameData);
-
-    // 최초 로드 시 5x5 격자의 1번 문제 로드
-    loadLevel(LEVELS['5'][0], '5');
-        }
-
-        // 상단 격자 크기 버튼을 눌렀을 때 탭 전환을 수행하는 새 함수
-        function switchGridTab(targetSize) {
-            // 1. 모든 문제 리스트 목록을 숨김 처리
-            for (let i = 5; i <= 9; i++) {
-                document.getElementById(`lvl-${i}`).classList.add('collapsed');
-            }
-            // 2. 선택된 크기의 문제 리스트만 보여주기
-            document.getElementById(`lvl-${targetSize}`).classList.remove('collapsed');
-
-            // 3. 모든 격자 탭 버튼의 활성화 디자인(tab-active) 제거
-            document.querySelectorAll('.grid-tab-btn').forEach(btn => {
-                btn.classList.remove('tab-active');
-            });
-            // 4. 클릭한 탭 버튼만 활성화 상태로 변경
-            document.getElementById(`tab-${targetSize}`).classList.add('tab-active');
-
-            // 5. 탭을 바꿨을 때 사용자가 바로 문제를 풀 수 있도록 해당 격자의 1번 문제를 자동으로 로드해 줌
-            if (LEVELS[targetSize] && LEVELS[targetSize].length > 0) {
-                loadLevel(LEVELS[targetSize][0], targetSize);
-            }
-        }
-
-        // 격자 그룹 버튼 클릭 시 펼치고 접는 토글 함수 새로 추가
-        function toggleLevelGroup(targetId, btnElement) {
-            const targetContainer = document.getElementById(targetId);
-            const arrowElement = btnElement.querySelector('.arrow');
-            
-            if (targetContainer.classList.contains('collapsed')) {
-                // 닫혀있던 상태면 열기
-                targetContainer.classList.remove('collapsed');
-                if (arrowElement) arrowElement.innerText = '▼';
-            } else {
-                // 열려있던 상태면 닫기
-                targetContainer.classList.add('collapsed');
-                if (arrowElement) arrowElement.innerText = '▶';
-            }
-        }
-
-function createLevelButtons(containerId, dataList, groupKey) {
-    const container = document.getElementById(containerId);
-    dataList.forEach((level) => {
-        const key = `${groupKey}-${level.id}`;
-        
-        // 저장된 기록 및 힌트 정보 불러오기
-        const isCleared = records[key] && records[key].length > 0;
-        const bestTime = isCleared ? records[key][0] : '';
-        const hints = hintCounts[key] || 0;
-        const titleText = hints > 0 ? `문제 ${level.id}(${hints})` : `문제 ${level.id}`;
-
-        const btn = document.createElement('button');
-        // 클리어 여부에 따라 클래스 추가
-        btn.className = 'level-btn' + (isCleared ? ' cleared' : '');
-        btn.id = `btn-${groupKey}-${level.id}`;
-        btn.innerHTML = `
-            <span>${titleText}</span>
-            <span class="btn-record" id="rec-${groupKey}-${level.id}">${bestTime}</span>
-        `;
-        btn.onclick = () => loadLevel(level, groupKey);
-        container.appendChild(btn);
-    });
-}
-
-        function saveCurrentState() {
-            if (!currentLevelData) return;
-            const key = `${currentLevelData.size}-${currentLevelData.id}`;
-            const now = Date.now();
-            const currentSessionTime = gameActive ? (now - startTime) : 0;
-            
-            savedStates[key] = {
-                grid: [...gridState],
-                maybe: JSON.parse(JSON.stringify(maybeState)),
-                totalTime: accumulatedTime + currentSessionTime,
-                hintCount: hintCounts[key] || 0
-            };
-        }
-
-        function loadLevel(levelData, groupKey) {
-            if (gameActive && currentLevelData) {
-                saveCurrentState();
-            }
-
-            boardElement.style.display = 'grid';
-            showMessage("", "");
-
-            currentLevelData = { ...levelData, groupKey: groupKey };
-            const key = `${levelData.size}-${levelData.id}`;
-            const alreadyCleared = (records[key] && records[key].length > 0);
-
-            document.documentElement.style.setProperty('--board-size', levelData.size);
-            statusInfo.innerText = `${levelData.size}x${levelData.size} 캔캔퍼즐 - 문제 ${levelData.id}`;
-            statusTarget.innerText = "선택된 셀: 없음";
-            selectedCellIndex = -1;
-
-            updateButtonStyles(groupKey, levelData.id);
-            successModal.style.display = 'none';
-            stopTimer();
-
-if (savedStates[key]) {
-                gridState = [...savedStates[key].grid];
-                maybeState = JSON.parse(JSON.stringify(savedStates[key].maybe));
-                accumulatedTime = savedStates[key].totalTime;
-                hintCounts[key] = savedStates[key].hintCount || 0;
-            } else {
-                gridState = Array(levelData.size * levelData.size).fill(0);
-                
-                // 단일 칸(cells 길이 1) 정답 자동 채우기 로직 추가
-                levelData.cages.forEach(cage => {
-                    if (cage.cells.length === 1) {
-                        gridState[cage.cells[0]] = parseInt(cage.label, 10);
+            ['5', '6', '7', '8', '9'].forEach(s => {
+                const lvlContainer = document.getElementById(`lvl-${s}`);
+                if (lvlContainer) {
+                    if (s === size) {
+                        lvlContainer.classList.remove('collapsed');
+                    } else {
+                        lvlContainer.classList.add('collapsed');
                     }
+                }
+            });
+
+            if (autoLoad && LEVELS[size] && LEVELS[size].length > 0) {
+                loadLevel(LEVELS[size][0], size);
+            }
+        }
+
+        function renderLevelButtons() {
+            Object.keys(LEVELS).forEach(size => {
+                const container = document.getElementById(`lvl-${size}`);
+                if (!container) return;
+                container.innerHTML = '';
+                
+                LEVELS[size].forEach((lvl) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'level-btn';
+                    btn.id = `btn-lvl-${size}-${lvl.id}`;
+                    
+                    const recordTime = getRecord(size, lvl.id);
+                    let recordText = '미해결';
+                    if (recordTime) {
+                        btn.classList.add('cleared');
+                        recordText = formatTime(recordTime);
+                    }
+
+                    btn.innerHTML = `
+                        <span>문제 ${lvl.id}</span>
+                        <span class="btn-record">${recordText}</span>
+                    `;
+                    btn.onclick = () => loadLevel(lvl, size);
+                    container.appendChild(btn);
                 });
-
-                maybeState = Array.from({ length: levelData.size * levelData.size }, () => []);
-                accumulatedTime = 0;
-                hintCounts[key] = 0;
-            }
-            updateLevelBtnText(groupKey, levelData.id);
-
-            if (alreadyCleared) {
-                gameActive = false; 
-                timerElement.innerText = formatTime(accumulatedTime);
-                boardElement.classList.add('solved-board');
-            } else {
-                gameActive = true; 
-                startTimer();
-                boardElement.classList.remove('solved-board');
-            }
-            
-            renderKeypad(levelData.size);
-            renderBoard();
-        }
-
-        function updateButtonStyles(currentGroup, currentId) {
-            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.getElementById(`btn-${currentGroup}-${currentId}`);
-            if (activeBtn) activeBtn.classList.add('active');
-        }
-
-        function updateLevelBtnText(groupKey, levelId) {
-            const key = `${currentLevelData.size}-${levelId}`;
-            const btn = document.getElementById(`btn-${groupKey}-${levelId}`);
-            if (!btn) return;
-
-            const textSpan = btn.querySelector('span:first-child');
-            const count = hintCounts[key] || 0;
-
-            if (count > 0) {
-                textSpan.innerText = `문제 ${levelId}(${count})`;
-            } else {
-                textSpan.innerText = `문제 ${levelId}`;
-            }
+            });
         }
 
         function renderKeypad(size) {
@@ -2048,313 +1891,126 @@ if (savedStates[key]) {
                 const btn = document.createElement('button');
                 btn.className = 'btn-digit';
                 btn.innerText = i;
-                btn.onclick = () => handleDigitInput(i);
+                btn.onclick = () => handleInput(i);
                 keypadElement.appendChild(btn);
             }
             const eraseBtn = document.createElement('button');
             eraseBtn.className = 'btn-digit btn-erase';
-            eraseBtn.innerText = 'C';
-            eraseBtn.onclick = () => handleDigitInput(0);
+            eraseBtn.innerText = '⌫';
+            eraseBtn.onclick = () => handleInput(0);
             keypadElement.appendChild(eraseBtn);
         }
 
-function resetBoard() {
-            if (!currentLevelData) return;
-            const key = `${currentLevelData.size}-${currentLevelData.id}`;
-            
-            if (savedStates[key]) delete savedStates[key];
-            
-            gridState.fill(0);
+        function loadLevel(levelObj, sizeStr, isRestore = false) {
+            currentLevelData = levelObj;
+            const size = levelObj.size;
 
-            // [추가된 로직] 격자를 초기화한 뒤, 1칸짜리 구역의 정답을 다시 채워줌
-            currentLevelData.cages.forEach(cage => {
-                if (cage.cells.length === 1) {
-                    gridState[cage.cells[0]] = parseInt(cage.label, 10);
-                }
-            });
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-lvl-${sizeStr}-${levelObj.id}`);
+            if (activeBtn) activeBtn.classList.add('active');
 
-            maybeState = Array.from({ length: currentLevelData.size * currentLevelData.size }, () => []);
-            accumulatedTime = 0;
-            hintCounts[key] = 0; 
-            selectedCellIndex = -1;
-            statusTarget.innerText = "선택된 셀: 없음";
-            
-            updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
-            showMessage("", ""); 
+            document.documentElement.style.setProperty('--board-size', size);
 
-            gameActive = true; 
-            boardElement.classList.remove('solved-board');
-            
+            if (!isRestore) {
+                boardState = new Array(size * size).fill(0);
+                maybeState = Array.from({ length: size * size }, () => []);
+                
+                // 한 칸만 차지하는 케이지(단일 셀) 자동 입력
+                currentLevelData.cages.forEach(cage => {
+                    if (cage.cells.length === 1) {
+                        const idx = cage.cells[0];
+                        // solution 배열에 값이 있으면 solution 값을, 없으면 label에 적힌 숫자를 정수로 변환하여 자동 입력
+                        const autoVal = (currentLevelData.solution && currentLevelData.solution[idx]) 
+                                        ? currentLevelData.solution[idx] 
+                                        : parseInt(cage.label, 10);
+                        if (!isNaN(autoVal)) {
+                            boardState[idx] = autoVal;
+                        }
+                    }
+                });
+                accumulatedTime = 0;
+            }
+
+            selectedCellIndex = null;
+            isSolved = false;
+
             stopTimer();
+            if (!isRestore) {
+                timerElement.innerText = "00:00";
+            } else {
+                timerElement.innerText = formatTime(accumulatedTime);
+            }
             startTimer();
+
+            statusInfoElement.innerText = `${size}x${size} - 문제 ${levelObj.id}`;
+            statusTargetElement.innerText = '선택된 셀: 없음';
+            hideMessage();
+
+            renderKeypad(size);
             renderBoard();
-        }
 
-function toggleBeginnerMode() {
-            isBeginnerMode = !isBeginnerMode;
-            const btn = document.getElementById('btnBeginner');
-            if (btn) {
-                btn.classList.toggle('active', isBeginnerMode);
-            }
-            // 모드를 켜거나 끌 때 현재 보드 상태를 실시간 반영하기 위해 다시 그려줌
-            renderBoard();
-        }
-
-        function toggleMaybeMode() {
-            isMaybeMode = !isMaybeMode;
-            const btn = document.getElementById('btnMaybe');
-            if (btn) {
-                btn.classList.toggle('active', isMaybeMode);
-            }
-        }
-
-        function useHint() {
-            if (!gameActive || !currentLevelData) return;
-
-            const size = currentLevelData.size;
-            const key = `${currentLevelData.size}-${currentLevelData.id}`;
-            
-            const incorrectIndices = [];
-            for (let i = 0; i < size * size; i++) {
-                if (gridState[i] !== currentLevelData.solution[i]) {
-                    incorrectIndices.push(i);
-                }
-            }
-
-            if (incorrectIndices.length === 0) {
-                showMessage("이미 모든 정답을 맞추셨습니다!", "success");
-                return;
-            }
-
-            const targetIdx = incorrectIndices[Math.floor(Math.random() * incorrectIndices.length)];
-            gridState[targetIdx] = currentLevelData.solution[targetIdx];
-            maybeState[targetIdx] = []; 
-
-            hintCounts[key] = (hintCounts[key] || 0) + 1;
-            updateLevelBtnText(currentLevelData.groupKey, currentLevelData.id);
-            
-            selectedCellIndex = targetIdx;
-            const row = Math.floor(targetIdx / size) + 1;
-            const col = (targetIdx % size) + 1;
-            statusTarget.innerText = `선택된 셀: ${row}행 ${col}열 (힌트 적용)`;
-
-            renderBoard();
-            checkGameWinCondition();
-        }
-
-        // [수정] 확인 버튼 클릭 시 정답 솔루션과 직접 비교하여 틀린 부분 표시
-        function checkGrid() {
-            if (!currentLevelData) return;
-            const size = currentLevelData.size;
-            let hasError = false;
-            let errorCount = 0;
-            let filledCount = 0;
-
-            // 보드 내 모든 에러 표시 초기화
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('error-cell'));
-
-            // 입력된 칸들 중 실제 정답(solution)과 다른 칸 검출
-            for (let i = 0; i < size * size; i++) {
-                if (gridState[i] !== 0) {
-                    filledCount++;
-                    if (gridState[i] !== currentLevelData.solution[i]) {
-                        document.getElementById(`cell-${i}`).classList.add('error-cell');
-                        hasError = true;
-                        errorCount++;
-                    }
-                }
-            }
-
-            if (hasError) {
-                showMessage(`정답과 일치하지 않는 숫자가 ${errorCount}개 있습니다. (틀린 칸은 연빨간색으로 표시됩니다.)`, "error");
-            } else {
-                const isAllFilled = gridState.every(v => v !== 0);
-                if (isAllFilled) {
-                    showMessage("축하합니다! 완벽하게 푸셨습니다.", "success");
-                    gameWin();
-                } else {
-                    if (filledCount === 0) {
-                        showMessage("입력된 숫자가 없습니다. 격자를 선택하고 하단 숫자 패드로 채워보세요.", "error");
-                    } else {
-                        showMessage("현재까지 채워진 모든 숫자가 정답과 완벽히 일치합니다! 남은 격자도 완료해 보세요.", "success");
-                    }
-                }
-            }
-
-            setTimeout(() => {
-                document.addEventListener('click', clearMessageOnce);
-            }, 0);
-        }
-
-        function clearMessageOnce() {
-            showMessage("", "");
-            document.removeEventListener('click', clearMessageOnce);
-        }
-
-        function showMessage(text, type) {
-            const msgEl = document.getElementById('messageArea');
-            if (msgEl) {
-                if (text === "") {
-                    msgEl.style.display = 'none';
-                } else {
-                    msgEl.style.display = 'block';
-                }
-                msgEl.innerText = text;
-                msgEl.className = 'message-area'; 
-                if (type === 'success') msgEl.classList.add('msg-success');
-                if (type === 'error') msgEl.classList.add('msg-error');
-            }
-        }
-        
-        function handleDigitInput(digit) {
-            if (!gameActive || selectedCellIndex === -1) return;
-
-            // 해당 칸의 메모 배열이 없거나 깨져있을 경우를 대비한 안전장치 추가
-            if (!maybeState[selectedCellIndex]) {
-                maybeState[selectedCellIndex] = [];
-            }
-
-            if (digit === 0) {
-                gridState[selectedCellIndex] = 0;
-                maybeState[selectedCellIndex] = [];
-            } else {
-                if (isMaybeMode) {
-                    // 메모 모드일 때
-                    const arr = maybeState[selectedCellIndex];
-                    const idx = arr.indexOf(digit);
-                    
-                    if (idx > -1) {
-                        // 이미 메모에 숫자가 있으면 제거 (토글 기능)
-                        arr.splice(idx, 1);
-                    } else {
-                        // 메모에 숫자가 없으면 추가하고 정렬
-                        arr.push(digit);
-                        arr.sort((a, b) => a - b);
-                    }
-                    // 메모를 적는 중이므로 실제 값 셀은 비워둠
-                    gridState[selectedCellIndex] = 0; 
-                } else {
-                    // 일반 입력 모드일 때 (숫자 하나만 입력)
-                    gridState[selectedCellIndex] = digit;
-                    maybeState[selectedCellIndex] = []; // 입력 시 기존 메모는 청소
-                }
-            }
-
-            renderBoard();
-            checkGameWinCondition();
-        }
-
-        function handleKeyDown(e) {
-            if (!gameActive || selectedCellIndex === -1) return;
-            const size = currentLevelData.size;
-
-            if (e.key >= '1' && e.key <= String(size)) {
-                handleDigitInput(parseInt(e.key, 10));
-            } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
-                handleDigitInput(0);
-            } else if (e.key === 'm' || e.key === 'M') {
-                toggleMaybeMode();
-            }
-            let row = Math.floor(selectedCellIndex / size);
-            let col = selectedCellIndex % size;
-            if (e.key === 'ArrowUp' && row > 0) row--;
-            else if (e.key === 'ArrowDown' && row < size - 1) row++;
-            else if (e.key === 'ArrowLeft' && col > 0) col--;
-            else if (e.key === 'ArrowRight' && col < size - 1) col++;
-            else return;
-
-            selectCell(row * size + col);
-            e.preventDefault();
-        }
-
-        function selectCell(idx) {
-            if (!gameActive) return;
-            selectedCellIndex = idx;
-            const size = currentLevelData.size;
-            const row = Math.floor(idx / size) + 1;
-            const col = (idx % size) + 1;
-            statusTarget.innerText = `선택된 셀: ${row}행 ${col}열`;
-            renderBoard();
+            if (!isRestore) saveGameState();
         }
 
         function renderBoard() {
-            if (!currentLevelData) return;
-            const size = currentLevelData.size;
-            const cages = currentLevelData.cages;
-            
             boardElement.innerHTML = '';
+            boardElement.style.display = 'grid';
+            boardElement.classList.remove('solved-board');
+            const size = currentLevelData.size;
 
-            const cellToCage = Array(size * size).fill(null);
-            cages.forEach((cage, index) => {
-                cage.cells.forEach(cIdx => {
-                    cellToCage[cIdx] = { cageIdx: index, label: cage.label, firstCell: cage.cells[0] };
+            const cageMap = {};
+            currentLevelData.cages.forEach((cage, cageIdx) => {
+                cage.cells.forEach(cellIdx => {
+                    cageMap[cellIdx] = { 
+                        cageIdx, 
+                        label: cage.label, 
+                        isFirst: cage.cells[0] === cellIdx,
+                        isSingle: cage.cells.length === 1 
+                    };
                 });
             });
 
             for (let i = 0; i < size * size; i++) {
-                const r = Math.floor(i / size);
-                const c = i % size;
-
                 const cell = document.createElement('div');
-                cell.id = `cell-${i}`;
                 cell.className = 'cell';
+                cell.dataset.index = i;
 
-                if (i === selectedCellIndex) {
-                    cell.classList.add('selected');
+                const row = Math.floor(i / size);
+                const col = i % size;
+
+                const currentCage = cageMap[i]?.cageIdx;
+                if (col < size - 1 && cageMap[i + 1]?.cageIdx !== currentCage) cell.classList.add('thick-right');
+                if (row < size - 1 && cageMap[i + size]?.cageIdx !== currentCage) cell.classList.add('thick-bottom');
+
+                // 단일 셀이 아니고 케이지의 첫번째 셀인 경우에만 라벨(작은 숫자) 표시
+                if (cageMap[i]?.isFirst && !cageMap[i]?.isSingle) {
+                    const label = document.createElement('div');
+                    label.className = 'cage-label';
+                    label.innerText = cageMap[i].label;
+                    cell.appendChild(label);
                 }
 
-                cell.style.backgroundColor = '';
+                const valDisplay = document.createElement('div');
+                valDisplay.className = 'cell-value';
+                valDisplay.innerText = boardState[i] !== 0 ? boardState[i] : '';
+                cell.appendChild(valDisplay);
 
-                // --- [초급모드 실시간 체크 로직 반영] ---
-                if (isBeginnerMode && gridState[i] !== 0) {
-                    if (gridState[i] !== currentLevelData.solution[i]) {
-                        cell.classList.add('error-cell'); // 오답인 부분을 연빨간색으로 즉시 표시
+                const maybeContainer = document.createElement('div');
+                maybeContainer.className = 'maybe-container';
+                if (boardState[i] === 0 && maybeState[i].length > 0) {
+                    for (let m = 1; m <= size; m++) {
+                        const digitSpan = document.createElement('span');
+                        digitSpan.className = 'maybe-digit';
+                        digitSpan.innerText = maybeState[i].includes(m) ? m : '';
+                        maybeContainer.appendChild(digitSpan);
                     }
                 }
+                cell.appendChild(maybeContainer);
 
-                // 케이지 경계선 처리 
-                if (c < size - 1) {
-                    const currentCageIdx = cellToCage[i] ? cellToCage[i].cageIdx : -1;
-                    const rightCageIdx = cellToCage[i + 1] ? cellToCage[i + 1].cageIdx : -1;
-                    if (currentCageIdx !== rightCageIdx) cell.classList.add('thick-right');
-                }
-                if (r < size - 1) {
-                    const currentCageIdx = cellToCage[i] ? cellToCage[i].cageIdx : -1;
-                    const bottomCageIdx = cellToCage[i + size] ? cellToCage[i + size].cageIdx : -1;
-                    if (currentCageIdx !== bottomCageIdx) cell.classList.add('thick-bottom');
-                }
-
-if (cellToCage[i] && cellToCage[i].firstCell === i) {
-                    const cageInfo = cages[cellToCage[i].cageIdx];
-                    // 칸의 개수가 1개보다 많을 때만 좌측 상단 목표값 라벨 표시
-                    if (cageInfo.cells.length > 1) {
-                        const labelEl = document.createElement('span');
-                        labelEl.className = 'cage-label';
-                        labelEl.innerText = cellToCage[i].label;
-                        cell.appendChild(labelEl);
+                if (isBeginnerMode && boardState[i] !== 0 && currentLevelData.solution && currentLevelData.solution.length > 0) {
+                    if (boardState[i] !== currentLevelData.solution[i]) {
+                        cell.classList.add('error-cell');
                     }
-                }
-
-                if (gridState[i] > 0) {
-                    const valEl = document.createElement('span');
-                    valEl.className = 'cell-value';
-                    valEl.innerText = gridState[i];
-                    cell.appendChild(valEl);
-                } 
-                else if (maybeState[i] && maybeState[i].length > 0) {
-                    const maybeContainer = document.createElement('div');
-                    maybeContainer.className = 'maybe-container';
-                    for (let d = 1; d <= size; d++) {
-                        const digitEl = document.createElement('div');
-                        digitEl.className = 'maybe-digit';
-                        if (maybeState[i].includes(d)) {
-                            digitEl.innerText = d;
-                        } else {
-                            digitEl.innerHTML = '&nbsp;';
-                        }
-                        maybeContainer.appendChild(digitEl);
-                    }
-                    cell.appendChild(maybeContainer);
                 }
 
                 cell.onclick = () => selectCell(i);
@@ -2362,86 +2018,305 @@ if (cellToCage[i] && cellToCage[i].firstCell === i) {
             }
         }
 
-        function checkGameWinCondition() {
-            if (!currentLevelData || !gameActive) return;
+        function selectCell(index) {
+            if (isSolved) return;
+            selectedCellIndex = index;
+            document.querySelectorAll('.cell').forEach((c, idx) => {
+                if (idx === index) c.classList.add('selected');
+                else c.classList.remove('selected');
+            });
 
-            const size = currentLevelData.size;
-            const isPerfect = gridState.every((val, idx) => val === currentLevelData.solution[idx]);
-            if (isPerfect) {
-                gameWin();
-            }
+            const row = Math.floor(index / currentLevelData.size) + 1;
+            const col = (index % currentLevelData.size) + 1;
+            statusTargetElement.innerText = `선택된 셀: (${row}행 ${col}열)`;
         }
 
-        function gameWin() {
-            stopTimer();
-            const now = Date.now();
-            accumulatedTime += (now - startTime);
-            const finalTimeStr = formatTime(accumulatedTime);
+        function handleInput(num) {
+            if (selectedCellIndex === null || isSolved) return;
 
-            const key = `${currentLevelData.size}-${currentLevelData.id}`;
-            savedStates[key] = {
-                grid: [...gridState],
-                maybe: JSON.parse(JSON.stringify(maybeState)),
-                totalTime: accumulatedTime,
-                hintCount: hintCounts[key] || 0
-            };
-            
-            gameActive = false;
-            boardElement.classList.add('solved-board');
+            const idx = selectedCellIndex;
+            if (isMaybeMode) {
+                if (num === 0) {
+                    maybeState[idx] = [];
+                } else {
+                    boardState[idx] = 0;
+                    const pos = maybeState[idx].indexOf(num);
+                    if (pos > -1) maybeState[idx].splice(pos, 1);
+                    else maybeState[idx].push(num);
+                }
+            } else {
+                boardState[idx] = num;
+                maybeState[idx] = [];
+            }
+
             renderBoard();
-
-            if (!records[key]) records[key] = [];
-            records[key].push(finalTimeStr);
-            records[key].sort(); 
-            
-            const btnRecord = document.getElementById(`rec-${currentLevelData.groupKey}-${currentLevelData.id}`);
-            if (btnRecord) btnRecord.innerText = records[key][0];
-
-            const btn = document.getElementById(`btn-${currentLevelData.groupKey}-${currentLevelData.id}`);
-            if (btn) btn.classList.add('cleared');
-
-            showSuccessModal(finalTimeStr);
-        }
-        
-        function formatTime(ms) {
-            const totalSeconds = Math.floor(ms / 1000);
-            const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-            const s = String(totalSeconds % 60).padStart(2, '0');
-            return `${m}:${s}`;
+            selectCell(idx);
+            saveGameState();
+            checkAutoSolve();
         }
 
-        function showSuccessModal(currentTime) {
-            document.getElementById('currentClearTime').innerText = currentTime;
-            successModal.style.display = 'flex';
+        function toggleMaybeMode() {
+            isMaybeMode = !isMaybeMode;
+            if (isMaybeMode) btnMaybe.classList.add('active');
+            else btnMaybe.classList.remove('active');
+            saveGameState();
         }
 
-        function closeModal() {
-            successModal.style.display = 'none';
-            const currentId = currentLevelData.id;
+        function toggleBeginnerMode() {
+            isBeginnerMode = !isBeginnerMode;
+            if (isBeginnerMode) btnBeginner.classList.add('active');
+            else btnBeginner.classList.remove('active');
+            renderBoard();
+            if (selectedCellIndex !== null) selectCell(selectedCellIndex);
+            saveGameState();
+        }
+
+        function resetBoard() {
+            if (!currentLevelData) return;
             const size = currentLevelData.size;
-            if (currentId < 8) {
-                const nextLevel = LEVELS[String(size)][currentId]; 
-                loadLevel(nextLevel, String(size));
-            }
+            boardState = new Array(size * size).fill(0);
+            maybeState = Array.from({ length: size * size }, () => []);
+            
+            currentLevelData.cages.forEach(cage => {
+                if (cage.cells.length === 1) {
+                    const idx = cage.cells[0];
+                    const autoVal = (currentLevelData.solution && currentLevelData.solution[idx]) 
+                                    ? currentLevelData.solution[idx] 
+                                    : parseInt(cage.label, 10);
+                    if (!isNaN(autoVal)) {
+                        boardState[idx] = autoVal;
+                    }
+                }
+            });
+
+            isSolved = false;
+            hideMessage();
+            renderBoard();
+            if (selectedCellIndex !== null) selectCell(selectedCellIndex);
+            saveGameState();
+        }
+
+        function formatTime(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const m = Math.floor(totalSec / 60).toString().padStart(2, '0');
+            const s = (totalSec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
         }
 
         function startTimer() {
             startTime = Date.now();
             timerInterval = setInterval(() => {
-                const now = Date.now();
-                const currentMs = accumulatedTime + (now - startTime);
-                timerElement.innerText = formatTime(currentMs);
+                const elapsed = accumulatedTime + (Date.now() - startTime);
+                timerElement.innerText = formatTime(elapsed);
             }, 1000);
         }
 
         function stopTimer() {
             if (timerInterval) {
+                accumulatedTime += (Date.now() - startTime);
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
         }
 
-        window.onload = init;
+        function showMessage(text, isSuccess) {
+            messageAreaElement.innerText = text;
+            messageAreaElement.className = `message-area ${isSuccess ? 'msg-success' : 'msg-error'}`;
+            messageAreaElement.style.display = 'block';
+        }
+
+        function hideMessage() {
+            messageAreaElement.style.display = 'none';
+        }
+
+        function checkGrid() {
+            if (isSolved || !currentLevelData) return;
+
+            const size = currentLevelData.size;
+            
+            for (let i = 0; i < size * size; i++) {
+                if (boardState[i] === 0) {
+                    showMessage('아직 빈칸이 있습니다.', false);
+                    return;
+                }
+            }
+
+            // 해답 배열이 존재하는 경우 해답과 비교
+            if (currentLevelData.solution && currentLevelData.solution.length === size * size) {
+                let isCorrect = true;
+                for (let i = 0; i < size * size; i++) {
+                    if (boardState[i] !== currentLevelData.solution[i]) {
+                        isCorrect = false;
+                        break;
+                    }
+                }
+
+                if (isCorrect) {
+                    onSolveSuccess();
+                } else {
+                    showMessage('틀린 부분이 있습니다. 다시 확인해 보세요.', false);
+                }
+                return;
+            }
+
+            // 해답 배열이 비어있는 문제의 경우 규칙 검증 (행/열 중복 및 케이지 연산 체크)
+            let isRulesValid = validateRules();
+            if (isRulesValid) {
+                onSolveSuccess();
+            } else {
+                showMessage('틀린 부분이 있습니다. 다시 확인해 보세요.', false);
+            }
+        }
+
+        function validateRules() {
+            const size = currentLevelData.size;
+
+            // 1. 행/열 중복 체크
+            for (let r = 0; r < size; r++) {
+                let rowSet = new Set();
+                let colSet = new Set();
+                for (let c = 0; c < size; c++) {
+                    let rVal = boardState[r * size + c];
+                    let cVal = boardState[c * size + r];
+                    if (rVal < 1 || rVal > size || rowSet.has(rVal)) return false;
+                    if (cVal < 1 || cVal > size || colSet.has(cVal)) return false;
+                    rowSet.add(rVal);
+                    colSet.add(cVal);
+                }
+            }
+
+            // 2. 케이지 조건 체크
+            for (let cage of currentLevelData.cages) {
+                let vals = cage.cells.map(idx => boardState[idx]);
+                let label = cage.label;
+
+                if (vals.includes(0)) return false;
+
+                if (!isNaN(label)) {
+                    if (vals[0] !== parseInt(label, 10)) return false;
+                } else {
+                    let target = parseInt(label, 10);
+                    let op = label.slice(-1);
+
+                    if (op === '+') {
+                        let sum = vals.reduce((a, b) => a + b, 0);
+                        if (sum !== target) return false;
+                    } else if (op === 'x') {
+                        let prod = vals.reduce((a, b) => a * b, 1);
+                        if (prod !== target) return false;
+                    } else if (op === '-') {
+                        if (vals.length !== 2) return false;
+                        if (Math.abs(vals[0] - vals[1]) !== target) return false;
+                    } else if (op === '/') {
+                        if (vals.length !== 2) return false;
+                        let max = Math.max(vals[0], vals[1]);
+                        let min = Math.min(vals[0], vals[1]);
+                        if (max / min !== target) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function checkAutoSolve() {
+            const size = currentLevelData.size;
+            for (let i = 0; i < size * size; i++) {
+                if (boardState[i] === 0) return;
+            }
+            checkGrid();
+        }
+
+        function onSolveSuccess() {
+            isSolved = true;
+            stopTimer();
+            clearGameState();
+
+            boardElement.classList.add('solved-board');
+            showMessage('🎉 정답입니다!', true);
+
+            const totalMs = accumulatedTime;
+            setRecord(currentLevelData.size, currentLevelData.id, totalMs);
+            renderLevelButtons();
+
+            document.getElementById('currentClearTime').innerText = formatTime(totalMs);
+            successModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            successModal.style.display = 'none';
+            
+            // 다음 레벨 자동 선택
+            const sizeStr = String(currentLevelData.size);
+            const currentList = LEVELS[sizeStr];
+            const currentIndex = currentList.findIndex(l => l.id === currentLevelData.id);
+
+            if (currentIndex !== -1 && currentIndex < currentList.length - 1) {
+                loadLevel(currentList[currentIndex + 1], sizeStr);
+            }
+        }
+
+        // 키보드 입력 핸들러
+        document.addEventListener('keydown', (e) => {
+            if (isSolved || selectedCellIndex === null) return;
+
+            const key = e.key;
+            const size = currentLevelData ? currentLevelData.size : 5;
+
+            if (key >= '1' && key <= String(size)) {
+                handleInput(parseInt(key, 10));
+            } else if (key === 'Backspace' || key === '0' || key === 'Delete') {
+                handleInput(0);
+            } else if (key === 'm' || key === 'M') {
+                toggleMaybeMode();
+            } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+                e.preventDefault();
+                let r = Math.floor(selectedCellIndex / size);
+                let c = selectedCellIndex % size;
+
+                if (key === 'ArrowUp') r = (r - 1 + size) % size;
+                if (key === 'ArrowDown') r = (r + 1) % size;
+                if (key === 'ArrowLeft') c = (c - 1 + size) % size;
+                if (key === 'ArrowRight') c = (c + 1) % size;
+
+                selectCell(r * size + c);
+            }
+        });
+
+        // 초기화 및 게임 복원 로직
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecords();
+            renderLevelButtons();
+
+            const savedStateRaw = localStorage.getItem(SAVE_STATE_KEY);
+            if (savedStateRaw) {
+                try {
+                    const saved = JSON.parse(savedStateRaw);
+                    const sizeStr = String(saved.size);
+                    const levelList = LEVELS[sizeStr];
+                    const levelObj = levelList ? levelList.find(l => l.id === saved.id) : null;
+
+                    if (levelObj) {
+                        switchGridTab(sizeStr, false);
+                        boardState = saved.boardState;
+                        maybeState = saved.maybeState;
+                        accumulatedTime = saved.timeMs || 0;
+                        isBeginnerMode = !!saved.isBeginnerMode;
+                        isMaybeMode = !!saved.isMaybeMode;
+
+                        if (isBeginnerMode) btnBeginner.classList.add('active');
+                        if (isMaybeMode) btnMaybe.classList.add('active');
+
+                        loadLevel(levelObj, sizeStr, true);
+                        return;
+                    }
+                } catch(e) {
+                    localStorage.removeItem(SAVE_STATE_KEY);
+                }
+            }
+
+            // 기본 5단계 첫번재 문제 로드
+            switchGridTab('5', true);
+        });
     </script>
 </body>
 </html>
