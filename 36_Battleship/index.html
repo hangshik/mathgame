@@ -1679,48 +1679,67 @@
             isDragging = false;
         }
 
-        function initDragListeners() {
-            const board = document.getElementById("boardContainer");
+function initDragListeners() {
+    const board = document.getElementById("boardContainer");
+    let isTouch = false; // 터치 이벤트 발생 여부 플래그
 
-            board.addEventListener("mousedown", (e) => {
-                const cell = e.target.closest(".grid-cell");
-                if (cell && cell.dataset.row !== undefined) {
-                    handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
-                }
-            });
-
-            board.addEventListener("mousemove", (e) => {
-                if (!isDragging) return;
-                const cell = e.target.closest(".grid-cell");
-                if (cell && cell.dataset.row !== undefined) {
-                    handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
-                }
-            });
-
-            window.addEventListener("mouseup", handleEnd);
-
-            board.addEventListener("touchstart", (e) => {
-                const touch = e.touches[0];
-                const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                const cell = target ? target.closest(".grid-cell") : null;
-                if (cell && cell.dataset.row !== undefined) {
-                    handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
-                }
-            }, { passive: true });
-
-            board.addEventListener("touchmove", (e) => {
-                if (!isDragging) return;
-                const touch = e.touches[0];
-                const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                const cell = target ? target.closest(".grid-cell") : null;
-                if (cell && cell.dataset.row !== undefined) {
-                    handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
-                }
-            }, { passive: true });
-
-            window.addEventListener("touchend", handleEnd);
-            window.addEventListener("touchcancel", handleEnd);
+    // [마우스 이벤트] 터치 기기에서는 마우스 이벤트 중복 실행 방지
+    board.addEventListener("mousedown", (e) => {
+        if (isTouch) return;
+        const cell = e.target.closest(".grid-cell");
+        if (cell && cell.dataset.row !== undefined) {
+            handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
         }
+    });
+
+    board.addEventListener("mousemove", (e) => {
+        if (isTouch || !isDragging) return;
+        const cell = e.target.closest(".grid-cell");
+        if (cell && cell.dataset.row !== undefined) {
+            handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+        }
+    });
+
+    window.addEventListener("mouseup", () => {
+        if (!isTouch) handleEnd();
+    });
+
+    // [터치 이벤트]
+    board.addEventListener("touchstart", (e) => {
+        isTouch = true; // 터치 이벤트 우선 처리
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cell = target ? target.closest(".grid-cell") : null;
+        
+        if (cell && cell.dataset.row !== undefined) {
+            // 화면 스크롤 방지하여 드래그가 끊이지 않도록 함
+            if (e.cancelable) e.preventDefault(); 
+            handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+        }
+    }, { passive: false }); // preventDefault 사용을 위해 passive: false 설정
+
+    board.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+        if (e.cancelable) e.preventDefault(); // 드래그 중 브라우저 스크롤 방지
+        
+        const touch = e.touches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cell = target ? target.closest(".grid-cell") : null;
+        
+        if (cell && cell.dataset.row !== undefined) {
+            handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+        }
+    }, { passive: false });
+
+    const onTouchEnd = () => {
+        handleEnd();
+        // 터치가 끝난 후 마우스 이벤트 중복 방지를 해제하기 위한 시차 설정
+        setTimeout(() => { isTouch = false; }, 300);
+    };
+
+    window.addEventListener("touchend", onTouchEnd);
+    window.addEventListener("touchcancel", onTouchEnd);
+}
 
         function resetCurrentStage() {
             saveSnapshot();
