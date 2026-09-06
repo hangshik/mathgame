@@ -1662,28 +1662,29 @@
             clearInlineMessage();
         }
 
-        function handleMove(r, c) {
-            if (!isDragging) return;
-            const stage = STAGES[currentStageIdx];
-            if (isHintCell(stage, r, c)) return;
+function handleMove(r, c) {
+    if (!isDragging) return; // 드래그 중이 아니면 무시
+    const stage = STAGES[currentStageIdx];
+    if (isHintCell(stage, r, c)) return; // 힌트 셀은 변경 불가
 
-            if (stageHistory[stage.id][r][c] !== dragTargetState) {
-                stageHistory[stage.id][r][c] = dragTargetState;
-                saveStoredData();
-                renderBoard();
-                clearInlineMessage();
-            }
-        }
-
+    // 현재 셀의 상태가 목표 상태와 다를 때만 변경하고 화면 갱신
+    if (stageHistory[stage.id][r][c] !== dragTargetState) {
+        stageHistory[stage.id][r][c] = dragTargetState;
+        saveStoredData();
+        renderBoard();
+        clearInlineMessage();
+    }
+}
         function handleEnd() {
             isDragging = false;
         }
 
 function initDragListeners() {
     const board = document.getElementById("boardContainer");
-    let isTouch = false; // 터치 이벤트 발생 여부 플래그
+    let isTouch = false;
+    let lastTouchedCell = null; // 마지막으로 처리한 셀 기억
 
-    // [마우스 이벤트] 터치 기기에서는 마우스 이벤트 중복 실행 방지
+    // [마우스 이벤트]
     board.addEventListener("mousedown", (e) => {
         if (isTouch) return;
         const cell = e.target.closest(".grid-cell");
@@ -1706,34 +1707,45 @@ function initDragListeners() {
 
     // [터치 이벤트]
     board.addEventListener("touchstart", (e) => {
-        isTouch = true; // 터치 이벤트 우선 처리
+        isTouch = true;
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         const cell = target ? target.closest(".grid-cell") : null;
-        
+
         if (cell && cell.dataset.row !== undefined) {
-            // 화면 스크롤 방지하여 드래그가 끊이지 않도록 함
-            if (e.cancelable) e.preventDefault(); 
-            handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+            if (e.cancelable) e.preventDefault();
+            const r = parseInt(cell.dataset.row);
+            const c = parseInt(cell.dataset.col);
+            lastTouchedCell = `${r},${c}`;
+            handleStart(r, c);
         }
-    }, { passive: false }); // preventDefault 사용을 위해 passive: false 설정
+    }, { passive: false });
 
     board.addEventListener("touchmove", (e) => {
         if (!isDragging) return;
-        if (e.cancelable) e.preventDefault(); // 드래그 중 브라우저 스크롤 방지
-        
+        if (e.cancelable) e.preventDefault(); // 스크롤 완전 차단
+
         const touch = e.touches[0];
+        // 현재 손가락 위치 아래에 있는 엘리먼트 가져오기
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         const cell = target ? target.closest(".grid-cell") : null;
-        
+
         if (cell && cell.dataset.row !== undefined) {
-            handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+            const r = parseInt(cell.dataset.row);
+            const c = parseInt(cell.dataset.col);
+            const cellKey = `${r},${c}`;
+
+            // 이전과 다른 셀로 이동했을 때만 실행
+            if (lastTouchedCell !== cellKey) {
+                lastTouchedCell = cellKey;
+                handleMove(r, c);
+            }
         }
     }, { passive: false });
 
     const onTouchEnd = () => {
+        lastTouchedCell = null;
         handleEnd();
-        // 터치가 끝난 후 마우스 이벤트 중복 방지를 해제하기 위한 시차 설정
         setTimeout(() => { isTouch = false; }, 300);
     };
 
