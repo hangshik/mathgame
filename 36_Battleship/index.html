@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🚢 전함 퍼즐</title>
 
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>  
-
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-VHD0QPH39L');
+    </script>  
 
     <!-- Pretendard Font CDN -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -29,9 +28,8 @@
             --border-color: #e9ecef;
             --water-bg: #e3f2fd;
             --water-border: #90caf9;
-            --ship-bg: #34495e;
-            --ship-border: #1a252f;
-            --hint-border: #f39c12;
+            --ship-bg: #111111;
+            --ship-border: #000000;
         }
 
         * {
@@ -51,12 +49,12 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding: 15px 10px;
+            padding: 20px 0;
         }
 
         .app-wrapper {
-            width: 100%;
-            max-width: 800px;
+            width: 800px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -111,7 +109,6 @@
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
 
-        /* Cleared stage button style (Green) */
         .stage-btn.cleared {
             background-color: var(--success);
             color: #ffffff;
@@ -129,41 +126,105 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
         }
 
         .puzzle-info {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 800;
             color: var(--text-main);
         }
 
-        .fleet-status {
+        .puzzle-content-layout {
             display: flex;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-sub);
-            flex-wrap: wrap;
-        }
-
-        .fleet-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #f8f9fa;
-            padding: 4px 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
         }
 
         .board-container {
-            width: 100%;
+            flex: 1;
             max-width: 480px;
-            margin: 0 auto;
             display: flex;
             flex-direction: column;
+            touch-action: none;
+        }
+
+        .fleet-status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #ffffff;
+            padding: 5px;
+            border-left: 2px dashed var(--border-color);
+            padding-left: 20px;
+            min-width: 200px;
+        }
+
+        .fleet-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fleet-ship-shape {
+            display: flex;
+            align-items: center;
+        }
+
+        .fleet-cell {
+            width: 26px;
+            height: 26px;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 13px;
+            margin-right: 1px;
+        }
+
+        .fleet-cell.cap-left {
+            border-top-left-radius: 13px;
+            border-bottom-left-radius: 13px;
+        }
+
+        .fleet-cell.cap-right {
+            border-top-right-radius: 13px;
+            border-bottom-right-radius: 13px;
+        }
+
+        .fleet-cell.single {
+            border-radius: 50%;
+        }
+
+        .fleet-checkboxes {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 4px;
+        }
+
+        .fleet-checkbox {
+            width: 26px;
+            height: 26px;
+            border: 2px solid #222222;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 16px;
+            color: #1bb738;
+        }
+
+        .fleet-checkbox.exceeded {
+            border-color: var(--danger);
+            color: var(--danger);
+            background-color: #fff5f5;
         }
 
         .grid-row {
@@ -191,7 +252,6 @@
             transform: scale(0.95);
         }
 
-        /* Grid header/indicator cells */
         .cell-indicator {
             background-color: transparent;
             color: var(--text-sub);
@@ -208,7 +268,6 @@
             color: var(--danger);
         }
 
-        /* Empty & Water states */
         .cell-empty {
             background-color: #f8f9fa;
             border: 2px dashed #ced4da;
@@ -219,87 +278,95 @@
             border: 2px solid var(--water-border);
         }
 
-        .cell-water::after {
+        .cell-water.cell-hint::after {
             content: "";
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background-color: var(--water-border);
-            opacity: 0.6;
+            background-color: #000000;
+            position: absolute;
+            z-index: 1;
         }
 
-        /* Custom Ship Graphic Classes */
         .cell-ship {
             background-color: var(--water-bg);
             border: 2px solid var(--water-border);
         }
 
         .ship-part {
-            width: 85%;
-            height: 85%;
             background-color: var(--ship-bg);
             border: 2px solid var(--ship-border);
-            box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.3);
+            box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.2);
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* 1-Tile Ship: Circle */
+        .cell-ship.cell-hint .ship-part::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            position: absolute;
+            z-index: 2;
+        }
+
         .ship-single {
             border-radius: 50%;
+            width: 100%;
+            height: 100%;
         }
 
-        /* 2, 3, 4, 5-Tile Ship Ends & Center */
         .ship-cap-left {
             border-radius: 50% 0 0 50%;
             width: 100%;
-            margin-left: 15%;
+            height: 100%;
+            margin-left: 0;
         }
 
         .ship-cap-right {
             border-radius: 0 50% 50% 0;
             width: 100%;
-            margin-right: 15%;
+            height: 100%;
+            margin-right: 0;
         }
 
         .ship-cap-top {
             border-radius: 50% 50% 0 0;
+            width: 100%;
             height: 100%;
-            margin-top: 15%;
+            margin-top: 0;
         }
 
         .ship-cap-bottom {
             border-radius: 0 0 50% 50%;
+            width: 100%;
             height: 100%;
-            margin-bottom: 15%;
+            margin-bottom: 0;
         }
 
-        .ship-middle {
+        .ship-middle, .ship-middle-v {
             border-radius: 0;
             width: 100%;
-            height: 85%;
-        }
-
-        .ship-middle-v {
-            border-radius: 0;
-            width: 85%;
             height: 100%;
         }
 
-        /* Hint Cells Styling */
         .grid-cell.cell-hint {
             cursor: not-allowed;
-            box-shadow: 0 0 0 2px var(--hint-border) inset;
+            box-shadow: none;
         }
 
         .controls-zone {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
         }
 
         .btn-action {
             height: 54px;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 700;
             border-radius: 14px;
             border: none;
@@ -323,6 +390,23 @@
             box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
 
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border: 2px solid #ced4da;
+        }
+
+        .btn-secondary:hover:not(:disabled), .btn-secondary:active:not(:disabled) {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
         .btn-submit {
             background-color: var(--active);
             color: #ffffff;
@@ -333,21 +417,29 @@
             box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
         }
 
-        /* Inline Status Message */
         .inline-message {
             text-align: center;
             font-size: 16px;
             font-weight: 700;
             min-height: 24px;
             margin-top: -5px;
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
         }
 
         .inline-message.success {
-            color: var(--success);
+            display: block;
+            color: #2e7d32;
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
         }
 
         .inline-message.danger {
-            color: var(--danger);
+            display: block;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
         }
 
         .guide-card {
@@ -373,7 +465,6 @@
             gap: 6px;
         }
 
-        /* Zone 4 Specifics */
         .guide-card.records {
             border-left: 6px solid var(--danger);
         }
@@ -398,7 +489,6 @@
             color: #ffffff;
         }
 
-        /* History Table */
         .history-table {
             width: 100%;
             border-collapse: collapse;
@@ -427,7 +517,6 @@
             font-size: 14px;
         }
 
-        /* Zone 5 Specifics */
         .guide-card.rules {
             border-left: 6px solid var(--active);
         }
@@ -446,7 +535,6 @@
             margin-bottom: 6px;
         }
 
-        /* Zone 6 Specifics */
         .guide-card.shortcuts {
             border-left: 6px solid var(--success);
         }
@@ -549,6 +637,16 @@
             line-height: 1.5;
         }
 
+        .modal-body.text-success {
+            color: #2e7d32 !important;
+            font-weight: bold;
+        }
+
+        .modal-body.text-danger {
+            color: #d32f2f !important;
+            font-weight: bold;
+        }
+
         .modal-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -597,63 +695,69 @@
             background-color: #dee2e6;
         }
 
-        /* Icons preview sample */
-        .icon-sample {
-            display: inline-flex;
-            align-items: center;
-            height: 14px;
+        /* 모바일 및 화면 폭이 좁은 디바이스 대응 */
+        @media (max-width: 768px) {
+            .app-wrapper {
+                width: 100%;
+                padding: 0 10px;
+            }
+
+            .puzzle-content-layout {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .board-container {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .fleet-status-container {
+                width: 100%;
+                min-width: unset;
+                border-left: none;
+                border-top: 2px dashed var(--border-color);
+                padding-left: 0;
+                padding-top: 15px;
+                align-items: center;
+            }
+
+            .fleet-row {
+                justify-content: center;
+            }
         }
-        .sample-circle {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--ship-bg);
-        }
-        .sample-ship-icon {
-            display: flex;
-            height: 9px;
-        }
-        .sample-ship-icon .s-l { width: 5px; height: 9px; background: var(--ship-bg); border-radius: 3px 0 0 3px; }
-        .sample-ship-icon .s-m { width: 5px; height: 9px; background: var(--ship-bg); }
-        .sample-ship-icon .s-r { width: 5px; height: 9px; background: var(--ship-bg); border-radius: 0 3px 3px 0; }
     </style>
 </head>
 <body>
     <div class="app-wrapper">
-        
-        <!-- [영역 1-A: 퍼즐 제목 영역] -->
         <header class="title-zone">
             <h1>🚢 전함 퍼즐</h1>
         </header>
 
-        <!-- [영역 1-B: 단계 선택 영역] -->
         <section class="container-fixed">
-            <nav class="stage-selector" id="stageSelector">
-                <!-- Stage buttons dynamically rendered -->
-            </nav>
+            <nav class="stage-selector" id="stageSelector"></nav>
         </section>
 
-        <!-- [영역 2: 퍼즐 문제 영역] -->
         <main class="container-fixed">
             <div class="puzzle-header">
                 <div class="puzzle-info" id="stageTitle">단계 1</div>
-                <div class="fleet-status" id="fleetStatus">
-                    <!-- Fleet requirements loaded dynamically -->
-                </div>
             </div>
-            <div class="board-container" id="boardContainer">
-                <!-- Grid board dynamically rendered -->
+            
+            <div class="puzzle-content-layout">
+                <div class="board-container" id="boardContainer"></div>
+                <div class="fleet-status-container" id="fleetStatus"></div>
             </div>
         </main>
 
-        <!-- [영역 3: 하단 조작 버튼 영역] -->
         <section class="controls-zone">
             <button class="btn-action btn-reset" id="btnReset">초기화</button>
+            <button class="btn-action btn-secondary" id="btnUndo" disabled>되돌리기</button>
+            <button class="btn-action btn-secondary" id="btnRedo" disabled>다시실행</button>
             <button class="btn-action btn-submit" id="btnSubmit">정답확인</button>
         </section>
         <div class="inline-message" id="inlineMessage"></div>
 
-        <!-- [영역 4: 누적 기록] -->
         <section class="guide-card records">
             <div class="guide-header">
                 <h2 class="guide-title">📊 누적 기록</h2>
@@ -668,29 +772,23 @@
                         <th>시도 횟수</th>
                     </tr>
                 </thead>
-                <tbody id="historyTableBody">
-                    <!-- Dynamic history rows -->
-                </tbody>
+                <tbody id="historyTableBody"></tbody>
             </table>
         </section>
 
-        <!-- [영역 5: 퍼즐 규칙] -->
         <section class="guide-card rules">
             <div class="guide-header">
                 <h2 class="guide-title">◈ 퍼즐 규칙</h2>
             </div>
             <ul class="rules-list">
                 <li>• 지정된 수량의 전함들이 바다에 숨겨져 있습니다.</li>
-                <li>• <b>1칸 전함</b>부터 최대 <b>5칸 전함</b>까지 다양한 크기의 배가 등장합니다.</li>
-                <li>• 배의 크기에 맞춰 양 끝단은 반원, 중간은 직사각형 형태로 모양이 자동 표현됩니다.</li>
-                <li>• 게임 시작 시 주황색 테두리의 힌트 타일이 제공되어 위치를 알려줍니다.</li>
-                <li>• 각 행과 열 우측/하단의 숫자는 해당 줄에 존재하는 전함 타일의 총 개수입니다.</li>
-                <li>• 모든 전함은 대각선을 포함하여 상하좌우로 서로 인접할 수 없습니다.</li>
+                <li>• 1칸 전함부터 최대 5칸 전함까지 다양한 크기의 배가 등장합니다.</li>
+                <li>• <b>모든 전함은 대각선을 포함하여 상하좌우로 서로 인접할 수 없습니다.</b></li>
                 <li>• 일반 타일을 클릭할 때마다 [미확인 ➔ 바다 ➔ 전함 ➔ 미확인] 순서로 변경됩니다.</li>
+                <li>• 완성 전함 카운트: 바다 타일 마감 여부와 무관하게 힌트나 타일 배치를 통해 모양이 성립되면 실시간 완성 카운트됩니다.</li>
             </ul>
         </section>
 
-        <!-- [영역 6: 키보드 단축키] -->
         <section class="guide-card shortcuts">
             <div class="guide-header">
                 <h2 class="guide-title">⌨ 키보드 단축키</h2>
@@ -701,6 +799,10 @@
                     <div><kbd>1</kbd> ~ <kbd>5</kbd></div>
                 </div>
                 <div class="shortcut-item">
+                    <span>되돌리기 / 다시실행</span>
+                    <div><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></div>
+                </div>
+                <div class="shortcut-item">
                     <span>현재 단계 초기화</span>
                     <kbd>R</kbd>
                 </div>
@@ -708,16 +810,10 @@
                     <span>정답 확인</span>
                     <kbd>Enter</kbd>
                 </div>
-                <div class="shortcut-item">
-                    <span>팝업 확인/다음</span>
-                    <kbd>Space</kbd> / <kbd>Enter</kbd>
-                </div>
             </div>
         </section>
-
     </div>
 
-    <!-- [결과 알림 팝업창 모달] -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-card" id="modalCard">
             <div class="modal-title" id="modalTitle">🎉 성공!</div>
@@ -729,7 +825,6 @@
     </div>
 
     <script>
-        // Helper function to automatically compute ship counts from a solution matrix (supports arbitrary lengths like 1 to 5)
         function parseFleetCounts(solution, rows, cols) {
             let visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
             let counts = {};
@@ -766,14 +861,26 @@
             return counts;
         }
 
-        // Helper function to parse user current placed ships on grid into fleet counts
-        function parseUserFleetCounts(grid, rows, cols) {
+        // 바다 상태와 무관하게 완전히 모양이 완성된(끝이 반원/원) 전함만 실시간 카운트
+        function parseUserFleetCounts(grid, stage, rows, cols) {
             let visited = Array(rows).fill(0).map(() => Array(cols).fill(false));
             let counts = {};
 
+            const isShipTile = (r, c) => {
+                if (r < 0 || r >= rows || c < 0 || c >= cols) return false;
+                if (grid[r][c] === 2) return true;
+                return stage.hints.some(h => h.r === r && h.c === c && h.type === 2);
+            };
+
+            const getEffectiveCapClass = (r, c) => {
+                const hint = stage.hints.find(h => h.r === r && h.c === c && h.type === 2);
+                if (hint && hint.hintShapeClass) return hint.hintShapeClass;
+                return getShipPartClass(grid, stage, r, c, rows, cols);
+            };
+
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    if (grid[r][c] === 2 && !visited[r][c]) {
+                    if (isShipTile(r, c) && !visited[r][c]) {
                         let shipCells = [];
                         let queue = [[r, c]];
                         visited[r][c] = true;
@@ -787,7 +894,7 @@
                                 let nr = cr + dr;
                                 let nc = cc + dc;
                                 if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                                    if (grid[nr][nc] === 2 && !visited[nr][nc]) {
+                                    if (isShipTile(nr, nc) && !visited[nr][nc]) {
                                         visited[nr][nc] = true;
                                         queue.push([nr, nc]);
                                     }
@@ -795,50 +902,120 @@
                             }
                         }
 
-                        let length = shipCells.length;
-                        counts[length] = (counts[length] || 0) + 1;
+                        let isCompleted = false;
+
+                        if (shipCells.length === 1) {
+                            const [sr, sc] = shipCells[0];
+                            if (getEffectiveCapClass(sr, sc) === "ship-single") {
+                                isCompleted = true;
+                            }
+                        } else {
+                            shipCells.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+                            const first = shipCells[0];
+                            const last = shipCells[shipCells.length - 1];
+
+                            const firstClass = getEffectiveCapClass(first[0], first[1]);
+                            const lastClass = getEffectiveCapClass(last[0], last[1]);
+
+                            if (first[0] === last[0]) {
+                                if (firstClass === "ship-cap-left" && lastClass === "ship-cap-right") {
+                                    isCompleted = true;
+                                }
+                            } else if (first[1] === last[1]) {
+                                if (firstClass === "ship-cap-top" && lastClass === "ship-cap-bottom") {
+                                    isCompleted = true;
+                                }
+                            }
+                        }
+
+                        if (isCompleted) {
+                            let length = shipCells.length;
+                            counts[length] = (counts[length] || 0) + 1;
+                        }
                     }
                 }
             }
             return counts;
         }
 
-        // 5 Battleship Stages Definition (Supports Rectangular grids and up to 5-tile ships)
+        function getSolutionShipShapeClass(solution, r, c) {
+            const rows = solution.length;
+            const cols = solution[0].length;
+
+            const isSolShip = (nr, nc) => {
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return false;
+                return solution[nr][nc] === 1;
+            };
+
+            const top = isSolShip(r - 1, c);
+            const bottom = isSolShip(r + 1, c);
+            const left = isSolShip(r, c - 1);
+            const right = isSolShip(r, c + 1);
+
+            const count = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+
+            if (count === 0) return "ship-single";
+            if (count >= 2) {
+                if (left && right) return "ship-middle";
+                if (top && bottom) return "ship-middle-v";
+                return "ship-middle";
+            }
+            if (left) return "ship-cap-right";
+            if (right) return "ship-cap-left";
+            if (top) return "ship-cap-bottom";
+            if (bottom) return "ship-cap-top";
+            return "ship-middle";
+        }
+
+        function getShipPartClass(grid, stage, r, c, rows, cols) {
+            const isShip = (nr, nc) => {
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return false;
+                if (grid[nr][nc] === 2) return true;
+                return stage.hints.some(h => h.r === nr && h.c === nc && h.type === 2);
+            };
+
+            const isWaterOrEdge = (nr, nc) => {
+                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return true;
+                if (grid[nr][nc] === 1) return true;
+                return stage.hints.some(h => h.r === nr && h.c === nc && h.type === 1);
+            };
+
+            const top = isShip(r - 1, c);
+            const bottom = isShip(r + 1, c);
+            const left = isShip(r, c - 1);
+            const right = isShip(r, c + 1);
+
+            const topBlocked = isWaterOrEdge(r - 1, c);
+            const bottomBlocked = isWaterOrEdge(r + 1, c);
+            const leftBlocked = isWaterOrEdge(r, c - 1);
+            const rightBlocked = isWaterOrEdge(r, c + 1);
+
+            const connectedCount = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
+
+            if (connectedCount === 0) {
+                if (topBlocked && bottomBlocked && leftBlocked && rightBlocked) {
+                    return "ship-single";
+                }
+                return "ship-middle";
+            }
+
+            if (connectedCount >= 2) {
+                if (top || bottom) return "ship-middle-v";
+                return "ship-middle";
+            }
+
+            if (left) return rightBlocked ? "ship-cap-right" : "ship-middle";
+            if (right) return leftBlocked ? "ship-cap-left" : "ship-middle";
+            if (top) return bottomBlocked ? "ship-cap-bottom" : "ship-middle-v";
+            if (bottom) return topBlocked ? "ship-cap-top" : "ship-middle-v";
+
+            return "ship-middle";
+        }
+
         const STAGES = [
             {
                 id: 1,
                 name: "단계 1",
-                solution: [
-                    [1,0,1,0,0,0],
-                    [0,0,0,0,0,0],
-                    [0,1,1,0,1,0],
-                    [0,0,0,0,1,0],
-                    [0,0,1,0,1,0],
-                    [1,0,1,0,0,0]
-                ],
-                hintCoords: [
-                    { r: 2, c: 0 }
-                ]
-            },
-            {
-                id: 2,
-                name: "단계 2 (직사각형)",
-                solution: [
-                    [1, 0, 0, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [0, 1, 1, 0, 0, 1, 0],
-                    [0, 0, 0, 0, 0, 0, 0],
-                    [1, 0, 0, 1, 0, 0, 0]
-                ],
-                hintCoords: [
-                    { r: 0, c: 6 },
-                    { r: 2, c: 5 },
-                    { r: 1, c: 1 }
-                ]
-            },
-            {
-                id: 3,
-                name: "단계 3 (4칸 배 포함)",
                 solution: [
                     [0, 0, 0, 0, 0, 0],
                     [1, 1, 1, 1, 0, 0],
@@ -853,26 +1030,23 @@
                     { r: 5, c: 5 }
                 ]
             },
-            {
-                id: 4,
-                name: "단계 4 (5칸 대형 배 포함)",
+
+        {
+                id: 2,
+                name: "단계 2",
                 solution: [
-                    [1, 1, 1, 1, 1, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 1, 1],
-                    [0, 0, 0, 0, 0, 0],
-                    [1, 1, 0, 1, 0, 1],
-                    [0, 0, 0, 0, 0, 0]
+                    [1,0,1,0,0,0],
+                    [0,0,0,0,0,0],
+                    [0,1,1,0,1,0],
+                    [0,0,0,0,1,0],
+                    [0,0,1,0,1,0],
+                    [1,0,1,0,0,0]
                 ],
-                hintCoords: [
-                    { r: 0, c: 2 },
-                    { r: 2, c: 4 },
-                    { r: 4, c: 5 }
-                ]
+                hintCoords: [{ r: 2, c: 0 }]
             },
-            {
-                id: 5,
-                name: "단계 5",
+                        {
+                id: 3,
+                name: "단계 3",
                 solution: [
                     [0, 1, 1, 0, 0, 1],
                     [0, 0, 0, 0, 0, 1],
@@ -886,10 +1060,276 @@
                     { r: 4, c: 1 },
                     { r: 0, c: 1 }
                 ]
+            },
+
+            {
+                id: 4,
+                name: "단계 4",
+                solution: [
+                    [0,0,1,0,1,0],
+                    [0,0,0,0,0,0],
+                    [0,1,1,1,0,0],
+                    [0,0,0,0,0,0],
+                    [1,0,1,0,1,1],
+                    [0,0,1,0,0,0]
+                ],
+                hintCoords: [
+                    { r: 0, c:  1}
+                    
+                ]
+            },
+
+            {
+                id: 5,
+                name: "단계 5",
+                solution: [
+                    [0,0,0,0,0,0],
+                    [1,0,1,1,1,0],
+                    [1,0,0,0,0,0],
+                    [0,0,0,0,0,1],
+                    [1,0,0,1,0,0],
+                    [0,0,0,1,0,1]
+                ],
+                hintCoords: [
+                    { r: 3, c: 5 }
+                    
+                ]
+            },
+
+            {
+                id: 6,
+                name: "단계 6",
+                solution: [
+                    [1,0,0,0,0,0],
+                    [0,0,0,1,0,0],
+                    [1,1,0,1,0,0],
+                    [0,0,0,1,0,1],
+                    [1,0,0,0,0,0],
+                    [1,0,0,1,0,0]
+                ],
+                hintCoords: [
+                    { r: 2, c:  1}
+                    
+                ]
+            },
+
+            {
+                id: 7,
+                name: "단계 7",
+                solution: [
+                    [0,1,0,1,1,1],
+                    [0,0,0,0,0,0],
+                    [0,0,1,0,1,0],
+                    [0,0,0,0,0,0],
+                    [0,1,1,0,1,0],
+                    [0,0,0,0,1,0]
+                ],
+                hintCoords: [
+                    
+                    
+                ]
+            },
+
+            {
+                id: 8,
+                name: "단계 8",
+                solution: [
+                    [0,1,1,0,0,1,1,1],
+                    [0,0,0,0,0,0,0,0],
+                    [1,1,1,1,0,0,0,1],
+                    [0,0,0,0,0,1,0,0],
+                    [1,1,0,1,0,1,0,0],
+                    [0,0,0,0,0,1,0,0],
+                    [0,1,1,0,0,0,0,0],
+                    [0,0,0,0,1,0,0,0]
+                ],
+                hintCoords: [
+                    { r: 2, c:5  },
+                    { r: 4, c:3  },
+                    { r: 7, c: 4}
+                    
+                ]
+            },
+
+            {
+                id: 9,
+                name: "단계 9",
+                solution: [
+                    [1,1,0,1,0,1,1,0],
+                    [0,0,0,1,0,0,0,0],
+                    [0,1,0,1,0,1,1,0],
+                    [0,1,0,0,0,0,0,0],
+                    [0,1,0,0,0,0,0,0],
+                    [0,1,0,0,1,1,1,0],
+                    [0,0,0,0,0,0,0,0],
+                    [0,1,0,1,0,0,1,0]
+                ],
+                hintCoords: [
+                ]
+            },
+
+            {
+                id: 10,
+                name: "단계 10",
+                solution: [
+                    [0,0,1,0,1,0,1,1],
+                    [0,0,1,0,1,0,0,0],
+                    [1,0,1,0,0,0,0,1],
+                    [1,0,0,0,0,0,0,0],
+                    [1,0,1,1,1,1,0,1],
+                    [0,0,0,0,0,0,0,0],
+                    [0,0,0,1,0,1,1,0],
+                    [0,0,0,0,0,0,0,0]
+                ],
+                hintCoords: [
+                    { r: 4, c: 7 },
+                    { r: 6, c: 3 }
+                    
+                ]
+            },
+
+            {
+                id: 11,
+                name: "단계 11",
+                solution: [
+                    [0,1,0,0,0,0,0,0,0],
+                    [0,0,0,1,1,1,0,1,1],
+                    [1,0,0,0,0,0,0,0,0],
+                    [1,0,1,0,0,0,0,0,0],
+                    [0,0,0,0,1,0,0,1,1],
+                    [0,0,0,0,1,0,0,0,0],
+                    [0,0,1,0,1,0,0,0,1],
+                    [0,0,1,0,1,0,0,0,0],
+                    [0,0,1,0,0,0,1,0,0]
+                ],
+                hintCoords: [
+                    { r: 1, c: 2 },
+                    { r: 2, c: 0 },
+                    { r: 4, c: 2 },
+                    { r: 5, c: 4 },
+                    { r: 6, c: 7 },
+                    { r: 8, c: 7 },
+                    { r: 8, c: 8 }
+                ]
+            },
+            
+            {
+                id: 12,
+                name: "단계 12",
+                solution: [
+                    [1,1,1,0,0,0,0,0,0,1],
+                    [0,0,0,0,0,0,0,0,0,0],
+                    [0,0,1,0,0,0,0,0,1,1],
+                    [0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,1],
+                    [0,1,1,1,1,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,1,1,1],
+                    [0,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,1,0,1,0,0,0,0],
+                    [0,0,0,1,0,1,0,0,0,0]
+                ],
+                hintCoords: [
+                    { r:2 , c: 2},
+                    { r:2 , c: 8 },
+                    { r:5 , c: 4 },
+                    { r:6 , c: 7 },
+                    { r: 9, c: 0 }
+                    
+                ]
+            },
+
+            {
+                id: 13,
+                name: "단계 13",
+                solution: [
+                    [0,0,1,0,0,0,0,0,0,0],
+                    [0,0,1,0,0,0,0,0,0,0],
+                    [0,0,1,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,1,1,0],
+                    [0,0,1,1,1,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,1,0],
+                    [0,0,1,0,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,1,1,1],
+                    [1,0,1,0,1,1,0,0,0,0],
+                    [1,0,0,0,0,0,0,0,0,1]
+                ],
+                hintCoords: [
+                    { r: 1, c: 2 },
+                    { r: 4, c: 3 },
+                    { r: 5, c:8  },
+                    { r:8 , c: 4 },
+                    { r: 9, c: 2 },
+                    { r: 9, c:  7}
+                    
+                ]
+            },
+
+            {
+                id: 14,
+                name: "단계 14",
+                solution: [
+                    [1,1,1,0,1,0,1,0,0,0],
+                    [0,0,0,0,0,0,1,0,1,1],
+                    [0,0,0,1,0,0,0,0,0,0],
+                    [0,0,0,1,0,0,0,0,0,0],
+                    [0,0,0,1,0,0,1,1,1,0],
+                    [0,0,0,1,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,1,0,0,0,1,0],
+                    [0,0,0,0,0,0,0,0,1,0],
+                    [0,1,0,0,0,0,1,0,0,0]
+                ],
+                hintCoords: [
+                    { r:0 , c: 2 },
+                    { r:3 , c:  3},
+                    { r: 7, c:  6},
+                    { r: 9, c:  1}
+                    
+                ]
+            },
+
+            {
+                id: 15,
+                name: "단계 15",
+                solution: [
+                    [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+                    [1,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
+                    [1,0,0,0,1,0,0,0,0,0,0,0,1,1,0],
+                    [1,0,0,0,1,0,0,0,1,1,1,0,0,0,0],
+                    [1,0,1,0,1,0,0,0,0,0,0,0,0,0,0],
+                    [0,0,0,0,1,0,0,1,0,0,0,0,1,0,0],
+                    [0,0,0,0,0,0,0,1,0,0,0,0,1,0,0],
+                    [0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+                    [0,0,0,0,0,0,1,0,1,0,0,0,0,0,0],
+                    [0,1,0,0,0,0,1,0,1,0,0,0,0,0,0],
+                    [0,1,0,0,0,0,0,0,1,0,0,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,1,0,1,0,0,0,0],
+                    [0,0,0,1,0,0,0,0,0,0,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+                    [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0]
+                ],
+                hintCoords: [
+                    { r: 0, c:  10},
+                    { r: 2, c:  13},
+                    { r: 3, c:  9},
+                    { r: 4, c:  2},
+                    { r: 7, c:  1},
+                    { r: 7, c:  12},
+                    { r: 10, c:  1},
+                    { r: 11, c:  8},
+                    { r: 11, c:  10},
+                    { r: 12, c:  3},
+                    { r: 13, c:  10},
+                    { r: 14, c:  13}
+                    
+                ]
             }
+
+
+
+
         ];
 
-        // Automatically compute rows, cols, rowCounts, colCounts, fleet counts, and hints using solution matrix
         STAGES.forEach(stage => {
             stage.rows = stage.solution.length;
             stage.cols = stage.solution[0].length;
@@ -902,24 +1342,33 @@
             }
             stage.fleetCounts = parseFleetCounts(stage.solution, stage.rows, stage.cols);
 
-            stage.hints = stage.hintCoords.map(coord => ({
-                r: coord.r,
-                c: coord.c,
-                type: stage.solution[coord.r][coord.c] === 1 ? 2 : 1
-            }));
+            stage.hints = stage.hintCoords.map(coord => {
+                const isShip = stage.solution[coord.r][coord.c] === 1;
+                return {
+                    r: coord.r,
+                    c: coord.c,
+                    type: isShip ? 2 : 1,
+                    hintShapeClass: isShip ? getSolutionShipShapeClass(stage.solution, coord.r, coord.c) : null
+                };
+            });
         });
 
-        const STORAGE_KEY = "battleship_puzzle_data_v10";
+        const STORAGE_KEY = "battleship_puzzle_data_v17";
 
         let currentStageIdx = 0;
         let stageHistory = {};
         let persistentRecords = {};
 
+        let undoStack = [];
+        let redoStack = [];
+
         let startTime = null;
         let timerInterval = null;
         let elapsedTimeSeconds = 0;
 
-        // Load data from LocalStorage
+        let isDragging = false;
+        let dragTargetState = 1;
+
         function loadStoredData() {
             try {
                 const savedData = localStorage.getItem(STORAGE_KEY);
@@ -934,7 +1383,6 @@
 
             STAGES.forEach(stage => {
                 if (!stageHistory[stage.id]) {
-                    // Create empty grid based on dynamic rows and cols
                     stageHistory[stage.id] = Array(stage.rows).fill(0).map(() => Array(stage.cols).fill(0));
                     applyHintsToStage(stage);
                 }
@@ -973,6 +1421,7 @@
             renderHistoryTable();
             bindEvents();
             preventGestures();
+            initDragListeners();
         }
 
         function renderStageSelector() {
@@ -1001,6 +1450,10 @@
             
             document.getElementById("stageTitle").innerText = `${stage.name} (${stage.rows}x${stage.cols})`;
             
+            undoStack = [];
+            redoStack = [];
+            updateUndoRedoButtons();
+
             updateFleetStatusHeader();
             clearInlineMessage();
             renderBoard();
@@ -1010,31 +1463,45 @@
         function updateFleetStatusHeader() {
             const stage = STAGES[currentStageIdx];
             const currentGrid = stageHistory[stage.id];
-            const userFleetCounts = parseUserFleetCounts(currentGrid, stage.rows, stage.cols);
+            const userFleetCounts = parseUserFleetCounts(currentGrid, stage, stage.rows, stage.cols);
 
             let fleetHtml = '';
             const sortedLengths = Object.keys(stage.fleetCounts).map(Number).sort((a, b) => b - a);
-            sortedLengths.forEach(len => {
-                let sampleHtml = '';
-                if (len === 1) {
-                    sampleHtml = `<span class="sample-circle"></span>`;
-                } else {
-                    sampleHtml = `<span class="sample-ship-icon"><span class="s-l"></span>`;
-                    for(let i=0; i<len-2; i++) sampleHtml += `<span class="s-m"></span>`;
-                    sampleHtml += `<span class="s-r"></span></span>`;
-                }
 
+            sortedLengths.forEach(len => {
                 const targetCount = stage.fleetCounts[len];
                 const currentCount = userFleetCounts[len] || 0;
-                const isMatched = (currentCount === targetCount);
-                const colorStyle = isMatched ? 'color: var(--success);' : 'color: var(--danger);';
+                const isExceeded = currentCount > targetCount;
+
+                let shipCellsHtml = '';
+                if (len === 1) {
+                    shipCellsHtml = `<div class="fleet-cell single">${len}</div>`;
+                } else {
+                    for (let i = 0; i < len; i++) {
+                        let capClass = '';
+                        if (i === 0) capClass = 'cap-left';
+                        else if (i === len - 1) capClass = 'cap-right';
+                        
+                        let text = (i === 0) ? len : '';
+                        shipCellsHtml += `<div class="fleet-cell ${capClass}">${text}</div>`;
+                    }
+                }
+
+                let checkboxesHtml = '';
+                const totalDisplayCount = Math.max(targetCount, currentCount);
+                for (let i = 0; i < totalDisplayCount; i++) {
+                    const isChecked = (i < currentCount);
+                    const exceededClass = isExceeded ? 'exceeded' : '';
+                    checkboxesHtml += `<div class="fleet-checkbox ${exceededClass}">${isChecked ? '✓' : ''}</div>`;
+                }
 
                 fleetHtml += `
-                    <div class="fleet-item">
-                        <span class="icon-sample">${sampleHtml}</span>
-                        <span>${len}칸 (<span style="${colorStyle}">${targetCount}: ${currentCount}척</span>)</span>
+                    <div class="fleet-row">
+                        <div class="fleet-ship-shape">${shipCellsHtml}</div>
+                        <div class="fleet-checkboxes">${checkboxesHtml}</div>
                     </div>`;
             });
+
             document.getElementById("fleetStatus").innerHTML = fleetHtml;
         }
 
@@ -1054,54 +1521,6 @@
             return `${m > 0 ? m + "분 " : ""}${s}초`;
         }
 
-        // Determine specific ship graphic part based on solution layout for correct hints display
-        function getShipPartClassForSolution(solution, r, c, rows, cols) {
-            const top = (r > 0 && solution[r - 1][c] === 1);
-            const bottom = (r < rows - 1 && solution[r + 1][c] === 1);
-            const left = (c > 0 && solution[r][c - 1] === 1);
-            const right = (c < cols - 1 && solution[r][c + 1] === 1);
-
-            const connectedCount = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
-
-            if (connectedCount === 0) {
-                return "ship-single";
-            } else if (connectedCount >= 2) {
-                if (left && right) return "ship-middle";
-                if (top && bottom) return "ship-middle-v";
-                return "ship-middle";
-            } else {
-                if (left) return "ship-cap-right";
-                if (right) return "ship-cap-left";
-                if (top) return "ship-cap-bottom";
-                if (bottom) return "ship-cap-top";
-            }
-            return "ship-single";
-        }
-
-        // Determine specific ship graphic part based on adjacent user grid tiles
-        function getShipPartClass(grid, r, c, rows, cols) {
-            const top = (r > 0 && grid[r - 1][c] === 2);
-            const bottom = (r < rows - 1 && grid[r + 1][c] === 2);
-            const left = (c > 0 && grid[r][c - 1] === 2);
-            const right = (c < cols - 1 && grid[r][c + 1] === 2);
-
-            const connectedCount = (top ? 1 : 0) + (bottom ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
-
-            if (connectedCount === 0) {
-                return "ship-single"; 
-            } else if (connectedCount >= 2) {
-                if (left && right) return "ship-middle";
-                if (top && bottom) return "ship-middle-v";
-                return "ship-middle";
-            } else {
-                if (left) return "ship-cap-right";
-                if (right) return "ship-cap-left";
-                if (top) return "ship-cap-bottom";
-                if (bottom) return "ship-cap-top";
-            }
-            return "ship-single";
-        }
-
         function isHintCell(stage, r, c) {
             return stage.hints.some(h => h.r === r && h.c === c);
         }
@@ -1113,75 +1532,65 @@
 
             const currentGrid = stageHistory[stage.id];
 
-            // Compute current row and column ship cell counts
             const currentRowCounts = Array(stage.rows).fill(0);
             const currentColCounts = Array(stage.cols).fill(0);
 
             for (let r = 0; r < stage.rows; r++) {
                 for (let c = 0; c < stage.cols; c++) {
-                    if (currentGrid[r][c] === 2) { // 2 = Ship
+                    const isShipTile = currentGrid[r][c] === 2 || stage.hints.some(h => h.r === r && h.c === c && h.type === 2);
+                    if (isShipTile) {
                         currentRowCounts[r]++;
                         currentColCounts[c]++;
                     }
                 }
             }
 
-            // Create Grid Rows including Indicator cells (rows + 1, cols + 1)
-            for (let r = 0; r <= stage.rows; r++) {
+            for (let r = -1; r < stage.rows; r++) {
                 const rowDiv = document.createElement("div");
                 rowDiv.className = "grid-row";
 
-                for (let c = 0; c <= stage.cols; c++) {
+                for (let c = -1; c < stage.cols; c++) {
                     const cellDiv = document.createElement("div");
 
-                    if (r < stage.rows && c < stage.cols) {
-                        // Interactive Game Cell
-                        const state = currentGrid[r][c]; // 0: empty, 1: water, 2: ship
-                        const isHint = isHintCell(stage, r, c);
-
-                        if (state === 0) {
-                            cellDiv.className = `grid-cell cell-empty ${isHint ? 'cell-hint' : ''}`;
-                        } else if (state === 1) {
-                            cellDiv.className = `grid-cell cell-water ${isHint ? 'cell-hint' : ''}`;
-                        } else if (state === 2) {
-                            cellDiv.className = `grid-cell cell-ship ${isHint ? 'cell-hint' : ''}`;
-                            const shipPart = document.createElement("div");
-                            
-                            let partClass = "";
-                            if (isHint) {
-                                partClass = getShipPartClassForSolution(stage.solution, r, c, stage.rows, stage.cols);
-                            } else {
-                                partClass = getShipPartClass(currentGrid, r, c, stage.rows, stage.cols);
-                            }
-                            
-                            shipPart.className = `ship-part ${partClass}`;
-                            cellDiv.appendChild(shipPart);
-                        }
-
-                        if (!isHint) {
-                            cellDiv.onclick = () => toggleCell(r, c);
-                        }
-
-                    } else if (r < stage.rows && c === stage.cols) {
-                        // Row Indicator (Right edge)
+                    if (r === -1 && c === -1) {
                         cellDiv.className = "grid-cell cell-indicator";
-                        const target = stage.rowCounts[r];
-                        const current = currentRowCounts[r];
-                        cellDiv.innerText = target;
-                        if (current === target) cellDiv.classList.add("fulfilled");
-                        else if (current > target) cellDiv.classList.add("exceeded");
-                    } else if (r === stage.rows && c < stage.cols) {
-                        // Col Indicator (Bottom edge)
+                        cellDiv.innerText = "";
+                    } else if (r === -1 && c >= 0) {
                         cellDiv.className = "grid-cell cell-indicator";
                         const target = stage.colCounts[c];
                         const current = currentColCounts[c];
                         cellDiv.innerText = target;
                         if (current === target) cellDiv.classList.add("fulfilled");
                         else if (current > target) cellDiv.classList.add("exceeded");
-                    } else {
-                        // Bottom Right Corner Cell
+                    } else if (r >= 0 && c === -1) {
                         cellDiv.className = "grid-cell cell-indicator";
-                        cellDiv.innerText = "";
+                        const target = stage.rowCounts[r];
+                        const current = currentRowCounts[r];
+                        cellDiv.innerText = target;
+                        if (current === target) cellDiv.classList.add("fulfilled");
+                        else if (current > target) cellDiv.classList.add("exceeded");
+                    } else {
+                        const state = currentGrid[r][c];
+                        const hintObj = stage.hints.find(h => h.r === r && h.c === c);
+
+                        cellDiv.dataset.row = r;
+                        cellDiv.dataset.col = c;
+
+                        if (state === 0) {
+                            cellDiv.className = `grid-cell cell-empty ${hintObj ? 'cell-hint' : ''}`;
+                        } else if (state === 1) {
+                            cellDiv.className = `grid-cell cell-water ${hintObj ? 'cell-hint' : ''}`;
+                        } else if (state === 2) {
+                            cellDiv.className = `grid-cell cell-ship ${hintObj ? 'cell-hint' : ''}`;
+                            const shipPart = document.createElement("div");
+                            
+                            let partClass = (hintObj && hintObj.hintShapeClass)
+                                ? hintObj.hintShapeClass
+                                : getShipPartClass(currentGrid, stage, r, c, stage.rows, stage.cols);
+                            
+                            shipPart.className = `ship-part ${partClass}`;
+                            cellDiv.appendChild(shipPart);
+                        }
                     }
 
                     rowDiv.appendChild(cellDiv);
@@ -1192,24 +1601,129 @@
             updateFleetStatusHeader();
         }
 
-        function toggleCell(r, c) {
+        function saveSnapshot() {
             const stage = STAGES[currentStageIdx];
+            const currentGrid = stageHistory[stage.id];
+            const snapshot = currentGrid.map(row => [...row]);
+            undoStack.push(snapshot);
+            redoStack = [];
+            updateUndoRedoButtons();
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            const stage = STAGES[currentStageIdx];
+            const currentGrid = stageHistory[stage.id];
             
+            redoStack.push(currentGrid.map(row => [...row]));
+            stageHistory[stage.id] = undoStack.pop();
+
+            saveStoredData();
+            renderBoard();
+            updateUndoRedoButtons();
+            clearInlineMessage();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            const stage = STAGES[currentStageIdx];
+            const currentGrid = stageHistory[stage.id];
+
+            undoStack.push(currentGrid.map(row => [...row]));
+            stageHistory[stage.id] = redoStack.pop();
+
+            saveStoredData();
+            renderBoard();
+            updateUndoRedoButtons();
+            clearInlineMessage();
+        }
+
+        function updateUndoRedoButtons() {
+            document.getElementById("btnUndo").disabled = undoStack.length === 0;
+            document.getElementById("btnRedo").disabled = redoStack.length === 0;
+        }
+
+        function handleStart(r, c) {
+            const stage = STAGES[currentStageIdx];
             if (isHintCell(stage, r, c)) return;
 
-            // Cycle: 0 (Empty) -> 1 (Water) -> 2 (Ship) -> 0 (Empty)
-            let current = stageHistory[stage.id][r][c];
-            if (current === 0) current = 1;
-            else if (current === 1) current = 2;
-            else current = 0;
+            saveSnapshot();
 
-            stageHistory[stage.id][r][c] = current;
+            isDragging = true;
+            let current = stageHistory[stage.id][r][c];
+            
+            if (current === 0) dragTargetState = 1;
+            else if (current === 1) dragTargetState = 2;
+            else dragTargetState = 0;
+
+            stageHistory[stage.id][r][c] = dragTargetState;
             saveStoredData();
             renderBoard();
             clearInlineMessage();
         }
 
+        function handleMove(r, c) {
+            if (!isDragging) return;
+            const stage = STAGES[currentStageIdx];
+            if (isHintCell(stage, r, c)) return;
+
+            if (stageHistory[stage.id][r][c] !== dragTargetState) {
+                stageHistory[stage.id][r][c] = dragTargetState;
+                saveStoredData();
+                renderBoard();
+                clearInlineMessage();
+            }
+        }
+
+        function handleEnd() {
+            isDragging = false;
+        }
+
+        function initDragListeners() {
+            const board = document.getElementById("boardContainer");
+
+            board.addEventListener("mousedown", (e) => {
+                const cell = e.target.closest(".grid-cell");
+                if (cell && cell.dataset.row !== undefined) {
+                    handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                }
+            });
+
+            board.addEventListener("mousemove", (e) => {
+                if (!isDragging) return;
+                const cell = e.target.closest(".grid-cell");
+                if (cell && cell.dataset.row !== undefined) {
+                    handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                }
+            });
+
+            window.addEventListener("mouseup", handleEnd);
+
+            board.addEventListener("touchstart", (e) => {
+                const touch = e.touches[0];
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                const cell = target ? target.closest(".grid-cell") : null;
+                if (cell && cell.dataset.row !== undefined) {
+                    handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                }
+            }, { passive: true });
+
+            board.addEventListener("touchmove", (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                const cell = target ? target.closest(".grid-cell") : null;
+                if (cell && cell.dataset.row !== undefined) {
+                    handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                }
+            }, { passive: true });
+
+            window.addEventListener("touchend", handleEnd);
+            window.addEventListener("touchcancel", handleEnd);
+        }
+
         function resetCurrentStage() {
+            saveSnapshot();
             const stage = STAGES[currentStageIdx];
             stageHistory[stage.id] = Array(stage.rows).fill(0).map(() => Array(stage.cols).fill(0));
             applyHintsToStage(stage);
@@ -1222,24 +1736,35 @@
         function checkAnswer() {
             const stage = STAGES[currentStageIdx];
             const grid = stageHistory[stage.id];
+            const rows = stage.rows;
+            const cols = stage.cols;
             
             persistentRecords[stage.id].attempts += 1;
 
-            let isCorrect = true;
+            let isCompleteAndCorrect = true;
+            let isSoFarCorrect = true;
 
-            for (let r = 0; r < stage.rows; r++) {
-                for (let c = 0; c < stage.cols; c++) {
-                    const userIsShip = (grid[r][c] === 2) ? 1 : 0;
-                    const solutionIsShip = stage.solution[r][c];
-                    if (userIsShip !== solutionIsShip) {
-                        isCorrect = false;
-                        break;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const userState = grid[r][c];
+                    
+                    const hintObj = stage.hints.find(h => h.r === r && h.c === c);
+                    const hintType = hintObj ? hintObj.type : 0;
+                    
+                    const effectiveUserState = hintType !== 0 ? hintType : userState;
+                    const solutionIsShip = stage.solution[r][c] === 1 ? 2 : 1;
+
+                    if (effectiveUserState !== solutionIsShip) {
+                        isCompleteAndCorrect = false;
+                    }
+
+                    if (effectiveUserState !== 0 && effectiveUserState !== solutionIsShip) {
+                        isSoFarCorrect = false;
                     }
                 }
-                if (!isCorrect) break;
             }
 
-            if (isCorrect) {
+            if (isCompleteAndCorrect) {
                 persistentRecords[stage.id].cleared = true;
                 if (persistentRecords[stage.id].bestTime === null || elapsedTimeSeconds < persistentRecords[stage.id].bestTime) {
                     persistentRecords[stage.id].bestTime = elapsedTimeSeconds;
@@ -1260,14 +1785,29 @@
                 saveStoredData();
                 renderHistoryTable();
 
-                showInlineMessage("❌ 틀렸습니다! 행/열 개수 및 전함 배치를 확인해주세요.", "danger");
-                showModal(
-                    false,
-                    "❌ 틀렸습니다!",
-                    "전함 위치나 행/열 수량이 규칙에 맞지 않습니다. 다시 시도해 보세요.",
-                    "다시 시도",
-                    false
-                );
+                if (isSoFarCorrect) {
+                    showInlineMessage("💡 지금까지는 모두 맞게 풀고 있습니다.", "success");
+                    showModal(
+                        false,
+                        "💡 진행 상황 확인",
+                        "지금까지는 모두 맞게 풀고 있습니다.",
+                        "계속 풀기",
+                        false,
+                        null,
+                        "success"
+                    );
+                } else {
+                    showInlineMessage("❌ 퍼즐 풀이에 틀린 곳이 있습니다.", "danger");
+                    showModal(
+                        false,
+                        "❌ 틀린 곳 있음",
+                        "퍼즐 풀이에 틀린 곳이 있습니다. 배치된 전함이나 바다 타일을 다시 확인해 보세요.",
+                        "다시 시도",
+                        false,
+                        null,
+                        "danger"
+                    );
+                }
             }
         }
 
@@ -1281,9 +1821,10 @@
             const msgDiv = document.getElementById("inlineMessage");
             msgDiv.innerText = "";
             msgDiv.className = "inline-message";
+            msgDiv.style.display = "none";
         }
 
-        function showModal(isSuccess, title, body, btnText, isConfirmModal = false, onConfirm = null) {
+        function showModal(isSuccess, title, body, btnText, isConfirmModal = false, onConfirm = null, textType = "") {
             const overlay = document.getElementById("modalOverlay");
             const card = document.getElementById("modalCard");
             const modalTitle = document.getElementById("modalTitle");
@@ -1293,7 +1834,11 @@
             card.className = `modal-card ${isSuccess ? "success-modal" : "danger-modal"}`;
             modalTitle.innerText = title;
             modalTitle.className = `modal-title ${isSuccess ? "success" : "danger"}`;
+            
             modalBody.innerText = body;
+            modalBody.classList.remove("text-success", "text-danger");
+            if (textType === "success") modalBody.classList.add("text-success");
+            if (textType === "danger") modalBody.classList.add("text-danger");
             
             buttonsContainer.innerHTML = "";
 
@@ -1389,6 +1934,8 @@
 
         function bindEvents() {
             document.getElementById("btnReset").onclick = resetCurrentStage;
+            document.getElementById("btnUndo").onclick = undo;
+            document.getElementById("btnRedo").onclick = redo;
             document.getElementById("btnSubmit").onclick = checkAnswer;
             document.getElementById("btnResetHistory").onclick = requestResetAllHistory;
 
@@ -1405,7 +1952,14 @@
                     return;
                 }
 
-                if (e.key >= "1" && e.key <= "5") {
+                if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+                    e.preventDefault();
+                    if (e.shiftKey) redo();
+                    else undo();
+                } else if ((e.ctrlKey || e.metaKey) && (e.key === "y" || e.key === "Y")) {
+                    e.preventDefault();
+                    redo();
+                } else if (e.key >= "1" && e.key <= "5") {
                     const targetIdx = parseInt(e.key) - 1;
                     if (targetIdx < STAGES.length) {
                         selectStage(targetIdx);
