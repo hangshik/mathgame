@@ -236,7 +236,7 @@
             flex: 1;
             aspect-ratio: 1 / 1;
             margin: 1px;
-            border-radius: 8px;
+            border-radius: 3px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -301,6 +301,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            pointer-events: none;
         }
 
         .cell-ship.cell-hint .ship-part::after {
@@ -1651,15 +1652,15 @@
             isDragging = false;
         }
 
-        /* index.html의 모바일/PC 연속 드래그 메커니즘 반영 */
+        /* 모바일 터치 드래그 오류 완벽 수정 적용 */
         function initDragListeners() {
             const board = document.getElementById("boardContainer");
-            let isTouch = false;
+            let isTouchActive = false;
             let lastTouchedCell = null;
 
-            // [마우스 이벤트]
+            // [마우스 드래그 - PC]
             board.addEventListener("mousedown", (e) => {
-                if (isTouch) return;
+                if (isTouchActive) return;
                 const cell = e.target.closest(".grid-cell");
                 if (cell && cell.dataset.row !== undefined) {
                     handleStart(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
@@ -1667,7 +1668,7 @@
             });
 
             board.addEventListener("mousemove", (e) => {
-                if (isTouch || !isDragging) return;
+                if (isTouchActive || !isDragging) return;
                 const cell = e.target.closest(".grid-cell");
                 if (cell && cell.dataset.row !== undefined) {
                     handleMove(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
@@ -1675,16 +1676,20 @@
             });
 
             window.addEventListener("mouseup", () => {
-                if (!isTouch) handleEnd();
+                if (!isTouchActive) handleEnd();
             });
 
-            // [터치 이벤트 - index.html 방식 터치 드래그 패턴]
-            board.addEventListener("touchstart", (e) => {
-                isTouch = true;
-                const touch = e.touches[0];
+            // [터치 드래그 - Mobile]
+            const getCellFromTouch = (touch) => {
                 const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                const cell = target ? target.closest(".grid-cell") : null;
+                return target ? target.closest(".grid-cell") : null;
+            };
 
+            board.addEventListener("touchstart", (e) => {
+                isTouchActive = true;
+                if (e.touches.length > 1) return;
+
+                const cell = getCellFromTouch(e.touches[0]);
                 if (cell && cell.dataset.row !== undefined) {
                     if (e.cancelable) e.preventDefault();
                     const r = parseInt(cell.dataset.row);
@@ -1696,12 +1701,9 @@
 
             board.addEventListener("touchmove", (e) => {
                 if (!isDragging) return;
-                if (e.cancelable) e.preventDefault(); // 스크롤 동작 방지
+                if (e.cancelable) e.preventDefault(); // 스크롤 완전 차단
 
-                const touch = e.touches[0];
-                const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                const cell = target ? target.closest(".grid-cell") : null;
-
+                const cell = getCellFromTouch(e.touches[0]);
                 if (cell && cell.dataset.row !== undefined) {
                     const r = parseInt(cell.dataset.row);
                     const c = parseInt(cell.dataset.col);
@@ -1717,11 +1719,11 @@
             const onTouchEnd = () => {
                 lastTouchedCell = null;
                 handleEnd();
-                setTimeout(() => { isTouch = false; }, 300);
+                setTimeout(() => { isTouchActive = false; }, 200);
             };
 
-            window.addEventListener("touchend", onTouchEnd);
-            window.addEventListener("touchcancel", onTouchEnd);
+            board.addEventListener("touchend", onTouchEnd, { passive: false });
+            board.addEventListener("touchcancel", onTouchEnd, { passive: false });
         }
 
         function resetCurrentStage() {
