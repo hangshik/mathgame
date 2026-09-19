@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>좌표 오목게임</title>
-        <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VHD0QPH39L');
-  </script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VHD0QPH39L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-VHD0QPH39L');
+    </script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
@@ -92,46 +92,12 @@
             margin-bottom: 15px;
         }
 
-        /* 보드 및 승률 패널 레이아웃 */
         .board-section-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 15px;
             width: 100%;
-        }
-
-        .win-rate-panel {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #ffffff;
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            padding: 10px 15px;
-            min-width: 100px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            text-align: center;
-            flex-shrink: 0;
-            transform: rotate(90deg);
-        }
-
-        .win-rate-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-sub);
-            margin-bottom: 4px;
-        }
-
-        .win-rate-value {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--active);
-        }
-
-        .win-rate-detail {
-            display: none;
         }
 
         /* 차례가 아닌 키패드 비활성화 */
@@ -176,6 +142,10 @@
         .turn-choice-btn.black-choice.active { background-color: #343a40; color: #fff; border-color: #212529; }
         .turn-choice-btn.white-choice { background-color: #f8f9fa; color: #495057; border-color: #ced4da; }
         .turn-choice-btn.white-choice.active { background-color: #e9ecef; color: #212529; border: 2px solid var(--active); }
+
+        /* AI 난이도 스타일 */
+        .ai-level-choice { background-color: #f8f9fa; color: #495057; border-color: #ced4da; }
+        .ai-level-choice.active { background-color: var(--active); color: #fff; border-color: var(--active); box-shadow: 0 2px 5px rgba(0,123,255,0.2); }
 
         .board-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .turn-badge { font-size: 16px; font-weight: 800; padding: 6px 14px; border-radius: 20px; background-color: #f8f9fa; border: 2px solid var(--text-main); }
@@ -240,7 +210,7 @@
         
         .formula-row-container { display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%; }
         .formula-row-container .player-stone-label { display: none; }
-        body.mode-2p .formula-row-container .player-stone-label { display: inline-block; }
+        body.mode-2p .formula-row-container .player-stone-label { display: inline-block; font-weight: 800; font-size: 16px; }
         .coord-format-text { font-size: 32px; font-weight: 800; color: var(--text-main); }
         .input-wrapper-inline { flex: 1; max-width: 250px; display: flex; justify-content: center; align-items: center; }
         
@@ -263,8 +233,61 @@
         .guide-record { border-left: 6px solid var(--danger); } .guide-record .guide-title { color: var(--danger); }
         .guide-keys { border-left: 6px solid var(--success); } .guide-keys .guide-title { color: var(--success); }
 
-        table { width: 100%; border-collapse: collapse; text-align: center; font-size: 15px; } th, td { border: 1px solid var(--border-color); padding: 12px; } th { background-color: #f8f9fa; font-weight: 700; color: var(--text-main); } td { font-weight: 800; color: var(--text-sub); }
-        
+        /* 누적 기록 세부 스타일 설정 */
+        .record-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .record-card {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .record-card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .record-stats {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .stat-value.win { color: var(--success); }
+        .stat-value.lose { color: var(--danger); }
+        .stat-value.black { color: #212529; }
+        .stat-value.white { color: #007bff; }
+
         .reset-btn { background-color: #fff; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; padding: 6px 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; } .reset-btn:hover { background-color: var(--danger); color: #fff; }
         .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; } .shortcut-item { display: flex; align-items: center; font-size: 14px; color: var(--text-sub); } kbd { background-color: #f1f3f5; border: 1px solid #adb5bd; border-radius: 6px; padding: 4px 8px; font-family: inherit; font-size: 13px; font-weight: 800; color: #333; margin-right: 10px; box-shadow: 0 2px 0 #adb5bd; }
 
@@ -349,6 +372,12 @@
             transform: scale(0.95);
         }
 
+        @media (max-width: 600px) {
+            .record-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 480px) {
             .coord-format-text { font-size: 24px; }
             .txt-input { height: 54px; font-size: 24px; }
@@ -394,10 +423,19 @@
             </div>
 
             <div class="turn-selector-box">
-                <div class="turn-selector-title" id="turnSelectorLabel">선공 플레이어 선택</div>
+                <div class="turn-selector-title">선공 플레이어 선택</div>
                 <div class="turn-btn-group">
                     <button type="button" class="turn-choice-btn black-choice active" id="btnStartBlack" onclick="setStartTurn(1)">● 흑돌 (선공)</button>
                     <button type="button" class="turn-choice-btn white-choice" id="btnStartWhite" onclick="setStartTurn(2)">○ 백돌 (후공)</button>
+                </div>
+            </div>
+
+            <div class="turn-selector-box" id="aiLevelBox">
+                <div class="turn-selector-title" style="margin-bottom:12px;">AI 난이도 선택</div>
+                <div class="turn-btn-group" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <button type="button" class="turn-choice-btn ai-level-choice active" id="btnLevel1" onclick="setAiLevel(1)">🐣 초급</button>
+                    <button type="button" class="turn-choice-btn ai-level-choice" id="btnLevel2" onclick="setAiLevel(2)">🐥 중급</button>
+                    <button type="button" class="turn-choice-btn ai-level-choice" id="btnLevel3" onclick="setAiLevel(3)">🦅 고급</button>
                 </div>
             </div>
         </div>
@@ -482,34 +520,47 @@
             </div>
         </div>
 
+        <!-- 누적 기록 영역 (혼자하기 및 둘이하기 분리) -->
         <div class="guide-box guide-record">
             <div class="guide-header">
                 <h2 class="guide-title">📊 누적 기록</h2>
                 <button class="reset-btn" onclick="openResetModal()">누적기록 초기화</button>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>모드</th>
-                        <th>승리 (흑돌)</th>
-                        <th>패배 (백돌)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>혼자하기 (vs AI)</td>
-                        <td id="aiWinCount">0</td>
-                        <td id="aiLoseCount">0</td>
-                    </tr>
-                    <tr>
-                        <td>둘이하기 (2인용)</td>
-                        <td id="p2WinCount">0</td>
-                        <td id="p2LoseCount">0</td>
-                    </tr>
-                </tbody>
-            </table>
+            
+            <div class="record-grid">
+                <!-- 혼자하기 (vs AI) 기록 -->
+                <div class="record-card">
+                    <div class="record-card-title">🤖 혼자하기 (vs AI)</div>
+                    <div class="record-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">플레이어 승리</span>
+                            <span class="stat-value win" id="aiWinCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">플레이어 패배</span>
+                            <span class="stat-value lose" id="aiLoseCount">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 둘이하기 (2인용) 기록 (흑돌/백돌 승리 분리) -->
+                <div class="record-card">
+                    <div class="record-card-title">🧑‍🤝‍🧑 둘이하기 (2인용)</div>
+                    <div class="record-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">● 흑돌 승리</span>
+                            <span class="stat-value black" id="p2BlackWinCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">○ 백돌 승리</span>
+                            <span class="stat-value white" id="p2WhiteWinCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- 규칙 안내 -->
         <div class="guide-box guide-rules">
             <div class="guide-header"><h2 class="guide-title">◈ 퍼즐 규칙</h2></div>
             <ul>
@@ -521,6 +572,7 @@
             </ul>
         </div>
 
+        <!-- 키보드 단축키 안내 -->
         <div class="guide-box guide-keys">
             <div class="guide-header"><h2 class="guide-title">⌨ 키보드 단축키</h2></div>
             <div class="shortcut-grid">
@@ -550,10 +602,17 @@
             btnMode2P: document.getElementById('btnMode2P'),
             btnStartBlack: document.getElementById('btnStartBlack'),
             btnStartWhite: document.getElementById('btnStartWhite'),
+            
+            // 난이도 버튼 추가
+            aiLevelBox: document.getElementById('aiLevelBox'),
+            btnLevel1: document.getElementById('btnLevel1'),
+            btnLevel2: document.getElementById('btnLevel2'),
+            btnLevel3: document.getElementById('btnLevel3'),
+
             aiWinCount: document.getElementById('aiWinCount'),
             aiLoseCount: document.getElementById('aiLoseCount'),
-            p2WinCount: document.getElementById('p2WinCount'),
-            p2LoseCount: document.getElementById('p2LoseCount'),
+            p2BlackWinCount: document.getElementById('p2BlackWinCount'),
+            p2WhiteWinCount: document.getElementById('p2WhiteWinCount'),
             inputSectionP1: document.getElementById('inputSectionP1'),
             inputSectionP2: document.getElementById('inputSectionP2'),
             txtP1: document.getElementById('txtP1'),
@@ -606,11 +665,12 @@
 
         const defaultState = {
             mode: MODE_AI,
+            aiLevel: 1, // 1: 초급, 2: 중급, 3: 고급
             startTurn: PLAYER_BLACK,
             aiWin: 0,
             aiLose: 0,
-            p2Win: 0,
-            p2Lose: 0,
+            p2Win: 0,  
+            p2Lose: 0, 
             history: {
                 [MODE_AI]: createEmptyGame(PLAYER_BLACK),
                 [MODE_2P]: createEmptyGame(PLAYER_BLACK)
@@ -618,6 +678,7 @@
         };
 
         let gameState = loadData() || JSON.parse(JSON.stringify(defaultState));
+        if (!gameState.aiLevel) gameState.aiLevel = 1;
         if (!gameState.history) gameState.history = {};
         if (!gameState.history[MODE_AI]) gameState.history[MODE_AI] = createEmptyGame(gameState.startTurn || PLAYER_BLACK);
         if (!gameState.history[MODE_2P]) gameState.history[MODE_2P] = createEmptyGame(gameState.startTurn || PLAYER_BLACK);
@@ -718,10 +779,20 @@
             DOM.btnStartBlack.classList.toggle('active', gameState.startTurn === PLAYER_BLACK);
             DOM.btnStartWhite.classList.toggle('active', gameState.startTurn === PLAYER_WHITE);
 
+            // AI 난이도 버튼 UI 업데이트
+            if (gameState.mode === MODE_AI) {
+                DOM.aiLevelBox.style.display = 'flex';
+                DOM.btnLevel1.classList.toggle('active', gameState.aiLevel === 1);
+                DOM.btnLevel2.classList.toggle('active', gameState.aiLevel === 2);
+                DOM.btnLevel3.classList.toggle('active', gameState.aiLevel === 3);
+            } else {
+                DOM.aiLevelBox.style.display = 'none';
+            }
+
             DOM.aiWinCount.textContent = gameState.aiWin;
             DOM.aiLoseCount.textContent = gameState.aiLose;
-            DOM.p2WinCount.textContent = gameState.p2Win;
-            DOM.p2LoseCount.textContent = gameState.p2Lose;
+            DOM.p2BlackWinCount.textContent = gameState.p2Win;
+            DOM.p2WhiteWinCount.textContent = gameState.p2Lose;
 
             if (gameState.mode === MODE_AI) {
                 DOM.p1WinCountBadge.textContent = `${gameState.aiWin}승`;
@@ -823,7 +894,6 @@
             return true;
         }
 
-        // [수정] 둘이하기 모드 진입 시 보드를 항상 초기화하여 재진입 시 시작 버튼이 표시되도록 처리
         function setMode(mode) {
             gameState.mode = mode;
             if (mode === MODE_2P) {
@@ -841,6 +911,13 @@
             gameState.history[gameState.mode] = createEmptyGame(turn);
             saveData();
             clearInput();
+            updateUI();
+        }
+
+        // 난이도 변경 함수
+        function setAiLevel(level) {
+            gameState.aiLevel = level;
+            saveData();
             updateUI();
         }
 
@@ -1082,11 +1159,11 @@
                 }
             } else {
                 if (player === PLAYER_BLACK) {
-                    gameState.p2Win++;
+                    gameState.p2Win++; 
                     title = "🎉 흑돌 승리!";
                     desc = "흑돌 플레이어가 오목을 완성했습니다.";
                 } else {
-                    gameState.p2Lose++;
+                    gameState.p2Lose++; 
                     title = "🎉 백돌 승리!";
                     desc = "백돌 플레이어가 오목을 완성했습니다.";
                 }
@@ -1097,6 +1174,7 @@
             showResultModal(title, desc, btnText, isSuccess);
         }
 
+        // 난이도별 최적화된 AI 계산 로직
         function aiCalculateMove() {
             const currentData = gameState.history[gameState.mode];
             if (currentData.isGameOver) return;
@@ -1104,9 +1182,24 @@
             const aiPlayer = currentData.currentPlayer;
             const humanPlayer = aiPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
 
-            let bestScore = -1;
-            let bestMoves = [];
+            let hasStones = false;
+            for(let r=0; r<BOARD_SIZE; r++){
+                for(let c=0; c<BOARD_SIZE; c++){
+                    if(board[r][c] !== 0) {
+                        hasStones = true;
+                        break;
+                    }
+                }
+                if (hasStones) break;
+            }
+            
+            // 보드에 돌이 하나도 없으면 정중앙 착수
+            if (!hasStones) {
+                executeMove(7, 7);
+                return;
+            }
 
+            // 점수 평가 함수
             function evaluatePos(r, c, playerType) {
                 let score = 0;
                 const directions = [[0,1], [1,0], [1,1], [1,-1]];
@@ -1131,6 +1224,7 @@
                 return score;
             }
 
+            let moveList = [];
             for (let r = 0; r < BOARD_SIZE; r++) {
                 for (let c = 0; c < BOARD_SIZE; c++) {
                     if (board[r][c] !== 0) continue;
@@ -1139,23 +1233,60 @@
                     const defenseScore = evaluatePos(r, c, humanPlayer);
                     const totalScore = attackScore + defenseScore * 1.2;
 
-                    if (totalScore > bestScore) {
-                        bestScore = totalScore;
-                        bestMoves = [{r, c}];
-                    } else if (totalScore === bestScore) {
-                        bestMoves.push({r, c});
-                    }
+                    moveList.push({r, c, totalScore, attackScore, defenseScore});
                 }
             }
 
-            let move;
-            if (bestMoves.length > 0) {
-                move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
-            } else {
-                move = {r: 7, c: 7};
+            // 점수 내림차순 정렬
+            moveList.sort((a, b) => b.totalScore - a.totalScore);
+            
+            let level = gameState.aiLevel || 1;
+            let selectedMove;
+
+            if (level === 1) { 
+                // [초급] 
+                // 가끔 방어를 안 하고 엉뚱한 수를 두는 확률 추가 (실수 유발)
+                let maxIndex = Math.min(moveList.length, 3);
+                if (moveList[0].totalScore < 10000 && Math.random() < 0.4) {
+                    maxIndex = Math.min(moveList.length, 15); // 방어가 시급하지 않을 때 넓은 범위에서 무작위 선택
+                }
+                let randIdx = Math.floor(Math.random() * maxIndex);
+                selectedMove = moveList[randIdx];
+                
+            } else if (level === 2) { 
+                // [중급]
+                // 가장 합계 점수가 높은 수 중에서 랜덤 선택 (기존 로직과 동일)
+                let bestScore = moveList[0].totalScore;
+                let bests = moveList.filter(m => m.totalScore === bestScore);
+                selectedMove = bests[Math.floor(Math.random() * bests.length)];
+                
+            } else { 
+                // [고급]
+                // 수비와 공격 가중치를 더 섬세하게 조절하여 상대의 필승 패턴(4목, 3목 등)을 무조건 방어
+                moveList.forEach(m => {
+                    let a = m.attackScore;
+                    let d = m.defenseScore;
+                    m.hardScore = a + (d * 1.5); // 방어를 더 중시
+                    
+                    // 치명적인 상황 필터링
+                    if (a >= 100000) m.hardScore += 1000000;      // 내가 5목 완성
+                    else if (d >= 100000) m.hardScore += 500000; // 상대 5목 방어
+                    else if (a >= 10000) m.hardScore += 100000;  // 내 4목 완성
+                    else if (d >= 10000) m.hardScore += 50000;   // 상대 4목 방어
+                    else if (d >= 1000) m.hardScore += 10000;    // 상대 열린 3목 방어
+                });
+                
+                moveList.sort((a, b) => b.hardScore - a.hardScore);
+                let bestHardScore = moveList[0].hardScore;
+                let bests = moveList.filter(m => m.hardScore === bestHardScore);
+                selectedMove = bests[Math.floor(Math.random() * bests.length)];
             }
 
-            executeMove(move.r, move.c);
+            if (selectedMove) {
+                executeMove(selectedMove.r, selectedMove.c);
+            } else {
+                executeMove(7, 7);
+            }
         }
 
         function showResultModal(title, desc, btnText, isSuccess) {
@@ -1214,7 +1345,6 @@
             else if (e.key === 'Backspace') backspaceInput();
             else if (e.key === 'Escape') clearInput();
             else if (e.key === 'Enter') { e.preventDefault(); handlePlaceStone(); }
-            else if (e.key === 'u' || e.key === 'U') { e.preventDefault(); handleUndo(); }
         });
 
         window.addEventListener('DOMContentLoaded', updateUI);
