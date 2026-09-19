@@ -894,7 +894,18 @@
             return true;
         }
 
-        function setMode(mode) {
+        function setMode(mode, isFromPopState = false) {
+            if (!isFromPopState) {
+                if (mode === MODE_2P && gameState.mode !== MODE_2P) {
+                    history.pushState({ mode: MODE_2P }, '', '#2p');
+                } else if (mode === MODE_AI && gameState.mode === MODE_2P) {
+                    if (history.state && history.state.mode === MODE_2P) {
+                        history.back();
+                        return;
+                    }
+                }
+            }
+
             gameState.mode = mode;
             if (mode === MODE_2P) {
                 gameState.history[MODE_2P] = createEmptyGame(gameState.startTurn);
@@ -905,6 +916,12 @@
             clearInput();
             updateUI();
         }
+
+        window.addEventListener('popstate', function(e) {
+            if (gameState.mode === MODE_2P) {
+                setMode(MODE_AI, true);
+            }
+        });
 
         function setStartTurn(turn) {
             gameState.startTurn = turn;
@@ -1347,7 +1364,15 @@
             else if (e.key === 'Enter') { e.preventDefault(); handlePlaceStone(); }
         });
 
-        window.addEventListener('DOMContentLoaded', updateUI);
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({ mode: MODE_AI }, '', location.pathname + location.search);
+            }
+            if (gameState.mode === MODE_2P) {
+                window.history.pushState({ mode: MODE_2P }, '', '#2p');
+            }
+            updateUI();
+        });
     </script>
 </body>
 </html>
